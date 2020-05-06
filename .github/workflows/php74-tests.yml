@@ -1,0 +1,80 @@
+name: branch-php74-tests
+
+on:
+  push:
+    branches:
+      - php74
+  pull_request:
+    branches:
+      - php74
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  test-in-php74:
+    name: Branch php74 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+       fail-fast: false
+       matrix:
+         os: [ubuntu-latest]
+         php: [7.4]
+         testbench: [^5.0, ^4.0, 3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
+         dependency-prefer: [prefer-stable, prefer-lowest]
+         exclude:
+           - testbench: 3.8.*
+             dependency-prefer: prefer-lowest
+           - testbench: 3.7.*
+             dependency-prefer: prefer-lowest
+           - testbench: 3.6.*
+             dependency-prefer: prefer-lowest
+           - testbench: 3.5.*
+             dependency-prefer: prefer-lowest
+           - testbench: 3.4.*
+             dependency-prefer: prefer-lowest
+         include:
+           - testbench: ^5.0
+             phpunit: ^8.5 || ^9.0
+           - testbench: ^4.0
+             phpunit: ^8.4 || ^9.0
+           - testbench: 3.8.*
+             phpunit: ^7.5 || ^8.0
+           - testbench: 3.7.*
+             phpunit: ^7.0
+           - testbench: 3.6.*
+             phpunit: ^7.0
+           - testbench: 3.5.*
+             phpunit: ~6.0
+           - testbench: 3.4.*
+             phpunit: ~5.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, pdo_sqlite
+          coverage: none
+
+      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      - name: Determine composer's cache directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies (composer)
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies (composer)
+        run: |
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --no-suggest
+
+      - name: Execute tests
+        run: vendor/bin/phpunit

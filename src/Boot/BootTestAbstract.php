@@ -1,0 +1,226 @@
+<?php
+
+namespace CodeDistortion\Adapt\Boot;
+
+use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\DIContainer;
+use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+
+/**
+ * Bootstrap Adapt for tests.
+ */
+abstract class BootTestAbstract implements BootTestInterface
+{
+    /**
+     * The name of the test being run.
+     *
+     * @var string|null
+     */
+    protected ?string $testName = null;
+
+    /**
+     * The properties that were present in the test-class.
+     *
+     * @var PropBagDTO|null
+     */
+    protected ?PropBagDTO $propBag = null;
+
+    /**
+     * Whether a browser test is being run.
+     *
+     * @var boolean
+     */
+    protected bool $browserTestDetected = false;
+
+    /**
+     * The closure to call to start a db transaction.
+     *
+     * @var callable|null
+     */
+    protected $transactionClosure = null;
+
+    /**
+     * The callback closure to call that will initialise the DatabaseBuilder/s.
+     *
+     * @var callable|null
+     */
+    private $initCallback = null;
+
+    /**
+     * The database builders made by this object (so they can be executed afterwards).
+     *
+     * @var DatabaseBuilder[]
+     */
+    private array $builders = [];
+
+    /**
+     * The DIContainer to be used.
+     *
+     * @var DIContainer|null
+     */
+//    protected ?DIContainer $di = null;
+
+
+    /**
+     * Set the name of the test being run.
+     *
+     * @param string $testName The name of the test being run.
+     * @return static
+     */
+    public function testName(string $testName): self
+    {
+        $this->testName = $testName;
+        return $this;
+    }
+
+    /**
+     * Specify the properties that were present in the test-class.
+     *
+     * @param PropBagDTO $propBag A populated PropBagDTO.
+     * @return static
+     */
+    public function props(PropBagDTO $propBag): self
+    {
+        $this->propBag = $propBag;
+        return $this;
+    }
+
+    /**
+     * Specify if a browser test is being run.
+     *
+     * @param boolean $browserTestDetected Whether or not a browser test is being run.
+     * @return static
+     */
+    public function browserTestDetected(bool $browserTestDetected): self
+    {
+        $this->browserTestDetected = $browserTestDetected;
+        return $this;
+    }
+
+    /**
+     * Specify the closure to call to start a db transaction.
+     *
+     * @param callable $transactionClosure The closure to use.
+     * @return static
+     */
+    public function transactionClosure(callable $transactionClosure): self
+    {
+        $this->transactionClosure = $transactionClosure;
+        return $this;
+    }
+
+    /**
+     * Specify the callback closure to call that will initialise the DatabaseBuilder/s.
+     *
+     * @param callable|null $initCallback The closure to use.
+     * @return static
+     */
+    public function initCallback(?callable $initCallback): self
+    {
+        $this->initCallback = $initCallback;
+        return $this;
+    }
+
+    /**
+     * Specify the DIContainer to use.
+     *
+     * @param DIContainer $di The DIContainer to use.
+     * @return static
+     */
+//    public function setDI(DIContainer $di): self
+//    {
+//        $this->di = $di;
+//        return $this;
+//    }
+
+    /**
+     * Store the give DatabaseBuilder.
+     *
+     * @param DatabaseBuilder $builder The database builder to store.
+     * @return void
+     */
+    public function addBuilder(DatabaseBuilder $builder): void
+    {
+        $this->builders[] = $builder;
+    }
+
+    /**
+     * Run the process to build the databases.
+     *
+     * @return void
+     */
+    public function run(): void
+    {
+//        $this->resolveDI();
+        $this->initBuilders();
+        $this->executeBuilders();
+    }
+
+    /**
+     * Initialise the builders, calling the custom databaseInit method if it has been defined.
+     *
+     * @return void
+     */
+    private function initBuilders(): void
+    {
+        $builder = $this->newDefaultBuilder();
+
+        if ($this->initCallback) {
+            $callback = $this->initCallback;
+            $callback($builder);
+        }
+    }
+
+    /**
+     * Create a new DatabaseBuilder object based on the "default" database connection.
+     *
+     * @return DatabaseBuilder
+     */
+    abstract protected function newDefaultBuilder(): DatabaseBuilder;
+
+    /**
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    abstract protected function newBuilder(string $connection): DatabaseBuilder;
+
+    /**
+     * Execute the builders that this object created (ie. build their databases).
+     *
+     * Any that have already been executed will be skipped.
+     *
+     * @return void
+     */
+    private function executeBuilders(): void
+    {
+        foreach ($this->builders as $builder) {
+            if (!$builder->hasExecuted()) {
+                $builder->execute();
+            }
+        }
+    }
+
+    /**
+     * Use the existing DIContainer, but build a default one if it hasn't been set.
+     *
+     * @return void
+     */
+//    private function resolveDI(): void
+//    {
+//        if (!$this->di) {
+//            $this->setDI($this->defaultDI());
+//        }
+//    }
+
+    /**
+     * Build a default DIContainer object.
+     *
+     * @param string $connection The connection to start using.
+     * @return DIContainer
+     */
+    abstract protected function defaultDI(string $connection): DIContainer;
+}

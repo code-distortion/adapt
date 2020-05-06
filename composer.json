@@ -1,0 +1,70 @@
+{
+    "name": "code-distortion/adapt",
+    "description": "A replacement for Laravel's DatabaseMigrations, RefreshDatabase and DatabaseTransactions testing traits allowing for different db connections per-test and caches of migrated+seeded databases to improve speed.",
+    "keywords": [
+        "laravel",
+        "phpunit",
+        "pest",
+        "tests",
+        "unit tests",
+        "integration tests",
+        "feature tests",
+        "browser tests",
+        "database",
+        "speed",
+        "migrations",
+        "seeders",
+        "transactions",
+        "DatabaseMigrations",
+        "RefreshDatabase",
+        "DatabaseTransactions"
+    ],
+    "homepage": "https://github.com/code-distortion/adapt",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Tim Chandler",
+            "email": "tim@code-distortion.net"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "code-distortion/fluent-dotenv": "^0.1.0"
+    },
+    "require-dev": {
+        "fzaninotto/faker": "^1.9",
+        "orchestra/testbench": "^3.2 || ^4.0 || ^5.0",
+        "phpstan/phpstan": "^0.7 || ^0.8 || ^0.9 || ^0.10 || ^0.11 || ^0.12",
+        "phpunit/phpunit": "~4.8 || ^5.0 || ^6.0 || ^7.0 || ^8.0 || ^9.0",
+        "squizlabs/php_codesniffer": "^3.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "CodeDistortion\\Adapt\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CodeDistortion\\Adapt\\Tests\\": "tests",
+            "CodeDistortion\\Adapt\\Tests\\Database\\Seeders\\": "tests/workspaces/current/database/seeds"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon --level=8 .",
+        "phpcs": "vendor/bin/phpcs ."
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "CodeDistortion\\Adapt\\LaravelServiceProvider"
+            ]
+        }
+    }
+}
