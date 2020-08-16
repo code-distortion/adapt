@@ -68,7 +68,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param string $testName The name of the test being run.
      * @return static
      */
-    public function testName(string $testName): self
+    public function testName(string $testName)
     {
         $this->testName = $testName;
         return $this;
@@ -80,7 +80,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param PropBagDTO $propBag A populated PropBagDTO.
      * @return static
      */
-    public function props(PropBagDTO $propBag): self
+    public function props(PropBagDTO $propBag)
     {
         $this->propBag = $propBag;
         return $this;
@@ -104,7 +104,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param callable $transactionClosure The closure to use.
      * @return static
      */
-    public function transactionClosure(callable $transactionClosure): self
+    public function transactionClosure(callable $transactionClosure)
     {
         $this->transactionClosure = $transactionClosure;
         return $this;
@@ -116,7 +116,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param callable|null $initCallback The closure to use.
      * @return static
      */
-    public function initCallback($initCallback): self
+    public function initCallback($initCallback)
     {
         $this->initCallback = $initCallback;
         return $this;

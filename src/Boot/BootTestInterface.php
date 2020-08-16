@@ -15,7 +15,7 @@ interface BootTestInterface
      * @param string $testName The name of the test being run.
      * @return static
      */
-    public function testName(string $testName): self;
+    public function testName(string $testName);
 
     /**
      * Specify the properties that were present in the test-class.
@@ -23,7 +23,7 @@ interface BootTestInterface
      * @param PropBagDTO $propBag A populated PropBagDTO.
      * @return static
      */
-    public function props(PropBagDTO $propBag): self;
+    public function props(PropBagDTO $propBag);
 
     /**
      * Specify the closure to call to start a db transaction.
@@ -31,7 +31,7 @@ interface BootTestInterface
      * @param callable $transactionClosure The closure to use.
      * @return static
      */
-    public function transactionClosure(callable $transactionClosure): self;
+    public function transactionClosure(callable $transactionClosure);
 
     /**
      * Specify the callback closure to call that will initialise the DatabaseBuilder/s.
@@ -39,7 +39,7 @@ interface BootTestInterface
      * @param callable|null $initCallback The closure to use.
      * @return static
      */
-    public function initCallback($initCallback): self;
+    public function initCallback($initCallback);
 
 //    /**
 //     * Specify the DIContainer to use.
@@ -47,7 +47,7 @@ interface BootTestInterface
 //     * @param DIContainer $di The DIContainer to use.
 //     * @return static
 //     */
-//    public function setDI(DIContainer $di): self;
+//    public function setDI(DIContainer $di);
 
 
     /**
