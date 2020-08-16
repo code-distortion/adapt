@@ -14,7 +14,7 @@ abstract class PropBagDTO
      *
      * @var mixed[];
      */
-    private array $props = [];
+    private $props = [];
 
     /**
      * Add a property.
@@ -39,7 +39,7 @@ abstract class PropBagDTO
      * @return mixed
      * @throws AdaptPropBagDTOException Thrown when the property hasn't been set.
      */
-    public function prop(?string $name, $default = null)
+    public function prop($name, $default = null)
     {
         if (!$this->hasProp($name)) {
             $hasDefault = (func_num_args() >= 2);
@@ -57,7 +57,7 @@ abstract class PropBagDTO
      * @param string|null $name The name of the property.
      * @return mixed
      */
-    public function hasProp(?string $name)
+    public function hasProp($name)
     {
         return isset($this->props[$name]);
     }

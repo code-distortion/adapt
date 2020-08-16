@@ -22,14 +22,14 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @var PropBagDTO
      */
-    protected PropBagDTO $propBag;
+    protected $propBag;
 
     /**
      * Whether this set-up object's initialisation has been run yet or not.
      *
      * @var boolean
      */
-    private bool $initialised = false;
+    private $initialised = false;
 
 
     /**
@@ -37,7 +37,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return void
      */
-    protected function initialiseAdapt(): void
+    protected function initialiseAdapt()
     {
         if ($this->initialised) {
             return;
@@ -55,7 +55,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return void
      */
-    private function buildPropBag(): void
+    private function buildPropBag()
     {
         $propNames = [
             'preMigrationImports',
@@ -85,7 +85,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return void
      */
-    private function prepareLaravelConfig(): void
+    private function prepareLaravelConfig()
     {
         $this->initLaravelDefaultConnection();
         $this->remapLaravelDBConnections();
@@ -97,7 +97,7 @@ trait LaravelAdaptTestSetUpTrait
      * @return void
      * @throws AdaptConfigException Thrown when the desired default connection doesn't exist.
      */
-    private function initLaravelDefaultConnection(): void
+    private function initLaravelDefaultConnection()
     {
         if (!$this->propBag->hasProp('defaultConnection')) {
             return;
@@ -116,7 +116,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return void
      */
-    private function remapLaravelDBConnections(): void
+    private function remapLaravelDBConnections()
     {
         foreach ($this->parseRemapDBStrings() as $dest => $src) {
             $replacement = config("database.connections.$src");
@@ -150,7 +150,7 @@ trait LaravelAdaptTestSetUpTrait
      * @return array
      * @throws AdaptConfigException Thrown when the string can't be interpreted.
      */
-    private function parseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
+    private function parseRemapDBString($remapString, $getImportant, bool $isConfig): array
     {
         if (is_null($remapString)) {
             return [];
@@ -194,7 +194,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return void
      */
-    private function bootTheTest(): void
+    private function bootTheTest()
     {
         (new BootTestLaravel)
             ->testName(get_class($this).' - "'.$this->getName().'"')
@@ -266,7 +266,7 @@ trait LaravelAdaptTestSetUpTrait
      *
      * @return callable|null
      */
-    private function adaptBuildInitCallback(): ?callable
+    private function adaptBuildInitCallback()
     {
         if (!method_exists(static::class, 'databaseInit')) {
             return null;

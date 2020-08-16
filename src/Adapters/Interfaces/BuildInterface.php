@@ -24,7 +24,7 @@ interface BuildInterface
      *
      * @return void
      */
-    public function resetDB(): void;
+    public function resetDB();
 
     /**
      * Migrate the database.
@@ -32,7 +32,7 @@ interface BuildInterface
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
      */
-    public function migrate(?string $migrationsPath): void;
+    public function migrate($migrationsPath);
 
     /**
      * Run the given seeders.
@@ -40,7 +40,7 @@ interface BuildInterface
      * @param string[] $seeders The seeders to run.
      * @return void
      */
-    public function seed(array $seeders): void;
+    public function seed(array $seeders);
 
     /**
      * Determine if a transaction can (and should) be used on this database.
@@ -54,5 +54,5 @@ interface BuildInterface
      *
      * @return void
      */
-    public function applyTransaction(): void;
+    public function applyTransaction();
 }

@@ -36,7 +36,7 @@ class CacheListDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function cache_list_dto_can_set_and_get_values(): void
+    public function cache_list_dto_can_set_and_get_values()
     {
         $snapshotMetaDTO1 = new SnapshotMetaDTO;
         $snapshotMetaDTO2 = new SnapshotMetaDTO;

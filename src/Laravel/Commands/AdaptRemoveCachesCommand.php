@@ -80,7 +80,7 @@ class AdaptRemoveCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function listDatabases(CacheListDTO $cacheListDTO): void
+    private function listDatabases(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->databases) {
             $this->warn(PHP_EOL.'These test-databases will be DELETED:'.PHP_EOL);
@@ -99,7 +99,7 @@ class AdaptRemoveCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function listSnapshotPaths(CacheListDTO $cacheListDTO): void
+    private function listSnapshotPaths(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->snapshots) {
             $this->warn(PHP_EOL.'These snapshots will be DELETED:'.PHP_EOL);
@@ -115,7 +115,7 @@ class AdaptRemoveCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function deleteDatabases(CacheListDTO $cacheListDTO): void
+    private function deleteDatabases(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->databases) {
             $this->info(PHP_EOL.'Test-databases:'.PHP_EOL);
@@ -138,7 +138,7 @@ class AdaptRemoveCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function deleteSnapshots(CacheListDTO $cacheListDTO): void
+    private function deleteSnapshots(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->snapshots) {
 

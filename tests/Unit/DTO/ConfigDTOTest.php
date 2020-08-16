@@ -232,7 +232,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null): void
+    public function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null)
     {
         $config = new ConfigDTO;
 
@@ -241,7 +241,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             call_user_func_array($callable, $params);
         }
 
-        $outcome ??= $params;
+        $outcome = $outcome ?? $params;
         foreach ($outcome as $name => $value) {
             $this->assertSame($value, $config->$name);
         }
@@ -253,7 +253,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_pick_seeders_to_include_getter(): void
+    public function test_pick_seeders_to_include_getter()
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
         $config = (new ConfigDTO)->seeders($seeders);
@@ -326,7 +326,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param mixed  $expected            The expected output.
      * @return void
      */
-    public function test_pick_pre_migration_dumps_getter(array $preMigrationImports, string $driver, $expected): void
+    public function test_pick_pre_migration_dumps_getter(array $preMigrationImports, string $driver, $expected)
     {
         $this->assertSame(
             $expected,

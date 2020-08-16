@@ -17,21 +17,21 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @var string|null
      */
-    protected ?string $testName = null;
+    protected $testName = null;
 
     /**
      * The properties that were present in the test-class.
      *
      * @var PropBagDTO|null
      */
-    protected ?PropBagDTO $propBag = null;
+    protected $propBag = null;
 
     /**
      * Whether a browser test is being run.
      *
      * @var boolean
      */
-    protected bool $browserTestDetected = false;
+    protected $browserTestDetected = false;
 
     /**
      * The closure to call to start a db transaction.
@@ -52,7 +52,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @var DatabaseBuilder[]
      */
-    private array $builders = [];
+    private $builders = [];
 
     /**
      * The DIContainer to be used.
@@ -116,7 +116,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param callable|null $initCallback The closure to use.
      * @return static
      */
-    public function initCallback(?callable $initCallback): self
+    public function initCallback($initCallback): self
     {
         $this->initCallback = $initCallback;
         return $this;
@@ -140,7 +140,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param DatabaseBuilder $builder The database builder to store.
      * @return void
      */
-    public function addBuilder(DatabaseBuilder $builder): void
+    public function addBuilder(DatabaseBuilder $builder)
     {
         $this->builders[] = $builder;
     }
@@ -150,7 +150,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-    public function run(): void
+    public function run()
     {
 //        $this->resolveDI();
         $this->initBuilders();
@@ -162,7 +162,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-    private function initBuilders(): void
+    private function initBuilders()
     {
         $builder = $this->newDefaultBuilder();
 
@@ -195,7 +195,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-    private function executeBuilders(): void
+    private function executeBuilders()
     {
         foreach ($this->builders as $builder) {
             if (!$builder->hasExecuted()) {

@@ -61,7 +61,7 @@ class SnapshotMetaDTOTest extends PHPUnitTestCase
         string $path,
         int $size,
         string $expectedReadable
-    ): void {
+    ) {
 
         $snapshotMetaDTO = (new SnapshotMetaDTO)->path($path)->size($size);
         $this->assertSame($path, $snapshotMetaDTO->path);

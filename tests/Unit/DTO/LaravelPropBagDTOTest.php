@@ -101,7 +101,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * @param mixed[]  $check Attempts to get values back out and check the result.
      * @return void
      */
-    public function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check): void
+    public function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check)
     {
         // add some values to the bag
         $propBag = new LaravelPropBagDTO;
@@ -141,7 +141,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_the_config_getter(): void
+    public function test_the_config_getter()
     {
         config(['code-distortion.adapt.existing-value' => 'config value']);
         $propBag = (new LaravelPropBagDTO)->addProp('existingValue', 'prop value');

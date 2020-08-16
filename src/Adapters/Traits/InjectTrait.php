@@ -16,14 +16,14 @@ trait InjectTrait
      *
      * @var DIContainer
      */
-    protected DIContainer $di;
+    protected $di;
 
     /**
      * A DTO containing the settings to use.
      *
      * @var ConfigDTO
      */
-    protected ConfigDTO $config;
+    protected $config;
 
 
     /**

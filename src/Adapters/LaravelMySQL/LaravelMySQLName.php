@@ -51,7 +51,7 @@ class LaravelMySQLName implements NameInterface
      * @return void
      * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
      */
-    private function validateDBName(string $database): void
+    private function validateDBName(string $database)
     {
         if (mb_strlen($database) > 64) {
             throw AdaptLaravelMySQLAdapterException::yourDatabaseNameIsTooLongCouldYouChangeItThx($database);

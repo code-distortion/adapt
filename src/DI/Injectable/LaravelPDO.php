@@ -16,7 +16,7 @@ class LaravelPDO
      *
      * @var PDO
      */
-    private PDO $pdo;
+    private $pdo;
 
 
     /**
@@ -29,8 +29,8 @@ class LaravelPDO
      */
     public function __construct(
         string $dsn,
-        ?string $username,
-        ?string $password,
+        $username,
+        $password,
         array $connectOptions
     ) {
         $this->pdo = new PDO($dsn, $username, $password, $connectOptions);
@@ -99,7 +99,7 @@ class LaravelPDO
      * @param string $query The query to run to fetch the reuse-data.
      * @return stdClass|null
      */
-    public function fetchReuseTableInfo(string $query): ?stdClass
+    public function fetchReuseTableInfo(string $query)
     {
         try {
             $pdoStatement = $this->pdo->query($query);

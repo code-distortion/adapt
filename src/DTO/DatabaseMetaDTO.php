@@ -14,14 +14,14 @@ class DatabaseMetaDTO
      *
      * @var string|null
      */
-    public ?string $name = null;
+    public $name = null;
 
     /**
      * The size of the database file in bytes.
      *
      * @var integer|null
      */
-    public ?int $size = null;
+    public $size = null;
 
 
     /**
@@ -42,7 +42,7 @@ class DatabaseMetaDTO
      * @param integer|null $size The size of the database in bytes.
      * @return static
      */
-    public function size(?int $size): self
+    public function size($size): self
     {
         $this->size = $size;
         return $this;

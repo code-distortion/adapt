@@ -16,21 +16,21 @@ trait InjectInclHasherTrait
      *
      * @var DIContainer
      */
-    protected DIContainer $di;
+    protected $di;
 
     /**
      * A DTO containing the settings to use.
      *
      * @var ConfigDTO
      */
-    protected ConfigDTO $config;
+    protected $config;
 
     /**
      * A Hasher that's used to generate and check hashes.
      *
      * @var Hasher
      */
-    protected Hasher $hasher;
+    protected $hasher;
 
 
     /**

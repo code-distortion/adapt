@@ -21,7 +21,7 @@ class LaravelSQLiteBuild implements BuildInterface
      *
      * @return void
      */
-    public function resetDB(): void
+    public function resetDB()
     {
         if ($this->databaseExists()) {
             $this->wipeDBSQLite();
@@ -47,7 +47,7 @@ class LaravelSQLiteBuild implements BuildInterface
      *
      * @return void
      */
-    private function wipeDBSQLite(): void
+    private function wipeDBSQLite()
     {
         if ($this->isMemoryDatabase()) {
             return;
@@ -69,7 +69,7 @@ class LaravelSQLiteBuild implements BuildInterface
      *
      * @return void
      */
-    private function createDB(): void
+    private function createDB()
     {
         if ($this->isMemoryDatabase()) {
             return;
@@ -88,7 +88,7 @@ class LaravelSQLiteBuild implements BuildInterface
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
      */
-    public function migrate(?string $migrationsPath): void
+    public function migrate($migrationsPath)
     {
         $this->laravelMigrate($migrationsPath);
     }
@@ -99,7 +99,7 @@ class LaravelSQLiteBuild implements BuildInterface
      * @param string[] $seeders The seeders to run.
      * @return void
      */
-    public function seed(array $seeders): void
+    public function seed(array $seeders)
     {
         $this->laravelSeed($seeders);
     }
@@ -122,7 +122,7 @@ class LaravelSQLiteBuild implements BuildInterface
      *
      * @return void
      */
-    public function applyTransaction(): void
+    public function applyTransaction()
     {
         $this->laravelApplyTransaction();
         $this->di->db->update("UPDATE`".Constants::REUSE_TABLE."` SET `inside_transaction` = 1");

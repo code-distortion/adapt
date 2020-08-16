@@ -61,7 +61,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         string $name,
         int $size,
         string $expectedReadable
-    ): void {
+    ) {
 
         $databaseMetaDTO = (new DatabaseMetaDTO)->name($name)->size($size);
         $this->assertSame($name, $databaseMetaDTO->name);

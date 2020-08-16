@@ -16,7 +16,7 @@ class LaravelDB
      *
      * @var string
      */
-    private string $connection;
+    private $connection;
 
 
     /**
@@ -136,7 +136,7 @@ class LaravelDB
      *
      * @return void
      */
-    public function dropAllTables(): void
+    public function dropAllTables()
     {
         // @todo make this work for database types other than mysql
         // @todo make sure this works with views
@@ -158,7 +158,7 @@ class LaravelDB
      *
      * @return void
      */
-    public function purge(): void
+    public function purge()
     {
         DB::purge($this->connection);
     }

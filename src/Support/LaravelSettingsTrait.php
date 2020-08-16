@@ -9,5 +9,5 @@ trait LaravelSettingsTrait
      *
      * @var string
      */
-    protected string $configName = 'code-distortion.adapt';
+    protected $configName = 'code-distortion.adapt';
 }

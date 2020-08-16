@@ -14,21 +14,21 @@ class LaravelLog
      *
      * @var float[]
      */
-    private array $timers = [];
+    private $timers = [];
 
     /**
      * Should messages be displayed via std-out?.
      *
      * @var boolean
      */
-    private bool $stdout;
+    private $stdout;
 
     /**
      * Should messages be sent to Laravel's logging mechanism?.
      *
      * @var boolean
      */
-    private bool $laravel;
+    private $laravel;
 
 
     /**
@@ -50,7 +50,7 @@ class LaravelLog
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info(string $message, int $timerRef = null): void
+    public function info(string $message, int $timerRef = null)
     {
         $this->output('info', $this->buildMessage($message, $timerRef));
     }
@@ -62,7 +62,7 @@ class LaravelLog
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function warning(string $message, int $timerRef = null): void
+    public function warning(string $message, int $timerRef = null)
     {
         $this->output('warning', $this->buildMessage($message, $timerRef));
     }
@@ -74,7 +74,7 @@ class LaravelLog
      * @param string $message  The message to log.
      * @return void
      */
-    private function output(string $logLevel, string $message): void
+    private function output(string $logLevel, string $message)
     {
         if ($this->stdout) {
             print 'ADAPT '.mb_strtoupper($logLevel).': '.$message.PHP_EOL;
@@ -102,7 +102,7 @@ class LaravelLog
      * @param integer|null $timerRef The timer to get the time taken from.
      * @return float|null
      */
-    public function getDuration(int $timerRef = null): ?float
+    public function getDuration(int $timerRef = null)
     {
         return isset($this->timers[$timerRef])
             ? microtime(true) - $this->timers[$timerRef]

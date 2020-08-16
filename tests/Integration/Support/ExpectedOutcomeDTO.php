@@ -9,21 +9,21 @@ class ExpectedOutcomeDTO
      *
      * @var string|null
      */
-    public ?string $databaseName = null;
+    public $databaseName = null;
 
     /**
      * The expected tables in the database.
      *
      * @var string[]
      */
-    public array $expectedTables = [];
+    public $expectedTables = [];
 
     /**
      * Values expected in certain tables.
      *
      * @var ExpectedValuesDTO[]
      */
-    public array $expectedValues = [];
+    public $expectedValues = [];
 
 
     /**

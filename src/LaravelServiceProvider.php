@@ -20,7 +20,7 @@ class LaravelServiceProvider extends BaseServiceProvider
      *
      * @return void
      */
-    public function register(): void
+    public function register()
     {
     }
 
@@ -29,7 +29,7 @@ class LaravelServiceProvider extends BaseServiceProvider
      *
      * @return void
      */
-    public function boot(): void
+    public function boot()
     {
         $this->initialiseConfig();
         $this->initialiseCommands();
@@ -41,7 +41,7 @@ class LaravelServiceProvider extends BaseServiceProvider
      *
      * @return void
      */
-    protected function initialiseConfig(): void
+    protected function initialiseConfig()
     {
         // initialise the config
         $configPath = __DIR__.'/../config/config.php';
@@ -63,7 +63,7 @@ class LaravelServiceProvider extends BaseServiceProvider
      *
      * @return void
      */
-    protected function initialiseCommands(): void
+    protected function initialiseCommands()
     {
         if ($this->app->runningInConsole()) {
             $this->commands([

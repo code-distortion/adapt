@@ -21,35 +21,35 @@ abstract class DBAdapter
      *
      * @var BuildInterface
      */
-    public BuildInterface $build;
+    public $build;
 
     /**
      * The "connection" part of this database-adapter.
      *
      * @var ConnectionInterface
      */
-    public ConnectionInterface $connection;
+    public $connection;
 
     /**
      * The "naming" part of this database-adapter.
      *
      * @var NameInterface
      */
-    public NameInterface $name;
+    public $name;
 
     /**
      * The "reuse" part of this database-adapter.
      *
      * @var ReuseInterface
      */
-    public ReuseInterface $reuse;
+    public $reuse;
 
     /**
      * The "snapshot" part of this database-adapter.
      *
      * @var SnapshotInterface
      */
-    public SnapshotInterface $snapshot;
+    public $snapshot;
 
 
     /**

@@ -39,7 +39,7 @@ interface BootTestInterface
      * @param callable|null $initCallback The closure to use.
      * @return static
      */
-    public function initCallback(?callable $initCallback): self;
+    public function initCallback($initCallback): self;
 
 //    /**
 //     * Specify the DIContainer to use.
@@ -55,5 +55,5 @@ interface BootTestInterface
      *
      * @return void
      */
-    public function run(): void;
+    public function run();
 }

@@ -12,7 +12,7 @@ class ConfigDTO
      *
      * @var string
      */
-    public string $projectName;
+    public $projectName;
 
 
     /**
@@ -20,21 +20,21 @@ class ConfigDTO
      *
      * @var string
      */
-    public string $connection;
+    public $connection;
 
     /**
      * The database driver to use when building the database ("mysql", "sqlite" etc).
      *
      * @var string|null
      */
-    public ?string $driver = null;
+    public $driver = null;
 
     /**
      * The name of the database to use.
      *
      * @var string|null
      */
-    public ?string $database = null;
+    public $database = null;
 
 
     /**
@@ -42,28 +42,28 @@ class ConfigDTO
      *
      * @var string
      */
-    public string $storageDir;
+    public $storageDir;
 
     /**
      * The prefix to add to snapshot filenames.
      *
      * @var string
      */
-    public string $snapshotPrefix;
+    public $snapshotPrefix;
 
     /**
      * The prefix to add to database names.
      *
      * @var string
      */
-    public string $databasePrefix;
+    public $databasePrefix;
 
     /**
      * The files and directories to look through. Changes to files will invalidate the snapshots.
      *
      * @var string[]
      */
-    public array $hashPaths;
+    public $hashPaths;
 
 
     /**
@@ -71,7 +71,7 @@ class ConfigDTO
      *
      * @var string[]|string[][]
      */
-    public array $preMigrationImports;
+    public $preMigrationImports;
 
     /**
      * Should the migrations be run? / the location of the migrations to run - if not then the database will be empty.
@@ -85,7 +85,7 @@ class ConfigDTO
      *
      * @var string[]
      */
-    public array $seeders;
+    public $seeders;
 
     /**
      * Is a browser test being run?.
@@ -94,7 +94,7 @@ class ConfigDTO
      *
      * @var boolean
      */
-    public bool $isBrowserTest;
+    public $isBrowserTest;
 
 
     /**
@@ -102,42 +102,42 @@ class ConfigDTO
      *
      * @var boolean
      */
-    public bool $reuseTestDBs;
+    public $reuseTestDBs;
 
     /**
      * When turned on, databases will be created for each scenario (based on migrations and seeders etc).
      *
      * @var boolean
      */
-    public bool $dynamicTestDBs;
+    public $dynamicTestDBs;
 
     /**
      * Should tests be encapsulated within transactions?.
      *
      * @var boolean
      */
-    public bool $transactions;
+    public $transactions;
 
     /**
      * When turned on, snapshot files will created and imported when available.
      *
      * @var boolean
      */
-    public bool $snapshotsEnabled;
+    public $snapshotsEnabled;
 
     /**
      * When turned on, a snapshot (dump/copy) of the database will be taken after migrations have been run.
      *
      * @var boolean
      */
-    public bool $takeSnapshotAfterMigrations;
+    public $takeSnapshotAfterMigrations;
 
     /**
      * When turned on, a snapshot (dump/copy) of the database will be taken after seeders have been run.
      *
      * @var boolean
      */
-    public bool $takeSnapshotAfterSeeders;
+    public $takeSnapshotAfterSeeders;
 
 
     /**
@@ -145,28 +145,28 @@ class ConfigDTO
      *
      * @var string
      */
-    public string $mysqlExecutablePath;
+    public $mysqlExecutablePath;
 
     /**
      * The path to the "mysqldump" executable.
      *
      * @var string
      */
-    public string $mysqldumpExecutablePath;
+    public $mysqldumpExecutablePath;
 
     /**
      * The path to the "psql" executable.
      *
      * @var string
      */
-    public string $psqlExecutablePath;
+    public $psqlExecutablePath;
 
     /**
      * The path to the "pg_dump" executable.
      *
      * @var string
      */
-    public string $pgDumpExecutablePath;
+    public $pgDumpExecutablePath;
 
 
     /**

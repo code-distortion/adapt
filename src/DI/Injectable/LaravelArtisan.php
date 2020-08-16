@@ -18,7 +18,7 @@ class LaravelArtisan
      * @param OutputInterface|null $outputBuffer The buffer to output to.
      * @return integer
      */
-    public function call(string $command, array $parameters = [], ?OutputInterface $outputBuffer = null): int
+    public function call(string $command, array $parameters = [], $outputBuffer = null): int
     {
         return Artisan::call($command, $parameters, $outputBuffer);
     }

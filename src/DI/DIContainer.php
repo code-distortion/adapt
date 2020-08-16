@@ -19,20 +19,20 @@ class DIContainer
      *
      * @var LaravelArtisan
      */
-    public LaravelArtisan $artisan;
+    public $artisan;
     /**
      * The LaravelConfig object to use.
      *
      * @var LaravelConfig
      */
-    public LaravelConfig $config;
+    public $config;
 
     /**
      * The LaravelDB object to use.
      *
      * @var LaravelDB
      */
-    public LaravelDB $db;
+    public $db;
 
     /**
      * The closure to call to start a database transaction.
@@ -46,21 +46,21 @@ class DIContainer
      *
      * @var Exec
      */
-    public Exec $exec;
+    public $exec;
 
     /**
      * The Filesystem object to use.
      *
      * @var Filesystem
      */
-    public Filesystem $filesystem;
+    public $filesystem;
 
     /**
      * The Log object to use.
      *
      * @var LaravelLog
      */
-    public LaravelLog $log;
+    public $log;
 
 
     /**
@@ -105,7 +105,7 @@ class DIContainer
      * @param callable|null $dbTransactionClosure The closure to store.
      * @return static
      */
-    public function dbTransactionClosure(?callable $dbTransactionClosure): self
+    public function dbTransactionClosure($dbTransactionClosure): self
     {
         $this->dbTransactionClosure = $dbTransactionClosure;
         return $this;

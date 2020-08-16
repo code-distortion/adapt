@@ -18,7 +18,7 @@ class LaravelSQLiteConnection implements ConnectionInterface
      *
      * @return void
      */
-    public function makeThisConnectionDefault(): void
+    public function makeThisConnectionDefault()
     {
         $this->laravelMakeThisConnectionDefault();
     }
@@ -29,7 +29,7 @@ class LaravelSQLiteConnection implements ConnectionInterface
      * @param string $database The name of the database to use.
      * @return void
      */
-    public function useDatabase(string $database): void
+    public function useDatabase(string $database)
     {
         $this->laravelUseDatabase($database);
     }

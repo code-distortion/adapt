@@ -26,7 +26,7 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @param boolean $reusable     Whether this database can be reused or not.
      * @return void
      */
-    public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable): void
+    public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable)
     {
         $this->di->db->statement("DROP TABLE IF EXISTS `".Constants::REUSE_TABLE."`");
         $this->di->db->statement(
@@ -118,7 +118,7 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @return string[]
      */
     public function findRelevantDatabases(
-        ?string $origDBName,
+        $origDBName,
         string $filesHash,
         bool $detectOld,
         bool $detectCurrent
@@ -160,8 +160,8 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @return boolean
      */
     private function isDatabaseRelevant(
-        ?stdClass $reuseInfo,
-        ?string $origDBName,
+        $reuseInfo,
+        $origDBName,
         string $filesHash,
         bool $detectOld,
         bool $detectCurrent
@@ -212,7 +212,7 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @param string $database The database to get the size of.
      * @return integer|null
      */
-    public function size(string $database): ?int
+    public function size(string $database)
     {
         return $this->di->filesystem->size($database);
     }

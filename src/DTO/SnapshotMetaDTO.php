@@ -14,14 +14,14 @@ class SnapshotMetaDTO
      *
      * @var string|null
      */
-    public ?string $path = null;
+    public $path = null;
 
     /**
      * The size of the snapshot file in bytes.
      *
      * @var integer|null
      */
-    public ?int $size = null;
+    public $size = null;
 
 
     /**
@@ -42,7 +42,7 @@ class SnapshotMetaDTO
      * @param integer|null $size The snapshot file size in bytes.
      * @return static
      */
-    public function size(?int $size): self
+    public function size($size): self
     {
         $this->size = $size;
         return $this;

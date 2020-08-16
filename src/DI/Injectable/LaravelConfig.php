@@ -14,7 +14,7 @@ class LaravelConfig
      *
      * @var string[]
      */
-    protected array $origDBNames = [];
+    protected $origDBNames = [];
 
     /**
      * Constructor.
@@ -29,7 +29,7 @@ class LaravelConfig
      *
      * @return void
      */
-    public function recordOrigDBNames(): void
+    public function recordOrigDBNames()
     {
         foreach (config('database.connections') as $conName => $connection) {
             $this->origDBNames[$conName] = $connection['database'];

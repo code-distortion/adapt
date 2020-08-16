@@ -84,7 +84,7 @@ class Filesystem
      * @param string $path The path being checked.
      * @return string|null
      */
-    public function realpath(string $path): ?string
+    public function realpath(string $path)
     {
         $path = realpath($path);
         return (is_string($path) ? $path : null);
@@ -97,9 +97,9 @@ class Filesystem
      * @param string|null $basePath The base-path prefix to remove.
      * @return string
      */
-    public function removeBasePath(string $path, ?string $basePath = null): string
+    public function removeBasePath(string $path, $basePath = null): string
     {
-        $basePath ??= realpath('.');
+        $basePath = $basePath ?? realpath('.');
         $basePath = rtrim($basePath, '/').'/';
 
         if (mb_substr($path, 0, mb_strlen($basePath)) == $basePath) {
@@ -168,7 +168,7 @@ class Filesystem
      * @param string $path The path of the file to hash.
      * @return string|null
      */
-    public function md5File(string $path): ?string
+    public function md5File(string $path)
     {
         $md5 = md5_file($path);
         return (is_string($md5) ? $md5 : null);
@@ -180,7 +180,7 @@ class Filesystem
      * @param string $path The path of the file to get the size of.
      * @return integer|null
      */
-    public function size(string $path): ?int
+    public function size(string $path)
     {
         $size = filesize($path);
         return (is_integer($size) ? $size : null);

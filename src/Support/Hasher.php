@@ -17,14 +17,14 @@ class Hasher
      *
      * @var string|null
      */
-    private ?string $snapshotHash = null;
+    private $snapshotHash = null;
 
     /**
      * The hash of the files that may affect the database - based on the files and directories in hashPaths.
      *
      * @var string|null
      */
-    private static ?string $sourceFilesHash = null;
+    private static $sourceFilesHash = null;
 
 
     /**
@@ -32,7 +32,7 @@ class Hasher
      *
      * @return void
      */
-    public static function resetStaticProps(): void
+    public static function resetStaticProps()
     {
         static::$sourceFilesHash = null;
     }
@@ -44,7 +44,8 @@ class Hasher
      */
     public function currentSnapshotHash(): string
     {
-        $this->snapshotHash ??= $this->generateSnapshotHash($this->config->pickSeedersToInclude());
+        $this->snapshotHash = $this->snapshotHash
+            ?? $this->generateSnapshotHash($this->config->pickSeedersToInclude());
         return $this->snapshotHash;
     }
 
@@ -208,7 +209,7 @@ class Hasher
      * @param string $snapshotHash The snapshot-hash to inspect.
      * @return string|null
      */
-    public function pickFileHashFromSnapshotHash(string $snapshotHash): ?string
+    public function pickFileHashFromSnapshotHash(string $snapshotHash)
     {
         // pick the first portion of the snapshot-hash - which is the files-hash
         if (preg_match(

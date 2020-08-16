@@ -29,7 +29,7 @@
         }
     ],
     "require": {
-        "php": "^7.4",
+        "php": "^7.0",
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "code-distortion/fluent-dotenv": "^0.1.0"

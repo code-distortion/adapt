@@ -30,7 +30,7 @@ interface ReuseInterface
      * @param boolean $reusable     Whether this database can be reused or not.
      * @return void
      */
-    public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable): void;
+    public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable);
 
     /**
      * Check to see if the database can be reused.
@@ -54,7 +54,7 @@ interface ReuseInterface
      * @return string[]
      */
     public function findRelevantDatabases(
-        ?string $origDBName,
+        $origDBName,
         string $filesHash,
         bool $detectOld,
         bool $detectCurrent
@@ -75,5 +75,5 @@ interface ReuseInterface
      * @param string $database The database to get the size of.
      * @return integer|null
      */
-    public function size(string $database): ?int;
+    public function size(string $database);
 }

@@ -9,21 +9,21 @@ class ExpectedValuesDTO
      *
      * @var string
      */
-    public string $table;
+    public $table;
 
     /**
      * The fields to fetch.
      *
      * @var string[]
      */
-    public array $fields = [];
+    public $fields = [];
 
     /**
      * Values expected in this table.
      *
      * @var mixed[]
      */
-    public array $values = [];
+    public $values = [];
 
     /**
      * ExpectedValuesDTO constructor.

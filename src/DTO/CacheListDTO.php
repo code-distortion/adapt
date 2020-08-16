@@ -12,14 +12,14 @@ class CacheListDTO
      *
      * @var SnapshotMetaDTO[]
      */
-    public array $snapshots = [];
+    public $snapshots = [];
 
     /**
      * The list of databases (per connection).
      *
      * @var DatabaseMetaDTO[][]
      */
-    public array $databases = [];
+    public $databases = [];
 
 
     /**

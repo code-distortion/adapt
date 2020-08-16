@@ -70,7 +70,7 @@ class AdaptListCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function listDatabases(CacheListDTO $cacheListDTO): void
+    private function listDatabases(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->databases) {
             $this->info(PHP_EOL.'Test-databases:'.PHP_EOL);
@@ -89,7 +89,7 @@ class AdaptListCachesCommand extends Command
      * @param CacheListDTO $cacheListDTO The CacheListDTO to get values from.
      * @return void
      */
-    private function listSnapshotPaths(CacheListDTO $cacheListDTO): void
+    private function listSnapshotPaths(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->snapshots) {
             $this->info(PHP_EOL.'Snapshots:'.PHP_EOL);

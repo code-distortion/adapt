@@ -12,7 +12,7 @@ trait LaravelConnectionTrait
      *
      * @return void
      */
-    protected function laravelMakeThisConnectionDefault(): void
+    protected function laravelMakeThisConnectionDefault()
     {
         config(['database.default' => $this->config->connection]);
 
@@ -25,7 +25,7 @@ trait LaravelConnectionTrait
      * @param string $database The name of the database to use.
      * @return void
      */
-    protected function laravelUseDatabase(string $database): void
+    protected function laravelUseDatabase(string $database)
     {
         $connection = $this->config->connection;
         $this->config->database($database);

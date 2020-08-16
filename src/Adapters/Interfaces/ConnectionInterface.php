@@ -24,7 +24,7 @@ interface ConnectionInterface
      *
      * @return void
      */
-    public function makeThisConnectionDefault(): void;
+    public function makeThisConnectionDefault();
 
     /**
      * Tell the adapter to use the given database name.
@@ -32,5 +32,5 @@ interface ConnectionInterface
      * @param string $database The name of the database to use.
      * @return void
      */
-    public function useDatabase(string $database): void;
+    public function useDatabase(string $database);
 }

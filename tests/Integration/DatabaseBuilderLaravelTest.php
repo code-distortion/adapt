@@ -40,7 +40,7 @@ class DatabaseBuilderLaravelTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_database_builder_only_runs_once(): void
+    public function test_database_builder_only_runs_once()
     {
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
@@ -61,7 +61,7 @@ class DatabaseBuilderLaravelTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_database_builder_creates_adapt_test_storage_dir(): void
+    public function test_database_builder_creates_adapt_test_storage_dir()
     {
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
@@ -76,7 +76,7 @@ class DatabaseBuilderLaravelTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_database_builder_creates_sqlite_database(): void
+    public function test_database_builder_creates_sqlite_database()
     {
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
@@ -165,7 +165,7 @@ class DatabaseBuilderLaravelTest extends LaravelTestCase
      * @param array     $expectedFiles The files expected to exist.
      * @return void
      */
-    public function test_database_builder_takes_snapshots(ConfigDTO $config, array $expectedFiles): void
+    public function test_database_builder_takes_snapshots(ConfigDTO $config, array $expectedFiles)
     {
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
@@ -328,7 +328,7 @@ class DatabaseBuilderLaravelTest extends LaravelTestCase
     public function test_different_scenarios(
         ConfigDTO $config,
         ExpectedOutcomeDTO $expectedOutcome
-    ): void {
+    ) {
 
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 

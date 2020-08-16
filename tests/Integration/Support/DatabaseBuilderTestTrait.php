@@ -23,42 +23,42 @@ trait DatabaseBuilderTestTrait
      *
      * @var string
      */
-    private string $workspaceBaseDir = 'tests/workspaces';
+    private $workspaceBaseDir = 'tests/workspaces';
 
     /**
      * The current workspace directory - used during testing.
      *
      * @var string
      */
-    private string $wsCurrentDir = 'tests/workspaces/current';
+    private $wsCurrentDir = 'tests/workspaces/current';
 
     /**
      * The current workspace adapt-test-storage directory.
      *
      * @var string
      */
-    private string $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
+    private $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
 
     /**
      * The current workspace databases directory.
      *
      * @var string
      */
-    private string $wsDatabaseDir = 'tests/workspaces/current/database/databases';
+    private $wsDatabaseDir = 'tests/workspaces/current/database/databases';
 
     /**
      * The current workspace migrations directory.
      *
      * @var string
      */
-    private string $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
+    private $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
 
     /**
      * The current workspace pre-migration-imports directory.
      *
      * @var string
      */
-    private string $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
+    private $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
 
 
     /**
@@ -119,10 +119,10 @@ trait DatabaseBuilderTestTrait
      * @param DIContainer|null $di     The DIContainer to use.
      * @return DatabaseBuilder
      */
-    private function newDatabaseBuilder(?ConfigDTO $config = null, ?DIContainer $di = null): DatabaseBuilder
+    private function newDatabaseBuilder($config = null, $di = null): DatabaseBuilder
     {
-        $config ??= $this->newConfigDTO('sqlite');
-        $di ??= $this->newDIContainer($config->connection);
+        $config = $config ?? $this->newConfigDTO('sqlite');
+        $di = $di ?? $this->newDIContainer($config->connection);
 
         $pickDriver = function (string $connection) {
             return config("database.connections.$connection.driver", 'unknown');
@@ -139,7 +139,7 @@ trait DatabaseBuilderTestTrait
      * @param string $destDir   The directory to replace.
      * @return void
      */
-    private function prepareWorkspace(string $sourceDir, string $destDir): void
+    private function prepareWorkspace(string $sourceDir, string $destDir)
     {
         $this->delTree($destDir);
         $this->copyDirRecursive($sourceDir, $destDir);
@@ -173,7 +173,7 @@ trait DatabaseBuilderTestTrait
      * @param string $destDir   The directory to write to (will be created if it doesn't exist).
      * @return void
      */
-    private function copyDirRecursive(string $sourceDir, string $destDir): void
+    private function copyDirRecursive(string $sourceDir, string $destDir)
     {
         @mkdir($destDir);
         $files = array_diff(scandir($sourceDir), ['.', '..']);
@@ -212,7 +212,7 @@ trait DatabaseBuilderTestTrait
      * @param string $dir The directory to look for config files in.
      * @return void
      */
-    private function loadConfigs(string $dir): void
+    private function loadConfigs(string $dir)
     {
         foreach ($this->pickConfigFiles($dir) as $configName => $path) {
             config([$configName => require($path)]);
@@ -276,7 +276,7 @@ trait DatabaseBuilderTestTrait
      * @param string $connection
      * @return string|null
      */
-    private function getDBDriver(string $connection): ?string
+    private function getDBDriver(string $connection)
     {
         return config("database.connections.$connection.driver", 'unknown');
     }
@@ -288,7 +288,7 @@ trait DatabaseBuilderTestTrait
      * @param array  $expectedTables The expected tables.
      * @throws Exception
      */
-    private function assertTableList(string $connection, array $expectedTables): void
+    private function assertTableList(string $connection, array $expectedTables)
     {
         switch ($this->getDBDriver($connection)) {
             case 'mysql':
@@ -315,7 +315,7 @@ trait DatabaseBuilderTestTrait
      * @param string            $connection     The connection to query on.
      * @param ExpectedValuesDTO $expectedValues The expected values.
      */
-    private function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues): void
+    private function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues)
     {
         $escFields = "`".implode('`, `', $expectedValues->fields)."`";
         $rows = DB::connection($connection)->select("SELECT ".$escFields." FROM `".$expectedValues->table."`");
@@ -346,7 +346,7 @@ trait DatabaseBuilderTestTrait
         array $values,
         array $expected,
         bool $sort = false
-    ): void {
+    ) {
         $rows = DB::connection($connection)->select($query, $values);
 
         $values =[];

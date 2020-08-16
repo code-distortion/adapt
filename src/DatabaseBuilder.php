@@ -25,21 +25,21 @@ class DatabaseBuilder
      *
      * @var string
      */
-    protected string $framework;
+    protected $framework;
 
     /**
      * The name of the current test.
      *
      * @var string
      */
-    protected string $testName;
+    protected$testName;
 
     /**
      * The available database adapters.
      *
      * @var string[][]
      */
-    private array $availableDBAdapters = [
+    private $availableDBAdapters = [
         'laravel' => [
             'mysql' => LaravelMySQLAdapter::class,
             'sqlite' => LaravelSQLiteAdapter::class,
@@ -52,14 +52,14 @@ class DatabaseBuilder
      *
      * @var DIContainer
      */
-    private DIContainer $di;
+    private $di;
 
     /**
      * A DTO containing the settings to use.
      *
      * @var ConfigDTO
      */
-    private ConfigDTO $config;
+    private $config;
 
     /**
      * The closure to call to get the driver for a connection.
@@ -73,7 +73,7 @@ class DatabaseBuilder
      *
      * @var Hasher
      */
-    private Hasher $hasher;
+    private $hasher;
 
 
     /**
@@ -81,35 +81,35 @@ class DatabaseBuilder
      *
      * @var boolean
      */
-    private bool $executed = false;
+    private $executed = false;
 
     /**
      * Whether or not old snapshots have been cleaned up yet. Happens once per test-run.
      *
      * @var boolean[]
      */
-    private static array $removedSnapshots = [];
+    private static $removedSnapshots = [];
 
     /**
      * Whether or not old databases have been cleaned up yet. Happens once per database.
      *
      * @var boolean[][][]
      */
-    private static array $removedOldDatabases = [];
+    private static $removedOldDatabases = [];
 
     /**
      * The object that will do the database specific work.
      *
      * @var DBAdapter|null
      */
-    private ?DBAdapter $dbAdapter = null;
+    private $dbAdapter = null;
 
     /**
      * Whether this is the first test being run in the suite or not.
      *
      * @var boolean
      */
-    private static bool $firstRun = true;
+    private static $firstRun = true;
 
 
     /**
@@ -143,7 +143,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    public static function resetStaticProps(): void
+    public static function resetStaticProps()
     {
         static::$removedSnapshots = static::$removedOldDatabases = [];
         static::$firstRun = true;
@@ -438,7 +438,7 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptBuildException Thrown when this object is executed more than once.
      */
-    private function onlyExecuteOnce(): void
+    private function onlyExecuteOnce()
     {
         if ($this->hasExecuted()) {
             throw AdaptBuildException::databaseBuilderAlreadyExecuted();
@@ -534,7 +534,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function initialise(): void
+    private function initialise()
     {
         $this->ensureStorageDirExists();
         $this->pickDriver();
@@ -555,7 +555,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function prepareDB(): void
+    private function prepareDB()
     {
         $this->di->log->info('---- Preparing a database for test: '.$this->testName.' ----------------');
         $this->di->log->info('Using connection "'.$this->config->connection.'" (driver "'.$this->config->driver.'")');
@@ -573,7 +573,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function pickAndUseDatabase(): void
+    private function pickAndUseDatabase()
     {
         $this->dbAdapter()->connection->useDatabase($this->pickDatabase());
     }
@@ -599,7 +599,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function buildOrReuseDB(): void
+    private function buildOrReuseDB()
     {
         $logTimer = $this->di->log->newTimer();
 
@@ -622,7 +622,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function buildDBFresh(): void
+    private function buildDBFresh()
     {
         $this->di->log->info('Building database…');
         $logTimer = $this->di->log->newTimer();
@@ -645,7 +645,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function buildDBFromSnapshot(): void
+    private function buildDBFromSnapshot()
     {
         $seeders = $this->config->pickSeedersToInclude();
         $seedersLeftToRun = [];
@@ -665,7 +665,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function buildDBFromScratch(): void
+    private function buildDBFromScratch()
     {
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
@@ -681,7 +681,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function migrate(): void
+    private function migrate()
     {
         if (!$this->config->migrations) {
             return;
@@ -702,7 +702,7 @@ class DatabaseBuilder
      * @param string[]|null $seeders The seeders to run - will run all if not passed.
      * @return void
      */
-    private function seed(array $seeders = null): void
+    private function seed(array $seeders = null)
     {
         if (!$this->seedingIsAllowed()) {
             return;
@@ -729,7 +729,7 @@ class DatabaseBuilder
      * @param string[] $seeders The seeders that are included in this database.
      * @return void
      */
-    private function takeDBSnapshot(array $seeders): void
+    private function takeDBSnapshot(array $seeders)
     {
         if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
             $logTimer = $this->di->log->newTimer();
@@ -744,7 +744,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function importPreMigrationDumps(): void
+    private function importPreMigrationDumps()
     {
         foreach ($this->config->pickPreMigrationDumps() as $path) {
             $logTimer = $this->di->log->newTimer();
@@ -759,7 +759,7 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptConfigException Thrown when the directory could not be created.
      */
-    private function ensureStorageDirExists(): void
+    private function ensureStorageDirExists()
     {
         $storageDir = $this->config->storageDir;
 
@@ -925,7 +925,7 @@ class DatabaseBuilder
      * @param boolean $isOld If this snapshot is "old" - affects the log message.
      * @return void
      */
-    private function removeSnapshotFile(string $path, bool $isOld = false): void
+    private function removeSnapshotFile(string $path, bool $isOld = false)
     {
         $logTimer = $this->di->log->newTimer();
         $this->di->filesystem->unlink($path);

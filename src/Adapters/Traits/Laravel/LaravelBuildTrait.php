@@ -17,7 +17,7 @@ trait LaravelBuildTrait
      *
      * @return void
      */
-    protected function wipeDB(): void
+    protected function wipeDB()
     {
         $logTimer = $this->di->log->newTimer();
 
@@ -49,7 +49,7 @@ trait LaravelBuildTrait
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
      */
-    protected function laravelMigrate(?string $migrationsPath): void
+    protected function laravelMigrate($migrationsPath)
     {
         $logTimer = $this->di->log->newTimer();
 
@@ -88,7 +88,7 @@ trait LaravelBuildTrait
      * @return void
      * @throws AdaptBuildException Thrown when the seeder couldn't be run.
      */
-    protected function laravelSeed(array $seeders): void
+    protected function laravelSeed(array $seeders)
     {
         foreach ($seeders as $seeder) {
 
@@ -118,7 +118,7 @@ trait LaravelBuildTrait
      *
      * @return void
      */
-    protected function laravelApplyTransaction(): void
+    protected function laravelApplyTransaction()
     {
         $closure = $this->di->dbTransactionClosure;
         if (is_callable($closure)) {
