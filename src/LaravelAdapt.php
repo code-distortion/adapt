@@ -128,13 +128,15 @@ trait LaravelAdapt
 //    protected string $defaultConnection = 'mysql';
 
     /**
-     * Customise the database/s that are set up.
+     * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:
      * $this->newBuilder(string $connection), and then altering its settings.
      *
-     * @param DatabaseBuilder $builder The initial $databaseBuilder - with the
-     *                                 default settings.
+     * Each $builder object starts with the combined settings from the config
+     * and properties from this test-class.
+     *
+     * @param DatabaseBuilder $builder Used to create the first database.
      * @return void
      */
 //    protected function databaseInit(DatabaseBuilder $builder): void
@@ -144,8 +146,8 @@ trait LaravelAdapt
 //            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
 //        ];
 //
-//        // the DatabaseBuilder $builder will contain settings based on the config and properties above
-//        // you can override them like so:
+//        // the DatabaseBuilder $builder will contain settings based on the
+//        // config and properties above. You can override them like so:
 //        $builder
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
@@ -157,12 +159,9 @@ trait LaravelAdapt
 //            ->isBrowserTest() // or isNotBrowserTest()
 //            ->makeDefault(); // make the "default" connection point to this database
 //
-//        // define a second database that will be created
-//        // the DatabaseBuilder $builder2 will contain settings based on the config and properties above
+//        // define a second database
 //        $connection = 'mysql2';
 //        $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
-//
-//        // you can override them like so:
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            // ...

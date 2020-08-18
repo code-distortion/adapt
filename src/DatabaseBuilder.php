@@ -391,7 +391,7 @@ class DatabaseBuilder
     public function getDatabase(): string
     {
         if (!$this->config->database) {
-            $this->pickAndUseDatabase();
+            $this->pickDatabaseNameAndUse();
         }
         return (string) $this->config->database;
     }
@@ -503,6 +503,11 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterMigrations(): bool
     {
+        // override setting when a browser test is detected
+        if ($this->config->isBrowserTest) {
+            return false;
+        }
+
         if (!$this->config->snapshotsEnabled) {
             return false;
         }
@@ -521,6 +526,11 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterSeeders(): bool
     {
+        // override setting when a browser test is detected
+        if ($this->config->isBrowserTest) {
+            return true;
+        }
+
         if (!$this->config->snapshotsEnabled) {
             return false;
         }
@@ -561,7 +571,7 @@ class DatabaseBuilder
         $this->di->log->info('Using connection "'.$this->config->connection.'" (driver "'.$this->config->driver.'")');
 
         $this->removeDatabases(true, true, false);
-        $this->pickAndUseDatabase();
+        $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDB();
         if ($this->usingTransactions()) {
             $this->dbAdapter()->build->applyTransaction();
@@ -573,9 +583,9 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function pickAndUseDatabase()
+    private function pickDatabaseNameAndUse()
     {
-        $this->dbAdapter()->connection->useDatabase($this->pickDatabase());
+        $this->dbAdapter()->connection->useDatabase($this->pickDatabaseName());
     }
 
     /**
@@ -583,7 +593,7 @@ class DatabaseBuilder
      *
      * @return string
      */
-    private function pickDatabase(): string
+    private function pickDatabaseName(): string
     {
         // generate a new name
         if ($this->usingDynamicTestDBs()) {
@@ -968,7 +978,7 @@ class DatabaseBuilder
         // otherwise this might conflict with databases from other projects
         // - or even ones with a different name in the same project
         $key = (int) $lockToOrigDB.(int) $removeOld.(int) $removeCurrent.(int) $actuallyDelete;
-        $database = $this->pickDatabase();
+        $database = $this->pickDatabaseName();
         if (isset(static::$removedOldDatabases[$key][$this->config->driver][$database])) {
             return [];
         }

@@ -154,6 +154,9 @@ return [
     | If you use Adapt to seed many tests differently, it may be worth
     | also taking a snapshot 'after-migrations' (ie. before seeding).
     |
+    | Taking snapshots after seeding is useful when performing
+    | browser tests (eg. Dusk).
+    |
     | These config settings can be overridden by adding the $snapshotsEnabled,
     | $takeSnapshotAfterMigrations and $takeSnapshotAfterSeeders properties
     | to your test-class.
@@ -161,7 +164,7 @@ return [
     */
 
     'snapshots' => [
-        'enabled' => env('ADAPT_USE_SNAPSHOTS', true),
+        'enabled' => env('ADAPT_USE_SNAPSHOTS', false),
         'take-after-migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
         'take-after-seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
     ],

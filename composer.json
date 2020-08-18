@@ -1,6 +1,6 @@
 {
     "name": "code-distortion/adapt",
-    "description": "A replacement for Laravel's DatabaseMigrations, RefreshDatabase and DatabaseTransactions testing traits allowing for different db connections per-test and caches of migrated+seeded databases to improve speed.",
+    "description": "Builds test databases. A replacement for Laravel's RefreshDatabase, DatabaseMigrations & DatabaseTransactions test-traits with extra speed improvements.",
     "keywords": [
         "laravel",
         "phpunit",

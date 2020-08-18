@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - php74
+      - php74-test
   pull_request:
     branches:
       - php74
