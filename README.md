@@ -7,21 +7,23 @@
 [![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://offset.earth/treeware?gift-trees)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
 
-***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and can drastically improve the preparation time by applying caching techniques.
+***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and **makes re-use practically instant.**
 
 ## Introduction
 
 Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) tests in Laravel you would use the *RefreshDatabase*, *DatabaseMigrations* or *DatabaseTransactions* traits to manage how your database is built.
 
-A big factor in how long this takes is the fact that the database is built from scratch every time your tests run. If your project has a lot of migrations, this can end up taking a long time.
+A big factor in how long this takes is the fact that the database is built from scratch every time your tests run. If your project has a lot of migrations, this can end up taking a long time. Even if you can, importing an sql file before each test-run can be slow.
 
-Adapt is a replacement for these traits which builds your test-databases and improves the speed of subsequent test-runs by avoiding the need to re-build them each time.
+Adapt is a replacement for these traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
 
 It allows for a high level of customisation, but **most likely all you'll need to do is apply it to your tests and it will work out of the box** (see the [usage](#usage) section below).
 
 ## Who will benefit from using Adapt?
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
+
+To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1, 6 & 7** and **PHP 7.0 - 7.4** on **Linux** and **MacOS**.
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -35,14 +37,29 @@ Install the package via composer:
 composer require code-distortion/adapt --dev
 ```
 
-Adapt integrates with Laravel 5.5+ automatically thanks to Laravel's package auto-detection. For Laravel 5.0 - 5.4, add the following line to `config/app.php`:
+Adapt integrates with Laravel 5.5+ automatically thanks to Laravel's package auto-detection. For Laravel 5.0 - 5.4, add the following line to `app/Providers/AppServiceProvider.php` to enable it only in your local / testing environment:
 
 ``` php
-'providers' => [
+<?php
+// app/Providers/AppServiceProvider.php
+
+namespace App\Providers;
+…
+use CodeDistortion\Adapt\LaravelServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
     …
-    CodeDistortion\Adapt\LaravelServiceProvider::class,
-    …
-],
+    public function register()
+    {
+        // **** add this to the register() method ****
+        if ($this->app->environment(['local', 'testing'])) {
+            $this->app->register(LaravelServiceProvider::class);
+        }
+
+        …
+    }
+}
 ```
 
 #### Config
@@ -145,7 +162,7 @@ Adapt will reuse test-databases provided they were left in a clean state. To mai
 
 This setting is best used in conjunction with the [dynamic database creation](#dynamic-database-creation) caching below.
 
-This is turned **ON** by default.
+Test database reuse is turned **ON** by default.
 
 ### Dynamic Database Creation
 
@@ -155,7 +172,7 @@ These scenarios then co-exist allowing each of them to be re-used straight away 
 
 And so, this setting is best used in conjunction with the [reuse of test-databases](#reuse-of-test-databases) caching above.
 
-This is turned **ON** by default.
+Dynamic database creation is turned **ON** by default.
 
 ### Database Snapshots
 
@@ -167,7 +184,7 @@ Snapshot files are stored in the `database/adapt-test-storage` directory (config
 
 This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
 
-This is turned **OFF** by default.
+Database snapshots are turned **OFF** by default.
 
 ***Note***: SQLite database files aren't exported and imported, they are simply copied.
 
@@ -386,7 +403,7 @@ When browser testing some cache settings need to be turned off.
 
 The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
 
-Adapt detects when a Dusk test is running and turns them off **automatically** (and turns [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.  
+Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.  
 
 ### I have my own database dump that I'd like to import&hellip;
 

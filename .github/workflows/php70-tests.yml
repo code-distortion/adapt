@@ -13,12 +13,12 @@ on:
 
 jobs:
   test-in-php74:
-    name: Branch php70 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         php: [7.4]
         testbench: [^5.0, ^4.0, 3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
@@ -80,12 +80,12 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php73:
-    name: Branch php70 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         php: [7.3]
         testbench: [^5.0, ^4.0, 3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
@@ -143,12 +143,12 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php72:
-    name: Branch php70 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         php: [7.2]
         testbench: [^5.0, ^4.0, 3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
@@ -206,12 +206,12 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php71:
-    name: Branch php70 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         php: [7.1]
         testbench: [3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
@@ -265,12 +265,12 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php70:
-    name: Branch php70 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         php: ["7.0"]
         testbench: [3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]

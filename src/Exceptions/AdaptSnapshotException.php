@@ -51,7 +51,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysql client "'.$path.'" executable isn\'t available to use '
-            .'(check that it has been installed and that the path is correct)'
+            .'(please check the code-distortion.adapt.database.mysql config settings)'
         );
     }
 
@@ -65,7 +65,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysqldump executable "'.$path.'" isn\'t available to use'
-            .'(check that it has been installed and that the path is correct)'
+            .'(please check the code-distortion.adapt.database.mysql config settings)'
         );
     }
 
