@@ -23,7 +23,7 @@ It allows for a high level of customisation, but **most likely all you'll need t
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1** through to **7** and **PHP7.0** to **7.4**.
+To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1, 6 & 7** and **PHP 7.0 - 7.4** on **Linux** and **MacOS**.
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 

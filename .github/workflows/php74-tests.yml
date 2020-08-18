@@ -13,12 +13,12 @@ on:
 
 jobs:
   test-in-php74:
-    name: Branch php74 Tests - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.os }} - ${{ matrix.dependency-prefer }}
+    name: Branch php74 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
        fail-fast: false
        matrix:
-         os: [ubuntu-latest]
+         os: [ubuntu-latest, macos-latest]
          php: [7.4]
          testbench: [^5.0, ^4.0, 3.8.*, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
          dependency-prefer: [prefer-stable, prefer-lowest]
