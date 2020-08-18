@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - php70
+      - php70-test
   pull_request:
     branches:
       - php70
@@ -46,7 +47,7 @@ jobs:
           - testbench: 3.5.*
             phpunit: ~6.0
           - testbench: 3.4.*
-            phpunit: ~5.0
+            phpunit: ~5.7
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -102,13 +103,13 @@ jobs:
           - testbench: 3.5.*
             phpunit: ~6.0
           - testbench: 3.4.*
-            phpunit: ~5.0
+            phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.2.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.1.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
 
     steps:
       - name: Checkout code
@@ -165,13 +166,13 @@ jobs:
           - testbench: 3.5.*
             phpunit: ~6.0
           - testbench: 3.4.*
-            phpunit: ~5.0
+            phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.2.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.1.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
 
     steps:
       - name: Checkout code
@@ -224,13 +225,13 @@ jobs:
           - testbench: 3.5.*
             phpunit: ~6.0
           - testbench: 3.4.*
-            phpunit: ~5.0
+            phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.2.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.1.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
 
     steps:
       - name: Checkout code
@@ -277,13 +278,13 @@ jobs:
           - testbench: 3.5.*
             phpunit: ~6.0
           - testbench: 3.4.*
-            phpunit: ~5.0
+            phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.2.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
           - testbench: 3.1.*
-            phpunit: ~5.0
+            phpunit: ~4.8|~5.0
 
     steps:
       - name: Checkout code
