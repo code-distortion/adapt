@@ -133,8 +133,8 @@ trait LaravelAdapt
      * You may set up more test-databases by calling:
      * $this->newBuilder(string $connection), and then altering its settings.
      *
-     * Each $builder object starts with the config + the property settings
-     * from this class.
+     * Each $builder object starts with the combined settings from the config
+     * and properties from this test-class.
      *
      * @param DatabaseBuilder $builder Used to create the first database.
      * @return void

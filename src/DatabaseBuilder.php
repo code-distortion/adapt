@@ -503,6 +503,11 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterMigrations(): bool
     {
+        // override setting when a browser test is detected
+        if ($this->config->isBrowserTest) {
+            return false;
+        }
+
         if (!$this->config->snapshotsEnabled) {
             return false;
         }
@@ -521,6 +526,11 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterSeeders(): bool
     {
+        // override setting when a browser test is detected
+        if ($this->config->isBrowserTest) {
+            return true;
+        }
+
         if (!$this->config->snapshotsEnabled) {
             return false;
         }

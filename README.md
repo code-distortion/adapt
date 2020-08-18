@@ -133,9 +133,9 @@ You won't need to clear old databases and snapshot files as Adapt does this auto
 
 ## Caching Mechanisms
 
-Adapt combines three caching mechanisms to improve testing speed which are all turned on by default.
+Adapt uses these caching mechanisms to improve testing speed.
 
-**Note**: You can safely delete test-databases left by Adapt but **don't change data** in them as they will be reused and are assumed to be in a clean state.
+***Note***: You can safely delete test-databases left by Adapt but **don't change data** in them as they will be reused and are assumed to be in a clean state.
 
 ### Reuse Of Test-Databases
 
@@ -145,6 +145,8 @@ Adapt will reuse test-databases provided they were left in a clean state. To mai
 
 This setting is best used in conjunction with the [dynamic database creation](#dynamic-database-creation) caching below.
 
+This is turned **ON** by default.
+
 ### Dynamic Database Creation
 
 This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_341494d96f668950_ed40917d3e7f9b50* (so don't worry if you see them).
@@ -153,19 +155,21 @@ These scenarios then co-exist allowing each of them to be re-used straight away 
 
 And so, this setting is best used in conjunction with the [reuse of test-databases](#reuse-of-test-databases) caching above.
 
+This is turned **ON** by default.
+
 ### Database Snapshots
 
 As a database is migrated and/or seeded, a snapshot (eg. a .sql dump file) is taken ready for importing next time it's needed.
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed (and is ready to use).
 
-By default a snapshot is only taken after seeding.
-
 Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage-dir` config setting), and are safe to delete however you don't need to.
 
-***Note***: SQLite database files aren't exported and imported, they are simply copied.
-
 This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
+
+This is turned **OFF** by default.
+
+***Note***: SQLite database files aren't exported and imported, they are simply copied.
 
 
 
@@ -312,8 +316,8 @@ class MyTest extends TestCase
      * You may set up more test-databases by calling:
      * $this->newBuilder(string $connection), and then altering its settings.
      *
-     * Each $builder object starts with the config + the property settings
-     * from this class.
+     * Each $builder object starts with the combined settings from the config
+     * and properties from this test-class.
      *
      * @param DatabaseBuilder $builder Used to create the first database.
      * @return void
@@ -382,9 +386,7 @@ When browser testing some cache settings need to be turned off.
 
 The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
 
-Adapt detects when a Dusk test is running and turns them off **automatically**. You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.  
-
-[Snapshot](#database-snapshots) caching is useful in this situation.
+Adapt detects when a Dusk test is running and turns them off **automatically** (and turns [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.  
 
 ### I have my own database dump that I'd like to import&hellip;
 
