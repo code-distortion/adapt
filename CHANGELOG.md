@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.1.2] - 2020-08-19
+
+### Added
+- Updated the documentation to show that Laravel is supported as far back as 5.1 to match the test coverage
+- Improvements to documentation
+
+### Changed
+- Turned snapshots off by default in the config but turn on automatically when a browser test is detected
+
+### Fixed
+- The artisan command lists show the size of mysql databases
+
+
+
 ## [0.1.1] - 2020-08-17
 
 ### Changed
