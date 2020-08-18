@@ -7,7 +7,7 @@
 [![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://offset.earth/treeware?gift-trees)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
 
-***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package which builds databases for your tests and drastically improves the preparation time by applying caching techniques.
+***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and can drastically improve the preparation time by applying caching techniques.
 
 ## Introduction
 
@@ -17,13 +17,13 @@ A big factor in how long this takes is the fact that the database is built from 
 
 Adapt is a replacement for these traits which builds your test-databases and improves the speed of subsequent test-runs by avoiding the need to re-build them each time.
 
-It allows for a high level of customisation, but most likely all you'll need to do is apply it to your tests and it will work out of the box (see the [usage](#usage) section below).
+It allows for a high level of customisation, but **most likely all you'll need to do is apply it to your tests and it will work out of the box** (see the [usage](#usage) section below).
 
 ## Who will benefit from using Adapt?
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-The currently supported databases are: MySQL, SQLite and SQLite (:memory:).
+The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
 
 
@@ -55,7 +55,7 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\LaravelServiceProvid
 
 ## Usage
 
-For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like it to apply to, and update the `setUp()` method in your abstract TestCase class to make sure it boots.
+For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like it to apply to, and update the `setUp()` method in your abstract TestCase class to boot it.
 
 ``` php
 <?php
@@ -109,25 +109,25 @@ class MyTest extends TestCase
 
 Then just run your tests like normal.
 
-### Artisan Commands
-
-`php artisan adapt:list-db-caches` - See the databases and snapshot files that Adapt has created.
-
-You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
-
-`php artisan adapt:remove-db-caches` - Remove Adapt's databases and snapshot files.
-
 ### Usage Notes
 
 To carry out the different types of caching that this package uses, you may need to address the following:
 
 - The user/s your code connects to the database with need to have **permission to create and drop databases**.
 - The user your tests run as needs to have **write-access to the filesystem** to store snapshots and sqlite files.
-- When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the config.
+- When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
 - If you have several projects using Adapt that use the same database server, you should set the `project-name` config setting to a unique value in each to stop them from interfering with each other's test-databases.
-- If you see databases with names like *your_database_name_341494d96f668950zed40917d3e7f9b50*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
+- If you see databases with names like *your_database_name_341494d96f668950_ed40917d3e7f9b50*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
 
 See the [scenarios and techniques](#scenarios-and-techniques) section below for more tips.
+
+### Artisan Commands
+
+`php artisan adapt:list-db-caches` - See the databases and [snapshot files](#database-snapshots) that Adapt has created.
+
+You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
+
+`php artisan adapt:remove-db-caches` - Remove Adapt's databases and snapshot files.
 
 
 
@@ -147,7 +147,7 @@ This setting is best used in conjunction with the [dynamic database creation](#d
 
 ### Dynamic Database Creation
 
-This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_341494d96f668950zed40917d3e7f9b50* (so don't worry if you see them).
+This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_341494d96f668950_ed40917d3e7f9b50* (so don't worry if you see them).
 
 These scenarios then co-exist allowing each of them to be re-used straight away (without rebuilding for the current scenario).
 
@@ -155,25 +155,25 @@ And so, this setting is best used in conjunction with the [reuse of test-databas
 
 ### Database Snapshots
 
-With this option turned on, as a database is migrated and/or seeded, a snapshot (eg. a .sql dump file) is taken ready for importing next time it's needed.
+As a database is migrated and/or seeded, a snapshot (eg. a .sql dump file) is taken ready for importing next time it's needed.
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed (and is ready to use).
 
 By default a snapshot is only taken after seeding.
 
-Snapshot files are stored in the `storage-dir` directory (defined in the config file), and are safe to delete however you don't need to.
+Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage-dir` config setting), and are safe to delete however you don't need to.
 
 ***Note***: SQLite database files aren't exported and imported, they are simply copied.
 
-This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods need are turned off.
+This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
 
 
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots.
+So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre-migration-imports` files are also taken in to account).
 
-These invalid test-databases and snapshots will be cleaned up **automatically**, and fresh versions will be built the next time your tests run.
+These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
 This list of directories can be configured via the `look-for-changes-in` config setting.
 
@@ -307,13 +307,15 @@ class MyTest extends TestCase
     protected string $defaultConnection = 'mysql';
 
     /**
-     * Customise the database/s that are set up.
+     * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:
      * $this->newBuilder(string $connection), and then altering its settings.
      *
-     * @param DatabaseBuilder $builder The initial $databaseBuilder - with the
-     *                                 default settings.
+     * Each $builder object starts with the config + the property settings
+     * from this class.
+     *
+     * @param DatabaseBuilder $builder Used to create the first database.
      * @return void
      */
     protected function databaseInit(DatabaseBuilder $builder): void
@@ -323,8 +325,8 @@ class MyTest extends TestCase
             'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
         ];
 
-        // the DatabaseBuilder $builder will contain settings based on the config and properties above
-        // you can override them like so:
+        // the DatabaseBuilder $builder will contain settings based on the
+        // config and properties above. You can override them like so:
         $builder
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
             ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
@@ -336,12 +338,9 @@ class MyTest extends TestCase
             ->isBrowserTest() // or isNotBrowserTest()
             ->makeDefault(); // make the "default" connection point to this database
 
-        // define a second database that will be created
-        // the DatabaseBuilder $builder2 will contain settings based on the config and properties above
+        // define a second database
         $connection = 'mysql2';
         $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
-
-        // you can override them like so:
         $builder2
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
             // ...
@@ -371,11 +370,11 @@ You can take advantage of Adapt's caching by getting *it* to run your seeders. T
 
 By specifying them in your test-classes, you can run different seeders for different tests.
 
-By default, the regular `DatabaseSeeder` is run after the migrations.
+By default, the regular **DatabaseSeeder** is run after the migrations.
 
 ### My website uses database connections by name&hellip;
 
-If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you`ll want to look at the `remap-connections` setting to overwrite connections' details.
+If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you'll want to look at the `remap-connections` setting to overwrite connections' details.
 
 ### Performing browser testing (such as using Dusk)&hellip;
 

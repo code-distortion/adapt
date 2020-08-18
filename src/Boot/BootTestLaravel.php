@@ -80,6 +80,9 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
+     * The initial values are based on the config + the properties of the
+     * current test-class.
+     *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
      */
