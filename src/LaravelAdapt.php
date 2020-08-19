@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt;
 
-use CodeDistortion\Adapt\SetUp\LaravelAdaptTestSetUpTrait;
+use CodeDistortion\Adapt\SetUp\InitialiseLaravelAdapt;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -15,7 +15,7 @@ use CodeDistortion\Adapt\SetUp\LaravelAdaptTestSetUpTrait;
  */
 trait LaravelAdapt
 {
-    use LaravelAdaptTestSetUpTrait;
+    use InitialiseLaravelAdapt;
 
     /**
      * Specify database dump files to import before migrations run.
