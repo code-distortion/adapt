@@ -130,7 +130,7 @@ class LaravelPDO
                 return (int) array_shift($row);
             }
         } catch (Throwable $e) {
-            return false;
         }
+        return false;
     }
 }

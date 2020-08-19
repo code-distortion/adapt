@@ -1,19 +1,19 @@
-name: branch-php74-tests
+name: branch-latest-tests
 
 on:
   push:
     branches:
-      - php74
-      - php74-test
+      - latest
+      - latest-test
   pull_request:
     branches:
-      - php74
+      - latest
   schedule:
     - cron: '0 0 * * 0'
 
 jobs:
   test-in-php74:
-    name: Branch php74 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: latest - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
        fail-fast: false

@@ -1,19 +1,19 @@
-name: branch-php70-tests
+name: branch-master-tests
 
 on:
   push:
     branches:
-      - php70
-      - php70-test
+      - master
+      - master-test
   pull_request:
     branches:
-      - php70
+      - master
   schedule:
     - cron: '0 0 * * 0'
 
 jobs:
   test-in-php74:
-    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -80,7 +80,7 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php73:
-    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -143,7 +143,7 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php72:
-    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -206,7 +206,7 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php71:
-    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -265,7 +265,7 @@ jobs:
         run: vendor/bin/phpunit
 
   test-in-php70:
-    name: Branch php70 Tests - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

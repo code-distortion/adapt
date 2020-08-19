@@ -5,6 +5,9 @@ namespace CodeDistortion\Adapt\Tests\Database\Seeders;
 use DB;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seed the pre_migration_import table (which was created by the pre-migration sql file).
+ */
 class PreMigrationImportSeeder extends Seeder
 {
     /**

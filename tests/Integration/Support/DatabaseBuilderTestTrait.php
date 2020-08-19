@@ -73,7 +73,8 @@ trait DatabaseBuilderTestTrait
             ->artisan(new LaravelArtisan)
             ->config(new LaravelConfig)
             ->db((new LaravelDB)->useConnection($connection))
-            ->dbTransactionClosure(function () {})
+            ->dbTransactionClosure(function () {
+            })
             ->log(new LaravelLog(false, false))
             ->exec(new Exec)
             ->filesystem(new Filesystem);
@@ -273,7 +274,7 @@ trait DatabaseBuilderTestTrait
     /**
      * Determine the database driver for the given connection.
      *
-     * @param string $connection
+     * @param string $connection The connection to grab the database-driver for.
      * @return string|null
      */
     private function getDBDriver(string $connection)
@@ -284,9 +285,10 @@ trait DatabaseBuilderTestTrait
     /**
      * Check that the existing tables match an expected list.
      *
-     * @param string $connection     The connection to check on.
-     * @param array  $expectedTables The expected tables.
-     * @throws Exception
+     * @param string   $connection     The connection to check on.
+     * @param string[] $expectedTables The expected tables.
+     * @return void
+     * @throws Exception Thrown when an unknown database driver is found.
      */
     private function assertTableList(string $connection, array $expectedTables)
     {
@@ -314,13 +316,14 @@ trait DatabaseBuilderTestTrait
      *
      * @param string            $connection     The connection to query on.
      * @param ExpectedValuesDTO $expectedValues The expected values.
+     * @return void
      */
     private function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues)
     {
         $escFields = "`".implode('`, `', $expectedValues->fields)."`";
         $rows = DB::connection($connection)->select("SELECT ".$escFields." FROM `".$expectedValues->table."`");
 
-        $values = collect($rows)->map(function($row) use ($expectedValues) {
+        $values = collect($rows)->map(function ($row) use ($expectedValues) {
             $return = [];
             foreach ($expectedValues->fields as $field) {
                 $return[] = $row->$field;
@@ -339,6 +342,7 @@ trait DatabaseBuilderTestTrait
      * @param mixed[] $values     The values to use in the query.
      * @param array   $expected   The expected values.
      * @param boolean $sort       Sort the values before comparing?.
+     * @return void
      */
     private function assertQueryValues(
         string $connection,

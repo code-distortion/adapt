@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.1.4] - 2020-08-19
+
+### Added
+- Adapt is booted automatically now when the LaravelAdapt trait is present in a test (removed the need to update the base TestCase class setUp() method to initialise Adapt)
+
+
+
 ## [0.1.3] - 2020-08-19
 
 ### Added

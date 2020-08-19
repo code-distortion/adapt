@@ -13,9 +13,10 @@ use Laravel\Dusk\TestCase as DuskTestCase;
 /**
  * Allow Laravel tests to use Adapt.
  */
-trait LaravelAdaptTestSetUpTrait
+trait InitialiseLaravelAdapt
 {
     use LaravelSettingsTrait;
+
 
     /**
      * The properties specified in the test-class.
@@ -31,6 +32,19 @@ trait LaravelAdaptTestSetUpTrait
      */
     private $initialised = false;
 
+
+    /**
+     * Initialise Adapt automatically.
+     *
+     * @before
+     * @return void
+     */
+    protected function autoTriggerInitialisation()
+    {
+        $this->afterApplicationCreated(function () {
+            $this->initialiseAdapt();
+        });
+    }
 
     /**
      * Prepare and boot Adapt.

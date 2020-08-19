@@ -5,6 +5,9 @@ namespace CodeDistortion\Adapt\Tests\Database\Seeders;
 use DB;
 use Illuminate\Database\Seeder;
 
+/**
+ * See the user's table.
+ */
 class UserSeeder extends Seeder
 {
     /**

@@ -2,6 +2,9 @@
 
 namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
+/**
+ * DTO to represent expected field values in a particular table.
+ */
 class ExpectedValuesDTO
 {
     /**
@@ -28,9 +31,9 @@ class ExpectedValuesDTO
     /**
      * ExpectedValuesDTO constructor.
      *
-     * @param string $table  The table to expect values in.
-     * @param array  $fields The fields to check.
-     * @param array  $values The values expected in this table.
+     * @param string   $table  The table to expect values in.
+     * @param string[] $fields The fields to check.
+     * @param mixed[]  $values The values expected in this table.
      */
     public function __construct(string $table, array $fields, array $values)
     {
