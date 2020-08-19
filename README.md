@@ -15,15 +15,15 @@ Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) t
 
 A big factor in how long this takes is the fact that the database is built from scratch every time your tests run. If your project has a lot of migrations, this can end up taking a long time. Even if you can, importing an sql file before each test-run can be slow.
 
-Adapt is a replacement for these traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
-
-It allows for a high level of customisation, but **most likely all you'll need to do is apply it to your tests and it will work out of the box** (see the [usage](#usage) section below).
+> Adapt is a replacement for Laravel's test database traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
+>
+> It allows for a high level of [customisation](#customisation), but **most likely all you'll need to do is [apply it to your tests](#usage) and it will work out of the box**.
 
 ## Who will benefit from using Adapt?
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1, 6 & 7** and **PHP 7.0 - 7.4** on **Linux** and **MacOS**.
+To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** on **Linux** and **MacOS**.
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -37,7 +37,12 @@ Install the package via composer:
 composer require code-distortion/adapt --dev
 ```
 
-Adapt integrates with Laravel 5.5+ automatically thanks to Laravel's package auto-detection. For Laravel 5.0 - 5.4, add the following line to `app/Providers/AppServiceProvider.php` to enable it only in your local / testing environment:
+Adapt integrates with Laravel 5.5+ automatically thanks to Laravel's package auto-detection.
+
+<details><summary>(Click here for Laravel 5.0 - 5.4)</summary>
+<p>
+
+For Laravel 5.0 - 5.4, add the following to `app/Providers/AppServiceProvider.php` to enable it only in your local / testing environment:
 
 ``` php
 <?php
@@ -56,11 +61,12 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment(['local', 'testing'])) {
             $this->app->register(LaravelServiceProvider::class);
         }
-
         …
     }
 }
 ```
+</p>
+</details>
 
 #### Config
 
@@ -70,9 +76,48 @@ You can alter the default settings by publishing the `config/code-distortion.ada
 php artisan vendor:publish --provider="CodeDistortion\Adapt\LaravelServiceProvider" --tag="config"
 ```
 
+***Note***: The custom environment values you'd like to add should be put in your `.env.testing` file if you use one (rather than `.env`).
+
 ## Usage
 
-For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like it to apply to, and update the `setUp()` method in your abstract TestCase class to boot it.
+For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like a database for and away you go.
+
+Your migrations and seeders will be run ready for your tests.
+
+``` php
+<?php
+// tests/Integration/MyTest.php
+
+namespace Tests\Integration;
+
+use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+//use Illuminate\Foundation\Testing\DatabaseMigrations;   // not needed
+//use Illuminate\Foundation\Testing\DatabaseTransactions; // not needed
+//use Illuminate\Foundation\Testing\RefreshDatabase;      // not needed
+use Tests\TestCase;
+
+class MyTest extends TestCase
+{
+    use LaravelAdapt; // **** add this ****
+//  use RefreshDatabase;      // not needed
+//  use DatabaseMigrations;   // not needed
+//  use DatabaseTransactions; // not needed
+    …
+}
+```
+
+Just run your tests like normal.
+
+<details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
+<p>
+
+If you're using an old version and want to populate database data in your setUp() method, you'll run in to problems [because of this issue](https://github.com/sebastianbergmann/phpunit/issues/1616).
+
+- Either put this code into a seeder and have Adapt run that.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or
+
+- Add this to your base TestCase class to boot Adapt:
 
 ``` php
 <?php
@@ -99,32 +144,8 @@ abstract class TestCase extends BaseTestCase
     }
 }
 ```
-
-``` php
-<?php
-// tests/Integration/MyTest.php
-
-namespace Tests\Integration;
-
-use CodeDistortion\Adapt\LaravelAdapt;
-//use Illuminate\Foundation\Testing\DatabaseMigrations;
-//use Illuminate\Foundation\Testing\DatabaseTransactions;
-//use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-
-class MyTest extends TestCase
-{
-    use LaravelAdapt; // **** add this ****
-
-//  use RefreshDatabase;      // not needed
-//  use DatabaseMigrations;   // not needed
-//  use DatabaseTransactions; // not needed
-
-    // …
-}
-```
-
-Then just run your tests like normal.
+</p>
+</details>
 
 ### Usage Notes
 
@@ -140,11 +161,11 @@ See the [scenarios and techniques](#scenarios-and-techniques) section below for 
 
 ### Artisan Commands
 
-`php artisan adapt:list-db-caches` - See the databases and [snapshot files](#database-snapshots) that Adapt has created.
+`php artisan adapt:list-db-caches` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
 
 You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
 
-`php artisan adapt:remove-db-caches` - Remove Adapt's databases and snapshot files.
+`php artisan adapt:remove-db-caches` - Removes Adapt's databases and snapshot files.
 
 
 
@@ -162,7 +183,7 @@ Adapt will reuse test-databases provided they were left in a clean state. To mai
 
 This setting is best used in conjunction with the [dynamic database creation](#dynamic-database-creation) caching below.
 
-Test database reuse is turned **ON** by default.
+Test-database reuse is turned **ON** by default.
 
 ### Dynamic Database Creation
 
@@ -180,7 +201,7 @@ As a database is migrated and/or seeded, a snapshot (eg. a .sql dump file) is ta
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed (and is ready to use).
 
-Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage-dir` config setting), and are safe to delete however you don't need to.
+Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage-dir` config setting). They're safe to delete, however you don't need to as they're cleaned up automatically when necessary.
 
 This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
 
@@ -202,7 +223,7 @@ This list of directories can be configured via the `look-for-changes-in` config 
 
 ## Customisation
 
-As well as the `config/code-distortion.adapt.php` config settings, you can customise many of them inside your tests. You may wish to share these between similar tests by putting them in a trait or a parent test-class:
+As well as the `config/code-distortion.adapt.php` [config settings](#config), you can customise many of them inside your tests as shown below. You may wish to share these between similar tests by putting them in a trait or parent test-class:
 
 ``` php
 <?php
@@ -379,7 +400,7 @@ class MyTest extends TestCase
 
 Here are various scenarios and comments about each:
 
-### My website only uses the "default" connection&hellip;
+### My project only uses the "default" connection&hellip;
 
 This is probably the most common scenario. You could choose to continue using the same connection to test with (eg. "mysql"), or swap it out for a SQLite database which may improve speed by setting the **default-connection** setting.
 
@@ -393,7 +414,7 @@ By specifying them in your test-classes, you can run different seeders for diffe
 
 By default, the regular **DatabaseSeeder** is run after the migrations.
 
-### My website uses database connections by name&hellip;
+### My project uses database connections by name&hellip;
 
 If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you'll want to look at the `remap-connections` setting to overwrite connections' details.
 
@@ -415,7 +436,7 @@ This might save time if you have lots of migrations to run, or be useful if you 
 
 ***Note***: SQLite database files aren't imported, they are simply copied.
 
-### My website uses more than one database&hellip;
+### My project uses more than one database&hellip;
 
 You can build extra databases by adding the `databaseInit()` method to your test-class and setting up more connections there (see the [Customisation](#customisation) section above).
 
