@@ -4,6 +4,9 @@ namespace CodeDistortion\Adapt\Support;
 
 use Orchestra\Testbench\TestCase;
 
+/**
+ * Provides extra miscellaneous Laravel related support functionality
+ */
 class LaravelSupport
 {
     /**
@@ -22,4 +25,3 @@ class LaravelSupport
         return false;
     }
 }
-

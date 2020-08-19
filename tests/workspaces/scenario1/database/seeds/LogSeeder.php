@@ -5,6 +5,9 @@ namespace CodeDistortion\Adapt\Tests\Database\Seeders;
 use DB;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seed the logs table.
+ */
 class LogSeeder extends Seeder
 {
     /**

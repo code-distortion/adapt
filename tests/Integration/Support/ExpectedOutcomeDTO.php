@@ -2,6 +2,9 @@
 
 namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
+/**
+ * A DTO containing a group of ExpectedValuesDTO's.
+ */
 class ExpectedOutcomeDTO
 {
     /**
@@ -41,7 +44,7 @@ class ExpectedOutcomeDTO
     /**
      * Set the expected list of tables.
      *
-     * @param array $expectedTables The expected tables.
+     * @param string[] $expectedTables The expected tables.
      * @return static
      */
     public function expectedTables(array $expectedTables): self

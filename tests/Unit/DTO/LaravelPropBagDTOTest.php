@@ -100,6 +100,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * @param string[] $set   The values to set.
      * @param mixed[]  $check Attempts to get values back out and check the result.
      * @return void
+     * @throws Throwable Any exception that wasn't expected by the test.
      */
     public function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check): void
     {
