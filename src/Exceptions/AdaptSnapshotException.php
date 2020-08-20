@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Exceptions;
 
+use CodeDistortion\Adapt\Support\Settings;
 use Throwable;
 
 /**
@@ -51,7 +52,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysql client "'.$path.'" executable isn\'t available to use '
-            .'(please check the code-distortion.adapt.database.mysql config settings)'
+            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
         );
     }
 
@@ -65,7 +66,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysqldump executable "'.$path.'" isn\'t available to use'
-            .'(please check the code-distortion.adapt.database.mysql config settings)'
+            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
         );
     }
 

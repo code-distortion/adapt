@@ -14,6 +14,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
 {
     use InjectTrait, LaravelHelperTrait;
 
+
     /**
      * Determine if a snapshot can be made from this database.
      *

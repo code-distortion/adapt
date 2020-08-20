@@ -14,6 +14,7 @@ class LaravelSQLiteName implements NameInterface
 {
     use InjectTrait, LaravelHelperTrait, SQLiteHelperTrait;
 
+
     /**
      * Build a dynamic database name.
      *

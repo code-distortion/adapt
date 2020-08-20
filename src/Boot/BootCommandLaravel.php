@@ -11,16 +11,13 @@ use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\Support\LaravelSettingsTrait;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Bootstrap Adapt for Laravel commands.
  */
 class BootCommandLaravel extends BootCommandAbstract
 {
-    use LaravelSettingsTrait;
-
-
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
@@ -66,7 +63,7 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function newConfigDTO(string $connection): configDTO
     {
-        $c = $this->configName;
+        $c = Settings::LARAVEL_CONFIG_NAME;
         return (new ConfigDTO)
             ->projectName(config("$c.project-name"))
             ->connection($connection)

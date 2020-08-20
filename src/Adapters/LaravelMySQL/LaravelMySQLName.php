@@ -14,6 +14,7 @@ class LaravelMySQLName implements NameInterface
 {
     use InjectTrait, LaravelHelperTrait;
 
+
     /**
      * Build a dynamic database name.
      *

@@ -13,6 +13,7 @@ class LaravelSQLiteConnection implements ConnectionInterface
 {
     use InjectTrait, LaravelConnectionTrait;
 
+
     /**
      * Set the this builder's database connection as the default one.
      *

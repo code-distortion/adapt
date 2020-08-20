@@ -15,6 +15,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
 {
     use InjectTrait, LaravelHelperTrait, SQLiteHelperTrait;
 
+
     /**
      * Determine if a snapshot can be made from this database.
      *
