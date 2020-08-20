@@ -93,4 +93,16 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self('Could not export database to "'.$path.'" - the mysqldump return value was: '.$returnVal);
     }
+
+    /**
+     * Imports aren't allowed for the given driver/database.
+     *
+     * @param string $driver   The database driver to use when building the database ("mysql", "sqlite" etc).
+     * @param string $database The name of the database being used.
+     * @return self
+     */
+    public static function importsNotAllowed(string $driver, string $database): self
+    {
+        return new self('Sorry, database imports aren\'t available for '.$database.' '.$driver.' databases');
+    }
 }

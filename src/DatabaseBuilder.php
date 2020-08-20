@@ -760,7 +760,16 @@ class DatabaseBuilder
      */
     private function importPreMigrationDumps(): void
     {
-        foreach ($this->config->pickPreMigrationDumps() as $path) {
+        $preMigrationDumps = $this->config->pickPreMigrationDumps();
+        if (!count($preMigrationDumps)) {
+            return;
+        }
+
+        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+            throw AdaptSnapshotException::importsNotAllowed($this->config->driver, $this->config->database);
+        }
+
+        foreach ($preMigrationDumps as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "'.$path.'"', $logTimer);
