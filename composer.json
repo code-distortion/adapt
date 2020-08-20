@@ -63,7 +63,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "CodeDistortion\\Adapt\\LaravelServiceProvider"
+                "CodeDistortion\\Adapt\\AdaptLaravelServiceProvider"
             ]
         }
     }

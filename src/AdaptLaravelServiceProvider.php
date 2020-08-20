@@ -8,9 +8,9 @@ use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 /**
- * Adapt LaravelServiceProvider.
+ * Adapt's Laravel ServiceProvider.
  */
-class LaravelServiceProvider extends BaseServiceProvider
+class AdaptLaravelServiceProvider extends BaseServiceProvider
 {
     use LaravelSettingsTrait;
 
