@@ -697,8 +697,12 @@ class DatabaseBuilder
             return;
         }
 
-        $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
-        $this->dbAdapter()->build->migrate($migrationsPath);
+        if ((is_string($this->config->migrations))
+        && (!$this->di->filesystem->dirExists(realpath($this->config->migrations)))) {
+            throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+        }
+
+        $this->dbAdapter()->build->migrate($this->config->migrations);
 
         if ($this->shouldTakeSnapshotAfterMigrations()) {
             $seedersRun = []; // ie. no seeders

@@ -308,7 +308,10 @@ class ConfigDTO
      */
     public function migrations($migrations): self
     {
-        $this->migrations = $migrations;
+        $this->migrations = false;
+        if ((is_string($migrations) && (mb_strlen($migrations))) || (is_bool($migrations))) {
+            $this->migrations = $migrations;
+        }
         return $this;
     }
 
