@@ -1,4 +1,4 @@
-# Adapt - A Database Preparation Tool (For Your Tests)
+# Adapt - A Database Preparation Tool (for your tests)
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
@@ -7,13 +7,13 @@
 [![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://offset.earth/treeware?gift-trees)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
 
-***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and **makes re-use practically instant.**
+***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and can give large speed improvements.
 
 ## Introduction
 
-Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) tests in Laravel you would use the *RefreshDatabase*, *DatabaseMigrations* or *DatabaseTransactions* traits to manage how your database is built.
+Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or *DatabaseMigrations*, *DatabaseTransactions*) to manage how your database is built.
 
-A big factor in how long this takes is the fact that the database is built from scratch every time your tests run. If your project has a lot of migrations, this can end up taking a long time. Even if you can, importing an sql file before each test-run can be slow.
+If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file before each test-run can be slow.
 
 > Adapt is a replacement for Laravel's test database traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
 >
@@ -42,7 +42,9 @@ Adapt integrates with Laravel 5.5+ automatically thanks to Laravel's package aut
 <details><summary>(Click here for Laravel 5.0 - 5.4)</summary>
 <p>
 
-For Laravel 5.0 - 5.4, add the following to `app/Providers/AppServiceProvider.php` to enable it only in your local / testing environment:
+The service provider is only used to enable the [artisan commands](#artisan-commands) so you can safely skip this step if you like.
+
+For Laravel 5.0 - 5.4, add the following to `app/Providers/AppServiceProvider.php` to enable it (only in your local / testing environment):
 
 ``` php
 <?php
@@ -50,7 +52,7 @@ For Laravel 5.0 - 5.4, add the following to `app/Providers/AppServiceProvider.ph
 
 namespace App\Providers;
 …
-use CodeDistortion\Adapt\LaravelServiceProvider;
+use CodeDistortion\Adapt\AdaptLaravelServiceProvider; // **** add this ****
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -59,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // **** add this to the register() method ****
         if ($this->app->environment(['local', 'testing'])) {
-            $this->app->register(LaravelServiceProvider::class);
+            $this->app->register(AdaptLaravelServiceProvider::class);
         }
         …
     }
@@ -73,14 +75,16 @@ class AppServiceProvider extends ServiceProvider
 You can alter the default settings by publishing the `config/code-distortion.adapt.php` config file and updating it:
 
 ``` bash
-php artisan vendor:publish --provider="CodeDistortion\Adapt\LaravelServiceProvider" --tag="config"
+php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceProvider" --tag="config"
 ```
 
 ***Note***: The custom environment values you'd like to add should be put in your `.env.testing` file if you use one (rather than `.env`).
 
 ## Usage
 
-For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like a database for and away you go.
+### PHPUnit Usage
+
+For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to the test-classes you'd like a database for, and away you go.
 
 Your migrations and seeders will be run ready for your tests.
 
@@ -106,14 +110,14 @@ class MyTest extends TestCase
 }
 ```
 
-Just run your tests like normal.
+Just run your tests like normal. If you like you can also [customise Adapt's settings](#customisation) on a per-test basis.
 
 <details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
 <p>
 
-If you're using an old version and want to populate database data in your setUp() method, you'll run in to problems [because of this issue](https://github.com/sebastianbergmann/phpunit/issues/1616).
+If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run in to problems because PHPUnit used to initialise things like Adapt [after the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
 
-- Either put this code into a seeder and have Adapt run that.
+- To solve this either put the code to populate the database into a seeder and have Adapt run that.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or
 
@@ -125,7 +129,7 @@ If you're using an old version and want to populate database data in your setUp(
 
 namespace Tests;
 
-use CodeDistortion\Adapt\LaravelAdapt;
+use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -146,6 +150,29 @@ abstract class TestCase extends BaseTestCase
 ```
 </p>
 </details>
+
+### PEST Usage
+
+PEST lets you [assign classes and traits to your tests](https://pestphp.com/docs/guides/laravel/) with the `uses(…)` helper function.
+
+All you need to do to add Adapt to your PEST tests is add `uses(LaravelAdapt::class);` to the tests you'd like a database for.
+
+``` php
+<?php
+// tests\Feature\MyTest.php
+
+use App\User;
+
+uses(\CodeDistortion\Adapt\LaravelAdapt::class); // **** add this ****
+
+beforeEach(fn () => factory(User::class)->create());
+
+it('has users')->assertDatabaseHas('users', [
+    'id' => 1,
+]);
+```
+
+Adapt can also be [customised](#pest-customisation) on a per-test basis when using PEST.
 
 ### Usage Notes
 
@@ -213,7 +240,7 @@ Database snapshots are turned **OFF** by default.
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre-migration-imports` files are also taken in to account).
+So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre-migration-imports` and `migrations` files are also taken in to account).
 
 These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
@@ -224,6 +251,8 @@ This list of directories can be configured via the `look-for-changes-in` config 
 ## Customisation
 
 As well as the `config/code-distortion.adapt.php` [config settings](#config), you can customise many of them inside your tests as shown below. You may wish to share these between similar tests by putting them in a trait or parent test-class:
+
+### PHPUnit Customisation
 
 ``` php
 <?php
@@ -243,6 +272,9 @@ class MyTest extends TestCase
      *
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
+     *
+     * NOTE: pre-migration-imports aren't available for sqlite :memory:
+     * databases.
      *
      * @var string[]|string[][]
      */
@@ -385,7 +417,7 @@ class MyTest extends TestCase
         $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
         $builder2
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
-            // ...
+            // …
             ->makeDefault(); // make the "default" connection point to this database
     }
 
@@ -393,6 +425,46 @@ class MyTest extends TestCase
 
 }
 ```
+
+### PEST Customisation
+
+You can add custom Adapt settings to your PEST tests by creating a trait with the desired settings&hellip;
+
+``` php
+<?php
+// tests\MyLaravelAdapt;
+
+namespace Tests;
+
+use CodeDistortion\Adapt\LaravelAdapt;
+
+trait MyLaravelAdapt
+{
+    use LaravelAdapt;
+
+    protected string $seeders = ['DatabaseSeeder', 'PopulateShoppingCartSeeder'];
+    // etc…
+}
+```
+
+and then including it in your test:
+
+``` php
+<?php
+// tests\Feature\MyTest.php
+
+use App\User;
+
+uses(\Tests\MyLaravelAdapt::class); // **** add this ****
+
+beforeEach(fn () => factory(User::class)->create());
+
+it('has users')->assertDatabaseHas('users', [
+    'id' => 1,
+]);
+```
+
+You can add any of the customisation values [from above](#phpunit-customisation).
 
 
 
@@ -424,7 +496,7 @@ When browser testing some cache settings need to be turned off.
 
 The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
 
-Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.  
+Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.
 
 ### I have my own database dump that I'd like to import&hellip;
 

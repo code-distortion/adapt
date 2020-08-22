@@ -58,7 +58,6 @@ trait LaravelBuildTrait
 
             // the --realpath option isn't available in Laravel < 5.6 so
             // relative paths (relative to base_path()) have to be passed
-
             $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
             $migrationsPath = ($useRealPath
                 ? realpath($migrationsPath)
@@ -124,7 +123,7 @@ trait LaravelBuildTrait
     }
 
     /**
-     * Take an absolute path and make it relative.
+     * Take an absolute path and make it relative to the base project directory.
      *
      * @param $path
      * @return string

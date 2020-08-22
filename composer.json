@@ -1,6 +1,6 @@
 {
     "name": "code-distortion/adapt",
-    "description": "Builds test databases. A replacement with large speed improvements for Laravel's RefreshDatabase, DatabaseMigrations & DatabaseTransactions test-traits",
+    "description": "A Laravel package that builds databases for your tests and can give large speed improvements",
     "keywords": [
         "laravel",
         "phpunit",
