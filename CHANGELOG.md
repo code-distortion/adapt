@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.2.0] - 2020-08-20
+
+### Added
+- Documentation for use with PEST
+
+### Changed (breaking)
+- Changed the name of the service provider class from LaravelServiceProvider to AdaptLaravelServiceProvider
+
+### Fixed
+- Migration paths can be absolute, or relative to the base of your project. Before, when using Laravel < 5.6 these directories had to be relative
+
+
+
 ## [0.1.4] - 2020-08-19
 
 ### Added
