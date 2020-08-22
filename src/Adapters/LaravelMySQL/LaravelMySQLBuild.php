@@ -3,10 +3,10 @@
 namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
-use CodeDistortion\Adapt\Adapters\Interfaces\Constants;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to building a Laravel/MySQL database.
@@ -91,6 +91,6 @@ class LaravelMySQLBuild implements BuildInterface
     public function applyTransaction(): void
     {
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`".Constants::REUSE_TABLE."` SET `inside_transaction` = 1");
+        $this->di->db->update("UPDATE`".Settings::REUSE_TABLE."` SET `inside_transaction` = 1");
     }
 }

@@ -103,8 +103,7 @@ class LaravelDB
      */
     public function select(string $query, array $bindings = []): array
     {
-        $a = DB::connection($this->connection)->select($query, $bindings);
-        return $a;
+        return DB::connection($this->connection)->select($query, $bindings);
     }
 
     /**

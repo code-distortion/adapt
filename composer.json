@@ -35,7 +35,7 @@
         "code-distortion/fluent-dotenv": "^0.1.0"
     },
     "require-dev": {
-        "fzaninotto/faker": "^1.9",
+        "fzaninotto/faker": "^1.0",
         "orchestra/testbench": "^3.2 || ^4.0 || ^5.0",
         "phpstan/phpstan": "^0.7 || ^0.8 || ^0.9 || ^0.10 || ^0.11 || ^0.12",
         "phpunit/phpunit": "~4.8 || ^5.0 || ^6.0 || ^7.0 || ^8.0 || ^9.0",

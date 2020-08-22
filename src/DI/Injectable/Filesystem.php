@@ -62,10 +62,10 @@ class Filesystem
      * @param string $path The path to check.
      * @return boolean
      */
-    public function isDir(string $path): bool
-    {
-        return is_dir($path);
-    }
+//    public function isDir(string $path): bool
+//    {
+//        return is_dir($path);
+//    }
 
     /**
      * Touch the given file.
