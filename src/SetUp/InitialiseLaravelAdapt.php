@@ -7,7 +7,6 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Support\LaravelSettingsTrait;
 use Laravel\Dusk\TestCase as DuskTestCase;
 
 /**
@@ -15,9 +14,6 @@ use Laravel\Dusk\TestCase as DuskTestCase;
  */
 trait InitialiseLaravelAdapt
 {
-    use LaravelSettingsTrait;
-
-
     /**
      * The properties specified in the test-class.
      *

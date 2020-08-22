@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Exceptions;
 
+use CodeDistortion\Adapt\Support\Settings;
 use Throwable;
 
 /**
@@ -51,7 +52,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysql client "'.$path.'" executable isn\'t available to use '
-            .'(please check the code-distortion.adapt.database.mysql config settings)'
+            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
         );
     }
 
@@ -65,7 +66,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self(
             'The mysqldump executable "'.$path.'" isn\'t available to use'
-            .'(please check the code-distortion.adapt.database.mysql config settings)'
+            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
         );
     }
 
@@ -91,5 +92,17 @@ class AdaptSnapshotException extends AdaptException
     public static function mysqlExportError(string $path, int $returnVal): self
     {
         return new self('Could not export database to "'.$path.'" - the mysqldump return value was: '.$returnVal);
+    }
+
+    /**
+     * Imports aren't allowed for the given driver/database.
+     *
+     * @param string $driver   The database driver to use when building the database ("mysql", "sqlite" etc).
+     * @param string $database The name of the database being used.
+     * @return self
+     */
+    public static function importsNotAllowed(string $driver, string $database): self
+    {
+        return new self('Sorry, database imports aren\'t available for '.$database.' '.$driver.' databases');
     }
 }

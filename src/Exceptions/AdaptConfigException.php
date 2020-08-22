@@ -55,6 +55,20 @@ class AdaptConfigException extends AdaptException
     }
 
     /**
+     * The migrations path could not be read.
+     *
+     * @param string $path The invalid path.
+     * @return self
+     */
+    public static function migrationsPathInvalid(string $path): self
+    {
+        return new self(
+            'The migrations directory "'.$path.'" does not exist. '
+            .'Please review the "migrations" config setting'
+        );
+    }
+
+    /**
      * A database-related files path could not be read.
      *
      * @param string $path The invalid path.

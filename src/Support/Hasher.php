@@ -118,7 +118,16 @@ class Hasher
                 'preMigrationImportPathInvalid'
             );
 
-            $paths = array_unique(array_merge($hashPaths, $preMigratePaths));
+            $migrationPaths = [];
+            if (is_string($this->config->migrations)) {
+                $migrationPaths = $this->resolveHashPaths(
+                    [$this->config->migrations],
+                    true,
+                    'migrationsPathInvalid'
+                );
+            }
+
+            $paths = array_unique(array_merge($hashPaths, $preMigratePaths, $migrationPaths));
             sort($paths);
 
             $hashes = [];

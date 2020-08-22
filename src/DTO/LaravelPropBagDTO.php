@@ -2,15 +2,13 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
-use CodeDistortion\Adapt\Support\LaravelSettingsTrait;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Contain a list of properties and their values.
  */
 class LaravelPropBagDTO extends PropBagDTO
 {
-    use LaravelSettingsTrait;
-
     /**
      * Get a property from $this - but fall back to config values when not present.
      *
@@ -22,7 +20,7 @@ class LaravelPropBagDTO extends PropBagDTO
     {
         return $this->prop(
             $propName,
-            config($this->configName.'.'.$configKey)
+            config(Settings::LARAVEL_CONFIG_NAME.'.'.$configKey)
         );
     }
 }

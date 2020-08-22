@@ -15,6 +15,7 @@ class LaravelMySQLBuild implements BuildInterface
 {
     use InjectTrait, LaravelBuildTrait, LaravelHelperTrait;
 
+
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.
      *

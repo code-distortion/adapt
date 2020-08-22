@@ -53,30 +53,26 @@ trait LaravelBuildTrait
     {
         $logTimer = $this->di->log->newTimer();
 
-        $laravelGte56 = version_compare(Application::VERSION, '5.6.0', '>=');
-
-        // when running in Laravel < 5.6, the --realpath isn't available so paths relative to
-        // base_path() have to be passed.
-        //
-        // when running in orchestra, the base_path() that the migrate command uses is
-        // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
-        // prefixing the path with "../../../../" accounts for this.
-
+        $useRealPath = false;
         if (!is_null($migrationsPath)) {
-            $orchestra = LaravelSupport::isRunningInOrchestra();
-            $migrationsPath = $orchestra && !$laravelGte56
-                ? '../../../../'.$this->di->filesystem->removeBasePath($migrationsPath)
-                : realpath($migrationsPath);
+
+            // the --realpath option isn't available in Laravel < 5.6 so
+            // relative paths (relative to base_path()) have to be passed
+            $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
+            $migrationsPath = ($useRealPath
+                ? realpath($migrationsPath)
+                : $this->makeRealpathRelative(realpath($migrationsPath)));
         }
 
-        $options = [
-            '--database' => $this->config->connection,
-            '--force' => true,
-            '--path' => $migrationsPath,
-            '--realpath' => ($laravelGte56 ? !is_null($migrationsPath) : null),
-        ];
-
-        $this->di->artisan->call('migrate', array_filter($options));
+        $this->di->artisan->call(
+            'migrate',
+            array_filter([
+                '--database' => $this->config->connection,
+                '--force' => true,
+                '--path' => $migrationsPath,
+                '--realpath' => ($useRealPath ? true : null),
+            ])
+        );
 
         $this->di->log->info('Migrated', $logTimer);
     }
@@ -124,5 +120,24 @@ trait LaravelBuildTrait
         if (is_callable($closure)) {
             $closure($this->config->connection);
         }
+    }
+
+    /**
+     * Take an absolute path and make it relative to the base project directory.
+     *
+     * @param $path
+     * @return string
+     */
+    private function makeRealpathRelative($path): string
+    {
+        $path = $this->di->filesystem->removeBasePath($path);
+
+        // when running in orchestra, the base_path() is
+        // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
+        // prefixing the path with "../../../../" accounts for this
+        if (LaravelSupport::isRunningInOrchestra()) {
+            $path = '../../../../'.$path;
+        }
+        return $path;
     }
 }

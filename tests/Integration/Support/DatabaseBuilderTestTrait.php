@@ -91,7 +91,7 @@ trait DatabaseBuilderTestTrait
         return (new ConfigDTO)
             ->projectName('')
             ->connection($connection)
-            ->database('test_db')
+//            ->database('test_db')
             ->storageDir($this->wsCurrentDir.'/database/adapt-test-storage')
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')

@@ -23,6 +23,9 @@ trait LaravelAdapt
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
      *
+     * NOTE: pre-migration-imports aren't available for sqlite :memory:
+     * databases.
+     *
      * @var string[]|string[][]
      */
 //    protected array $preMigrationImports = [
@@ -164,7 +167,7 @@ trait LaravelAdapt
 //        $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
-//            // ...
+//            // …
 //            ->makeDefault(); // make the "default" connection point to this database
 //    }
 }

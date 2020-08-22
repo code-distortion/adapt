@@ -697,8 +697,12 @@ class DatabaseBuilder
             return;
         }
 
-        $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
-        $this->dbAdapter()->build->migrate($migrationsPath);
+        if ((is_string($this->config->migrations))
+        && (!$this->di->filesystem->dirExists(realpath($this->config->migrations)))) {
+            throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+        }
+
+        $this->dbAdapter()->build->migrate($this->config->migrations);
 
         if ($this->shouldTakeSnapshotAfterMigrations()) {
             $seedersRun = []; // ie. no seeders
@@ -756,7 +760,16 @@ class DatabaseBuilder
      */
     private function importPreMigrationDumps()
     {
-        foreach ($this->config->pickPreMigrationDumps() as $path) {
+        $preMigrationDumps = $this->config->pickPreMigrationDumps();
+        if (!count($preMigrationDumps)) {
+            return;
+        }
+
+        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+            throw AdaptSnapshotException::importsNotAllowed($this->config->driver, $this->config->database);
+        }
+
+        foreach ($preMigrationDumps as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "'.$path.'"', $logTimer);

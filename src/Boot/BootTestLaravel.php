@@ -13,16 +13,12 @@ use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Support\LaravelSettingsTrait;
 
 /**
  * Bootstrap Adapt for Laravel tests.
  */
 class BootTestLaravel extends BootTestAbstract
 {
-    use LaravelSettingsTrait;
-
-
     /**
      * Build a default DIContainer object.
      *
