@@ -177,7 +177,9 @@ return [
     |
     */
 
-    'storage-dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
+    'storage-dir' => realpath(
+        base_path('../../../../tests/workspaces/current/database')
+    ).'/adapt-test-storage',
 
     /*
     |--------------------------------------------------------------------------

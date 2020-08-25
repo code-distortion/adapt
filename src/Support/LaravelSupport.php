@@ -16,11 +16,11 @@ class LaravelSupport
      */
     public static function isRunningInOrchestra(): bool
     {
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        foreach ($backtrace as $stackEntry) {
-            if (is_a($stackEntry['class'], TestCase::class, true)) {
-                return true;
-            }
+        $basePath = base_path();
+        $realpath = realpath('.');
+        if (mb_strpos($basePath, $realpath) === 0) {
+            $rest = mb_substr($basePath, mb_strlen($realpath));
+            return (mb_substr($rest, 0, mb_strlen('/vendor/orchestra/')) == '/vendor/orchestra/');
         }
         return false;
     }

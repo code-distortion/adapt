@@ -33,7 +33,9 @@ class ReloadLaravelConfig
     {
         // the new way that env() works in Laravel
         if (class_exists(Env::class)) {
-            $repository = Env::getRepository();
+            $repository =  (method_exists(Env::class, 'getRepository')
+                ? Env::getRepository()
+                : Env::getFactory());
             foreach ($values as $name => $value) {
                 $repository->set($name, $value);
             }
@@ -66,11 +68,15 @@ class ReloadLaravelConfig
      */
     private function replaceConfig()
     {
+        $adaptConfigPath = LaravelSupport::isRunningInOrchestra()
+            ? base_path('../../../../tests/workspaces/current/config/'.Settings::LARAVEL_CONFIG_NAME.'.php')
+            : config_path(Settings::LARAVEL_CONFIG_NAME.'.php');
+
         config([
             'database' => $this->loadConfigFile(config_path('database.php')),
             Settings::LARAVEL_CONFIG_NAME => array_merge(
                 $this->loadConfigFile(__DIR__.'/../../config/config.php'),
-                $this->loadConfigFile(config_path(Settings::LARAVEL_CONFIG_NAME.'.php'))
+                $this->loadConfigFile($adaptConfigPath)
             )
         ]);
     }

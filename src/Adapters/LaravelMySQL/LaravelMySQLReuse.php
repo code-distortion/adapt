@@ -2,12 +2,13 @@
 
 namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
-use CodeDistortion\Adapt\Adapters\Interfaces\Constants;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectInclHasherTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
 use Throwable;
+use PDOException;
 
 /**
  * Database-adapter methods related to managing Laravel/MySQL "reuse" data.
@@ -28,9 +29,9 @@ class LaravelMySQLReuse implements ReuseInterface
      */
     public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable)
     {
-        $this->di->db->statement("DROP TABLE IF EXISTS `".Constants::REUSE_TABLE."`");
+        $this->di->db->statement("DROP TABLE IF EXISTS `".Settings::REUSE_TABLE."`");
         $this->di->db->statement(
-            "CREATE TABLE `".Constants::REUSE_TABLE."` ("
+            "CREATE TABLE `".Settings::REUSE_TABLE."` ("
             ."`project_name` varchar(255), "
             ."`reuse_table_version` varchar(16), "
             ."`orig_db_name` varchar(255) NOT NULL, "
@@ -40,7 +41,7 @@ class LaravelMySQLReuse implements ReuseInterface
             .")"
         );
         $this->di->db->insert(
-            "INSERT INTO `".Constants::REUSE_TABLE."` ("
+            "INSERT INTO `".Settings::REUSE_TABLE."` ("
                 ."`project_name`, "
                 ."`reuse_table_version`, "
                 ."`orig_db_name`, "
@@ -51,7 +52,7 @@ class LaravelMySQLReuse implements ReuseInterface
             ."VALUES (:projectName, :reuseTableVersion, :origDBName, :snapshotHash, :reusable, :insideTransaction)",
             [
                 'projectName' => $this->config->projectName,
-                'reuseTableVersion' => Constants::REUSE_TABLE_VERSION,
+                'reuseTableVersion' => Settings::REUSE_TABLE_VERSION,
                 'origDBName' => $origDBName,
                 'snapshotHash' => $snapshotHash,
                 'reusable' => (int) $reusable,
@@ -71,7 +72,7 @@ class LaravelMySQLReuse implements ReuseInterface
     public function dbIsCleanForReuse(string $snapshotHash): bool
     {
         try {
-            $rows = $this->di->db->select("SELECT * FROM `".Constants::REUSE_TABLE."` LIMIT 0, 1");
+            $rows = $this->di->db->select("SELECT * FROM `".Settings::REUSE_TABLE."` LIMIT 0, 1");
             $reuseInfo = reset($rows);
         } catch (Throwable $e) {
             return false;
@@ -88,7 +89,7 @@ class LaravelMySQLReuse implements ReuseInterface
             );
         }
 
-        if (($reuseInfo->reuse_table_version != Constants::REUSE_TABLE_VERSION)
+        if (($reuseInfo->reuse_table_version != Settings::REUSE_TABLE_VERSION)
         || ($reuseInfo->snapshot_hash != $snapshotHash)
         || (!$reuseInfo->reusable)) {
             return false;
@@ -130,7 +131,7 @@ class LaravelMySQLReuse implements ReuseInterface
         foreach ($pdo->listDatabases() as $database) {
 
             $reuseInfo = $pdo->fetchReuseTableInfo(
-                "SELECT * FROM `".$database."`.`".Constants::REUSE_TABLE."` LIMIT 0, 1"
+                "SELECT * FROM `".$database."`.`".Settings::REUSE_TABLE."` LIMIT 0, 1"
             );
 
             if ($this->isDatabaseRelevant(
@@ -176,7 +177,7 @@ class LaravelMySQLReuse implements ReuseInterface
             return false;
         }
 
-        if ($reuseInfo->reuse_table_version != Constants::REUSE_TABLE_VERSION) {
+        if ($reuseInfo->reuse_table_version != Settings::REUSE_TABLE_VERSION) {
             return true;
         }
 
@@ -198,7 +199,7 @@ class LaravelMySQLReuse implements ReuseInterface
     {
         $logTimer = $this->di->log->newTimer();
         $pdo = $this->di->db->newPDO();
-        $success = $pdo->dropDatabase("DROP DATABASE `".$database."`");
+        $success = $pdo->dropDatabase("DROP DATABASE IF EXISTS `".$database."`");
         $this->di->log->info('Removed '.($isOld ? 'old ' : '').'database: "'.$database.'"', $logTimer);
 
         return $success;

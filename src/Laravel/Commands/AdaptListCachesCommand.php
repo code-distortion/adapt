@@ -5,7 +5,6 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
-use CodeDistortion\Adapt\Support\StringSupport as Str;
 use Illuminate\Console\Command;
 
 /**

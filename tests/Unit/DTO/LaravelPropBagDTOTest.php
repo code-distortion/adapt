@@ -122,11 +122,10 @@ class LaravelPropBagDTOTest extends LaravelTestCase
                 try {
                     call_user_func_array($callable, $check['params']);
                 } catch (Throwable $e) {
-                    if ($e instanceof $check['exception']) {
-                        $this->assertTrue(true);
-                    } else {
+                    if (!$e instanceof $check['exception']) {
                         throw $e;
                     }
+                    $this->assertTrue(true);
                 }
 
             } else {

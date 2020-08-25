@@ -23,7 +23,7 @@ If your project has a lot of migrations, this can end up taking a long time beca
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** on **Linux** and **MacOS**.
+To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -172,7 +172,7 @@ it('has users')->assertDatabaseHas('users', [
 ]);
 ```
 
-Adapt can also be [customised](#pest-customisation) on a per-test basis when using PEST.
+Adapt's settings can also be [customised](#pest-customisation) on a per-test basis when using PEST.
 
 ### Usage Notes
 
@@ -447,7 +447,7 @@ trait MyLaravelAdapt
 }
 ```
 
-and then including it in your test:
+and including it in your test:
 
 ``` php
 <?php

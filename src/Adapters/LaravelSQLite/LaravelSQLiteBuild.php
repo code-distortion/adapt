@@ -3,11 +3,11 @@
 namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
-use CodeDistortion\Adapt\Adapters\Interfaces\Constants;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to building a Laravel/SQLite database.
@@ -126,6 +126,6 @@ class LaravelSQLiteBuild implements BuildInterface
     public function applyTransaction()
     {
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`".Constants::REUSE_TABLE."` SET `inside_transaction` = 1");
+        $this->di->db->update("UPDATE`".Settings::REUSE_TABLE."` SET `inside_transaction` = 1");
     }
 }

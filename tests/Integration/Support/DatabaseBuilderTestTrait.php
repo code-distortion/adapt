@@ -16,6 +16,9 @@ use DB;
 use ErrorException;
 use Exception;
 
+/**
+ * Contains methods to set up a /database directory structure for testing and create a DatabaseBuilder.
+ */
 trait DatabaseBuilderTestTrait
 {
     /**
@@ -33,6 +36,13 @@ trait DatabaseBuilderTestTrait
     private $wsCurrentDir = 'tests/workspaces/current';
 
     /**
+     * The current workspace config directory.
+     *
+     * @var string
+     */
+    private $wsConfigDir = 'tests/workspaces/config';
+
+    /**
      * The current workspace adapt-test-storage directory.
      *
      * @var string
@@ -47,6 +57,13 @@ trait DatabaseBuilderTestTrait
     private $wsDatabaseDir = 'tests/workspaces/current/database/databases';
 
     /**
+     * The current workspace factories directory.
+     *
+     * @var string
+     */
+    private $wsFactoriesDir = 'tests/workspaces/current/database/factories';
+
+    /**
      * The current workspace migrations directory.
      *
      * @var string
@@ -59,6 +76,13 @@ trait DatabaseBuilderTestTrait
      * @var string
      */
     private $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
+
+    /**
+     * The current workspace seeds directory.
+     *
+     * @var string
+     */
+    private $wsSeedsDir = 'tests/workspaces/current/database/seeds';
 
 
     /**
@@ -92,14 +116,14 @@ trait DatabaseBuilderTestTrait
             ->projectName('')
             ->connection($connection)
 //            ->database('test_db')
-            ->storageDir($this->wsCurrentDir.'/database/adapt-test-storage')
+            ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
             ->hashPaths([
-                $this->wsCurrentDir.'/database/factories',
-                $this->wsCurrentDir.'/database/migrations',
-                $this->wsCurrentDir.'/database/pre-migration-imports',
-                $this->wsCurrentDir.'/database/seeds',
+                $this->wsFactoriesDir,
+                $this->wsMigrationsDir,
+                $this->wsPreMigrationsDir,
+                $this->wsSeedsDir,
             ])
             ->buildSettings(
                 [],
@@ -108,7 +132,7 @@ trait DatabaseBuilderTestTrait
                 false
             )
             ->cacheTools(true, true, true)
-            ->snapshots(true, false, true)
+            ->snapshots(false, false, true)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');
     }

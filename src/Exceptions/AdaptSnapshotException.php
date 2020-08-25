@@ -20,6 +20,7 @@ class AdaptSnapshotException extends AdaptException
     {
         return new self('Had trouble removing snapshot files', 0, $originalException);
     }
+
     /**
      * Could not find snapshot files.
      *

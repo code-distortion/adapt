@@ -20,6 +20,7 @@ class DIContainer
      * @var LaravelArtisan
      */
     public $artisan;
+
     /**
      * The LaravelConfig object to use.
      *

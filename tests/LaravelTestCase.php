@@ -2,14 +2,14 @@
 
 namespace CodeDistortion\Adapt\Tests;
 
-//use CodeDistortion\Adapt\LaravelServiceProvider;
+use CodeDistortion\Adapt\AdaptLaravelServiceProvider;
 use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase;
 
 /**
  * The test case that unit tests extend from.
  */
-class LaravelTestCase extends TestCase
+abstract class LaravelTestCase extends TestCase
 {
 
     /**
@@ -20,9 +20,8 @@ class LaravelTestCase extends TestCase
      */
     protected function getPackageProviders($app)
     {
-//        return [
-//            LaravelServiceProvider::class
-//        ];
-        return [];
+        return [
+            AdaptLaravelServiceProvider::class
+        ];
     }
 }

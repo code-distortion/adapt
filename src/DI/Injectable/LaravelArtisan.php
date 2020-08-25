@@ -20,7 +20,15 @@ class LaravelArtisan
      */
     public function call(string $command, array $parameters = [], $outputBuffer = null): int
     {
-        return Artisan::call($command, $parameters, $outputBuffer);
+        // Laravel < 7 would update the config values
+        // record the current values and replace afterwards
+        $configValues = config()->all();
+
+        $return = Artisan::call($command, $parameters, $outputBuffer);
+
+        config($configValues);
+
+        return $return;
     }
 
     /**
