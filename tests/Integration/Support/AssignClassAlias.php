@@ -41,6 +41,7 @@ class AssignClassAlias
     private static function setUpReturnsVoid(): bool
     {
         $setupMethod = new \ReflectionMethod(TestCase::class, 'setUp');
-        return (($setupMethod->getReturnType()) && ($setupMethod->getReturnType()->getName() == 'void'));
+        $returnType = $setupMethod->getReturnType();
+        return (($returnType) && ($returnType->getName() == 'void'));
     }
 }

@@ -180,7 +180,8 @@ trait DatabaseBuilderTestTrait
      */
     private function delTree(string $dir): bool
     {
-        $files = array_diff(scandir($dir), ['.', '..']);
+        $files = array_filter((array) scandir($dir));
+        $files = array_diff($files, ['.', '..']);
         foreach ($files as $file) {
             if (is_dir("$dir/$file")) {
                 $this->delTree("$dir/$file");
@@ -201,7 +202,8 @@ trait DatabaseBuilderTestTrait
     private function copyDirRecursive(string $sourceDir, string $destDir): void
     {
         @mkdir($destDir);
-        $files = array_diff(scandir($sourceDir), ['.', '..']);
+        $files = array_filter((array) scandir($sourceDir));
+        $files = array_diff($files, ['.', '..']);
         foreach ($files as $file) {
             if (is_dir("$sourceDir/$file")) {
                 $this->copyDirRecursive("$sourceDir/$file", "$destDir/$file");
@@ -256,8 +258,7 @@ trait DatabaseBuilderTestTrait
     private function pickConfigFiles(string $dir): array
     {
         try {
-            $files = scandir($dir);
-            $files = (is_array($files) ? $files : []);
+            $files = array_filter((array) scandir($dir));
             return $this->mapConfigPaths($dir, $files);
         } catch (ErrorException $e) {
             return [];
@@ -265,6 +266,8 @@ trait DatabaseBuilderTestTrait
     }
 
     /**
+     * Take the list of files and create an assoc array config-name.path.
+     *
      * @param string $dir   The directory the files are in.
      * @param array  $files The files in the directory.
      * @return array<string, string>
@@ -319,7 +322,6 @@ trait DatabaseBuilderTestTrait
         switch ($this->getDBDriver($connection)) {
             case 'mysql':
                 throw new Exception('mysql driver not implemented yet');
-                break;
             case 'sqlite':
                 $this->assertQueryValues(
                     $connection,
@@ -364,7 +366,7 @@ trait DatabaseBuilderTestTrait
      * @param string  $connection The connection to query on.
      * @param string  $query      The query to run.
      * @param mixed[] $values     The values to use in the query.
-     * @param array   $expected   The expected values.
+     * @param mixed[] $expected   The expected values.
      * @param boolean $sort       Sort the values before comparing?.
      * @return void
      */
@@ -380,7 +382,7 @@ trait DatabaseBuilderTestTrait
         $values =[];
         if (count($rows)) {
             $fieldNames = array_keys((array) $rows[0]);
-            $firstField = reset($fieldNames);
+            $firstField = (string) reset($fieldNames);
             $values = collect($rows)->pluck($firstField)->toArray();
         }
         if ($sort) {

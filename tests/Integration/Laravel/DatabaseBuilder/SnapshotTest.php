@@ -149,7 +149,7 @@ class SnapshotTest extends LaravelTestCase
      * @test
      * @dataProvider snapshotDataProvider
      * @param ConfigDTO $config        The ConfigDTO to use which instructs what and how to build.
-     * @param array     $expectedFiles The files expected to exist.
+     * @param string[]  $expectedFiles The files expected to exist.
      * @return void
      */
     public function test_database_builder_takes_snapshots(ConfigDTO $config, array $expectedFiles): void
@@ -166,7 +166,7 @@ class SnapshotTest extends LaravelTestCase
 
         // find out which other files exist
         $files = array_values(array_diff(
-            scandir($this->wsAdaptStorageDir),
+            array_filter((array) scandir($this->wsAdaptStorageDir)),
             ['.', '..', '.gitignore', $dbFile]
         ));
 

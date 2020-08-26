@@ -61,7 +61,7 @@ trait LaravelBuildTrait
             $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
             $migrationsPath = ($useRealPath
                 ? realpath($migrationsPath)
-                : $this->makeRealpathRelative(realpath($migrationsPath)));
+                : $this->makeRealpathRelative((string) realpath($migrationsPath)));
         }
 
         $this->di->artisan->call(
@@ -125,10 +125,10 @@ trait LaravelBuildTrait
     /**
      * Take an absolute path and make it relative to the base project directory.
      *
-     * @param $path
+     * @param string $path The path to alter.
      * @return string
      */
-    private function makeRealpathRelative($path): string
+    private function makeRealpathRelative(string $path): string
     {
         $path = $this->di->filesystem->removeBasePath($path);
 

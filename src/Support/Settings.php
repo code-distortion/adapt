@@ -2,6 +2,9 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+/**
+ * Common Adapt settings.
+ */
 class Settings
 {
     /**

@@ -690,6 +690,7 @@ class DatabaseBuilder
      * Run the migrations.
      *
      * @return void
+     * @throws AdaptConfigException When the migration path isn't valid.
      */
     private function migrate(): void
     {
@@ -698,11 +699,12 @@ class DatabaseBuilder
         }
 
         if ((is_string($this->config->migrations))
-        && (!$this->di->filesystem->dirExists(realpath($this->config->migrations)))) {
+        && (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations)))) {
             throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
         }
 
-        $this->dbAdapter()->build->migrate($this->config->migrations);
+        $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
+        $this->dbAdapter()->build->migrate($migrationsPath);
 
         if ($this->shouldTakeSnapshotAfterMigrations()) {
             $seedersRun = []; // ie. no seeders
@@ -757,6 +759,7 @@ class DatabaseBuilder
      * Import the database dumps needed before the migrations run.
      *
      * @return void
+     * @throws AdaptSnapshotException When snapshots aren't allowed for this type of database.
      */
     private function importPreMigrationDumps(): void
     {
@@ -766,7 +769,10 @@ class DatabaseBuilder
         }
 
         if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
-            throw AdaptSnapshotException::importsNotAllowed($this->config->driver, $this->config->database);
+            throw AdaptSnapshotException::importsNotAllowed(
+                (string) $this->config->driver,
+                (string) $this->config->database
+            );
         }
 
         foreach ($preMigrationDumps as $path) {

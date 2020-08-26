@@ -109,7 +109,7 @@ class CommandsTest extends LaravelTestCase
      * @param string    $expectedOutput                The expected adapt:list-db-caches output.
      * @param string    $expectedOutputWithTestingConn The expected adapt:list-db-caches output when the "testing" db
      *                                                 connection is present.
-     * @param string[] $substitutions                  File substitutions to replace after resolving their paths and
+     * @param string[]  $substitutions                 File substitutions to replace after resolving their paths and
      *                                                 size.
      * @return void
      */
@@ -265,7 +265,7 @@ class CommandsTest extends LaravelTestCase
 
         foreach ($substitutions as $key => $file) {
             $file = str_replace(array_keys($replacements), $replacements, $file);
-            $size = StringSupport::readableSize(filesize($file));
+            $size = StringSupport::readableSize((int) filesize($file));
             $substitutions[$key] = $file.' '.$size;
         }
 
@@ -275,9 +275,9 @@ class CommandsTest extends LaravelTestCase
     /**
      * Run the given command and check the output.
      *
-     * @param string   $command        The command to run.
-     * @param mixed[]  $args           The arguments to pass to the command.
-     * @param string   $expectedOutput The output to expect.
+     * @param string  $command        The command to run.
+     * @param mixed[] $args           The arguments to pass to the command.
+     * @param string  $expectedOutput The output to expect.
      * @return void
      */
     private function expectCommandOutput(string $command, array $args, string $expectedOutput): void
