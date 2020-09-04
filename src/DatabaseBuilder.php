@@ -163,6 +163,29 @@ class DatabaseBuilder
 //    }
 
     /**
+     * Specify the database-modifier to use.
+     *
+     * @param string $databaseModifier The modifier to use.
+     * @return static
+     */
+    public function databaseModifier(string $databaseModifier): self
+    {
+        $this->config->databaseModifier($databaseModifier);
+        return $this;
+    }
+
+    /**
+     * Specify that no database-modifier is to be used.
+     *
+     * @return static
+     */
+    public function noDatabaseModifier(): self
+    {
+        $this->config->databaseModifier('');
+        return $this;
+    }
+
+    /**
      * Specify the database dump files to import before migrations run.
      *
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
@@ -503,12 +526,7 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterMigrations(): bool
     {
-        // override setting when a browser test is detected
-        if ($this->config->isBrowserTest) {
-            return false;
-        }
-
-        if (!$this->config->snapshotsEnabled) {
+        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
             return false;
         }
 
@@ -526,12 +544,7 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterSeeders(): bool
     {
-        // override setting when a browser test is detected
-        if ($this->config->isBrowserTest) {
-            return true;
-        }
-
-        if (!$this->config->snapshotsEnabled) {
+        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
             return false;
         }
 
@@ -555,7 +568,7 @@ class DatabaseBuilder
             $this->di->log->info('==== Adapt initialisation ================');
 
             Hasher::resetStaticProps();
-            $this->hasher->generateSourceFilesHash();
+            $this->hasher->currentSourceFilesHash();
             $this->removeSnapshots(true, false);
         }
     }
@@ -597,7 +610,10 @@ class DatabaseBuilder
     {
         // generate a new name
         if ($this->usingDynamicTestDBs()) {
-            $dbNameHash = $this->hasher->generateDBNameHash($this->config->pickSeedersToInclude());
+            $dbNameHash = $this->hasher->generateDBNameHash(
+                $this->config->pickSeedersToInclude(),
+                $this->config->databaseModifier
+            );
             return $this->dbAdapter()->name->generateDynamicDBName($dbNameHash);
         }
         // or return the original name
@@ -613,8 +629,7 @@ class DatabaseBuilder
     {
         $logTimer = $this->di->log->newTimer();
 
-        $snapshotHash = $this->hasher->currentSnapshotHash();
-        if (($this->usingReuseTestDBs()) && ($this->dbAdapter()->reuse->dbIsCleanForReuse($snapshotHash))) {
+        if ($this->canReuseDB()) {
             $this->di->log->info('Reusing the existing database', $logTimer);
         } else {
             $this->buildDBFresh();
@@ -622,9 +637,31 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuse->writeReuseData(
             $this->origDBName(),
-            $snapshotHash,
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash(),
             $this->dbWillBeReusable()
         );
+    }
+
+    /**
+     * Check if the current database can be re-used.
+     *
+     * @return boolean
+     */
+    private function canReuseDB(): bool
+    {
+        if (!$this->usingReuseTestDBs()) {
+            return false;
+        }
+
+        if (!$this->dbAdapter()->reuse->dbIsCleanForReuse(
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash()
+        )) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -647,7 +684,7 @@ class DatabaseBuilder
             $this->buildDBFromScratch();
         }
 
-        $this->di->log->info('Database built - total time', $logTimer);
+        $this->di->log->info('Database total build time', $logTimer);
     }
 
     /**
@@ -748,9 +785,12 @@ class DatabaseBuilder
     private function takeDBSnapshot(array $seeders): void
     {
         if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
+
             $logTimer = $this->di->log->newTimer();
+
             $snapshotPath = $this->generateSnapshotPath($seeders);
             $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
+
             $this->di->log->info('Snapshot save SUCCESSFUL: "'.$snapshotPath.'"', $logTimer);
         }
     }
@@ -828,26 +868,53 @@ class DatabaseBuilder
     {
         $seedersLeftToRun = [];
         do {
-            $logTimer = $this->di->log->newTimer();
-
-            $snapshotPath = $this->generateSnapshotPath($seeders);
-
-            if ($this->di->filesystem->fileExists($snapshotPath)) {
-                if ($this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-                    $this->di->log->info('Import of snapshot SUCCESSFUL: "'.$snapshotPath.'"', $logTimer);
-                    return true;
-                } else {
-                    $this->di->log->info('Import of snapshot FAILED: "'.$snapshotPath.'"', $logTimer);
-                }
-            } else {
-                $this->di->log->info('Snapshot NOT FOUND: "'.$snapshotPath.'"', $logTimer);
+            if ($this->trySnapshot($seeders)) {
+                return true;
             }
-
             if (!count($seeders)) {
                 return false;
             }
             array_unshift($seedersLeftToRun, array_pop($seeders));
         } while (true);
+    }
+
+    /**
+     * Generate the path that will be used for the snapshot.
+     *
+     * @param string[] $seeders The seeders that are included in the snapshot.
+     * @return string
+     */
+    private function generateSnapshotPath(array $seeders): string
+    {
+        return $this->dbAdapter()->name->generateSnapshotPath(
+            $this->hasher->generateSnapshotHash($seeders)
+        );
+    }
+
+    /**
+     * Use the snapshot if it exits.
+     *
+     * @param string[] $seeders The seeders to include.
+     * @return boolean
+     */
+    private function trySnapshot(array $seeders): bool
+    {
+        $logTimer = $this->di->log->newTimer();
+
+        $snapshotPath = $this->generateSnapshotPath($seeders);
+
+        if (!$this->di->filesystem->fileExists($snapshotPath)) {
+            $this->di->log->info('Snapshot NOT FOUND: "'.$snapshotPath.'"', $logTimer);
+            return false;
+        }
+
+        if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
+            $this->di->log->info('Import of snapshot FAILED: "'.$snapshotPath.'"', $logTimer);
+            return false;
+        }
+
+        $this->di->log->info('Import of snapshot SUCCESSFUL: "'.$snapshotPath.'"', $logTimer);
+        return true;
     }
 
     /**
@@ -936,11 +1003,14 @@ class DatabaseBuilder
         $prefix = $this->config->snapshotPrefix;
 
         if (mb_substr($filename, 0, mb_strlen($prefix)) == $prefix) {
+            $filename = mb_substr($filename, mb_strlen($prefix));
 
-            $filesHashMatched = $this->hasher->filenameHasFilesHash($filename);
-            if ((($detectOld) && (!$filesHashMatched))
-                || (($detectCurrent) && ($filesHashMatched))) {
+            $filesHashMatched = $this->hasher->filenameHasSourceFilesHash($filename);
 
+            if (($detectOld) && (!$filesHashMatched)) {
+                return true;
+            }
+            if (($detectCurrent) && ($filesHashMatched)) {
                 return true;
             }
         }
@@ -957,7 +1027,9 @@ class DatabaseBuilder
     private function removeSnapshotFile(string $path, bool $isOld = false): void
     {
         $logTimer = $this->di->log->newTimer();
+
         $this->di->filesystem->unlink($path);
+
         $this->di->log->info('Removed '.($isOld ? 'old ' : '').'snapshot: "'.$path.'"', $logTimer);
     }
 
@@ -1005,7 +1077,7 @@ class DatabaseBuilder
 
         $databases = $this->dbAdapter()->reuse->findRelevantDatabases(
             ($lockToOrigDB ? $this->origDBName() : null),
-            $this->hasher->generateSourceFilesHash(),
+            $this->hasher->currentSourceFilesHash(),
             $removeOld,
             $removeCurrent
         );
@@ -1049,7 +1121,7 @@ class DatabaseBuilder
             return $this->dbAdapter;
         }
 
-        // build a new one
+        // build a new one...
         $driver = $this->pickDriver();
         $framework = $this->framework;
         if ((!isset($this->availableDBAdapters[$framework]))
@@ -1082,19 +1154,5 @@ class DatabaseBuilder
     private function origDBName(): string
     {
         return $this->di->config->origDBName($this->config->connection);
-    }
-
-    /**
-     * Generate the path that will be used for the snapshot.
-     *
-     * @param string[] $seeders The seeders that are included in the snapshot.
-     * @return string
-     */
-    private function generateSnapshotPath(array $seeders): string
-    {
-        $snapshotHash = $this->hasher->generateSnapshotHash($seeders);
-        return $this->dbAdapter()->name->generateSnapshotPath(
-            $snapshotHash ?? $this->hasher->currentSnapshotHash()
-        );
     }
 }

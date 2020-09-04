@@ -74,7 +74,7 @@ trait LaravelBuildTrait
             ])
         );
 
-        $this->di->log->info('Migrated', $logTimer);
+        $this->di->log->info('Ran migrations', $logTimer);
     }
 
     /**

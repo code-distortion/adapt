@@ -23,7 +23,7 @@ If your project has a lot of migrations, this can end up taking a long time beca
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To give as much benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
+To benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -182,7 +182,7 @@ To carry out the different types of caching that this package uses, you may need
 - The user your tests run as needs to have **write-access to the filesystem** to store snapshots and sqlite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
 - If you have several projects using Adapt that use the same database server, you should set the `project-name` config setting to a unique value in each to stop them from interfering with each other's test-databases.
-- If you see databases with names like *your_database_name_341494d96f668950_ed40917d3e7f9b50*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
+- If you see databases with names like *your_database_name_17bd3c_d266ab43ac75*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
 
 See the [scenarios and techniques](#scenarios-and-techniques) section below for more tips.
 
@@ -214,7 +214,7 @@ Test-database reuse is turned **ON** by default.
 
 ### Dynamic Database Creation
 
-This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_341494d96f668950_ed40917d3e7f9b50* (so don't worry if you see them).
+This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_17bd3c_d266ab43ac75* (so don't worry if you see them).
 
 These scenarios then co-exist allowing each of them to be re-used straight away (without rebuilding for the current scenario).
 
@@ -232,7 +232,7 @@ Snapshot files are stored in the `database/adapt-test-storage` directory (config
 
 This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
 
-Database snapshots are turned **OFF** by default.
+Database snapshots are turned **OFF** by default, unless [browser-testing](#performing-browser-testing-such-as-using-dusk) is detected.
 
 ***Note***: SQLite database files aren't exported and imported, they are simply copied.
 
@@ -442,7 +442,7 @@ trait MyLaravelAdapt
 {
     use LaravelAdapt;
 
-    protected string $seeders = ['DatabaseSeeder', 'PopulateShoppingCartSeeder'];
+    protected string $seeders = ['DatabaseSeeder', 'ShoppingCartSeeder'];
     // etc…
 }
 ```
@@ -488,7 +488,7 @@ By default, the regular **DatabaseSeeder** is run after the migrations.
 
 ### My project uses database connections by name&hellip;
 
-If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you'll want to look at the `remap-connections` setting to overwrite connections' details.
+If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you may want to look at the `remap-connections` setting to overwrite connections' details.
 
 ### Performing browser testing (such as using Dusk)&hellip;
 

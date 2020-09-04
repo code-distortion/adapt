@@ -37,6 +37,10 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'database',
                 'params' => ['database' => 'my_database'],
             ],
+            'databaseModifier' => [
+                'method' => 'databaseModifier',
+                'params' => ['databaseModifier' => '_1'],
+            ],
 
             'storageDir' => [
                 'method' => 'storageDir',

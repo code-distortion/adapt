@@ -28,5 +28,5 @@ class Settings
      *
      * @const string
      */
-    public const REUSE_TABLE_VERSION = '1';
+    public const REUSE_TABLE_VERSION = '2';
 }

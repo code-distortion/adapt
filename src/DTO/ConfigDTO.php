@@ -36,6 +36,13 @@ class ConfigDTO
      */
     public ?string $database = null;
 
+    /**
+     * A modifier on the database name (eg. Paratest adds a TEST_TOKEN env setting to make the database unique).
+     *
+     * @var string
+     */
+    public string $databaseModifier = '';
+
 
     /**
      * The directory to store database snapshots in.
@@ -214,6 +221,18 @@ class ConfigDTO
     public function database(string $database): self
     {
         $this->database = $database;
+        return $this;
+    }
+
+    /**
+     * Set the database-modifier to use.
+     *
+     * @param string $databaseModifier The modifier to use.
+     * @return static
+     */
+    public function databaseModifier(string $databaseModifier): self
+    {
+        $this->databaseModifier = $databaseModifier;
         return $this;
     }
 

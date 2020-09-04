@@ -13,18 +13,18 @@ class Hasher
     use InjectTrait;
 
     /**
-     * The hash used when generating snapshot-paths.
-     *
-     * @var string|null
-     */
-    private ?string $snapshotHash = null;
-
-    /**
-     * The hash of the files that may affect the database - based on the files and directories in hashPaths.
+     * The hash of the files that may affect the database - based on the files and directories in hashPaths etc.
      *
      * @var string|null
      */
     private static ?string $sourceFilesHash = null;
+
+    /**
+     * The hash representing the way the database is built.
+     *
+     * @var string|null
+     */
+    private ?string $scenarioHash = null;
 
 
     /**
@@ -37,109 +37,92 @@ class Hasher
         static::$sourceFilesHash = null;
     }
 
-    /**
-     * Generate the snapshot-hash representing this DatabaseBuilder's state.
-     *
-     * @return string
-     */
-    public function currentSnapshotHash(): string
-    {
-        $this->snapshotHash ??= $this->generateSnapshotHash($this->config->pickSeedersToInclude());
-        return $this->snapshotHash;
-    }
 
     /**
-     * Generate a hash to be used in a snapshot filename.
-     *
-     * Based on the database-building file content, pre-migration-imports, migrations and seeder-settings.
-     *
-     * @param string[] $seeders The seeders that will be run.
-     * @return string
-     */
-    public function generateSnapshotHash(array $seeders): string
-    {
-        $rest = [
-            'preMigrationImports' => $this->config->preMigrationImports,
-            'migrations' => $this->config->migrations,
-            'seeders' => $seeders,
-        ];
-        $rest = md5(serialize($rest));
-
-        return $this->generateSourceFilesHash().'-'.mb_substr($rest, 0, 16);
-    }
-
-    /**
-     * Generate a hash to use in the database name.
-     *
-     * Based on the database-building file content, pre-migration-imports, migrations, seeder-settings, connection and
-     * transactions.
-     *
-     * @param string[] $seeders The seeders that will be run.
-     * @return string
-     */
-    public function generateDBNameHash(array $seeders): string
-    {
-        $rest = [
-            'projectName' => $this->config->projectName,
-            'preMigrationImports' => $this->config->preMigrationImports,
-            'migrations' => $this->config->migrations,
-            'seeders' => $seeders,
-            'connection' => $this->config->connection,
-            'transactions' => $this->config->transactions,
-        ];
-        $rest = md5(serialize($rest));
-
-        return $this->generateSourceFilesHash().'-'.mb_substr($rest, 0, 16);
-    }
-
-    /**
-     * Build a hash based on the files and directories in hashPaths.
+     * Resolve the current source files hash.
      *
      * @return string
      * @throws AdaptConfigException Thrown when a directory or file could not be opened.
      */
-    public function generateSourceFilesHash(): string
+    public function currentSourceFilesHash(): string
     {
-        // only do the calculation the first time
-        if (is_null(static::$sourceFilesHash)) {
+        static::$sourceFilesHash ??= $this->generateSourceFilesHash();
+        return static::$sourceFilesHash;
+    }
 
-            $logTimer = $this->di->log->newTimer();
+    /**
+     * Build a hash based on the source files.
+     *
+     * @return string
+     * @throws AdaptConfigException Thrown when a directory or file could not be opened.
+     */
+    private function generateSourceFilesHash(): string
+    {
+        $logTimer = $this->di->log->newTimer();
 
-            $hashPaths = $this->resolveHashPaths(
-                $this->config->hashPaths,
-                true,
-                'databaseRelatedFilesPathInvalid'
-            );
+        $paths = array_unique(array_filter(array_merge(
+            $this->resolveHashFilePaths(),
+            $this->resolvePreMigrationPaths(),
+            $this->resolveMigrationPaths()
+        )));
+        sort($paths);
 
-            $preMigratePaths = $this->resolveHashPaths(
-                $this->config->pickPreMigrationDumps(),
-                false,
-                'preMigrationImportPathInvalid'
-            );
-
-            $migrationPaths = [];
-            if (is_string($this->config->migrations)) {
-                $migrationPaths = $this->resolveHashPaths(
-                    [$this->config->migrations],
-                    true,
-                    'migrationsPathInvalid'
-                );
-            }
-
-            $paths = array_unique(array_merge($hashPaths, $preMigratePaths, $migrationPaths));
-            sort($paths);
-
-            $hashes = [];
-            foreach ($paths as $path) {
-                $hashes[$path] = $this->di->filesystem->md5File($path);
-            }
-
-            $hash = md5(serialize($hashes));
-            static::$sourceFilesHash = mb_substr($hash, 0, 16);
-
-            $this->di->log->info('Generated a hash of the database-related files', $logTimer);
+        $hashes = [];
+        foreach ($paths as $path) {
+            $hashes[$path] = $this->di->filesystem->md5File($path);
         }
+
+        static::$sourceFilesHash = md5(serialize($hashes));
+
+        $this->di->log->info('Generated a hash of the database-related files', $logTimer);
+
         return (string) static::$sourceFilesHash;
+    }
+
+
+    /**
+     * Look for paths to hash from the hash-paths list.
+     *
+     * @return string[]
+     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     */
+    private function resolveHashFilePaths(): array
+    {
+        return $this->resolvePaths(
+            $this->config->hashPaths,
+            true,
+            'databaseRelatedFilesPathInvalid'
+        );
+    }
+
+    /**
+     * Look for pre-migration paths to hash.
+     *
+     * @return string[]
+     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     */
+    private function resolvePreMigrationPaths(): array
+    {
+        return $this->resolvePaths(
+            $this->config->pickPreMigrationDumps(),
+            false,
+            'preMigrationImportPathInvalid'
+        );
+    }
+
+    /**
+     * Look for migration paths to hash.
+     *
+     * @return string[]
+     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     */
+    private function resolveMigrationPaths(): array
+    {
+        return $this->resolvePaths(
+            is_string($this->config->migrations) ? [$this->config->migrations] : [],
+            true,
+            'migrationsPathInvalid'
+        );
     }
 
     /**
@@ -151,13 +134,13 @@ class Hasher
      * @return string[]
      * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
      */
-    private function resolveHashPaths(array $paths, bool $dirAllowed, string $exceptionMethod): array
+    private function resolvePaths(array $paths, bool $dirAllowed, string $exceptionMethod): array
     {
         $resolvedPaths = [];
         foreach ($paths as $path) {
             $resolvedPaths = array_merge(
                 $resolvedPaths,
-                $this->resolveHashPath($path, $dirAllowed, $exceptionMethod)
+                $this->resolvePath($path, $dirAllowed, $exceptionMethod)
             );
         }
         return $resolvedPaths;
@@ -172,7 +155,7 @@ class Hasher
      * @return string[]
      * @throws AdaptConfigException Thrown when the file does not exist or is a directory that shouldn't be used.
      */
-    private function resolveHashPath(string $path, bool $dirAllowed, string $exceptionMethod): array
+    private function resolvePath(string $path, bool $dirAllowed, string $exceptionMethod): array
     {
         $realPath = $this->di->filesystem->realpath($path);
         if ((!$realPath) || (!$this->di->filesystem->pathExists($realPath))) {
@@ -195,38 +178,91 @@ class Hasher
         return $paths;
     }
 
+
     /**
-     * Check to see if the current files-hash is present in the filename
+     * Resolve the current scenario-hash.
+     *
+     * @return string
+     */
+    public function currentScenarioHash(): string
+    {
+        $this->scenarioHash ??= $this->generateScenarioHash($this->config->pickSeedersToInclude());
+        return $this->scenarioHash;
+    }
+
+    /**
+     * Generate the scenario-hash based on the way this DatabaseBuilder will build this database.
+     *
+     * Based on the database-building file content, pre-migration-imports, migrations and seeder-settings.
+     *
+     * @param string[] $seeders The seeders that will be run.
+     * @return string
+     */
+    private function generateScenarioHash(array $seeders): string
+    {
+        return md5(serialize([
+            'preMigrationImports' => $this->config->preMigrationImports,
+            'migrations' => $this->config->migrations,
+            'seeders' => $seeders,
+        ]));
+    }
+
+
+    /**
+     * Generate a hash to use in the database name.
+     *
+     * Based on the database-building file content, pre-migration-imports, migrations, seeder-settings, connection and
+     * transactions.
+     *
+     * @param string[] $seeders          The seeders that will be run.
+     * @param string   $databaseModifier The modifier to use.
+     * @return string
+     */
+    public function generateDBNameHash(array $seeders, string $databaseModifier): string
+    {
+        $databaseHash = md5(serialize([
+            'scenarioHash' => $this->generateScenarioHash($seeders),
+            'projectName' => $this->config->projectName,
+            'connection' => $this->config->connection,
+            'transactions' => $this->config->transactions,
+        ]));
+
+        return mb_substr($this->currentSourceFilesHash(), 0, 6)
+            .'-'
+            .mb_substr($databaseHash, 0, 12)
+            .(mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
+    }
+
+
+    /**
+     * Generate a hash to use in a snapshot filename.
+     *
+     * @param string[] $seeders The seeders that are included in the snapshot.
+     * @return string
+     */
+    public function generateSnapshotHash(array $seeders): string
+    {
+        $sourceFilesHash = $this->currentSourceFilesHash();
+        $scenarioHash = $this->generateScenarioHash($seeders);
+
+        return mb_substr($sourceFilesHash, 0, 6)
+            .'-'
+            .mb_substr($scenarioHash, 0, 12);
+    }
+
+    /**
+     * Check to see if the current source-files-hash is present in the filename
      *
      * @param string $filename The prefix that needs to be found.
      * @return boolean
      */
-    public function filenameHasFilesHash(string $filename): bool
+    public function filenameHasSourceFilesHash(string $filename): bool
     {
-        $filesHash = $this->generateSourceFilesHash();
+        $sourceFilesHash = mb_substr($this->currentSourceFilesHash(), 0, 6);
         return (bool) preg_match(
-            '/^.+\.'.preg_quote($filesHash).'[^0-9a-f][0-9a-f]+\.[^\.]+$/',
+            '/^.+\.'.preg_quote($sourceFilesHash).'[^0-9a-f][0-9a-f]+\.[^\.]+$/',
             $filename,
             $matches
         );
-    }
-
-    /**
-     * Take the given snapshot-hash and return the files-hash from it.
-     *
-     * @param string $snapshotHash The snapshot-hash to inspect.
-     * @return string|null
-     */
-    public function pickFileHashFromSnapshotHash(string $snapshotHash): ?string
-    {
-        // pick the first portion of the snapshot-hash - which is the files-hash
-        if (preg_match(
-            '/^([0-9a-f]+)[^0-9a-f][0-9a-f]+$/',
-            $snapshotHash,
-            $matches
-        )) {
-            return $matches[1];
-        }
-        return null;
     }
 }
