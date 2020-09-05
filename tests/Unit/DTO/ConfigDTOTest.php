@@ -7,7 +7,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 
 /**
- * Test the ConfigDTO class
+ * Test the ConfigDTO class.
  *
  * @phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */

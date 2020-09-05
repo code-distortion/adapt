@@ -160,14 +160,18 @@ trait DatabaseBuilderTestTrait
     /**
      * Prepare the workspace directory by emptying it and copying the contents of another in to it.
      *
-     * @param string $sourceDir The directory to make a copy of.
-     * @param string $destDir   The directory to replace.
+     * @param string  $sourceDir             The directory to make a copy of.
+     * @param string  $destDir               The directory to replace.
+     * @param boolean $removeAdaptStorageDir Remove the adapt-storage directory?.
      * @return void
      */
-    private function prepareWorkspace(string $sourceDir, string $destDir): void
+    private function prepareWorkspace(string $sourceDir, string $destDir, bool $removeAdaptStorageDir = true): void
     {
         $this->delTree($destDir);
         $this->copyDirRecursive($sourceDir, $destDir);
+        if ($removeAdaptStorageDir) {
+            $this->delTree($destDir.'/database/adapt-test-storage');
+        }
         $this->createGitIgnoreFile($destDir.'/.gitignore');
         $this->loadConfigs($destDir.'/config');
     }

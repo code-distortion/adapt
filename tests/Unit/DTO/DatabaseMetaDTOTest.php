@@ -7,7 +7,7 @@ use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 
 /**
- * Test the DatabaseMetaDTO class
+ * Test the DatabaseMetaDTO class.
  *
  * @phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */

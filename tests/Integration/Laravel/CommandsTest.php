@@ -47,7 +47,7 @@ class CommandsTest extends LaravelTestCase
                     ."- Connection \"sqlite\":\n"
                     ."  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
                 ],
             ],
             [
@@ -68,8 +68,8 @@ class CommandsTest extends LaravelTestCase
                     ."Snapshots:\n\n"
                     ."- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-a34cd538e35f9b7d.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -92,9 +92,9 @@ class CommandsTest extends LaravelTestCase
                     ."- [file2]\n"
                     ."- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-a34cd538e35f9b7d.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-8bd51f9f0b21313b.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
                 ],
             ],
         ];
@@ -159,7 +159,7 @@ class CommandsTest extends LaravelTestCase
                     ."- Connection \"sqlite\":\n"
                     ."  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
                 ],
             ],
             [
@@ -180,8 +180,8 @@ class CommandsTest extends LaravelTestCase
                     ."Snapshots:\n\n"
                     ."- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-a34cd538e35f9b7d.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -204,9 +204,9 @@ class CommandsTest extends LaravelTestCase
                     ."- DELETED [file2]\n"
                     ."- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.3dd190cf729cf1fc-feec43fe6c003072.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-a34cd538e35f9b7d.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190cf729cf1fc-8bd51f9f0b21313b.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
                 ],
             ],
         ];
@@ -265,7 +265,9 @@ class CommandsTest extends LaravelTestCase
 
         foreach ($substitutions as $key => $file) {
             $file = str_replace(array_keys($replacements), $replacements, $file);
-            $size = StringSupport::readableSize((int) filesize($file));
+            $size = (file_exists($file)
+                ? StringSupport::readableSize((int) filesize($file))
+                : 0);
             $substitutions[$key] = $file.' '.$size;
         }
 
