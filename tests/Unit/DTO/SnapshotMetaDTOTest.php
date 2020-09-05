@@ -7,7 +7,7 @@ use CodeDistortion\Adapt\DTO\SnapshotMetaDTO;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 
 /**
- * Test the SnapshotMetaDTO class
+ * Test the SnapshotMetaDTO class.
  *
  * @phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */

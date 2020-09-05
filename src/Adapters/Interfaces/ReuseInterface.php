@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\Interfaces;
 
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Hasher;
 
 /**
@@ -24,22 +25,30 @@ interface ReuseInterface
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string  $origDBName   The database that this test-database is for name.
-     * @param string  $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                              pre-migration-imports, migrations and seeder-settings.
-     * @param boolean $reusable     Whether this database can be reused or not.
+     * @param string  $origDBName      The database that this test-database is for name.
+     * @param string  $sourceFilesHash The current source-files-hash based on the database-building file content.
+     * @param string  $scenarioHash    The current scenario-hash based on the pre-migration-imports, migrations and
+     *                                 seeder-settings.
+     * @param boolean $reusable        Whether this database can be reused or not.
      * @return void
      */
-    public function writeReuseData(string $origDBName, string $snapshotHash, bool $reusable);
+    public function writeReuseData(
+        string $origDBName,
+        string $sourceFilesHash,
+        string $scenarioHash,
+        bool $reusable
+    );
 
     /**
      * Check to see if the database can be reused.
      *
-     * @param string $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                             pre-migration-imports, migrations and seeder-settings.
+     * @param string $sourceFilesHash The current source-files-hash based on the database-building file content.
+     * @param string $scenarioHash    The scenario-hash based on the pre-migration-imports, migrations and
+     *                                seeder-settings.
      * @return boolean
+     * @throws AdaptBuildException When the database is owned by another project.
      */
-    public function dbIsCleanForReuse(string $snapshotHash): bool;
+    public function dbIsCleanForReuse(string $sourceFilesHash, string $scenarioHash): bool;
 
     /**
      * Look for databases, and check if they're valid or invalid (current or old).
@@ -47,15 +56,15 @@ interface ReuseInterface
      * Only removes databases that have reuse-info stored,
      * and that were for the same original database that this instance is for.
      *
-     * @param string|null $origDBName    The original database that this instance is for - will be ignored when null.
-     * @param string      $filesHash     The current files-hash based on the database-building file content.
-     * @param boolean     $detectOld     Remove old databases.
-     * @param boolean     $detectCurrent Remove new databases.
+     * @param string|null $origDBName      The original database that this instance is for - will be ignored when null.
+     * @param string      $sourceFilesHash The current files-hash based on the database-building file content.
+     * @param boolean     $detectOld       Remove old databases.
+     * @param boolean     $detectCurrent   Remove new databases.
      * @return string[]
      */
     public function findRelevantDatabases(
         $origDBName,
-        string $filesHash,
+        string $sourceFilesHash,
         bool $detectOld,
         bool $detectCurrent
     ): array;

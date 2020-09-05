@@ -111,10 +111,13 @@ class BootTestLaravel extends BootTestAbstract
             throw AdaptBootException::propBagNotSet();
         }
 
+        $paraTestDBModifier = (string) getenv('TEST_TOKEN');
+
         return (new ConfigDTO)
             ->projectName($this->propBag->config('project-name'))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
+            ->databaseModifier($paraTestDBModifier)
             ->storageDir(rtrim($this->propBag->config('storage-dir'), '\\/'))
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')

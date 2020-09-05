@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.2.2] - 2020-09-06
+
+### Added
+- ParaTest's TEST_TOKEN is now detected so that separate databases are created for each para-test instance (see https://github.com/paratestphp/paratest#test-token)
+
+### Changed
+- Refactored code and increased test coverage
+
+
+
 ## [0.2.1] - 2020-08-26
 
 ### Added

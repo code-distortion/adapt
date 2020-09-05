@@ -65,7 +65,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190cf729cf1fc-e1ad45abaf58c9fb.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-53855ffa7573.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -77,7 +77,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190cf729cf1fc-e1ad45abaf58c9fb.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-53855ffa7573.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -113,7 +113,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190cf729cf1fc-071e7bc77f7ae33a.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-e86e4a953f0d.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -125,7 +125,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190cf729cf1fc-071e7bc77f7ae33a.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-e86e4a953f0d.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
@@ -233,7 +233,9 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0, `reuse_table_version` = 'blahblah'",
+                'updateReuseTableQuery' =>
+                    "UPDATE `".Settings::REUSE_TABLE."` "
+                    ."SET `inside_transaction` = 0, `reuse_table_version` = 'blahblah'",
                 'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
@@ -245,7 +247,9 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0, `project_name` = 'blahblah'",
+                'updateReuseTableQuery' =>
+                    "UPDATE `".Settings::REUSE_TABLE."` "
+                    ."SET `inside_transaction` = 0, `project_name` = 'blahblah'",
                 'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => AdaptBuildException::class,
@@ -295,9 +299,10 @@ class ReuseDBTest extends LaravelTestCase
      * @test
      * @dataProvider databaseReuseDataProvider
      * @param ConfigDTO   $config                The ConfigDTO to use which instructs what and how to build.
-     * @param string      $updateReuseTableQuery The query used to update the ____adapt____ table between database builds.
+     * @param string      $updateReuseTableQuery The query used to update the ____adapt____ table between database
+     *                                           builds.
      * @param string      $expectedDBName        The expected name of the database used.
-     * @param int         $expectedUserCount     The expected number of users in the database after the second build.
+     * @param integer     $expectedUserCount     The expected number of users in the database after the second build.
      * @param string|null $expectedException     The expected exception.
      * @return void
      * @throws Throwable Any exception that's not expected.

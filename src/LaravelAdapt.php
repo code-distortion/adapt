@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt;
 
-use CodeDistortion\Adapt\SetUp\InitialiseLaravelAdapt;
+use CodeDistortion\Adapt\Initialise\InitialiseLaravelAdapt;
 
 /**
  * Allow Laravel tests to use Adapt.

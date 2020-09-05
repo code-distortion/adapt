@@ -2,6 +2,9 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+/**
+ * Common Adapt settings.
+ */
 class Settings
 {
     /**
@@ -25,5 +28,5 @@ class Settings
      *
      * @const string
      */
-    const REUSE_TABLE_VERSION = '1';
+    const REUSE_TABLE_VERSION = '2';
 }

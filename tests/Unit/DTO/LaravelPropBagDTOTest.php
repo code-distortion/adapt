@@ -9,7 +9,7 @@ use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Throwable;
 
 /**
- * Test the PropBag class
+ * Test the PropBag class.
  *
  * @phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */

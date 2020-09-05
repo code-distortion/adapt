@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\SetUp;
+namespace CodeDistortion\Adapt\Initialise;
 
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
