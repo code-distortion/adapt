@@ -209,6 +209,7 @@ class Filesystem
                 $files[] = $file->getPathname();
             }
         }
+        sort($files);
         return $files;
     }
 }
