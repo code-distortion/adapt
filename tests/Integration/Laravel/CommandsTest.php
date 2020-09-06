@@ -27,7 +27,8 @@ class CommandsTest extends LaravelTestCase
 
 
     /**
-     * Provide data for the test_list_db_caches_command test.
+     * Provide data for the
+     * test_list_db_caches_command test.
      *
      * @return mixed[][]
      */
@@ -93,8 +94,8 @@ class CommandsTest extends LaravelTestCase
                     ."- [file3]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
                 ],
             ],
         ];
@@ -205,8 +206,8 @@ class CommandsTest extends LaravelTestCase
                     ."- DELETED [file3]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.3dd190-3e4b86d50da4.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.3dd190-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.3dd190-a34cd538e35f.sqlite',
                 ],
             ],
         ];
