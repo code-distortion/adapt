@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.2.3] - 2020-09-09
+
+### Added
+- Bumped dependencies and added test coverage to include Laravel 8
+
+
+
 ## [0.2.2] - 2020-09-06
 
 ### Added
