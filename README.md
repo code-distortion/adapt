@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
-![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%20%26%207-blue?style=flat-square)
+![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/run-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://offset.earth/treeware?gift-trees)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
@@ -13,7 +13,7 @@
 
 Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or *DatabaseMigrations*, *DatabaseTransactions*) to manage how your database is built.
 
-If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file before each test-run can be slow.
+If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file can be slow.
 
 > Adapt is a replacement for Laravel's test database traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
 >
@@ -23,7 +23,7 @@ If your project has a lot of migrations, this can end up taking a long time beca
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6 & 7** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
+To benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6, 7 & 8** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -119,9 +119,9 @@ If you're using an old version of PHPUnit and want to populate database data in 
 
 - To solve this either put the code to populate the database into a seeder and have Adapt run that.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*or*
 
-- Add this to your base TestCase class to boot Adapt:
+- Add this to your base TestCase `setUp()` method to boot Adapt:
 
 ``` php
 <?php
@@ -192,7 +192,7 @@ See the [scenarios and techniques](#scenarios-and-techniques) section below for 
 
 You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
 
-`php artisan adapt:remove-db-caches` - Removes Adapt's databases and snapshot files.
+`php artisan adapt:remove-db-caches`
 
 
 
