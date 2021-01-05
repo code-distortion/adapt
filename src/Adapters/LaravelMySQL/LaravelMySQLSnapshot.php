@@ -12,7 +12,8 @@ use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
  */
 class LaravelMySQLSnapshot implements SnapshotInterface
 {
-    use InjectTrait, LaravelHelperTrait;
+    use InjectTrait;
+    use LaravelHelperTrait;
 
 
     /**
@@ -52,18 +53,18 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             return false;
         }
 
-        if (!$this->di->exec->commandRuns($this->config->mysqlExecutablePath.' --version')) {
+        if (!$this->di->exec->commandRuns($this->config->mysqlExecutablePath . ' --version')) {
             throw AdaptSnapshotException::mysqlClientNotPresent($this->config->mysqlExecutablePath);
         }
 
-        $command = $this->config->mysqlExecutablePath.' '
-            .'--host='.escapeshellarg($this->conVal('host')).' '
-            .'--port='.escapeshellarg($this->conVal('port')).' '
-            .'--user='.escapeshellarg($this->conVal('username')).' '
-            .'--password='.escapeshellarg($this->conVal('password')).' '
-            .escapeshellarg((string) $this->config->database).' '
-            .'< '.escapeshellarg($path).' '
-            .'2>/dev/null';
+        $command = $this->config->mysqlExecutablePath . ' '
+            . '--host=' . escapeshellarg($this->conVal('host')) . ' '
+            . '--port=' . escapeshellarg($this->conVal('port')) . ' '
+            . '--user=' . escapeshellarg($this->conVal('username')) . ' '
+            . '--password=' . escapeshellarg($this->conVal('password')) . ' '
+            . escapeshellarg((string) $this->config->database) . ' '
+            . '< ' . escapeshellarg($path) . ' '
+            . '2>/dev/null';
 
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
@@ -84,19 +85,19 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     public function takeSnapshot(string $path): bool
     {
-        if (!$this->di->exec->commandRuns($this->config->mysqldumpExecutablePath.' --version')) {
+        if (!$this->di->exec->commandRuns($this->config->mysqldumpExecutablePath . ' --version')) {
             throw AdaptSnapshotException::mysqldumpNotPresent($this->config->mysqldumpExecutablePath);
         }
 
-        $command = $this->config->mysqldumpExecutablePath.' '
-            .'--host='.escapeshellarg($this->conVal('host')).' '
-            .'--port='.escapeshellarg($this->conVal('port')).' '
-            .'--user='.escapeshellarg($this->conVal('username')).' '
-            .'--password='.escapeshellarg($this->conVal('password')).' '
-            .'--add-drop-table '
-            .escapeshellarg((string) $this->config->database).' '
-            .'> '.escapeshellarg($path).' '
-            .'2>/dev/null';
+        $command = $this->config->mysqldumpExecutablePath . ' '
+            . '--host=' . escapeshellarg($this->conVal('host')) . ' '
+            . '--port=' . escapeshellarg($this->conVal('port')) . ' '
+            . '--user=' . escapeshellarg($this->conVal('username')) . ' '
+            . '--password=' . escapeshellarg($this->conVal('password')) . ' '
+            . '--add-drop-table '
+            . escapeshellarg((string) $this->config->database) . ' '
+            . '> ' . escapeshellarg($path) . ' '
+            . '2>/dev/null';
 
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {

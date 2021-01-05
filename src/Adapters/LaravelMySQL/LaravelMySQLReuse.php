@@ -35,37 +35,37 @@ class LaravelMySQLReuse implements ReuseInterface
         bool $reusable
     ) {
 
-        $this->di->db->statement("DROP TABLE IF EXISTS `".Settings::REUSE_TABLE."`");
+        $this->di->db->statement("DROP TABLE IF EXISTS `" . Settings::REUSE_TABLE . "`");
         $this->di->db->statement(
-            "CREATE TABLE `".Settings::REUSE_TABLE."` ("
-            ."`project_name` varchar(255), "
-            ."`reuse_table_version` varchar(16), "
-            ."`orig_db_name` varchar(255) NOT NULL, "
-            ."`source_files_hash` varchar(255) NOT NULL, "
-            ."`scenario_hash` varchar(255) NOT NULL, "
-            ."`reusable` tinyint unsigned, "
-            ."`inside_transaction` tinyint unsigned"
-            .")"
+            "CREATE TABLE `" . Settings::REUSE_TABLE . "` ("
+            . "`project_name` varchar(255), "
+            . "`reuse_table_version` varchar(16), "
+            . "`orig_db_name` varchar(255) NOT NULL, "
+            . "`source_files_hash` varchar(255) NOT NULL, "
+            . "`scenario_hash` varchar(255) NOT NULL, "
+            . "`reusable` tinyint unsigned, "
+            . "`inside_transaction` tinyint unsigned"
+            . ")"
         );
         $this->di->db->insert(
-            "INSERT INTO `".Settings::REUSE_TABLE."` ("
-                ."`project_name`, "
-                ."`reuse_table_version`, "
-                ."`orig_db_name`, "
-                ."`source_files_hash`, "
-                ."`scenario_hash`, "
-                ."`reusable`, "
-                ."`inside_transaction`"
-            .") "
-            ."VALUES ("
-                .":projectName, "
-                .":reuseTableVersion, "
-                .":origDBName, "
-                .":sourceFilesHash, "
-                .":scenarioHash, "
-                .":reusable, "
-                .":insideTransaction"
-            .")",
+            "INSERT INTO `" . Settings::REUSE_TABLE . "` ("
+                . "`project_name`, "
+                . "`reuse_table_version`, "
+                . "`orig_db_name`, "
+                . "`source_files_hash`, "
+                . "`scenario_hash`, "
+                . "`reusable`, "
+                . "`inside_transaction`"
+            . ") "
+            . "VALUES ("
+                . ":projectName, "
+                . ":reuseTableVersion, "
+                . ":origDBName, "
+                . ":sourceFilesHash, "
+                . ":scenarioHash, "
+                . ":reusable, "
+                . ":insideTransaction"
+            . ")",
             [
                 'projectName' => $this->config->projectName,
                 'reuseTableVersion' => Settings::REUSE_TABLE_VERSION,
@@ -90,7 +90,7 @@ class LaravelMySQLReuse implements ReuseInterface
     public function dbIsCleanForReuse(string $sourceFilesHash, string $scenarioHash): bool
     {
         try {
-            $rows = $this->di->db->select("SELECT * FROM `".Settings::REUSE_TABLE."` LIMIT 0, 1");
+            $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
             $reuseInfo = reset($rows);
         } catch (Throwable $e) {
             return false;
@@ -125,8 +125,8 @@ class LaravelMySQLReuse implements ReuseInterface
 
         if ($reuseInfo->inside_transaction) {
             $this->di->log->warning(
-                'The previous transaction for database "'.$this->config->database.'" '
-                .'was committed instead of being rolled-back'
+                'The previous transaction for database "' . $this->config->database . '" '
+                . 'was committed instead of being rolled-back'
             );
             return false;
         }
@@ -159,16 +159,18 @@ class LaravelMySQLReuse implements ReuseInterface
         foreach ($pdo->listDatabases() as $database) {
 
             $reuseInfo = $pdo->fetchReuseTableInfo(
-                "SELECT * FROM `".$database."`.`".Settings::REUSE_TABLE."` LIMIT 0, 1"
+                "SELECT * FROM `" . $database . "`.`" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
             );
 
-            if ($this->isDatabaseRelevant(
-                $reuseInfo,
-                $origDBName,
-                $sourceFilesHash,
-                $detectOld,
-                $detectCurrent
-            )) {
+            if (
+                $this->isDatabaseRelevant(
+                    $reuseInfo,
+                    $origDBName,
+                    $sourceFilesHash,
+                    $detectOld,
+                    $detectCurrent
+                )
+            ) {
                 $relevantDBs[] = $database;
             }
         }
@@ -228,9 +230,9 @@ class LaravelMySQLReuse implements ReuseInterface
         $logTimer = $this->di->log->newTimer();
 
         $pdo = $this->di->db->newPDO();
-        $success = $pdo->dropDatabase("DROP DATABASE IF EXISTS `".$database."`");
+        $success = $pdo->dropDatabase("DROP DATABASE IF EXISTS `$database`");
 
-        $this->di->log->info('Removed '.($isOld ? 'old ' : '').'database: "'.$database.'"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'database: "$database"', $logTimer);
 
         return $success;
     }
@@ -246,8 +248,8 @@ class LaravelMySQLReuse implements ReuseInterface
         $pdo = $this->di->db->newPDO();
         $size = $pdo->size(
             "SELECT SUM(DATA_LENGTH + INDEX_LENGTH) AS size "
-            ."FROM INFORMATION_SCHEMA.TABLES "
-            ."WHERE TABLE_SCHEMA = '".$database."'"
+            . "FROM INFORMATION_SCHEMA.TABLES "
+            . "WHERE TABLE_SCHEMA = '$database'"
         );
         return (is_integer($size) ? $size :  null);
     }

@@ -38,22 +38,22 @@ class CacheListDTOTest extends PHPUnitTestCase
      */
     public function cache_list_dto_can_set_and_get_values()
     {
-        $snapshotMetaDTO1 = new SnapshotMetaDTO;
-        $snapshotMetaDTO2 = new SnapshotMetaDTO;
+        $snapshotMetaDTO1 = new SnapshotMetaDTO();
+        $snapshotMetaDTO2 = new SnapshotMetaDTO();
         $snapshots = [
             $snapshotMetaDTO1,
             $snapshotMetaDTO2,
         ];
 
-        $databaseMetaDTO1 = new DatabaseMetaDTO;
-        $databaseMetaDTO2 = new DatabaseMetaDTO;
+        $databaseMetaDTO1 = new DatabaseMetaDTO();
+        $databaseMetaDTO2 = new DatabaseMetaDTO();
         $databases1 = [
             $databaseMetaDTO1,
             $databaseMetaDTO2,
         ];
 
-        $databaseMetaDTO3 = new DatabaseMetaDTO;
-        $databaseMetaDTO4 = new DatabaseMetaDTO;
+        $databaseMetaDTO3 = new DatabaseMetaDTO();
+        $databaseMetaDTO4 = new DatabaseMetaDTO();
         $databases2 = [
             $databaseMetaDTO3,
             $databaseMetaDTO4,
@@ -61,19 +61,19 @@ class CacheListDTOTest extends PHPUnitTestCase
 
 
 
-        $cacheListDTO = new CacheListDTO;
+        $cacheListDTO = new CacheListDTO();
         $this->assertFalse($cacheListDTO->containsAnyCache());
 
-        $cacheListDTO = (new CacheListDTO)->snapshots($snapshots);
+        $cacheListDTO = (new CacheListDTO())->snapshots($snapshots);
         $this->assertTrue($cacheListDTO->containsAnyCache());
 
-        $cacheListDTO = (new CacheListDTO)->databases('mysql', $databases1);
+        $cacheListDTO = (new CacheListDTO())->databases('mysql', $databases1);
         $this->assertTrue($cacheListDTO->containsAnyCache());
 
-        $cacheListDTO = (new CacheListDTO)->databases('mysql', []);
+        $cacheListDTO = (new CacheListDTO())->databases('mysql', []);
         $this->assertFalse($cacheListDTO->containsAnyCache());
 
-        $cacheListDTO = (new CacheListDTO)
+        $cacheListDTO = (new CacheListDTO())
             ->snapshots($snapshots)
             ->databases('mysql', $databases1)
             ->databases('sqlite', $databases2);

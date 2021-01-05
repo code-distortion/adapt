@@ -4,20 +4,62 @@
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
 ![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/run-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
-[![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://offset.earth/treeware?gift-trees)
+[![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://ecologi.com/treeware?gift-trees)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
 
 ***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and can give large speed improvements.
 
+
+
+## Table of Contents
+
+* [Introduction](#introduction)
+* [Who will benefit from using Adapt?](#who-will-benefit-from-using-adapt)
+* [Installation](#installation)
+    * [Config](#config)
+* [Usage](#usage)
+    * [PHPUnit Usage](#phpunit-usage)
+    * [PEST Usage](#pest-usage)
+    * [Usage Notes](#usage-notes)
+    * [Artisan Console Commands](#artisan-console-commands)
+* [Caching Mechanisms](#caching-mechanisms)
+    * [Reuse Of Test-Databases](#reuse-of-test-databases)
+    * [Dynamic Database Creation](#dynamic-database-creation)
+    * [Database Snapshots](#database-snapshots)
+* [Cache Invalidation](#cache-invalidation)
+* [Customisation](#customisation)
+    * [PHPUnit Customisation](#phpunit-customisation)
+    * [PEST Customisation](#pest-customisation)
+* [Scenarios and Techniques](#scenarios-and-techniques)
+    * [My project only uses the "default" connection…](#my-project-only-uses-the-default-connectionhellip)
+    * [My seeders take a while to run / different seeders are needed for different tests…](#my-seeders-take-a-while-to-run--different-seeders-are-needed-for-different-testshellip)
+    * [My project uses database connections by name…](#my-project-uses-database-connections-by-namehellip)
+    * [When performing browser testing (such as using Dusk)…](#when-performing-browser-testing-such-as-using-duskhellip)
+    * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-importhellip)
+    * [My project uses more than one database…](#my-project-uses-more-than-one-databasehellip)
+* [Testing](#testing)
+* [Changelog](#changelog)
+    * [SemVer](#semver)
+* [Treeware](#treeware)
+* [Contributing](#contributing)
+    * [Code of Conduct](#code-of-conduct)
+    * [Security](#security)
+* [Credits](#credits)
+* [License](#license)
+
+
+
 ## Introduction
 
-Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or *DatabaseMigrations*, *DatabaseTransactions*) to manage how your database is built.
+Adapt is a replacement for Laravel's test database traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
 
-If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file can be slow.
+It allows for a high level of [customisation](#customisation), but **most likely all you'll need to do is [apply it to your tests](#usage) and it will work out of the box**.
 
-> Adapt is a replacement for Laravel's test database traits which builds your test-databases and makes re-use almost instant by avoiding the need to re-build them each time.
+> Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or *DatabaseMigrations*, *DatabaseTransactions*) to manage how your database is built.
 >
-> It allows for a high level of [customisation](#customisation), but **most likely all you'll need to do is [apply it to your tests](#usage) and it will work out of the box**.
+> If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file can be slow.
+
+
 
 ## Who will benefit from using Adapt?
 
@@ -70,7 +112,9 @@ class AppServiceProvider extends ServiceProvider
 </p>
 </details>
 
-#### Config
+
+
+### Config
 
 You can alter the default settings by publishing the `config/code-distortion.adapt.php` config file and updating it:
 
@@ -79,6 +123,8 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 ```
 
 ***Note***: The custom environment values you'd like to add should be put in your `.env.testing` file if you use one (rather than `.env`).
+
+
 
 ## Usage
 
@@ -151,6 +197,8 @@ abstract class TestCase extends BaseTestCase
 </p>
 </details>
 
+
+
 ### PEST Usage
 
 PEST lets you [assign classes and traits to your tests](https://pestphp.com/docs/guides/laravel/) with the `uses(…)` helper function.
@@ -174,6 +222,8 @@ it('has users')->assertDatabaseHas('users', [
 
 Adapt's settings can also be [customised](#pest-customisation) on a per-test basis when using PEST.
 
+
+
 ### Usage Notes
 
 To carry out the different types of caching that this package uses, you may need to address the following:
@@ -186,7 +236,9 @@ To carry out the different types of caching that this package uses, you may need
 
 See the [scenarios and techniques](#scenarios-and-techniques) section below for more tips.
 
-### Artisan Commands
+
+
+### Artisan Console Commands
 
 `php artisan adapt:list-db-caches` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
 
@@ -202,6 +254,8 @@ Adapt uses these caching mechanisms to improve testing speed.
 
 ***Note***: You can safely delete test-databases left by Adapt but **don't change data** in them as they will be reused and are assumed to be in a clean state.
 
+
+
 ### Reuse Of Test-Databases
 
 Once a test-database has been built, it's possible to reuse it in the next test-run without building it again.
@@ -212,6 +266,8 @@ This setting is best used in conjunction with the [dynamic database creation](#d
 
 Test-database reuse is turned **ON** by default.
 
+
+
 ### Dynamic Database Creation
 
 This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_17bd3c_d266ab43ac75* (so don't worry if you see them).
@@ -221,6 +277,8 @@ These scenarios then co-exist allowing each of them to be re-used straight away 
 And so, this setting is best used in conjunction with the [reuse of test-databases](#reuse-of-test-databases) caching above.
 
 Dynamic database creation is turned **ON** by default.
+
+
 
 ### Database Snapshots
 
@@ -252,7 +310,11 @@ This list of directories can be configured via the `look-for-changes-in` config 
 
 As well as the `config/code-distortion.adapt.php` [config settings](#config), you can customise many of them inside your tests as shown below. You may wish to share these between similar tests by putting them in a trait or parent test-class:
 
+
+
 ### PHPUnit Customisation
+
+Add any of the following to your test class when needed.
 
 ``` php
 <?php
@@ -410,7 +472,7 @@ class MyTest extends TestCase
             ->transactions() // or ->noTransactions()
             ->snapshots() // or ->noSnapshots()
             ->isBrowserTest() // or isNotBrowserTest()
-            ->makeDefault(); // make the "default" connection point to this database
+            ->makeDefault(); // make the "default" Laravel connection point to this database
 
         // define a second database
         $connection = 'mysql2';
@@ -418,13 +480,15 @@ class MyTest extends TestCase
         $builder2
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
             // …
-            ->makeDefault(); // make the "default" connection point to this database
+            ->makeDefault(); // make the "default" Laravel connection point to this database
     }
 
     // …
 
 }
 ```
+
+
 
 ### PEST Customisation
 
@@ -443,11 +507,11 @@ trait MyLaravelAdapt
     use LaravelAdapt;
 
     protected string $seeders = ['DatabaseSeeder', 'ShoppingCartSeeder'];
-    // etc…
+    // etc as above in the PHPUnit Customisation section…
 }
 ```
 
-and including it in your test:
+and include it in your test:
 
 ``` php
 <?php
@@ -472,11 +536,15 @@ You can add any of the customisation values [from above](#phpunit-customisation)
 
 Here are various scenarios and comments about each:
 
+
+
 ### My project only uses the "default" connection&hellip;
 
 This is probably the most common scenario. You could choose to continue using the same connection to test with (eg. "mysql"), or swap it out for a SQLite database which may improve speed by setting the **default-connection** setting.
 
-***Note***: **SQLite :memory:** databases are destroyed when the client disconnects from it, and PHPUnit disconnects from the database between tests. Because of these actions, a memory database will need to be re-built for each test **so it's less likely to be the quickest type of database to use**.
+***Note***: **SQLite :memory:** databases automatically disappear when the client disconnects from it, and PHPUnit disconnects from databases between tests. Because of this, a memory database will need to be re-built for each test **so it's less likely to be the quickest type of database to use**.
+
+
 
 ### My seeders take a while to run / different seeders are needed for different tests&hellip;
 
@@ -486,17 +554,23 @@ By specifying them in your test-classes, you can run different seeders for diffe
 
 By default, the regular **DatabaseSeeder** is run after the migrations.
 
+
+
 ### My project uses database connections by name&hellip;
 
-If your codebase picks database connections by name (instead of just following the "default" connection), you won't be able to change the database it uses by updating where the "default" connection points to. Instead you may want to look at the `remap-connections` setting to overwrite connections' details.
+If your codebase picks database connections by name (instead of letting the "default" connection be used), you'll want to look at the `remap-connections` setting that lets you update the settings for your other connections.
 
-### Performing browser testing (such as using Dusk)&hellip;
+
+
+### When performing browser testing (such as using Dusk)&hellip;
 
 When browser testing some cache settings need to be turned off.
 
 The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
 
 Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.
+
+
 
 ### I have my own database dump that I'd like to import&hellip;
 
@@ -507,6 +581,8 @@ This might save time if you have lots of migrations to run, or be useful if you 
 ***Note***: Any remaining migrations and the seeding will run after these have been imported.
 
 ***Note***: SQLite database files aren't imported, they are simply copied.
+
+
 
 ### My project uses more than one database&hellip;
 
@@ -520,13 +596,19 @@ You can build extra databases by adding the `databaseInit()` method to your test
 composer test
 ```
 
+
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
+
+
 ### SemVer
 
 This library uses [SemVer 2.0.0](https://semver.org/) versioning. This means that changes to `X` indicate a breaking change: `0.0.X`, `0.X.y`, `X.y.z`. When this library changes to version 1.0.0, 2.0.0 and so forth it doesn't indicate that it's necessarily a notable release, it simply indicates that the changes were breaking.
+
+
 
 ## Treeware
 
@@ -534,25 +616,35 @@ You're free to use this package, but if it makes it to your production environme
 
 It's now common knowledge that one of the best tools to tackle the climate crisis and keep our temperatures from rising above 1.5C is to <a href="https://www.bbc.co.uk/news/science-environment-48870920">plant trees</a>. If you support this package and contribute to the Treeware forest you'll be creating employment for local families and restoring wildlife habitats.
 
-You can buy trees here [offset.earth/treeware](https://offset.earth/treeware?gift-trees)
+You can buy trees here [https://ecologi.com/treeware](https://ecologi.com/treeware?gift-trees)
 
 Read more about Treeware at [treeware.earth](http://treeware.earth)
+
+
 
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
-### Code of conduct
+
+
+### Code of Conduct
 
 Please see [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) for details.
+
+
 
 ### Security
 
 If you discover any security related issues, please email tim@code-distortion.net instead of using the issue tracker.
 
+
+
 ## Credits
 
 - [Tim Chandler](https://github.com/code-distortion)
+
+
 
 ## License
 

@@ -14,7 +14,10 @@ use CodeDistortion\Adapt\Support\Settings;
  */
 class LaravelSQLiteBuild implements BuildInterface
 {
-    use InjectTrait, LaravelBuildTrait, LaravelHelperTrait, SQLiteHelperTrait;
+    use InjectTrait;
+    use LaravelBuildTrait;
+    use LaravelHelperTrait;
+    use SQLiteHelperTrait;
 
 
     /**
@@ -126,6 +129,6 @@ class LaravelSQLiteBuild implements BuildInterface
     public function applyTransaction()
     {
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`".Settings::REUSE_TABLE."` SET `inside_transaction` = 1");
+        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1");
     }
 }

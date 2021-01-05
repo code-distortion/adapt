@@ -19,8 +19,8 @@ trait CommandFunctionalityTrait
      */
     protected function getCacheList(): CacheListDTO
     {
-        $bootCommandLaravel = new BootCommandLaravel;
-        $cacheListDTO = new CacheListDTO;
+        $bootCommandLaravel = new BootCommandLaravel();
+        $cacheListDTO = new CacheListDTO();
 
         // get databases
         foreach (array_keys(config('database.connections')) as $connection) {
@@ -55,7 +55,7 @@ trait CommandFunctionalityTrait
      */
     protected function deleteDatabase(string $connection, string $database): bool
     {
-        $builder = (new BootCommandLaravel)->makeNewBuilder((string) $connection);
+        $builder = (new BootCommandLaravel())->makeNewBuilder((string) $connection);
         return $builder->removeDatabase($database);
     }
 }

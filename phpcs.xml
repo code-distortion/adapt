@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ruleset name="code-distortion coding standard">
 
-    <rule ref="PSR2">
+    <rule ref="PSR12">
         <!-- allow whitespace after control structures -->
         <exclude name="Squiz.WhiteSpace.ControlStructureSpacing.SpacingAfterOpen" />
         <exclude name="Squiz.WhiteSpace.ControlStructureSpacing.SpacingBeforeClose" />

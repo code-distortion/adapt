@@ -179,7 +179,7 @@ return [
 
     'storage-dir' => realpath(
         base_path('../../../../tests/workspaces/current/database')
-    ).'/adapt-test-storage',
+    ) . '/adapt-test-storage',
 
     /*
     |--------------------------------------------------------------------------

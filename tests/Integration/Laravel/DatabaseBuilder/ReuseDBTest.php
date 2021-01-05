@@ -21,7 +21,7 @@ AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
  */
 class ReuseDBTest extends LaravelTestCase
 {
-    use DatabaseBuilderSetUpTrait;
+    use DatabaseBuilderSetUpTrait; // this is chosen above by AssignClassAlias depending on the version of Laravel used
     use DatabaseBuilderTestTrait;
 
 
@@ -40,8 +40,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(false)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -52,8 +52,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(false)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -64,8 +64,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(false)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-53855ffa7573.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.3dd190-53855ffa7573.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -76,8 +76,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(false)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-53855ffa7573.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.3dd190-53855ffa7573.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -88,8 +88,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -100,8 +100,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
@@ -112,8 +112,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-e86e4a953f0d.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.3dd190-e86e4a953f0d.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -124,8 +124,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir.'/test-database.3dd190-e86e4a953f0d.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.3dd190-e86e4a953f0d.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
@@ -136,8 +136,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(false)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -148,8 +148,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(false)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -160,8 +160,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(false)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -172,8 +172,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(false)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -184,8 +184,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -196,8 +196,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -208,8 +208,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(true)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -220,8 +220,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(true)
                     ->transactions(true)
                     ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -234,9 +234,9 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
-                    "UPDATE `".Settings::REUSE_TABLE."` "
-                    ."SET `inside_transaction` = 0, `reuse_table_version` = 'blahblah'",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                    "UPDATE `" . Settings::REUSE_TABLE . "` "
+                    . "SET `inside_transaction` = 0, `reuse_table_version` = 'blahblah'",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -248,9 +248,9 @@ class ReuseDBTest extends LaravelTestCase
                     ->transactions(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
-                    "UPDATE `".Settings::REUSE_TABLE."` "
-                    ."SET `inside_transaction` = 0, `project_name` = 'blahblah'",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                    "UPDATE `" . Settings::REUSE_TABLE . "` "
+                    . "SET `inside_transaction` = 0, `project_name` = 'blahblah'",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => AdaptBuildException::class,
             ],
@@ -261,8 +261,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `".Settings::REUSE_TABLE."` SET `inside_transaction` = 1",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => AdaptBuildException::class,
             ],
@@ -273,8 +273,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "DELETE FROM `".Settings::REUSE_TABLE."`",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "DELETE FROM `" . Settings::REUSE_TABLE . "`",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -285,8 +285,8 @@ class ReuseDBTest extends LaravelTestCase
                     ->dynamicTestDBs(false)
                     ->transactions(true)
                     ->isBrowserTest(false),
-                'updateReuseTableQuery' => "DROP TABLE `".Settings::REUSE_TABLE."`",
-                'expectedDBName' => $this->wsDatabaseDir.'/database.sqlite',
+                'updateReuseTableQuery' => "DROP TABLE `" . Settings::REUSE_TABLE . "`",
+                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],

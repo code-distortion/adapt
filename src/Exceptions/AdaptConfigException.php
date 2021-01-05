@@ -18,8 +18,8 @@ class AdaptConfigException extends AdaptException
     public static function storageDirIsAFile(string $storageDir): self
     {
         return new self(
-            'The storage directory "'.$storageDir.'" exists and is a file. '
-            .'Please review the "storage-dir" setting'
+            'The storage directory "' . $storageDir . '" exists and is a file. '
+            . 'Please review the "storage-dir" setting'
         );
     }
 
@@ -33,8 +33,8 @@ class AdaptConfigException extends AdaptException
     public static function cannotCreateStorageDir(string $storageDir, $originalException): self
     {
         return new self(
-            'Could not create the storage directory "'.$storageDir.'". '
-            .'Please review the "storage-dir" setting',
+            'Could not create the storage directory "' . $storageDir . '". '
+            . 'Please review the "storage-dir" setting',
             0,
             $originalException
         );
@@ -49,8 +49,8 @@ class AdaptConfigException extends AdaptException
     public static function preMigrationImportPathInvalid(string $path): self
     {
         return new self(
-            'Couldn\'t open pre-migration-dump file "'.$path.'". '
-            .'Please review the "pre-migration-imports" config setting'
+            'Couldn\'t open pre-migration-dump file "' . $path . '". '
+            . 'Please review the "pre-migration-imports" config setting'
         );
     }
 
@@ -63,8 +63,8 @@ class AdaptConfigException extends AdaptException
     public static function migrationsPathInvalid(string $path): self
     {
         return new self(
-            'The migrations directory "'.$path.'" does not exist. '
-            .'Please review the "migrations" config setting'
+            'The migrations directory "' . $path . '" does not exist. '
+            . 'Please review the "migrations" config setting'
         );
     }
 
@@ -77,8 +77,8 @@ class AdaptConfigException extends AdaptException
     public static function databaseRelatedFilesPathInvalid(string $path): self
     {
         return new self(
-            'Couldn\'t open file or directory "'.$path.'". '
-            .'Please review the "look-for-changes-in" config setting'
+            'Couldn\'t open file or directory "' . $path . '". '
+            . 'Please review the "look-for-changes-in" config setting'
         );
     }
 
@@ -93,7 +93,8 @@ class AdaptConfigException extends AdaptException
     public static function unsupportedDriver(string $connection, string $driver): self
     {
         return new self(
-            'Connection "'.$connection.'" uses driver "'.$driver.'" which unfortunately isn\'t supported (yet!)'
+            'Connection "' . $connection . '" uses driver "' . $driver . '" '
+            . 'which unfortunately isn\'t supported (yet!)'
         );
     }
 
@@ -106,8 +107,8 @@ class AdaptConfigException extends AdaptException
     public static function invalidDefaultConnection(string $connection): self
     {
         return new self(
-            'The default connection "'.$connection.'" does not exist. '
-            .'Please check the $defaultConnection test-class property'
+            'The default connection "' . $connection . '" does not exist. '
+            . 'Please check the $defaultConnection test-class property'
         );
     }
 
@@ -119,7 +120,7 @@ class AdaptConfigException extends AdaptException
      */
     public static function invalidConnection(string $connection): self
     {
-        return new self('The connection "'.$connection.'" does not exist.');
+        return new self('The connection "' . $connection . '" does not exist.');
     }
 
     /**
@@ -135,7 +136,7 @@ class AdaptConfigException extends AdaptException
         $errorPart = ($isConfig
             ? 'Please review the "remap-connections" config setting'
             : 'Please review the $remapConnections test-class property');
-        return new self('Cannot remap the connection "'.$connection.'" as it doesn\'t exist. '.$errorPart);
+        return new self('Cannot remap the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
     }
 
     /**
@@ -151,7 +152,7 @@ class AdaptConfigException extends AdaptException
         $errorPart = ($isConfig
             ? 'Please review the "remap-connections" config setting'
             : 'Please review the $remapConnections test-class property');
-        return new self('Cannot remap using the connection "'.$connection.'" as it doesn\'t exist. '.$errorPart);
+        return new self('Cannot remap using the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
     }
 
     /**
@@ -167,6 +168,6 @@ class AdaptConfigException extends AdaptException
         $errorPart = ($isConfig
             ? 'Please review the "remap-connections" config setting'
             : 'Please review the $remapConnections test-class property');
-        return new self('Cannot interpret remap-database string "'.$orig.'". '.$errorPart);
+        return new self('Cannot interpret remap-database string "' . $orig . '". ' . $errorPart);
     }
 }

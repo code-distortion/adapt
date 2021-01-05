@@ -34,37 +34,37 @@ class LaravelSQLiteReuse implements ReuseInterface
         bool $reusable
     ) {
 
-        $this->di->db->statement("DROP TABLE IF EXISTS `".Settings::REUSE_TABLE."`");
+        $this->di->db->statement("DROP TABLE IF EXISTS `" . Settings::REUSE_TABLE . "`");
         $this->di->db->statement(
-            "CREATE TABLE `".Settings::REUSE_TABLE."` ("
-            ."`project_name` varchar(255), "
-            ."`reuse_table_version` varchar(16), "
-            ."`orig_db_name` varchar(255) NOT NULL, "
-            ."`source_files_hash` varchar(255) NOT NULL, "
-            ."`scenario_hash` varchar(255) NOT NULL, "
-            ."`reusable` tinyint unsigned, "
-            ."`inside_transaction` tinyint unsigned"
-            .")"
+            "CREATE TABLE `" . Settings::REUSE_TABLE . "` ("
+            . "`project_name` varchar(255), "
+            . "`reuse_table_version` varchar(16), "
+            . "`orig_db_name` varchar(255) NOT NULL, "
+            . "`source_files_hash` varchar(255) NOT NULL, "
+            . "`scenario_hash` varchar(255) NOT NULL, "
+            . "`reusable` tinyint unsigned, "
+            . "`inside_transaction` tinyint unsigned"
+            . ")"
         );
         $this->di->db->insert(
-            "INSERT INTO `".Settings::REUSE_TABLE."` ("
-                ."`project_name`, "
-                ."`reuse_table_version`, "
-                ."`orig_db_name`, "
-                ."`source_files_hash`, "
-                ."`scenario_hash`, "
-                ."`reusable`, "
-                ."`inside_transaction`"
-            .") "
-            ."VALUES ("
-                .":projectName, "
-                .":reuseTableVersion, "
-                .":origDBName, "
-                .":sourceFilesHash, "
-                .":scenarioHash, "
-                .":reusable, "
-                .":insideTransaction"
-            .")",
+            "INSERT INTO `" . Settings::REUSE_TABLE . "` ("
+                . "`project_name`, "
+                . "`reuse_table_version`, "
+                . "`orig_db_name`, "
+                . "`source_files_hash`, "
+                . "`scenario_hash`, "
+                . "`reusable`, "
+                . "`inside_transaction`"
+            . ") "
+            . "VALUES ("
+                . ":projectName, "
+                . ":reuseTableVersion, "
+                . ":origDBName, "
+                . ":sourceFilesHash, "
+                . ":scenarioHash, "
+                . ":reusable, "
+                . ":insideTransaction"
+            . ")",
             [
                 'projectName' => $this->config->projectName,
                 'reuseTableVersion' => Settings::REUSE_TABLE_VERSION,
@@ -89,7 +89,7 @@ class LaravelSQLiteReuse implements ReuseInterface
     public function dbIsCleanForReuse(string $sourceFilesHash, string $scenarioHash): bool
     {
         try {
-            $rows = $this->di->db->select("SELECT * FROM `".Settings::REUSE_TABLE."` LIMIT 0, 1");
+            $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
             $reuseInfo = reset($rows);
         } catch (Throwable $e) {
             return false;
@@ -124,8 +124,8 @@ class LaravelSQLiteReuse implements ReuseInterface
 
         if ($reuseInfo->inside_transaction) {
             $this->di->log->warning(
-                'The previous transaction for database "'.$this->config->database.'" '
-                .'was committed instead of being rolled-back'
+                'The previous transaction for database "' . $this->config->database . '" '
+                . 'was committed instead of being rolled-back'
             );
             return false;
         }
@@ -161,16 +161,18 @@ class LaravelSQLiteReuse implements ReuseInterface
 
             $pdo = $this->di->db->newPDO($database);
             $reuseInfo = $pdo->fetchReuseTableInfo(
-                "SELECT * FROM `".Settings::REUSE_TABLE."` LIMIT 0, 1"
+                "SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
             );
 
-            if ($this->isDatabaseRelevant(
-                $reuseInfo,
-                $origDBName,
-                $sourceFilesHash,
-                $detectOld,
-                $detectCurrent
-            )) {
+            if (
+                $this->isDatabaseRelevant(
+                    $reuseInfo,
+                    $origDBName,
+                    $sourceFilesHash,
+                    $detectOld,
+                    $detectCurrent
+                )
+            ) {
                 $deleteDBs[] = $database;
             }
         }
@@ -208,7 +210,7 @@ class LaravelSQLiteReuse implements ReuseInterface
             return false;
         }
 
-        // pick this up as "relevant" because it's obselete and should be replaced
+        // pick this up as "relevant" because it's obsolete and should be replaced
         if ($reuseInfo->reuse_table_version != Settings::REUSE_TABLE_VERSION) {
             return true;
         }
@@ -235,7 +237,7 @@ class LaravelSQLiteReuse implements ReuseInterface
 
         $success = $this->di->filesystem->unlink($database);
 
-        $this->di->log->info('Removed '.($isOld ? 'old ' : '').'database: "'.$database.'"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'database: "' . $database . '"', $logTimer);
 
         return $success;
     }

@@ -40,7 +40,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function importFailed(string $path): self
     {
-        return new self('The import of "'.$path.'" failed');
+        return new self('The import of "' . $path . '" failed');
     }
 
     /**
@@ -52,8 +52,8 @@ class AdaptSnapshotException extends AdaptException
     public static function mysqlClientNotPresent(string $path): self
     {
         return new self(
-            'The mysql client "'.$path.'" executable isn\'t available to use '
-            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
+            'The mysql client "' . $path . '" executable isn\'t available to use '
+            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
         );
     }
 
@@ -66,8 +66,8 @@ class AdaptSnapshotException extends AdaptException
     public static function mysqldumpNotPresent(string $path): self
     {
         return new self(
-            'The mysqldump executable "'.$path.'" isn\'t available to use'
-            .'(please check the '.Settings::LARAVEL_CONFIG_NAME.'.database.mysql config settings)'
+            'The mysqldump executable "' . $path . '" isn\'t available to use'
+            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
         );
     }
 
@@ -80,7 +80,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function mysqlImportError(string $path, int $returnVal): self
     {
-        return new self('Could not import database from "'.$path.'" - the mysql return value was: '.$returnVal);
+        return new self('Could not import database from "' . $path . '" - the mysql return value was: ' . $returnVal);
     }
 
     /**
@@ -92,7 +92,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function mysqlExportError(string $path, int $returnVal): self
     {
-        return new self('Could not export database to "'.$path.'" - the mysqldump return value was: '.$returnVal);
+        return new self('Could not export database to "' . $path . '" - the mysqldump return value was: ' . $returnVal);
     }
 
     /**
@@ -104,6 +104,6 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function importsNotAllowed(string $driver, string $database): self
     {
-        return new self('Sorry, database imports aren\'t available for '.$database.' '.$driver.' databases');
+        return new self('Sorry, database imports aren\'t available for ' . $database . ' ' . $driver . ' databases');
     }
 }

@@ -238,7 +238,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null)
     {
-        $config = new ConfigDTO;
+        $config = new ConfigDTO();
 
         $callable = [$config, $method];
         if (is_callable($callable)) {
@@ -260,7 +260,7 @@ class ConfigDTOTest extends PHPUnitTestCase
     public function test_pick_seeders_to_include_getter()
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
-        $config = (new ConfigDTO)->seeders($seeders);
+        $config = (new ConfigDTO())->seeders($seeders);
 
         $config->migrations(true);
         $this->assertSame($seeders, $config->pickSeedersToInclude());
@@ -334,7 +334,7 @@ class ConfigDTOTest extends PHPUnitTestCase
     {
         $this->assertSame(
             $expected,
-            (new ConfigDTO)->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationDumps()
+            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationDumps()
         );
     }
 }

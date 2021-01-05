@@ -20,7 +20,7 @@ class LaravelPropBagDTO extends PropBagDTO
     {
         return $this->prop(
             $propName,
-            config(Settings::LARAVEL_CONFIG_NAME.'.'.$configKey)
+            config(Settings::LARAVEL_CONFIG_NAME . '.' . $configKey)
         );
     }
 }

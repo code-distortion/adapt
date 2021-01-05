@@ -43,7 +43,7 @@ class ReloadLaravelConfig
         }
         // the old way that env() works in Laravel
         foreach ($values as $name => $value) {
-            putenv($name.'='.$value);
+            putenv($name . '=' . $value);
         }
     }
 
@@ -69,13 +69,13 @@ class ReloadLaravelConfig
     private function replaceConfig()
     {
         $adaptConfigPath = LaravelSupport::isRunningInOrchestra()
-            ? base_path('../../../../tests/workspaces/current/config/'.Settings::LARAVEL_CONFIG_NAME.'.php')
-            : config_path(Settings::LARAVEL_CONFIG_NAME.'.php');
+            ? base_path('../../../../tests/workspaces/current/config/' . Settings::LARAVEL_CONFIG_NAME . '.php')
+            : config_path(Settings::LARAVEL_CONFIG_NAME . '.php');
 
         config([
             'database' => $this->loadConfigFile(config_path('database.php')),
             Settings::LARAVEL_CONFIG_NAME => array_merge(
-                $this->loadConfigFile(__DIR__.'/../../config/config.php'),
+                $this->loadConfigFile(__DIR__ . '/../../config/config.php'),
                 $this->loadConfigFile($adaptConfigPath)
             )
         ]);

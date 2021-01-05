@@ -12,7 +12,9 @@ use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
  */
 class LaravelSQLiteName implements NameInterface
 {
-    use InjectTrait, LaravelHelperTrait, SQLiteHelperTrait;
+    use InjectTrait;
+    use LaravelHelperTrait;
+    use SQLiteHelperTrait;
 
 
     /**
@@ -29,8 +31,8 @@ class LaravelSQLiteName implements NameInterface
         }
         $dbNameHash = str_replace('_', '-', $dbNameHash);
         $filename = $this->pickBaseFilename($this->origDBName());
-        $filename = $this->config->databasePrefix.$filename.'.'.$dbNameHash.'.sqlite';
-        return $this->config->storageDir.'/'.$filename;
+        $filename = $this->config->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
+        return $this->config->storageDir . '/' . $filename;
     }
 
     /**
@@ -43,8 +45,8 @@ class LaravelSQLiteName implements NameInterface
     public function generateSnapshotPath(string $snapshotHash): string
     {
         $filename = $this->pickBaseFilename($this->origDBName());
-        $filename = $this->config->snapshotPrefix.$filename.'.'.$snapshotHash.'.sqlite';
+        $filename = $this->config->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';
         $filename = str_replace('_', '-', $filename);
-        return $this->config->storageDir.'/'.$filename;
+        return $this->config->storageDir . '/' . $filename;
     }
 }

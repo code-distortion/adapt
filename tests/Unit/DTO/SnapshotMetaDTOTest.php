@@ -41,7 +41,7 @@ class SnapshotMetaDTOTest extends PHPUnitTestCase
             $return[] = [
                 'path' => '/var/www/database/adapt-test-storage/abc.mysql',
                 'size' => $size[0],
-                'expectedReadable' => '/var/www/database/adapt-test-storage/abc.mysql '.$size[1],
+                'expectedReadable' => '/var/www/database/adapt-test-storage/abc.mysql ' . $size[1],
             ];
         }
         return $return;
@@ -63,7 +63,7 @@ class SnapshotMetaDTOTest extends PHPUnitTestCase
         string $expectedReadable
     ) {
 
-        $snapshotMetaDTO = (new SnapshotMetaDTO)->path($path)->size($size);
+        $snapshotMetaDTO = (new SnapshotMetaDTO())->path($path)->size($size);
         $this->assertSame($path, $snapshotMetaDTO->path);
         $this->assertSame($size, $snapshotMetaDTO->size);
         $this->assertSame($expectedReadable, $snapshotMetaDTO->readable());

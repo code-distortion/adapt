@@ -105,7 +105,7 @@ trait LaravelBuildTrait
                 throw AdaptBuildException::seederFailed($seeder, $e);
             }
 
-            $this->di->log->info('Ran seeder "'.$seeder.'"', $logTimer);
+            $this->di->log->info('Ran seeder "' . $seeder . '"', $logTimer);
         }
     }
 
@@ -136,7 +136,7 @@ trait LaravelBuildTrait
         // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
         // prefixing the path with "../../../../" accounts for this
         if (LaravelSupport::isRunningInOrchestra()) {
-            $path = '../../../../'.$path;
+            $path = '../../../../' . $path;
         }
         return $path;
     }

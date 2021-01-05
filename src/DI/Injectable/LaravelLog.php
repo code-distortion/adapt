@@ -77,10 +77,10 @@ class LaravelLog
     private function output(string $logLevel, string $message)
     {
         if ($this->stdout) {
-            print 'ADAPT '.mb_strtoupper($logLevel).': '.$message.PHP_EOL;
+            print 'ADAPT ' . mb_strtoupper($logLevel) . ': ' . $message . PHP_EOL;
         }
         if ($this->laravel) {
-            Log::$logLevel('ADAPT: '.$message);
+            Log::$logLevel('ADAPT: ' . $message);
         }
     }
 
@@ -118,7 +118,7 @@ class LaravelLog
     private function formatTime(int $timerRef = null): string
     {
         $timeTaken = $this->getDuration($timerRef);
-        return (!is_null($timeTaken) ? ' ('.round($timeTaken * 1000).'ms)' : '');
+        return (!is_null($timeTaken) ? ' (' . round($timeTaken * 1000) . 'ms)' : '');
     }
 
     /**
@@ -130,11 +130,11 @@ class LaravelLog
      */
     private function buildMessage(string $message, int $timerRef = null): string
     {
-        return $message.$this->formatTime($timerRef);
+        return $message . $this->formatTime($timerRef);
 
 //        $caller = debug_backtrace()[2];
 //        $temp = explode('\\', $caller['class']);
 //        $class = array_pop($temp);
-//        return $class.'::'.$caller['function'].'(): '.$message.$this->formatTime($timerRef);
+//        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
     }
 }

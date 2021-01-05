@@ -20,7 +20,7 @@ class AdaptListCachesCommand extends Command
      * @var string
      */
     protected $signature = 'adapt:list-db-caches '
-                            .'{--env-file=.env.testing : The .env file to load from}';
+                            . '{--env-file=.env.testing : The .env file to load from}';
 
     /**
      * The console command description.
@@ -48,8 +48,8 @@ class AdaptListCachesCommand extends Command
     {
         $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
 
-        $envPath = base_path().'/'.$envFile;
-        (new ReloadLaravelConfig)->reload($envPath);
+        $envPath = base_path() . '/' . $envFile;
+        (new ReloadLaravelConfig())->reload($envPath);
 
         $cacheListDTO = $this->getCacheList();
         if ($cacheListDTO->containsAnyCache()) {
@@ -72,11 +72,11 @@ class AdaptListCachesCommand extends Command
     private function listDatabases(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->databases) {
-            $this->info(PHP_EOL.'Test-databases:'.PHP_EOL);
+            $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
             foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-                $this->info('- Connection "'.$connection.'":');
+                $this->info('- Connection "' . $connection . '":');
                 foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                    $this->info('  - '.$databaseMetaDTO->readable());
+                    $this->info('  - ' . $databaseMetaDTO->readable());
                 }
             }
         }
@@ -91,9 +91,9 @@ class AdaptListCachesCommand extends Command
     private function listSnapshotPaths(CacheListDTO $cacheListDTO)
     {
         if ($cacheListDTO->snapshots) {
-            $this->info(PHP_EOL.'Snapshots:'.PHP_EOL);
+            $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
             foreach ($cacheListDTO->snapshots as $snapshotMetaDTO) {
-                $this->info('- '.$snapshotMetaDTO->readable());
+                $this->info('- ' . $snapshotMetaDTO->readable());
             }
         }
     }

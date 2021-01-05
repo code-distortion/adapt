@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Integration\Laravel\DatabaseBuilder;
 
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use CodeDistortion\Adapt\Tests\Database\Seeders\UserSeeder;
@@ -20,7 +19,7 @@ AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
  */
 class SnapshotTest extends LaravelTestCase
 {
-    use DatabaseBuilderSetUpTrait;
+    use DatabaseBuilderSetUpTrait; // this is chosen above by AssignClassAlias depending on the version of Laravel used
     use DatabaseBuilderTestTrait;
 
 
@@ -112,7 +111,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after migrations - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, true, false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.3dd190-abda22425307.sqlite',
@@ -124,7 +123,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after seeders - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, false, true)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.3dd190-0a7748252665.sqlite',
@@ -136,7 +135,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after migrations and seeders - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, true, true)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.3dd190-0a7748252665.sqlite',
@@ -150,7 +149,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after migrations (no seeders) - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, true, false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshot.database.3dd190-abda22425307.sqlite',
@@ -162,7 +161,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after seeders (no seeders) - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, false, false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [],
                 'expectedDatabase' => null,
@@ -172,7 +171,7 @@ class SnapshotTest extends LaravelTestCase
             'Takes snapshot after migrations and seeders (no seeders) - with pre-migration-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots(true, true, true)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir.'/pre-migration-import-1.sqlite'])
+                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshot.database.3dd190-abda22425307.sqlite',

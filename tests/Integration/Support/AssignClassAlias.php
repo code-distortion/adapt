@@ -20,8 +20,8 @@ class AssignClassAlias
      */
     public static function databaseBuilderSetUpTrait(string $namespace)
     {
-        // only perform this once
-        $destTrait = $namespace.'\\DatabaseBuilderSetUpTrait';
+        // only perform this once per namespace
+        $destTrait = $namespace . '\\DatabaseBuilderSetUpTrait';
         if (trait_exists($destTrait)) {
             return;
         }

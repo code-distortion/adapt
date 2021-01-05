@@ -28,7 +28,7 @@ class Exec
      */
     public function commandRuns(string $command): bool
     {
-        exec($command.' 2>/dev/null', $output, $returnVal); // suppress stderror
+        exec($command . ' 2>/dev/null', $output, $returnVal); // suppress stderror
         return $returnVal == 0;
     }
 }

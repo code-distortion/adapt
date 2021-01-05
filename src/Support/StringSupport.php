@@ -20,6 +20,6 @@ class StringSupport
         $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((mb_strlen((string) $bytes) - 1) / 3);
 
-        return round($bytes / pow(1024, $factor), $decPl).@$size[$factor];
+        return round($bytes / pow(1024, $factor), $decPl) . @$size[$factor];
     }
 }

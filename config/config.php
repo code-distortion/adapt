@@ -9,7 +9,7 @@ return [
      |
      | You might share your database server between different projects. If so
      | then you can specify a unique project name here to ensure that Adapt
-     | doesn't interfere with Adapt test-databases in other projects.
+     | doesn't interfere with Adapt test-databases from other projects.
      |
      */
 
@@ -83,9 +83,9 @@ return [
     | Reuse Test-Databases
     |--------------------------------------------------------------------------
     |
-    | When a test-database already exists and was left in a clean state,
-    | it can be reused without needing to rebuild it, saving time.
-    | This is best used with the create-test-dbs setting below.
+    | When a test-database already exists (and was left in a clean state),
+    | it can be reused without Adapt needing to rebuild it, saving time.
+    | This is best used with the dynamic-test-dbs setting below.
     |
     | This config setting can be overridden by adding the
     | $reuseTestDBs property to your test-class.
@@ -105,14 +105,13 @@ return [
     | for each scenario your tests need. This is best used with the
     | reuse-test-dbs setting above. These dbs are safe to delete.
     |
-    | eg. "your_database_name_d42a95e7d1afcb4f9902677f74e9b2d5"
+    | An dynamic database will be called something like:
+    | "your_database_name_d42a95e7d1afcb4f9902677f74e9b2d5"
     |
-    | This config setting can be overridden by adding the
-    | $dynamicTestDBs property to your test-class.
+    | This config setting can be overridden by adding the $dynamicTestDBs
+    | property to your test-class.
     |
-    | NOTE: You should turn this off when browser testing (eg. Dusk). This
-    | setting can be overridden by adding the $dynamicTestDBs property
-    | to your test-class.
+    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
     |
     | eg.
     | protected bool $dynamicTestDBs = true;
@@ -126,14 +125,14 @@ return [
     | Use Transactions
     |--------------------------------------------------------------------------
     |
-    | Your tests can run within a transaction that's rolled-back afterwards,
-    | leaving the database fresh so it won't need rebuilding for the next
-    | test.
+    | Your tests can run within a transaction that's rolled-back afterwards.
+    | This leaves the database fresh so it won't need to be rebuilt
+    | during the next test-run.
     |
-    | NOTE: You should turn this off when browser testing (eg. Dusk).
+    | This config setting can be overridden by adding the $transactions
+    | property to your test-class.
     |
-    | This config setting can be overridden by adding the
-    | $transactions property to your test-class.
+    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
     |
     | eg.
     | protected bool $transactions = true;
@@ -196,6 +195,7 @@ return [
     'look-for-changes-in' => [
         database_path('factories'),
         database_path('migrations'),
+//        database_path('seeders'),
         database_path('seeds'),
     ],
 

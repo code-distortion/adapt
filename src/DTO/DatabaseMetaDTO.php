@@ -55,6 +55,6 @@ class DatabaseMetaDTO
      */
     public function readable(): string
     {
-        return $this->name.(!is_null($this->size) ? ' '.Str::readableSize($this->size) : '');
+        return $this->name . (!is_null($this->size) ? ' ' . Str::readableSize($this->size) : '');
     }
 }

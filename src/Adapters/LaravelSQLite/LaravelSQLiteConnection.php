@@ -11,7 +11,8 @@ use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelConnectionTrait;
  */
 class LaravelSQLiteConnection implements ConnectionInterface
 {
-    use InjectTrait, LaravelConnectionTrait;
+    use InjectTrait;
+    use LaravelConnectionTrait;
 
 
     /**

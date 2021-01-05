@@ -261,7 +261,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
         array $outcome = null
     ) {
 
-        $config = new ConfigDTO;
+        $config = new ConfigDTO();
         $object = new HasConfigDTOClass($config);
         call_user_func_array([$object, $method], $params);
 
@@ -276,9 +276,9 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function has_config_dto_trait_can_get_connection() {
-
-        $config = (new ConfigDTO)->connection('a');
+    public function has_config_dto_trait_can_get_connection()
+    {
+        $config = (new ConfigDTO())->connection('a');
         $object = new HasConfigDTOClass($config);
         $this->assertSame('a', $object->getConnection());
     }
