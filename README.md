@@ -35,7 +35,7 @@
     * [My seeders take a while to run / different seeders are needed for different tests…](#my-seeders-take-a-while-to-run--different-seeders-are-needed-for-different-tests)
     * [My project uses database connections by name…](#my-project-uses-database-connections-by-name)
     * [When performing browser testing (such as using Dusk)…](#when-performing-browser-testing-such-as-using-dusk)
-  * [I would like to run my tests in parallel using Paratest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)ss
+    * [I would like to run my tests in parallel using Paratest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)
     * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-import)
     * [My project uses more than one database…](#my-project-uses-more-than-one-database)
 * [Testing](#testing)
