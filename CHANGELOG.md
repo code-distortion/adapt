@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.2.4] - 2021-01-06
+
+### Added
+- Support for PHP 8.0
+- PSR12 formatting
+- Documentation updates
+
+
+
 ## [0.2.3] - 2020-09-09
 
 ### Added
