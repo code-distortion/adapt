@@ -160,7 +160,7 @@ trait LaravelAdapt
 //            ->transactions() // or ->noTransactions()
 //            ->snapshots() // or ->noSnapshots()
 //            ->isBrowserTest() // or isNotBrowserTest()
-//            ->makeDefault(); // make the "default" connection point to this database
+//            ->makeDefault(); // make the "default" Laravel connection point to this database
 //
 //        // define a second database
 //        $connection = 'mysql2';
@@ -168,6 +168,6 @@ trait LaravelAdapt
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            // …
-//            ->makeDefault(); // make the "default" connection point to this database
+//            ->makeDefault(); // make the "default" Laravel connection point to this database
 //    }
 }
