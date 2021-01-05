@@ -31,12 +31,13 @@
     * [PHPUnit Customisation](#phpunit-customisation)
     * [PEST Customisation](#pest-customisation)
 * [Scenarios and Techniques](#scenarios-and-techniques)
-    * [My project only uses the "default" connection…](#my-project-only-uses-the-default-connectionhellip)
-    * [My seeders take a while to run / different seeders are needed for different tests…](#my-seeders-take-a-while-to-run--different-seeders-are-needed-for-different-testshellip)
-    * [My project uses database connections by name…](#my-project-uses-database-connections-by-namehellip)
-    * [When performing browser testing (such as using Dusk)…](#when-performing-browser-testing-such-as-using-duskhellip)
-    * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-importhellip)
-    * [My project uses more than one database…](#my-project-uses-more-than-one-databasehellip)
+    * [My project only uses the "default" connection…](#my-project-only-uses-the-default-connection)
+    * [My seeders take a while to run / different seeders are needed for different tests…](#my-seeders-take-a-while-to-run--different-seeders-are-needed-for-different-tests)
+    * [My project uses database connections by name…](#my-project-uses-database-connections-by-name)
+    * [When performing browser testing (such as using Dusk)…](#when-performing-browser-testing-such-as-using-dusk)
+  * [I would like to run my tests in parallel using Paratest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)ss
+    * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-import)
+    * [My project uses more than one database…](#my-project-uses-more-than-one-database)
 * [Testing](#testing)
 * [Changelog](#changelog)
     * [SemVer](#semver)
@@ -569,6 +570,12 @@ When browser testing some cache settings need to be turned off.
 The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
 
 Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.
+
+
+
+### I would like to run my tests in parallel using Paratest&hellip;
+
+[paratestphp/paratest](https://github.com/paratestphp/paratest) is a package that splits your test-suite in to parts and runs them in parallel using multiple processes. Adapt detects when paratest is being used and creates a distinct database for each process by adding a unique suffix.
 
 
 
