@@ -32,19 +32,19 @@ class DIContainerLaravelTest extends LaravelTestCase
         return [
             'artisan' => [
                 'method' => 'artisan',
-                'params' => ['artisan' => new LaravelArtisan],
+                'params' => ['artisan' => new LaravelArtisan()],
             ],
             'config' => [
                 'method' => 'config',
                 'params' => [
                     'config' => function () {
-                        return new LaravelConfig; // must be run after booting Laravel
+                        return new LaravelConfig(); // must be run after booting Laravel
                     }
                 ],
             ],
             'db' => [
                 'method' => 'db',
-                'params' => ['db' => new LaravelDB],
+                'params' => ['db' => new LaravelDB()],
             ],
             'dbTransactionClosure' => [
                 'method' => 'dbTransactionClosure',
@@ -56,11 +56,11 @@ class DIContainerLaravelTest extends LaravelTestCase
             ],
             'exec' => [
                 'method' => 'exec',
-                'params' => ['exec' => new Exec],
+                'params' => ['exec' => new Exec()],
             ],
             'filesystem' => [
                 'method' => 'filesystem',
-                'params' => ['filesystem' => new Filesystem],
+                'params' => ['filesystem' => new Filesystem()],
             ],
             'log' => [
                 'method' => 'log',
@@ -80,7 +80,7 @@ class DIContainerLaravelTest extends LaravelTestCase
      */
     public function di_container_can_set_and_get_values(string $method, array $params): void
     {
-        $di = new DIContainer;
+        $di = new DIContainer();
 
         $callable = [$di, $method];
         if (is_callable($callable)) {

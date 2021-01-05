@@ -147,7 +147,7 @@ class LaravelDB
 
         DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 0");
         foreach ($tables as $table) {
-            DB::connection($this->connection)->statement("DROP TABLE `".$table."`");
+            DB::connection($this->connection)->statement("DROP TABLE `" . $table . "`");
         }
         DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 1");
     }

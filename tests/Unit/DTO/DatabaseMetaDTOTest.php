@@ -41,7 +41,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
             $return[] = [
                 'name' => 'abc',
                 'size' => $size[0],
-                'expectedReadable' => 'abc '.$size[1],
+                'expectedReadable' => 'abc ' . $size[1],
             ];
         }
         return $return;
@@ -63,7 +63,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         string $expectedReadable
     ): void {
 
-        $databaseMetaDTO = (new DatabaseMetaDTO)->name($name)->size($size);
+        $databaseMetaDTO = (new DatabaseMetaDTO())->name($name)->size($size);
         $this->assertSame($name, $databaseMetaDTO->name);
         $this->assertSame($size, $databaseMetaDTO->size);
         $this->assertSame($expectedReadable, $databaseMetaDTO->readable());

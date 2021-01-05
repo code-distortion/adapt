@@ -105,7 +105,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
     public function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check): void
     {
         // add some values to the bag
-        $propBag = new LaravelPropBagDTO;
+        $propBag = new LaravelPropBagDTO();
         foreach ($set as $name => $value) {
             $this->assertSame(
                 $propBag,
@@ -144,7 +144,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
     public function test_the_config_getter(): void
     {
         config(['code-distortion.adapt.existing-value' => 'config value']);
-        $propBag = (new LaravelPropBagDTO)->addProp('existingValue', 'prop value');
+        $propBag = (new LaravelPropBagDTO())->addProp('existingValue', 'prop value');
         $this->assertSame(null, $propBag->config('missing-value', 'missingValue'));
         $this->assertSame('prop value', $propBag->config('missing-value', 'existingValue'));
         $this->assertSame('config value', $propBag->config('existing-value', 'missingValue'));

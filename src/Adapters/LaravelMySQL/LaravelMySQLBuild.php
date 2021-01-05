@@ -13,7 +13,9 @@ use CodeDistortion\Adapt\Support\Settings;
  */
 class LaravelMySQLBuild implements BuildInterface
 {
-    use InjectTrait, LaravelBuildTrait, LaravelHelperTrait;
+    use InjectTrait;
+    use LaravelBuildTrait;
+    use LaravelHelperTrait;
 
 
     /**
@@ -91,6 +93,6 @@ class LaravelMySQLBuild implements BuildInterface
     public function applyTransaction(): void
     {
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`".Settings::REUSE_TABLE."` SET `inside_transaction` = 1");
+        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1");
     }
 }

@@ -12,7 +12,8 @@ use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
  */
 class LaravelMySQLName implements NameInterface
 {
-    use InjectTrait, LaravelHelperTrait;
+    use InjectTrait;
+    use LaravelHelperTrait;
 
 
     /**
@@ -26,7 +27,7 @@ class LaravelMySQLName implements NameInterface
     public function generateDynamicDBName(string $dbNameHash): string
     {
         $dbNameHash = str_replace('-', '_', $dbNameHash);
-        $database = $this->config->databasePrefix.$this->origDBName().'_'.$dbNameHash;
+        $database = $this->config->databasePrefix . $this->origDBName() . '_' . $dbNameHash;
         $this->validateDBName($database);
         return $database;
     }
@@ -40,9 +41,9 @@ class LaravelMySQLName implements NameInterface
      */
     public function generateSnapshotPath(string $snapshotHash): string
     {
-        $filename = $this->config->snapshotPrefix.$this->origDBName().'.'.$snapshotHash.'.mysql';
+        $filename = $this->config->snapshotPrefix . $this->origDBName() . '.' . $snapshotHash . '.mysql';
         $filename = str_replace('_', '-', $filename);
-        return $this->config->storageDir.'/'.$filename;
+        return $this->config->storageDir . '/' . $filename;
     }
 
     /**

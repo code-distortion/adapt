@@ -11,7 +11,8 @@ use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelConnectionTrait;
  */
 class LaravelMySQLConnection implements ConnectionInterface
 {
-    use InjectTrait, LaravelConnectionTrait;
+    use InjectTrait;
+    use LaravelConnectionTrait;
 
 
     /**

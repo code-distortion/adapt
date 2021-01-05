@@ -206,8 +206,8 @@ trait InitialiseLaravelAdapt
      */
     private function bootTheTest(): void
     {
-        (new BootTestLaravel)
-            ->testName(get_class($this).' - "'.$this->getName().'"')
+        (new BootTestLaravel())
+            ->testName(get_class($this) . ' - "' . $this->getName() . '"')
             ->props($this->propBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())

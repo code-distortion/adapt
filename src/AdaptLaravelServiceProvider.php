@@ -41,15 +41,14 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
     protected function initialiseConfig(): void
     {
         // initialise the config
-        $configPath = __DIR__.'/../config/config.php';
+        $configPath = __DIR__ . '/../config/config.php';
         $this->mergeConfigFrom($configPath, Settings::LARAVEL_CONFIG_NAME);
 
         // allow the default config to be published
-        if ((!$this->app->environment('testing'))
-            && ($this->app->runningInConsole())) {
+        if ((!$this->app->environment('testing')) && ($this->app->runningInConsole())) {
 
             $this->publishes(
-                [$configPath => config_path(Settings::LARAVEL_CONFIG_NAME.'.php'),],
+                [$configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),],
                 'config'
             );
         }

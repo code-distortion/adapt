@@ -33,16 +33,16 @@ class BootTestLaravel extends BootTestAbstract
         }
 
         return (new DIContainer())
-            ->artisan(new LaravelArtisan)
-            ->config(new LaravelConfig)
-            ->db((new LaravelDB)->useConnection($connection))
+            ->artisan(new LaravelArtisan())
+            ->config(new LaravelConfig())
+            ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure($this->transactionClosure)
             ->log(new LaravelLog(
                 (bool) $this->propBag->config('log.stdout'),
                 (bool) $this->propBag->config('log.laravel')
             ))
-            ->exec(new Exec)
-            ->filesystem(new Filesystem);
+            ->exec(new Exec())
+            ->filesystem(new Filesystem());
     }
 
 
@@ -113,7 +113,7 @@ class BootTestLaravel extends BootTestAbstract
 
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
 
-        return (new ConfigDTO)
+        return (new ConfigDTO())
             ->projectName($this->propBag->config('project-name'))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))

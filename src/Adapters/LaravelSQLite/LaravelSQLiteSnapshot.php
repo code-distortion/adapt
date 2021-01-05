@@ -13,7 +13,9 @@ use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
  */
 class LaravelSQLiteSnapshot implements SnapshotInterface
 {
-    use InjectTrait, LaravelHelperTrait, SQLiteHelperTrait;
+    use InjectTrait;
+    use LaravelHelperTrait;
+    use SQLiteHelperTrait;
 
 
     /**
@@ -46,14 +48,23 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      */
     public function importSnapshot(string $path, bool $throwException = false): bool
     {
-        if ((!$this->di->filesystem->fileExists($path))
-        || (!$this->di->filesystem->copy($path, (string) $this->config->database))) {
-            if ($throwException) {
+        try {
+            if (!$this->di->filesystem->fileExists($path)) {
                 throw AdaptSnapshotException::importFailed($path);
+            }
+
+            if (!$this->di->filesystem->copy($path, (string) $this->config->database)) {
+                throw AdaptSnapshotException::importFailed($path);
+            }
+
+            return true;
+
+        } catch (AdaptSnapshotException $e) {
+            if ($throwException) {
+                throw $e;
             }
             return false;
         }
-        return true;
     }
 
     /**

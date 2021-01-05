@@ -330,8 +330,10 @@ class DatabaseBuilder
      */
     private function prepareDB(): void
     {
-        $this->di->log->info('---- Preparing a database for test: '.$this->testName.' ----------------');
-        $this->di->log->info('Using connection "'.$this->config->connection.'" (driver "'.$this->config->driver.'")');
+        $this->di->log->info('---- Preparing a database for test: ' . $this->testName . ' ----------------');
+        $this->di->log->info(
+            'Using connection "' . $this->config->connection . '" (driver "' . $this->config->driver . '")'
+        );
 
         $this->removeDatabases(true, true, false);
         $this->pickDatabaseNameAndUse();
@@ -404,10 +406,12 @@ class DatabaseBuilder
             return false;
         }
 
-        if (!$this->dbAdapter()->reuse->dbIsCleanForReuse(
-            $this->hasher->currentSourceFilesHash(),
-            $this->hasher->currentScenarioHash()
-        )) {
+        if (
+            !$this->dbAdapter()->reuse->dbIsCleanForReuse(
+                $this->hasher->currentSourceFilesHash(),
+                $this->hasher->currentScenarioHash()
+            )
+        ) {
             return false;
         }
 
@@ -485,8 +489,10 @@ class DatabaseBuilder
             return;
         }
 
-        if ((is_string($this->config->migrations))
-        && (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations)))) {
+        if (
+            (is_string($this->config->migrations))
+            && (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations)))
+        ) {
             throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
         }
 
@@ -541,7 +547,7 @@ class DatabaseBuilder
             $snapshotPath = $this->generateSnapshotPath($seeders);
             $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
-            $this->di->log->info('Snapshot save SUCCESSFUL: "'.$snapshotPath.'"', $logTimer);
+            $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
         }
     }
 
@@ -568,7 +574,7 @@ class DatabaseBuilder
         foreach ($preMigrationDumps as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "'.$path.'"', $logTimer);
+            $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "' . $path . '"', $logTimer);
         }
     }
 
@@ -595,9 +601,13 @@ class DatabaseBuilder
                 // create the storage directory
                 if ($this->di->filesystem->mkdir($storageDir, 0777, true)) {
                     // create a .gitignore file
-                    $this->di->filesystem->writeFile($storageDir.'/.gitignore', 'w', '*'.PHP_EOL.'!.gitignore'.PHP_EOL);
+                    $this->di->filesystem->writeFile(
+                        $storageDir . '/.gitignore',
+                        'w',
+                        '*' . PHP_EOL . '!.gitignore' . PHP_EOL
+                    );
                 }
-                $this->di->log->info('Created adapt-test-storage dir: "'.$storageDir.'"', $logTimer);
+                $this->di->log->info('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
             } catch (Throwable $e) {
             }
 
@@ -654,16 +664,16 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->info('Snapshot NOT FOUND: "'.$snapshotPath.'"', $logTimer);
+            $this->di->log->info('Snapshot NOT FOUND: "' . $snapshotPath . '"', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->info('Import of snapshot FAILED: "'.$snapshotPath.'"', $logTimer);
+            $this->di->log->info('Import of snapshot FAILED: "' . $snapshotPath . '"', $logTimer);
             return false;
         }
 
-        $this->di->log->info('Import of snapshot SUCCESSFUL: "'.$snapshotPath.'"', $logTimer);
+        $this->di->log->info('Import of snapshot SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
         return true;
     }
 
@@ -701,7 +711,7 @@ class DatabaseBuilder
             return [];
         }
 
-        $key = (int) $removeOld.(int) $removeCurrent.(int) $actuallyDelete;
+        $key = (int) $removeOld . (int) $removeCurrent . (int) $actuallyDelete;
         if (isset(static::$removedSnapshots[$key])) {
             return [];
         }
@@ -714,7 +724,7 @@ class DatabaseBuilder
 
                 if ($this->isSnapshotRelevant($path, $removeOld, $removeCurrent)) {
 
-                    $snapshotMetaDTOs[] = (new SnapshotMetaDTO)
+                    $snapshotMetaDTOs[] = (new SnapshotMetaDTO())
                         ->path($path)
                         ->size($getSize ? $this->di->filesystem->size($path) : null);
 
@@ -780,7 +790,7 @@ class DatabaseBuilder
 
         $this->di->filesystem->unlink($path);
 
-        $this->di->log->info('Removed '.($isOld ? 'old ' : '').'snapshot: "'.$path.'"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'snapshot: "' . $path . '"', $logTimer);
     }
 
     /**
@@ -818,7 +828,7 @@ class DatabaseBuilder
         // we only want to remove databases related to the current database
         // otherwise this might conflict with databases from other projects
         // - or even ones with a different name in the same project
-        $key = (int) $lockToOrigDB.(int) $removeOld.(int) $removeCurrent.(int) $actuallyDelete;
+        $key = (int) $lockToOrigDB . (int) $removeOld . (int) $removeCurrent . (int) $actuallyDelete;
         $database = $this->pickDatabaseName();
         if (isset(static::$removedOldDatabases[$key][$this->config->driver][$database])) {
             return [];
@@ -835,7 +845,7 @@ class DatabaseBuilder
         $databaseMetaDTOs = [];
         foreach ($databases as $database) {
 
-            $databaseMetaDTOs[] = (new DatabaseMetaDTO)
+            $databaseMetaDTOs[] = (new DatabaseMetaDTO())
                 ->name($database)
                 ->size($getSize ? $this->dbAdapter()->reuse->size($database) : null);
 
@@ -874,8 +884,10 @@ class DatabaseBuilder
         // build a new one...
         $driver = $this->pickDriver();
         $framework = $this->framework;
-        if ((!isset($this->availableDBAdapters[$framework]))
-            || (!isset($this->availableDBAdapters[$framework][$driver]))) {
+        if (
+            (!isset($this->availableDBAdapters[$framework]))
+            || (!isset($this->availableDBAdapters[$framework][$driver]))
+        ) {
             throw AdaptConfigException::unsupportedDriver($this->config->connection, $driver);
         }
 

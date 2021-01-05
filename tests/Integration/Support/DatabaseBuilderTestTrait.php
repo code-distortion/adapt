@@ -94,14 +94,14 @@ trait DatabaseBuilderTestTrait
     private function newDIContainer(string $connection): DIContainer
     {
         return (new DIContainer())
-            ->artisan(new LaravelArtisan)
-            ->config(new LaravelConfig)
-            ->db((new LaravelDB)->useConnection($connection))
+            ->artisan(new LaravelArtisan())
+            ->config(new LaravelConfig())
+            ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
             ->log(new LaravelLog(false, false))
-            ->exec(new Exec)
-            ->filesystem(new Filesystem);
+            ->exec(new Exec())
+            ->filesystem(new Filesystem());
     }
 
     /**
@@ -112,7 +112,7 @@ trait DatabaseBuilderTestTrait
      */
     private function newConfigDTO(string $connection): ConfigDTO
     {
-        return (new ConfigDTO)
+        return (new ConfigDTO())
             ->projectName('')
             ->connection($connection)
 //            ->database('test_db')
@@ -170,10 +170,10 @@ trait DatabaseBuilderTestTrait
         $this->delTree($destDir);
         $this->copyDirRecursive($sourceDir, $destDir);
         if ($removeAdaptStorageDir) {
-            $this->delTree($destDir.'/database/adapt-test-storage');
+            $this->delTree($destDir . '/database/adapt-test-storage');
         }
-        $this->createGitIgnoreFile($destDir.'/.gitignore');
-        $this->loadConfigs($destDir.'/config');
+        $this->createGitIgnoreFile($destDir . '/.gitignore');
+        $this->loadConfigs($destDir . '/config');
     }
 
     /**
@@ -230,8 +230,8 @@ trait DatabaseBuilderTestTrait
             return false;
         }
 
-        fwrite($fp, '*'.PHP_EOL);
-        fwrite($fp, '!.gitignore'.PHP_EOL);
+        fwrite($fp, '*' . PHP_EOL);
+        fwrite($fp, '!.gitignore' . PHP_EOL);
         fclose($fp);
         return true;
     }
@@ -350,8 +350,8 @@ trait DatabaseBuilderTestTrait
      */
     private function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues): void
     {
-        $escFields = "`".implode('`, `', $expectedValues->fields)."`";
-        $rows = DB::connection($connection)->select("SELECT ".$escFields." FROM `".$expectedValues->table."`");
+        $escFields = "`" . implode('`, `', $expectedValues->fields) . "`";
+        $rows = DB::connection($connection)->select("SELECT " . $escFields . " FROM `" . $expectedValues->table . "`");
 
         $values = collect($rows)->map(function ($row) use ($expectedValues) {
             $return = [];
@@ -383,7 +383,7 @@ trait DatabaseBuilderTestTrait
     ): void {
         $rows = DB::connection($connection)->select($query, $values);
 
-        $values =[];
+        $values = [];
         if (count($rows)) {
             $fieldNames = array_keys((array) $rows[0]);
             $firstField = (string) reset($fieldNames);

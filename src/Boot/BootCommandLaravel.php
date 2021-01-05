@@ -45,14 +45,14 @@ class BootCommandLaravel extends BootCommandAbstract
     private function defaultDI(string $connection): DIContainer
     {
         return (new DIContainer())
-            ->artisan(new LaravelArtisan)
-            ->config(new LaravelConfig)
-            ->db((new LaravelDB)->useConnection($connection))
+            ->artisan(new LaravelArtisan())
+            ->config(new LaravelConfig())
+            ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
             ->log(new LaravelLog(false, false))
-            ->exec(new Exec)
-            ->filesystem(new Filesystem);
+            ->exec(new Exec())
+            ->filesystem(new Filesystem());
     }
 
     /**
@@ -64,7 +64,7 @@ class BootCommandLaravel extends BootCommandAbstract
     private function newConfigDTO(string $connection): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return (new ConfigDTO)
+        return (new ConfigDTO())
             ->projectName(config("$c.project-name"))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))

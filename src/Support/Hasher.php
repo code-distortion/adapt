@@ -228,9 +228,9 @@ class Hasher
         ]));
 
         return mb_substr($this->currentSourceFilesHash(), 0, 6)
-            .'-'
-            .mb_substr($databaseHash, 0, 12)
-            .(mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
+            . '-'
+            . mb_substr($databaseHash, 0, 12)
+            . (mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
     }
 
 
@@ -246,8 +246,8 @@ class Hasher
         $scenarioHash = $this->generateScenarioHash($seeders);
 
         return mb_substr($sourceFilesHash, 0, 6)
-            .'-'
-            .mb_substr($scenarioHash, 0, 12);
+            . '-'
+            . mb_substr($scenarioHash, 0, 12);
     }
 
     /**
@@ -260,7 +260,7 @@ class Hasher
     {
         $sourceFilesHash = mb_substr($this->currentSourceFilesHash(), 0, 6);
         return (bool) preg_match(
-            '/^.+\.'.preg_quote($sourceFilesHash).'[^0-9a-f][0-9a-f]+\.[^\.]+$/',
+            '/^.+\.' . preg_quote($sourceFilesHash) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
             $filename,
             $matches
         );

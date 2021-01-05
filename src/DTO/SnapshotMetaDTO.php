@@ -55,6 +55,6 @@ class SnapshotMetaDTO
      */
     public function readable(): string
     {
-        return $this->path.(!is_null($this->size) ? ' '.Str::readableSize($this->size) : '');
+        return $this->path . (!is_null($this->size) ? ' ' . Str::readableSize($this->size) : '');
     }
 }

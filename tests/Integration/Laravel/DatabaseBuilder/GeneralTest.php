@@ -3,7 +3,6 @@
 namespace CodeDistortion\Adapt\Tests\Integration\Laravel\DatabaseBuilder;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
-use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
@@ -19,7 +18,7 @@ AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
  */
 class GeneralTest extends LaravelTestCase
 {
-    use DatabaseBuilderSetUpTrait;
+    use DatabaseBuilderSetUpTrait; // this is chosen above by AssignClassAlias depending on the version of Laravel used
     use DatabaseBuilderTestTrait;
 
 
