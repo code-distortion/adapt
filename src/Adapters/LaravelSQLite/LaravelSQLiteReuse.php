@@ -237,7 +237,7 @@ class LaravelSQLiteReuse implements ReuseInterface
 
         $success = $this->di->filesystem->unlink($database);
 
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'database: "' . $database . '"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "database: \"$database\"", $logTimer);
 
         return $success;
     }

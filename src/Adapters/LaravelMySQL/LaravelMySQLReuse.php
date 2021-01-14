@@ -232,7 +232,7 @@ class LaravelMySQLReuse implements ReuseInterface
         $pdo = $this->di->db->newPDO();
         $success = $pdo->dropDatabase("DROP DATABASE IF EXISTS `$database`");
 
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'database: "$database"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "database: \"$database\"", $logTimer);
 
         return $success;
     }

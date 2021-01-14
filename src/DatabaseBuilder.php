@@ -790,7 +790,7 @@ class DatabaseBuilder
 
         $this->di->filesystem->unlink($path);
 
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . 'snapshot: "' . $path . '"', $logTimer);
+        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "snapshot: \"$path\"", $logTimer);
     }
 
     /**
