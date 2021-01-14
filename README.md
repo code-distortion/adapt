@@ -232,7 +232,7 @@ To carry out the different types of caching that this package uses, you may need
 - The user/s your code connects to the database with need to have **permission to create and drop databases**.
 - The user your tests run as needs to have **write-access to the filesystem** to store snapshots and sqlite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
-- If you have several projects using Adapt that use the same database server, you should set the `project-name` config setting to a unique value in each to stop them from interfering with each other's test-databases.
+- If you have several projects using Adapt that use the same database server, you should set the `project_name` config setting to a unique value in each to stop them from interfering with each other's test-databases.
 - If you see databases with names like *test_your_database_name_17bd3c_d266ab43ac75*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
 - Adapt creates a table in your test databases called `____adapt____` which holds meta-data used to identify when the database should be used.
 
@@ -288,7 +288,7 @@ As a database is migrated and/or seeded, a snapshot (eg. a .sql dump file) is ta
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed (and is ready to use).
 
-Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage-dir` config setting). They're safe to delete, however you don't need to as they're cleaned up automatically when necessary.
+Snapshot files are stored in the `database/adapt-test-storage` directory (configurable via the `storage_dir` config setting). They're safe to delete, however you don't need to as they're cleaned up automatically when necessary.
 
 This method is particularly useful when [running browser-tests](#performing-browser-testing-such-as-using-dusk) as the other caching methods are turned off.
 
@@ -300,11 +300,11 @@ Database snapshots are turned **OFF** by default, unless [browser-testing](#perf
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre-migration-imports` and `migrations` files are also taken in to account).
+So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre_migration_imports` and `migrations` files are also taken in to account).
 
 These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look-for-changes-in` config setting.
+This list of directories can be configured via the `look_for_changes_in` config setting.
 
 
 
@@ -337,7 +337,7 @@ class MyTest extends TestCase
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
      *
-     * NOTE: pre-migration-imports aren't available for sqlite :memory:
+     * NOTE: pre_migration_imports aren't available for sqlite :memory:
      * databases.
      *
      * @var string[]|string[][]
@@ -412,7 +412,7 @@ class MyTest extends TestCase
     protected bool $takeSnapshotAfterSeeders = true;
 
     /**
-     * When performing browser tests "reuse-test-dbs", "dynamic-test-dbs"
+     * When performing browser tests "reuse_test_dbs", "dynamic_test_dbs"
      * and "transactions" need to be turned off.
      *
      * This is because the browser (which runs in a different process and
@@ -560,7 +560,7 @@ By default, the regular **DatabaseSeeder** is run after the migrations.
 
 ### My project uses database connections by name&hellip;
 
-If your codebase picks database connections by name (instead of letting the "default" connection be used), you'll want to look at the `remap-connections` setting that lets you update the settings for your other connections.
+If your codebase picks database connections by name (instead of letting the "default" connection be used), you'll want to look at the `remap_connections` setting that lets you update the settings for your other connections.
 
 
 
@@ -568,7 +568,7 @@ If your codebase picks database connections by name (instead of letting the "def
 
 When browser testing some cache settings need to be turned off.
 
-The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse-database**, **dynamic-test-dbs** and **transactions** to be turned off.
+The browser (which runs in a different process and causes external requests to your website) needs to access the same database that your tests build so you'll need **reuse_test_dbs**, **dynamic_test_dbs** and **transactions** to be turned off.
 
 Adapt detects when a Dusk test is running and turns them off **automatically** (and also takes a snapshot after seeding by turning [database snapshots](#database-snapshots) on). You can override this setting by setting the `$isBrowserTest` true/false property in your test-classes.
 
@@ -588,7 +588,7 @@ This is fine! To maintain a known state, Adapt normally wraps your tests inside 
 
 ### I have my own database dump that I'd like to import&hellip;
 
-You might have your own database dump file that you'd like to import instead of migrating from scratch. Pop it in your filesystem and add it to the `pre-migration-imports` config setting or `$preMigrationImports` test-class property. There's a spot there to add files for each type of database.
+You might have your own database dump file that you'd like to import instead of migrating from scratch. Pop it in your filesystem and add it to the `pre_migration_imports` config setting or `$preMigrationImports` test-class property. There's a spot there to add files for each type of database.
 
 This might save time if you have lots of migrations to run, or be useful if you have some other funky data set-up going on.
 

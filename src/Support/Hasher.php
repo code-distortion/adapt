@@ -51,7 +51,7 @@ class Hasher
     }
 
     /**
-     * Build a hash based on the source files.
+     * Build a hash based on the source files (and the database name prefix).
      *
      * @return string
      * @throws AdaptConfigException Thrown when a directory or file could not be opened.
@@ -193,7 +193,8 @@ class Hasher
     /**
      * Generate the scenario-hash based on the way this DatabaseBuilder will build this database.
      *
-     * Based on the database-building file content, pre-migration-imports, migrations and seeder-settings.
+     * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations and
+     * seeder-settings.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string
@@ -211,8 +212,8 @@ class Hasher
     /**
      * Generate a hash to use in the database name.
      *
-     * Based on the database-building file content, pre-migration-imports, migrations, seeder-settings, connection and
-     * transactions.
+     * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations,
+     * seeder-settings, connection and transactions.
      *
      * @param string[] $seeders          The seeders that will be run.
      * @param string   $databaseModifier The modifier to use (eg. ParaTest suffix).

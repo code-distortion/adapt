@@ -26,7 +26,8 @@ interface ReuseInterface
      * Insert details to the database to help identify if it can be reused or not.
      *
      * @param string  $origDBName      The database that this test-database is for name.
-     * @param string  $sourceFilesHash The current source-files-hash based on the database-building file content.
+     * @param string  $sourceFilesHash The current source-files-hash based on the database-building file content and
+     *                                 database-name-prefix.
      * @param string  $scenarioHash    The current scenario-hash based on the pre-migration-imports, migrations and
      *                                 seeder-settings.
      * @param boolean $reusable        Whether this database can be reused or not.
@@ -42,7 +43,8 @@ interface ReuseInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string $sourceFilesHash The current source-files-hash based on the database-building file content.
+     * @param string $sourceFilesHash The current source-files-hash based on the database-building file content and
+     *                                database-name-prefix.
      * @param string $scenarioHash    The scenario-hash based on the pre-migration-imports, migrations and
      *                                seeder-settings.
      * @return boolean

@@ -114,29 +114,29 @@ class BootTestLaravel extends BootTestAbstract
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
 
         return (new ConfigDTO())
-            ->projectName($this->propBag->config('project-name'))
+            ->projectName($this->propBag->config('project_name'))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
-            ->storageDir(rtrim($this->propBag->config('storage-dir'), '\\/'))
+            ->storageDir(rtrim($this->propBag->config('storage_dir'), '\\/'))
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test_')
-            ->hashPaths($this->propBag->config('look-for-changes-in'))
+            ->hashPaths($this->propBag->config('look_for_changes_in'))
             ->buildSettings(
-                $this->propBag->config('pre-migration-imports', 'preMigrationImports'),
+                $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->config('migrations', 'migrations'),
                 $this->propBag->config('seeders', 'seeders'),
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected)
             )
             ->cacheTools(
-                $this->propBag->config('reuse-test-dbs', 'reuseTestDBs'),
-                $this->propBag->config('dynamic-test-dbs', 'dynamicTestDBs'),
+                $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
+                $this->propBag->config('dynamic_test_dbs', 'dynamicTestDBs'),
                 $this->propBag->config('transactions', 'transactions')
             )
             ->snapshots(
                 $this->propBag->config('snapshots.enabled', 'snapshotsEnabled'),
-                $this->propBag->config('snapshots.take-after-migrations', 'takeSnapshotAfterMigrations'),
-                $this->propBag->config('snapshots.take-after-seeders', 'takeSnapshotAfterSeeders')
+                $this->propBag->config('snapshots.take_after_migrations', 'takeSnapshotAfterMigrations'),
+                $this->propBag->config('snapshots.take_after_seeders', 'takeSnapshotAfterSeeders')
             )
             ->mysqlSettings(
                 $this->propBag->config('database.mysql.executables.mysql'),

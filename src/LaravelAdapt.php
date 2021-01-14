@@ -23,7 +23,7 @@ trait LaravelAdapt
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
      *
-     * NOTE: pre-migration-imports aren't available for sqlite :memory:
+     * NOTE: pre_migration_imports aren't available for sqlite :memory:
      * databases.
      *
      * @var string[]|string[][]
@@ -98,7 +98,7 @@ trait LaravelAdapt
 //    protected bool $takeSnapshotAfterSeeders = true;
 
     /**
-     * When performing browser tests "reuse-test-dbs", "dynamic-test-dbs"
+     * When performing browser tests "reuse_test_dbs", "dynamic_test_dbs"
      * and "transactions" need to be turned off.
      *
      * This is because the browser (which runs in a different process and

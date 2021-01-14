@@ -260,7 +260,7 @@ class CommandsTest extends LaravelTestCase
     private function resolveExpectedOutput(string $expectedOutput, array $substitutions): string
     {
         $replacements = [
-            '[adapt-test-storage]' => config(Settings::LARAVEL_CONFIG_NAME . '.storage-dir'),
+            '[adapt-test-storage]' => config(Settings::LARAVEL_CONFIG_NAME . '.storage_dir'),
         ];
 
         foreach ($substitutions as $key => $file) {
