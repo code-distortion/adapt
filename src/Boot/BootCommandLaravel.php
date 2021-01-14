@@ -70,7 +70,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->database(config("database.connections.$connection.database"))
             ->storageDir(rtrim(config("$c.storage-dir"), '\\/'))
             ->snapshotPrefix('snapshot.')
-            ->databasePrefix('')
+            ->databasePrefix('test_')
             ->hashPaths(config("$c.look-for-changes-in"))
             ->buildSettings(
                 config("$c.pre-migration-imports"),

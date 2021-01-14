@@ -72,7 +72,7 @@ class Hasher
             $hashes[$path] = $this->di->filesystem->md5File($path);
         }
 
-        static::$sourceFilesHash = md5(serialize($hashes));
+        static::$sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
 
         $this->di->log->info('Generated a hash of the database-related files', $logTimer);
 
@@ -215,7 +215,7 @@ class Hasher
      * transactions.
      *
      * @param string[] $seeders          The seeders that will be run.
-     * @param string   $databaseModifier The modifier to use.
+     * @param string   $databaseModifier The modifier to use (eg. ParaTest suffix).
      * @return string
      */
     public function generateDBNameHash(array $seeders, string $databaseModifier): string

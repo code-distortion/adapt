@@ -59,21 +59,21 @@ class StructureAndDataSetUpTest extends LaravelTestCase
             'sqlite - No pre-migration imports 1 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-fc77f6c5ce44.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-fc77f6c5ce44.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
             'sqlite - No pre-migration imports 2 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->preMigrationImports(['sqlite' => '']),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-3867fac8d24f.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-3867fac8d24f.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
             'sqlite - No pre-migration imports 3 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->preMigrationImports(['sqlite' => []]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-37743061eb23.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-37743061eb23.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
 
@@ -83,7 +83,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                         'sqlite' => "$this->wsPreMigrationsDir/pre-migration-import-1.sqlite",
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-69ca1046c1ca.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-69ca1046c1ca.sqlite")
                     ->expectedTables(['pre_migration_import', '____adapt____'])
                     ->addExpectedValues($evPreMigrationImportOne),
             ],
@@ -93,7 +93,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                         'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-93a0cfc5811f.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-93a0cfc5811f.sqlite")
                     ->expectedTables(['pre_migration_import', '____adapt____'])
                     ->addExpectedValues($evPreMigrationImportOne),
             ],
@@ -105,7 +105,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ])
                     ->migrations($this->wsMigrationsDir),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-f00ba6598b47.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-f00ba6598b47.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evPreMigrationImportOne)
                     ->addExpectedValues($evNoUsers)
@@ -118,7 +118,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ])
                     ->seeders([PreMigrationImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-93a0cfc5811f.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-93a0cfc5811f.sqlite")
                     ->expectedTables(['pre_migration_import','____adapt____'])
                     ->addExpectedValues($evPreMigrationImportOne)
             ],
@@ -131,7 +131,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ->migrations($this->wsMigrationsDir)
                     ->seeders([PreMigrationImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-1fe249d73913.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-1fe249d73913.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evPreMigrationImportOneThree)
                     ->addExpectedValues($evNoUsers)
@@ -146,7 +146,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ->migrations($this->wsMigrationsDir)
                     ->seeders([DatabaseSeeder::class, PreMigrationImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/test-database.3dd190-6fcd3d917304.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/test-database.afd818-6fcd3d917304.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evPreMigrationImportOneThree)
                     ->addExpectedValues($evUsers)

@@ -32,7 +32,7 @@ trait CommandFunctionalityTrait
                 // ignore exceptions caused because the database can't be connected to
                 // eg. other connections that aren't intended to be used. eg. 'pgsql', 'sqlsrv'
             } catch (PDOException $e) {
-                // " "
+                // same as above
             }
         }
 
