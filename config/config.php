@@ -106,7 +106,7 @@ return [
     | reuse-test-dbs setting above. These dbs are safe to delete.
     |
     | An dynamic database will be called something like:
-    | "your_database_name_d42a95e7d1afcb4f9902677f74e9b2d5"
+    | "test_your_database_name_17bd3c_d266ab43ac75"
     |
     | This config setting can be overridden by adding the $dynamicTestDBs
     | property to your test-class.

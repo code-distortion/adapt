@@ -4,7 +4,7 @@
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
 ![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/run-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
-[![Buy us a tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://ecologi.com/treeware?gift-trees)
+[![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
 
 ***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests and can give large speed improvements.
@@ -35,7 +35,8 @@
     * [My seeders take a while to run / different seeders are needed for different tests…](#my-seeders-take-a-while-to-run--different-seeders-are-needed-for-different-tests)
     * [My project uses database connections by name…](#my-project-uses-database-connections-by-name)
     * [When performing browser testing (such as using Dusk)…](#when-performing-browser-testing-such-as-using-dusk)
-    * [I would like to run my tests in parallel using Paratest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)
+    * [I would like to run my tests in parallel using ParaTest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)
+    * [Some of my own code uses transactions…](#some-of-my-own-code-uses-transactions)
     * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-import)
     * [My project uses more than one database…](#my-project-uses-more-than-one-database)
 * [Testing](#testing)
@@ -56,7 +57,7 @@ Adapt is a replacement for Laravel's test database traits which builds your test
 
 It allows for a high level of [customisation](#customisation), but **most likely all you'll need to do is [apply it to your tests](#usage) and it will work out of the box**.
 
-> Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or *DatabaseMigrations*, *DatabaseTransactions*) to manage how your database is built.
+> Normally when creating [PHPUnit](https://github.com/sebastianbergmann/phpunit) or [Pest](https://github.com/pestphp/pest) tests in Laravel you would use the *RefreshDatabase* trait (or possibly *DatabaseTransactions* or *DatabaseMigrations*) to manage how your database is built.
 >
 > If your project has a lot of migrations, this can end up taking a long time because the database is built from scratch before each test-run. Even if you can, importing a pre-built sql file can be slow.
 
@@ -66,7 +67,7 @@ It allows for a high level of [customisation](#customisation), but **most likely
 
 Laravel projects with tests that use a database will see an improvement in test speed, particularly when their migrations and seeders take a while to run.
 
-To benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6, 7 & 8** and **PHP 7.0 - 7.4** (**Linux** and **MacOS** are currently supported).
+To benefit to as many people as possible, Adapt has been developed to be compatible with **Laravel 5.1+, 6, 7 & 8** and **PHP 7.0 - 8.0** (**Linux** and **MacOS** are currently supported).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -117,13 +118,13 @@ class AppServiceProvider extends ServiceProvider
 
 ### Config
 
-You can alter the default settings by publishing the `config/code-distortion.adapt.php` config file and updating it:
+You can alter the default settings by publishing the `config/code_distortion.adapt.php` config file and updating it:
 
 ``` bash
 php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceProvider" --tag="config"
 ```
 
-***Note***: The custom environment values you'd like to add should be put in your `.env.testing` file if you use one (rather than `.env`).
+> ***Note***: The custom environment values you'd like to add should be put in your `.env.testing` file if you use one (rather than `.env`).
 
 
 
@@ -145,14 +146,15 @@ use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
 //use Illuminate\Foundation\Testing\DatabaseMigrations;   // not needed
 //use Illuminate\Foundation\Testing\DatabaseTransactions; // not needed
 //use Illuminate\Foundation\Testing\RefreshDatabase;      // not needed
+
 use Tests\TestCase;
 
 class MyTest extends TestCase
 {
     use LaravelAdapt; // **** add this ****
-//  use RefreshDatabase;      // not needed
 //  use DatabaseMigrations;   // not needed
 //  use DatabaseTransactions; // not needed
+//  use RefreshDatabase;      // not needed
     …
 }
 ```
@@ -216,9 +218,7 @@ uses(\CodeDistortion\Adapt\LaravelAdapt::class); // **** add this ****
 
 beforeEach(fn () => factory(User::class)->create());
 
-it('has users')->assertDatabaseHas('users', [
-    'id' => 1,
-]);
+it('has users')->assertDatabaseHas('users', ['id' => 1]);
 ```
 
 Adapt's settings can also be [customised](#pest-customisation) on a per-test basis when using PEST.
@@ -233,7 +233,8 @@ To carry out the different types of caching that this package uses, you may need
 - The user your tests run as needs to have **write-access to the filesystem** to store snapshots and sqlite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
 - If you have several projects using Adapt that use the same database server, you should set the `project-name` config setting to a unique value in each to stop them from interfering with each other's test-databases.
-- If you see databases with names like *your_database_name_17bd3c_d266ab43ac75*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
+- If you see databases with names like *test_your_database_name_17bd3c_d266ab43ac75*, don't worry! These are the [dynamically created databases](#dynamic-database-creation). Leave them to get the speed benefit of using them (but you can safely delete them).
+- Adapt creates a table in your test databases called `____adapt____` which holds meta-data used to identify when the database should be used.
 
 See the [scenarios and techniques](#scenarios-and-techniques) section below for more tips.
 
@@ -253,7 +254,7 @@ You won't need to clear old databases and snapshot files as Adapt does this auto
 
 Adapt uses these caching mechanisms to improve testing speed.
 
-***Note***: You can safely delete test-databases left by Adapt but **don't change data** in them as they will be reused and are assumed to be in a clean state.
+> ***Note***: You can safely delete test-databases left by Adapt but **don't change data** in them as they will be reused and are assumed to be in a clean state.
 
 
 
@@ -271,7 +272,7 @@ Test-database reuse is turned **ON** by default.
 
 ### Dynamic Database Creation
 
-This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *your_database_name_17bd3c_d266ab43ac75* (so don't worry if you see them).
+This setting lets Adapt create a separate test-database for each scenario your tests need (eg. when different seeders are run). These databases will have names similar to *test_your_database_name_17bd3c_d266ab43ac75* (so don't worry if you see them).
 
 These scenarios then co-exist allowing each of them to be re-used straight away (without rebuilding for the current scenario).
 
@@ -293,7 +294,7 @@ This method is particularly useful when [running browser-tests](#performing-brow
 
 Database snapshots are turned **OFF** by default, unless [browser-testing](#performing-browser-testing-such-as-using-dusk) is detected.
 
-***Note***: SQLite database files aren't exported and imported, they are simply copied.
+> ***Note***: SQLite database files aren't exported and imported, they are simply copied.
 
 
 
@@ -309,7 +310,7 @@ This list of directories can be configured via the `look-for-changes-in` config 
 
 ## Customisation
 
-As well as the `config/code-distortion.adapt.php` [config settings](#config), you can customise many of them inside your tests as shown below. You may wish to share these between similar tests by putting them in a trait or parent test-class:
+As well as the `config/code_distortion.adapt.php` [config settings](#config), you can customise many of them inside your tests as shown below. You may wish to share these between similar tests by putting them in a trait or parent test-class:
 
 
 
@@ -543,7 +544,7 @@ Here are various scenarios and comments about each:
 
 This is probably the most common scenario. You could choose to continue using the same connection to test with (eg. "mysql"), or swap it out for a SQLite database which may improve speed by setting the **default-connection** setting.
 
-***Note***: **SQLite :memory:** databases automatically disappear when the client disconnects from it, and PHPUnit disconnects from databases between tests. Because of this, a memory database will need to be re-built for each test **so it's less likely to be the quickest type of database to use**.
+> ***Note***: **SQLite :memory:** databases automatically disappear when the client disconnects from it, and PHPUnit disconnects from databases between tests. Because of this, a memory database will need to be re-built for each test **so it's less likely to be the quickest type of database to use**.
 
 
 
@@ -573,9 +574,15 @@ Adapt detects when a Dusk test is running and turns them off **automatically** (
 
 
 
-### I would like to run my tests in parallel using Paratest&hellip;
+### I would like to run my tests in parallel using ParaTest&hellip;
 
-[paratestphp/paratest](https://github.com/paratestphp/paratest) is a package that splits your test-suite in to parts and runs them in parallel using multiple processes. Adapt detects when paratest is being used and creates a distinct database for each process by adding a unique suffix.
+[paratestphp/paratest](https://github.com/paratestphp/paratest) is a package that splits your test-suite in to parts and runs them in parallel using multiple processes. Adapt detects when ParaTest is being used and creates a distinct database for each process by adding a unique suffix.
+
+
+
+### Some of my own code uses transactions&hellip;
+
+This is fine! To maintain a known state, Adapt normally wraps your tests inside a transaction and rolls it back afterwards. If your own code uses transactions as well, Adapt will automatically detect that its own transaction was implicitly committed, and will re-build the database for the next test. You may wish to turn on the `snapshots.enabled` config setting so sql dumps are created and imported - to save time migrating + running seeders.
 
 
 
@@ -585,9 +592,9 @@ You might have your own database dump file that you'd like to import instead of 
 
 This might save time if you have lots of migrations to run, or be useful if you have some other funky data set-up going on.
 
-***Note***: Any remaining migrations and the seeding will run after these have been imported.
+> ***Note***: Any remaining migrations and the seeding will run after these have been imported.
 
-***Note***: SQLite database files aren't imported, they are simply copied.
+> ***Note***: SQLite database files aren't imported, they are simply copied.
 
 
 
@@ -619,13 +626,7 @@ This library uses [SemVer 2.0.0](https://semver.org/) versioning. This means tha
 
 ## Treeware
 
-You're free to use this package, but if it makes it to your production environment please plant or buy a tree for the world.
-
-It's now common knowledge that one of the best tools to tackle the climate crisis and keep our temperatures from rising above 1.5C is to <a href="https://www.bbc.co.uk/news/science-environment-48870920">plant trees</a>. If you support this package and contribute to the Treeware forest you'll be creating employment for local families and restoring wildlife habitats.
-
-You can buy trees here [https://ecologi.com/treeware](https://ecologi.com/treeware?gift-trees)
-
-Read more about Treeware at [treeware.earth](http://treeware.earth)
+This package is [Treeware](https://treeware.earth). If you use it in tests of a production project, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/code-distortion/adapt) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
 
 
 
