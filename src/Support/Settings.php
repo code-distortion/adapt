@@ -12,7 +12,7 @@ class Settings
      *
      * @var string
      */
-    public const LARAVEL_CONFIG_NAME = 'code-distortion.adapt';
+    public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
     /**
      * The name of the table that contains the reuse information.

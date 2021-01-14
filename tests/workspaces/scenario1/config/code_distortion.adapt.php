@@ -177,9 +177,7 @@ return [
     |
     */
 
-    'storage-dir' => realpath(
-        base_path('../../../../tests/workspaces/current/database')
-    ) . '/adapt-test-storage',
+    'storage-dir' => realpath(base_path('../../../../tests/workspaces/current/database')) . '/adapt-test-storage',
 
     /*
     |--------------------------------------------------------------------------
@@ -193,9 +191,9 @@ return [
     */
 
     'look-for-changes-in' => [
-        database_path('factories'),
-        database_path('migrations'),
-        database_path('seeds'),
+        realpath(base_path('../../../../tests/workspaces/current/database')) . '/factories',
+        realpath(base_path('../../../../tests/workspaces/current/database')) . '/migrations',
+        realpath(base_path('../../../../tests/workspaces/current/database')) . '/seeds',
     ],
 
     /*

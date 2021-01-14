@@ -195,8 +195,8 @@ return [
     'look-for-changes-in' => [
         database_path('factories'),
         database_path('migrations'),
-//        database_path('seeders'),
-        database_path('seeds'),
+        database_path('seeders'),  // Laravel 8 and after
+//        database_path('seeds'),       // before Laravel 8
     ],
 
     /*
