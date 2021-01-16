@@ -29,4 +29,18 @@ class Settings
      * @const string
      */
     public const REUSE_TABLE_VERSION = '2';
+
+    /**
+     * The name of the cookie used to pass database connection details during browser tests.
+     *
+     * @const string
+     */
+    public const CONNECTIONS_COOKIE = '____adapt____';
+
+    /**
+     * The path that browsers connect to initially (when browser testing) so that cookies can then be set.
+     *
+     * @const string
+     */
+    public const INITIAL_BROWSER_REQUEST_PATH = '/____adapt____';
 }

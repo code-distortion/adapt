@@ -246,7 +246,7 @@ class DatabaseBuilder
      */
     private function usingDynamicTestDBs(): bool
     {
-        return (($this->config->dynamicTestDBs) && (!$this->config->isBrowserTest));
+        return $this->config->dynamicTestDBs;
     }
 
     /**
