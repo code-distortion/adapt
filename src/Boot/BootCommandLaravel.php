@@ -65,28 +65,28 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         return (new ConfigDTO())
-            ->projectName(config("$c.project-name"))
+            ->projectName(config("$c.project_name"))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
-            ->storageDir(rtrim(config("$c.storage-dir"), '\\/'))
+            ->storageDir(rtrim(config("$c.storage_dir"), '\\/'))
             ->snapshotPrefix('snapshot.')
-            ->databasePrefix('')
-            ->hashPaths(config("$c.look-for-changes-in"))
+            ->databasePrefix('test_')
+            ->hashPaths(config("$c.look_for_changes_in"))
             ->buildSettings(
-                config("$c.pre-migration-imports"),
+                config("$c.pre_migration_imports"),
                 config("$c.migrations"),
                 config("$c.seeders"),
                 false
             )
             ->cacheTools(
-                config("$c.reuse-test-dbs"),
-                config("$c.dynamic-test-dbs"),
+                config("$c.reuse_test_dbs"),
+                config("$c.dynamic_test_dbs"),
                 config("$c.transactions")
             )
             ->snapshots(
                 config("$c.snapshots.enabled"),
-                config("$c.snapshots.take-after-migrations"),
-                config("$c.snapshots.take-after-seeders")
+                config("$c.snapshots.take_after_migrations"),
+                config("$c.snapshots.take_after_seeders")
             )
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),

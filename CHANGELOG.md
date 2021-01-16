@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.3.0] - 2021-01-15
+
+### Added
+- Added prefix "test_" to test databases eg. "test_your_database_name_17bd3c_d266ab43ac75"
+
+### Changed (breaking)
+- Changed the name of the config file from code-distortion.adapt.php to code_distortion.adapt.php to be consistent with Laravel
+- Updated config values to contain underscores instead of hyphens to be consistent with Laravel
+
+### Fixed
+
+- the wording of the log message when removing an old database
+
+
+
 ## [0.2.4] - 2021-01-06
 
 ### Added

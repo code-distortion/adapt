@@ -19,7 +19,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             'The storage directory "' . $storageDir . '" exists and is a file. '
-            . 'Please review the "storage-dir" setting'
+            . 'Please review the "storage_dir" setting'
         );
     }
 
@@ -34,7 +34,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             'Could not create the storage directory "' . $storageDir . '". '
-            . 'Please review the "storage-dir" setting',
+            . 'Please review the "storage_dir" setting',
             0,
             $originalException
         );
@@ -50,7 +50,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             'Couldn\'t open pre-migration-dump file "' . $path . '". '
-            . 'Please review the "pre-migration-imports" config setting'
+            . 'Please review the "pre_migration_imports" config setting'
         );
     }
 
@@ -78,7 +78,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             'Couldn\'t open file or directory "' . $path . '". '
-            . 'Please review the "look-for-changes-in" config setting'
+            . 'Please review the "look_for_changes_in" config setting'
         );
     }
 
@@ -134,7 +134,7 @@ class AdaptConfigException extends AdaptException
     public static function missingDestRemapConnection(string $connection, bool $isConfig): self
     {
         $errorPart = ($isConfig
-            ? 'Please review the "remap-connections" config setting'
+            ? 'Please review the "remap_connections" config setting'
             : 'Please review the $remapConnections test-class property');
         return new self('Cannot remap the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
     }
@@ -150,7 +150,7 @@ class AdaptConfigException extends AdaptException
     public static function missingSrcRemapConnection(string $connection, bool $isConfig): self
     {
         $errorPart = ($isConfig
-            ? 'Please review the "remap-connections" config setting'
+            ? 'Please review the "remap_connections" config setting'
             : 'Please review the $remapConnections test-class property');
         return new self('Cannot remap using the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
     }
@@ -166,7 +166,7 @@ class AdaptConfigException extends AdaptException
     public static function invalidConnectionRemapString(string $orig, bool $isConfig): self
     {
         $errorPart = ($isConfig
-            ? 'Please review the "remap-connections" config setting'
+            ? 'Please review the "remap_connections" config setting'
             : 'Please review the $remapConnections test-class property');
         return new self('Cannot interpret remap-database string "' . $orig . '". ' . $errorPart);
     }

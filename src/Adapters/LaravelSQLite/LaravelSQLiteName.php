@@ -21,7 +21,8 @@ class LaravelSQLiteName implements NameInterface
      * Build a dynamic database name.
      *
      * @param string $dbNameHash The current db-name-hash based on the database-building file content,
-     *                           pre-migration-imports, migrations, seeder-settings, connection and transactions.
+     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection
+     *                           and transactions.
      * @return string
      */
     public function generateDynamicDBName(string $dbNameHash): string
@@ -39,7 +40,7 @@ class LaravelSQLiteName implements NameInterface
      * Generate the path (including filename) for the snapshot file.
      *
      * @param string $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                             pre-migration-imports, migrations and seeder-settings.
+     *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
      * @return string
      */
     public function generateSnapshotPath(string $snapshotHash): string

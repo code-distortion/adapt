@@ -13,7 +13,7 @@ return [
      |
      */
 
-    'project-name' => env('ADAPT_PROJECT_NAME', ''),
+    'project_name' => env('ADAPT_PROJECT_NAME', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ return [
     |
     */
 
-    'pre-migration-imports' => [
+    'pre_migration_imports' => [
         'mysql' => [],
         'sqlite' => [],
         'pgsql' => [],
@@ -85,7 +85,7 @@ return [
     |
     | When a test-database already exists (and was left in a clean state),
     | it can be reused without Adapt needing to rebuild it, saving time.
-    | This is best used with the dynamic-test-dbs setting below.
+    | This is best used with the dynamic_test_dbs setting below.
     |
     | This config setting can be overridden by adding the
     | $reuseTestDBs property to your test-class.
@@ -94,7 +94,7 @@ return [
     |
     */
 
-    'reuse-test-dbs' => env('ADAPT_REUSE_TEST_DBS', true),
+    'reuse_test_dbs' => env('ADAPT_REUSE_TEST_DBS', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -103,10 +103,10 @@ return [
     |
     | A new database (based on your original database name) will be created
     | for each scenario your tests need. This is best used with the
-    | reuse-test-dbs setting above. These dbs are safe to delete.
+    | reuse_test_dbs setting above. These dbs are safe to delete.
     |
     | An dynamic database will be called something like:
-    | "your_database_name_d42a95e7d1afcb4f9902677f74e9b2d5"
+    | "test_your_database_name_17bd3c_d266ab43ac75"
     |
     | This config setting can be overridden by adding the $dynamicTestDBs
     | property to your test-class.
@@ -118,7 +118,7 @@ return [
     |
     */
 
-    'dynamic-test-dbs' => env('ADAPT_DYNAMIC_TEST_DBS', true),
+    'dynamic_test_dbs' => env('ADAPT_DYNAMIC_TEST_DBS', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -148,7 +148,7 @@ return [
     |
     | Database dumps/copies can be taken of each test-db, which are imported
     | automatically when needed saving migration + seeding time. Snapshot
-    | files are stored in the "storage-dir" and can be removed safely.
+    | files are stored in the "storage_dir" and can be removed safely.
     |
     | If you use Adapt to seed many tests differently, it may be worth
     | also taking a snapshot 'after-migrations' (ie. before seeding).
@@ -164,8 +164,8 @@ return [
 
     'snapshots' => [
         'enabled' => env('ADAPT_USE_SNAPSHOTS', false),
-        'take-after-migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
-        'take-after-seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
+        'take_after_migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
+        'take_after_seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
     ],
 
     /*
@@ -179,7 +179,7 @@ return [
     |
     */
 
-    'storage-dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
+    'storage_dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
 
     /*
     |--------------------------------------------------------------------------
@@ -192,11 +192,11 @@ return [
     |
     */
 
-    'look-for-changes-in' => [
+    'look_for_changes_in' => [
         database_path('factories'),
         database_path('migrations'),
-//        database_path('seeders'),
-        database_path('seeds'),
+        database_path('seeders'),  // Laravel 8 and after
+//        database_path('seeds'),       // before Laravel 8
     ],
 
     /*
@@ -221,7 +221,7 @@ return [
     | '!mysql < sqlite'
     */
 
-    'remap-connections' => env('ADAPT_REMAP_CONNECTIONS', ''),
+    'remap_connections' => env('ADAPT_REMAP_CONNECTIONS', ''),
 
     /*
      |--------------------------------------------------------------------------
