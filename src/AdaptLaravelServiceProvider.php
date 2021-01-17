@@ -4,7 +4,9 @@ namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
+use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 /**
@@ -12,6 +14,11 @@ use Illuminate\Support\ServiceProvider as BaseServiceProvider;
  */
 class AdaptLaravelServiceProvider extends BaseServiceProvider
 {
+    /** @var string The path to the config file in the filesystem. */
+    private $configPath = __DIR__ . '/../config/config.php';
+
+
+
     /**
      * Service-provider register method.
      *
@@ -24,13 +31,18 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
     /**
      * Service-provider boot method.
      *
+     * @param Router $router Laravel's router.
      * @return void
      */
-    public function boot()
+    public function boot(Router $router)
     {
         $this->initialiseConfig();
+        $this->publishConfig();
         $this->initialiseCommands();
+        $this->initialiseMiddleware($router);
+        $this->initialiseRoutes($router);
     }
+
 
 
     /**
@@ -40,19 +52,30 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
      */
     protected function initialiseConfig()
     {
-        // initialise the config
-        $configPath = __DIR__ . '/../config/config.php';
-        $this->mergeConfigFrom($configPath, Settings::LARAVEL_CONFIG_NAME);
-
-        // allow the default config to be published
-        if ((!$this->app->environment('testing')) && ($this->app->runningInConsole())) {
-
-            $this->publishes(
-                [$configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),],
-                'config'
-            );
-        }
+        $this->mergeConfigFrom($this->configPath, Settings::LARAVEL_CONFIG_NAME);
     }
+
+    /**
+     * Allow the default config to be published.
+     *
+     * @return void
+     */
+    protected function publishConfig()
+    {
+        if (!$this->app->runningInConsole()) {
+            return;
+        }
+        if ($this->app->environment('testing')) {
+            return;
+        }
+
+        $this->publishes(
+            [$this->configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),],
+            'config'
+        );
+    }
+
+
 
     /**
      * Initialise the artisan commands.
@@ -61,11 +84,59 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
      */
     protected function initialiseCommands()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                AdaptRemoveCachesCommand::class,
-                AdaptListCachesCommand::class,
-            ]);
+        if (!$this->app->runningInConsole()) {
+            return;
         }
+
+        $this->commands([
+            AdaptRemoveCachesCommand::class,
+            AdaptListCachesCommand::class,
+        ]);
+    }
+
+
+
+    /**
+     * Initialise the middleware.
+     *
+     * @param Router $router Laravel's router.
+     * @return void
+     */
+    protected function initialiseMiddleware(Router $router)
+    {
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+        if (!$this->app->environment('local', 'testing')) {
+            return;
+        }
+
+        $router->prependMiddlewareToGroup('web', AdaptMiddleware::class);
+        $router->prependMiddlewareToGroup('api', AdaptMiddleware::class);
+    }
+
+
+
+    /**
+     * Initialise the routes.
+     *
+     * @param Router $router Laravel's router.
+     * @return void
+     */
+    protected function initialiseRoutes(Router $router)
+    {
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+        if (!$this->app->environment('local', 'testing')) {
+            return;
+        }
+
+        // The path that browsers connect to initially (when browser testing) so that cookies can then be set
+        // (the browser will reject new cookies before it's loaded a webpage)
+        // this route bypasses all middleware
+        $router->get(Settings::INITIAL_BROWSER_REQUEST_PATH, function () {
+            return '';
+        });
     }
 }

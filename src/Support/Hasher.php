@@ -213,7 +213,7 @@ class Hasher
      * Generate a hash to use in the database name.
      *
      * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations,
-     * seeder-settings, connection and transactions.
+     * seeder-settings, connection, transactions and isBrowserTest.
      *
      * @param string[] $seeders          The seeders that will be run.
      * @param string   $databaseModifier The modifier to use (eg. ParaTest suffix).
@@ -226,6 +226,7 @@ class Hasher
             'projectName' => $this->config->projectName,
             'connection' => $this->config->connection,
             'transactions' => $this->config->transactions,
+            'browserTest' => $this->config->isBrowserTest,
         ]));
 
         return mb_substr($this->currentSourceFilesHash(), 0, 6)

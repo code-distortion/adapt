@@ -12,13 +12,25 @@ use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
+use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
+use Config;
+use Carbon\Carbon;
+use Illuminate\Cookie\CookieValuePrefix;
+use Illuminate\Support\Facades\Crypt;
+use Laravel\Dusk\Browser;
 
 /**
  * Bootstrap Adapt for Laravel tests.
  */
 class BootTestLaravel extends BootTestAbstract
 {
+    /** @var string|null The path to the temporary config file, created during browser tests. */
+    private $tempConfigPath = null;
+
+
+
     /**
      * Build a default DIContainer object.
      *
@@ -118,7 +130,7 @@ class BootTestLaravel extends BootTestAbstract
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
-            ->storageDir(rtrim($this->propBag->config('storage_dir'), '\\/'))
+            ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test_')
             ->hashPaths($this->propBag->config('look_for_changes_in'))
@@ -146,5 +158,146 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
             );
+    }
+
+    /**
+     * Get the storage directory.
+     *
+     * @return string
+     */
+    private function storageDir(): string
+    {
+        return $this->propBag
+            ? rtrim($this->propBag->config('storage_dir'), '\\/')
+            : '';
+    }
+
+
+
+    /**
+     * Record the current config file in the filesystem, and have the browsers send through its details in a cookie.
+     *
+     * @param Browser[] $browsers The browsers to update with the current config.
+     * @return void
+     */
+    public function getBrowsersToPassThroughCurrentConfig(array $browsers)
+    {
+        if (!count($browsers)) {
+            return;
+        }
+
+        $this->tempConfigPath = $this->storeTemporaryConfig();
+
+        foreach ($browsers as $browser) {
+
+            // make a small request first, so that cookies can then be set
+            // (the browser will reject new cookies before it's loaded a webpage).
+            $browser->visit(Settings::INITIAL_BROWSER_REQUEST_PATH);
+
+            $this->setBrowserCookie(
+                $browser,
+                Settings::CONNECTIONS_COOKIE,
+                base64_encode(serialize(['tempConfigPath' => $this->tempConfigPath])),
+                null,
+                [],
+                false
+            );
+        }
+    }
+
+    /**
+     * Store the current config in a new temporary config file, and return its filename.
+     *
+     * @return string
+     * @throws AdaptBrowserTestException When the temporary config file could not be saved.
+     */
+    private function storeTemporaryConfig(): string
+    {
+        $dateTime = Carbon::now()->format('YmdHis');
+        $rand = md5(uniqid((string) mt_rand(), true));
+        $filename = "config.$dateTime.$rand.php";
+        $path = "{$this->storageDir()}/$filename";
+
+        $content = '<?php' . PHP_EOL
+            . 'return ' . var_export(Config::all(), true) . ';' . PHP_EOL;
+
+        if (!(new Filesystem())->writeFile($path, 'w', $content)) {
+            throw AdaptBrowserTestException::tempConfigFileNotSaved($path);
+        }
+        return $path;
+    }
+
+    /**
+     * Add the given cookie - account for Laravel not adding the safety-check prefix.
+     *
+     * @param Browser                         $browser The browser instance to set the cookie in.
+     * @param string                          $name    The cookie name.
+     * @param string                          $value   The cookie value.
+     * @param integer|\DateTimeInterface|null $expiry  The cookie's expiry.
+     * @param string[]                        $options Extra settings.
+     * @param boolean                         $encrypt Should the cookie be encrypted?.
+     * @return void
+     */
+    private function setBrowserCookie(
+        Browser $browser,
+        string $name,
+        string $value,
+        $expiry = null,
+        array $options = [],
+        bool $encrypt = true
+    ) {
+
+        $browser->addCookie($name, $value, $expiry, $options, $encrypt);
+
+        if (!$encrypt) {
+            return;
+        }
+
+        // check if Laravel forgot to add the safety-check prefix to the value
+        $plainValue = $browser->plainCookie($name);
+        $decryptedValue = decrypt(rawurldecode($plainValue), false);
+        $prefix = CookieValuePrefix::create($name, Crypt::getKey());
+        $hasValuePrefix = strpos($decryptedValue, $prefix) === 0;
+        if (!$hasValuePrefix) {
+            $browser->addCookie($name, $prefix . $value, $expiry, $options, $encrypt);
+        }
+    }
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    public function cleanUp()
+    {
+        // remove the temporary config file that is created for browser tests
+        if ($this->tempConfigPath) {
+            unlink($this->tempConfigPath);
+        }
+    }
+
+    /**
+     * Remove any old (ie. orphaned) temporary config files.
+     *
+     * @return void
+     */
+    public function removeOldTempConfigFiles()
+    {
+        $nowUTC = Carbon::now();
+        $paths = (new Filesystem())->filesInDir($this->storageDir());
+        foreach ($paths as $path) {
+
+            $tempPath = mb_substr($path, mb_strlen($this->storageDir() . '/'));
+            if (preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $tempPath, $matches)) {
+
+                // remove if older than 4 hours
+                $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
+                if ($createdAtUTC) {
+                    if ($createdAtUTC->diffInHours($nowUTC, false) > 4) {
+                        unlink($path);
+                    }
+                }
+            }
+        }
     }
 }

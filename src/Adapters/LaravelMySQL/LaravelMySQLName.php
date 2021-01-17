@@ -20,8 +20,8 @@ class LaravelMySQLName implements NameInterface
      * Build a dynamic database name.
      *
      * @param string $dbNameHash The current db-name-hash based on the database-building file content,
-     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection
-     *                           and transactions.
+     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
+     *                           transactions and isBrowserTest.
      * @return string
      * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
      */

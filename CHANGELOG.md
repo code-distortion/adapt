@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.3.1] - 2021-01-18
+
+### Added
+- Added functionality for each test's config settings to be passed to the server via the browser during Dusk browser tests
+- Added the ability for ParaTest to run Dusk browser tests
+
+
+
 ## [0.3.0] - 2021-01-15
 
 ### Added
@@ -13,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed (breaking)
 - Changed the name of the config file from code-distortion.adapt.php to code_distortion.adapt.php to be consistent with Laravel
-- Updated config values to contain underscores instead of hyphens to be consistent with Laravel
+- Updated config keys to contain underscores instead of hyphens to be consistent with Laravel
 
 ### Fixed
 

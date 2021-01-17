@@ -325,9 +325,9 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider pickPreMigrationDumpsDataProvider
-     * @param array  $preMigrationImports The pre-migration-imports value (same as what could be put in the config).
-     * @param string $driver              The driver to read from.
-     * @param mixed  $expected            The expected output.
+     * @param array<int, string|string[]> $preMigrationImports The pre-migration-imports value (same as what could be put in the config).
+     * @param string                      $driver              The driver to read from.
+     * @param mixed                       $expected            The expected output.
      * @return void
      */
     public function test_pick_pre_migration_dumps_getter(array $preMigrationImports, string $driver, $expected)

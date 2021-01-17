@@ -61,7 +61,8 @@ trait LaravelAdapt
 //    protected bool $reuseTestDBs = true;
 
     /**
-     * Let Adapt create databases dynamically based on the scenario.
+     * Let Adapt create databases dynamically (with distinct names) based on
+     * the scenario.
      *
      * @var boolean
      */
@@ -98,8 +99,8 @@ trait LaravelAdapt
 //    protected bool $takeSnapshotAfterSeeders = true;
 
     /**
-     * When performing browser tests "reuse_test_dbs", "dynamic_test_dbs"
-     * and "transactions" need to be turned off.
+     * When performing browser tests "reuse_test_dbs" and "transactions" need
+     * to be turned off.
      *
      * This is because the browser (which runs in a different process and
      * causes outside requests to your website) needs to access the same
