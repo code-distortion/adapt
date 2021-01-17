@@ -223,4 +223,18 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DIContainer
      */
     abstract protected function defaultDI(string $connection): DIContainer;
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    abstract public function cleanUp(): void;
+
+    /**
+     * Remove any old (ie. orphaned) temporary config files.
+     *
+     * @return void
+     */
+    abstract public function removeOldTempConfigFiles(): void;
 }

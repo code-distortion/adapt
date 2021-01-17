@@ -272,8 +272,8 @@ trait DatabaseBuilderTestTrait
     /**
      * Take the list of files and create an assoc array config-name.path.
      *
-     * @param string $dir   The directory the files are in.
-     * @param array  $files The files in the directory.
+     * @param string   $dir   The directory the files are in.
+     * @param string[] $files The files in the directory.
      * @return array<string, string>
      */
     private function mapConfigPaths(string $dir, array $files): array

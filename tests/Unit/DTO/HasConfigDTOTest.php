@@ -250,20 +250,22 @@ class HasConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider configDtoDataProvider
-     * @param string       $method  The set method to call.
-     * @param mixed[]      $params  The parameters to pass to this set method, and the values to check after.
-     * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
+     * @param string  $method  The set method to call.
+     * @param mixed[] $params  The parameters to pass to this set method, and the values to check after.
+     * @param mixed[] $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
     public function has_config_dto_trait_can_set_and_get_values(
         string $method,
         array $params,
-        array $outcome = null
+        array $outcome
     ): void {
 
         $config = new ConfigDTO();
         $object = new HasConfigDTOClass($config);
-        call_user_func_array([$object, $method], $params);
+
+        $callable = [$object, $method];
+        is_callable($callable) ? call_user_func_array($callable, $params) : null;
 
         foreach ($outcome as $field => $value) {
             $this->assertSame($value, $config->$field);

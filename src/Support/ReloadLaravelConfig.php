@@ -33,9 +33,9 @@ class ReloadLaravelConfig
     {
         // the new way that env() works in Laravel
         if (class_exists(Env::class)) {
-            $repository =  (method_exists(Env::class, 'getRepository')
+            $repository =  method_exists(Env::class, 'getRepository')
                 ? Env::getRepository()
-                : Env::getFactory());
+                : Env::getFactory();
             foreach ($values as $name => $value) {
                 $repository->set($name, $value);
             }

@@ -2,11 +2,13 @@
 
 namespace CodeDistortion\Adapt\Initialise;
 
+use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
 
 /**
@@ -28,6 +30,31 @@ trait InitialiseLaravelAdapt
      */
     private bool $initialised = false;
 
+    /**
+     * @var BootTestInterface The object used to boot Adapt.
+     */
+    private BootTestInterface $bootTestLaravel;
+
+    /**
+     * Whether this is the first test being run in the suite or not.
+     *
+     * @var boolean
+     */
+    private static bool $firstRun = true;
+
+
+
+    /**
+     * Reset anything that should be reset between internal tests of the Adapt package.
+     *
+     * @return void
+     */
+    public static function resetStaticProps(): void
+    {
+        static::$firstRun = true;
+    }
+
+
 
     /**
      * Initialise Adapt automatically.
@@ -43,6 +70,19 @@ trait InitialiseLaravelAdapt
     }
 
     /**
+     * Initialise Adapt automatically.
+     *
+     * @after
+     * @return void
+     */
+    protected function autoTriggerCleanUp(): void
+    {
+        $this->bootTestLaravel->cleanUp();
+    }
+
+
+
+    /**
      * Prepare and boot Adapt.
      *
      * @return void
@@ -56,7 +96,15 @@ trait InitialiseLaravelAdapt
 
         $this->buildPropBag();
         $this->prepareLaravelConfig();
-        $this->bootTheTest();
+
+        $this->bootTestLaravel = $this->buildBootObject();
+
+        if (static::$firstRun) {
+            static::$firstRun = false;
+            $this->bootTestLaravel->removeOldTempConfigFiles();
+        }
+
+        $this->bootTestLaravel->run();
     }
 
 
@@ -202,17 +250,16 @@ trait InitialiseLaravelAdapt
     /**
      * Build the test object and run it.
      *
-     * @return void
+     * @return BootTestInterface
      */
-    private function bootTheTest(): void
+    private function buildBootObject(): BootTestInterface
     {
-        (new BootTestLaravel())
+        return (new BootTestLaravel())
             ->testName(get_class($this) . ' - "' . $this->getName() . '"')
             ->props($this->propBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
-            ->initCallback($this->adaptBuildInitCallback())
-            ->run();
+            ->initCallback($this->adaptBuildInitCallback());
     }
 
 
@@ -284,5 +331,26 @@ trait InitialiseLaravelAdapt
         return function (DatabaseBuilder $builder) {
             $this->databaseInit($builder);
         };
+    }
+
+    /**
+     * Have the Browsers pass the current (test) config to the server when they make requests.
+     *
+     * @param Browser               $browser     The browser to update with the current config.
+     * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
+     * @return void
+     */
+    public function useCurrentConfig(Browser $browser, Browser ...$browsers): void
+    {
+        $allBrowsers = [];
+        $browsers = array_merge([$browser], $browsers);
+        foreach ($browsers as $browser) {
+            $allBrowsers = array_merge(
+                $allBrowsers,
+                is_array($browser) ? $browser : [$browser]
+            );
+        }
+
+        $this->bootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
     }
 }

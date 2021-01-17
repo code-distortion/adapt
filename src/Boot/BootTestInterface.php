@@ -50,10 +50,25 @@ interface BootTestInterface
 //    public function setDI(DIContainer $di): self;
 
 
+
     /**
      * Run the process to build the databases.
      *
      * @return void
      */
     public function run(): void;
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    public function cleanUp(): void;
+
+    /**
+     * Remove any old (ie. orphaned) temporary config files.
+     *
+     * @return void
+     */
+    public function removeOldTempConfigFiles(): void;
 }

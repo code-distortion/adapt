@@ -4,9 +4,8 @@ namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptDatabaseConnectionMiddleware;
+use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
 use CodeDistortion\Adapt\Support\Settings;
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
@@ -32,6 +31,7 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
     /**
      * Service-provider boot method.
      *
+     * @param Router $router Laravel's router.
      * @return void
      */
     public function boot(Router $router): void
@@ -99,6 +99,7 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
     /**
      * Initialise the middleware.
      *
+     * @param Router $router Laravel's router.
      * @return void
      */
     protected function initialiseMiddleware(Router $router): void
@@ -110,8 +111,8 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
             return;
         }
 
-        $router->pushMiddlewareToGroup('web', AdaptDatabaseConnectionMiddleware::class);
-        $router->prependMiddlewareToGroup('api', AdaptDatabaseConnectionMiddleware::class);
+        $router->prependMiddlewareToGroup('web', AdaptMiddleware::class);
+        $router->prependMiddlewareToGroup('api', AdaptMiddleware::class);
     }
 
 
@@ -119,6 +120,7 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
     /**
      * Initialise the routes.
      *
+     * @param Router $router Laravel's router.
      * @return void
      */
     protected function initialiseRoutes(Router $router): void
@@ -130,10 +132,9 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
             return;
         }
 
-        // The path that browsers connect to initially (when browser testing) so that cookies can then be set.
-        // (the browser will reject new cookies before it's loaded a webpage).
-        $router->get(Settings::INITIAL_BROWSER_REQUEST_PATH, function() {
-            return '';
-        });
+        // The path that browsers connect to initially (when browser testing) so that cookies can then be set
+        // (the browser will reject new cookies before it's loaded a webpage)
+        // this route bypasses all middleware
+        $router->get(Settings::INITIAL_BROWSER_REQUEST_PATH, fn() => '');
     }
 }
