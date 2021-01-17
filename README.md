@@ -60,9 +60,9 @@ All you need to do is replace Laravel's `RefreshDatabase` trait with `LaravelAda
 
 For a quick-start, it re-uses your test-databases from previous runs (it's careful to make sure it's safe to do so).
 
-Transactions can't be used to roll-back changes during browser tests (eg. [Dusk](https://laravel.com/docs/8.x/dusk)), so instead it takes snapshot dumps and imports those instead (so it doesn't need to run your migrations and seeders each time).
+Transactions can't be used to roll-back changes during browser tests (eg. [Dusk](https://laravel.com/docs/8.x/dusk)), so it takes snapshot dumps and imports those instead (so it doesn't need to run your migrations and seeders each time).
 
-It detects when you're running tests in parallel with [ParaTest](https://github.com/paratestphp/paratest), and creates a database for each process. *Adapt lets you run Dusk tests when using ParaTest*.
+It detects when you're running tests in parallel with [ParaTest](https://github.com/paratestphp/paratest), and creates a database for each process. **Your Dusk based browser tests will work with ParaTest**.
 
 It can build different data scenarios for different tests when you specify which seeders to run. Each scenario gets its own database, so it won't conflict with the others. And it can build multiple databases at the same time for a single test.
 
@@ -232,19 +232,16 @@ Adapt's settings can also be [customised](#pest-customisation) on a per-test bas
 
 ### Dusk Browser Test Usage
 
-Adapt is compatible with Dusk browser tests. Build your Dusk tests like normal, and make the two minor tweaks below. 
+Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run your browser tests in the same test-run as your other tests, and you can also run them in parallel using [ParaTest](https://github.com/paratestphp/paratest).
 
-Browser tests can't be run within a transaction that's rolled back afterwards. The browser runs in a different process to your tests, and triggers external requests to your website. These requests need to access the same database that your tests build and won't see the data inside the transaction.
+Adapt detects when Dusk tests are running and turns transactions off - snapshot dumps are turned on instead.
 
-Instead, Adapt detects when [Dusk](https://laravel.com/docs/8.x/dusk) tests are running and turns transactions off - snapshot dumps are turned on instead.
-
-You can run your browser tests in the same test-run as your other tests, and you can run them all in parallel using [ParaTest](https://github.com/paratestphp/paratest). 
-
-These are the steps you'll need to take when building browser tests.
+Build your Dusk tests like normal, and make the two minor changes below.
 
 - Replace the usual `DatabaseMigrations` with the `LaravelAdapt` trait, and
-- When you've created your browser instance, tell it to use your test databases by adding `LaravelAdaptBrowser::useTestDatabases($browser);` (see below).
+- When you've created your browser instance, tell it to use your test databases by adding `$this->useCurrentConfig($browser);` (see below).
 
+The test's *current config settings* (built from `.env.testing`) are passed to the server through the browser, so you won't need to configure a `.env.dusk.local` file. For safety, you could leave it there but configure it to refer to databases that don't exist - this way Laravel won't fall-back to your `.env` file if there's a problem passing the config through.
 
 ``` php
 <?php
@@ -253,7 +250,6 @@ These are the steps you'll need to take when building browser tests.
 namespace Tests\Browser;
 
 use App\Models\User;
-use CodeDistortion\Adapt\LaravelAdaptBrowser; // **** add this ****
 use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
 //use Illuminate\Foundation\Testing\DatabaseMigrations; // not needed
 use Laravel\Dusk\Browser;
@@ -268,7 +264,7 @@ class MyDuskTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
 
-            LaravelAdaptBrowser::useTestDatabases($browser); // **** add this ****
+            $this->useCurrentConfig($browser); // **** add this ****
 
             $user = User::factory()->create();
             $browser->visit('/')->assertSee("$user->id $user->name");
@@ -627,7 +623,7 @@ If you'd like to run different seeders for different tests, add the `$seeders` p
 
 ### I have Dusk browser tests&hellip;
 
-Provided you've added `LaravelAdaptBrowser::useTestDatabases($browser);` to your Dusk browser tests (see [above](#dusk-browser-test-usage)) you'll be able to run your browser tests like normal. You can run them when using ParaTest.
+Provided you've added `$this->useCurrentConfig($browser);` to your Dusk browser tests (see [above](#dusk-browser-test-usage)) you'll be able to run your browser tests like normal. You can also run them using ParaTest.
 
 
 
