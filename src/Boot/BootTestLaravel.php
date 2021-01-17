@@ -292,10 +292,10 @@ class BootTestLaravel extends BootTestAbstract
 
                 // remove if older than 4 hours
                 $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
-                if ($createdAtUTC->diffInHours($nowUTC, false) > 4) {
-
-                    dump('removing: '.$path);
-                    unlink($path);
+                if ($createdAtUTC) {
+                    if ($createdAtUTC->diffInHours($nowUTC, false) > 4) {
+                        unlink($path);
+                    }
                 }
             }
         }
