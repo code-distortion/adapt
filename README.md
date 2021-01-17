@@ -68,6 +68,8 @@ It can build different data scenarios for different tests when you specify which
 
 It also cleans up after itself by removing test-databases and snapshot dump files when they're not needed.
 
+> I wrote the article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/test-database-speed-improvements-a-detailed-look/) to explain the concepts this package uses in more detail.
+
 
 
 ## Compatibility
