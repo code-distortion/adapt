@@ -16,17 +16,17 @@ trait HasConfigDTOTrait
      */
     private ConfigDTO $config;
 
-    //    /**
-//     * Specify the database connection to prepare.
-//     *
-//     * @param string $connection The database connection to prepare.
-//     * @return static
-//     */
-//    public function connection(string $connection): self
-//    {
-//        $this->config->connection($connection);
-//        return $this;
-//    }
+    /**
+     * Specify the database connection to prepare.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return static
+     */
+    public function connection(string $connection): self
+    {
+        $this->config->connection($connection);
+        return $this;
+    }
 
     /**
      * Specify the database-modifier to use.

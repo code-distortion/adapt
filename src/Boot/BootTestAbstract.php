@@ -164,6 +164,10 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function initBuilders(): void
     {
+        if (!$this->propBag->config('build_databases', 'buildDatabases')) {
+            return;
+        }
+
         $builder = $this->newDefaultBuilder();
 
         if ($this->initCallback) {

@@ -116,9 +116,10 @@ trait InitialiseLaravelAdapt
     private function buildPropBag(): void
     {
         $propNames = [
-            'preMigrationImports',
+            'buildDatabases',
             'migrations',
             'seeders',
+            'preMigrationImports',
             'reuseTestDBs',
             'dynamicTestDBs',
             'transactions',
