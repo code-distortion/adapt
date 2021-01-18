@@ -26,8 +26,8 @@ use Laravel\Dusk\Browser;
  */
 class BootTestLaravel extends BootTestAbstract
 {
-    /** @var string|null The path to the temporary config file, created during browser tests. */
-    private $tempConfigPath = null;
+    /** @var string[] The paths to the temporary config files, created during browser tests. */
+    private $tempConfigPaths = [];
 
 
 
@@ -175,7 +175,7 @@ class BootTestLaravel extends BootTestAbstract
 
 
     /**
-     * Record the current config file in the filesystem, and have the browsers send through its details in a cookie.
+     * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
      *
      * @param Browser[] $browsers The browsers to update with the current config.
      * @return void
@@ -186,23 +186,38 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        $this->tempConfigPath = $this->storeTemporaryConfig();
+        $this->tempConfigPaths[] = $tempConfigPath = $this->storeTemporaryConfig();
 
         foreach ($browsers as $browser) {
 
             // make a small request first, so that cookies can then be set
             // (the browser will reject new cookies before it's loaded a webpage).
-            $browser->visit(Settings::INITIAL_BROWSER_REQUEST_PATH);
+            if (!$this->hasTestSitePageLoaded($browser)) {
+                $browser->visit(Settings::INITIAL_BROWSER_REQUEST_PATH);
+            }
 
             $this->setBrowserCookie(
                 $browser,
                 Settings::CONNECTIONS_COOKIE,
-                base64_encode(serialize(['tempConfigPath' => $this->tempConfigPath])),
+                base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
                 null,
                 [],
                 false
             );
         }
+    }
+
+    /**
+     * Check if the browser has a page of this website open.
+     *
+     * @param Browser $browser The browser to check.
+     * @return bool
+     */
+    private function hasTestSitePageLoaded(Browser $browser)
+    {
+        $currentURL = $browser->driver->getCurrentURL();
+        $siteHost = config('app.url');
+        return mb_substr($currentURL, 0, mb_strlen($siteHost)) === $siteHost;
     }
 
     /**
@@ -270,9 +285,9 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function cleanUp()
     {
-        // remove the temporary config file that is created for browser tests
-        if ($this->tempConfigPath) {
-            unlink($this->tempConfigPath);
+        // remove the temporary config files that were created (if this is a browser test)
+        foreach ($this->tempConfigPaths as $path) {
+            unlink($path);
         }
     }
 

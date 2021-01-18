@@ -18,20 +18,12 @@ trait LaravelAdapt
     use InitialiseLaravelAdapt;
 
     /**
-     * Specify database dump files to import before migrations run.
+     * Enable / disable database building. This is useful when you want to use
+     * Adapt to handle your Browser (Dusk) tests but don't have a database.
      *
-     * NOTE: It's important that these dumps don't contain output from seeders
-     * if those seeders are to be run by Adapt as needed afterwards.
-     *
-     * NOTE: pre_migration_imports aren't available for sqlite :memory:
-     * databases.
-     *
-     * @var string[]|string[][]
+     * @var boolean
      */
-//    protected array $preMigrationImports = [
-//        'mysql' => ['database/dumps/mysql/my-database.sql'],
-//        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
-//    ];
+//    protected $buildDatabases = true;
 
     /**
      * Specify whether to run migrations or not. You can also specify the
@@ -50,6 +42,22 @@ trait LaravelAdapt
      * @var string[]
      */
 //    protected array $seeders = ['DatabaseSeeder'];
+
+    /**
+     * Specify database dump files to import before migrations run.
+     *
+     * NOTE: It's important that these dumps don't contain output from seeders
+     * if those seeders are to be run by Adapt as needed afterwards.
+     *
+     * NOTE: pre_migration_imports aren't available for sqlite :memory:
+     * databases.
+     *
+     * @var string[]|string[][]
+     */
+//    protected array $preMigrationImports = [
+//        'mysql' => ['database/dumps/mysql/my-database.sql'],
+//        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+//    ];
 
     /**
      * Let Adapt re-use databases.
@@ -140,7 +148,8 @@ trait LaravelAdapt
      * Each $builder object starts with the combined settings from the config
      * and properties from this test-class.
      *
-     * @param DatabaseBuilder $builder Used to create the first database.
+     * @param DatabaseBuilder $builder Used to create the "default"
+     *                                 connection's database.
      * @return void
      */
 //    protected function databaseInit(DatabaseBuilder $builder): void
@@ -150,9 +159,10 @@ trait LaravelAdapt
 //            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
 //        ];
 //
-//        // the DatabaseBuilder $builder will contain settings based on the
-//        // config and properties above. You can override them like so:
+//        // the DatabaseBuilder $builder is pre-built to match your config settings
+//        // you can override them with any of the following…
 //        $builder
+//            ->connection('primary-mysql') // specify another connection to build a db for
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()
@@ -163,8 +173,8 @@ trait LaravelAdapt
 //            ->isBrowserTest() // or isNotBrowserTest()
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
 //
-//        // define a second database
-//        $connection = 'mysql2';
+//        // create a database for another connection
+//        $connection = 'secondary-mysql';
 //        $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()

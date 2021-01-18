@@ -14,7 +14,7 @@
 ## Table of Contents
 
 * [Introduction](#introduction)
-* [Compatability](#compatability)
+* [Compatibility](#compatibility)
 * [Installation](#installation)
     * [Config](#config)
 * [Usage](#usage)
@@ -32,14 +32,14 @@
     * [Database Snapshots](#database-snapshots)
 * [Cache Invalidation](#cache-invalidation)
 * [Testing Scenarios and Techniques](#testing-scenarios-and-techniques)
-    * [My project only uses the "default" connection…](#my-project-only-uses-the-default-connection)
-    * [My project uses database connections by name…](#my-project-uses-database-connections-by-name)
-    * [My seeders take a while to run / I run different seeders for different tests…](#my-seeders-take-a-while-to-run--i-run-different-seeders-for-different-tests)
-    * [I have Dusk browser tests…](#i-have-dusk-browser-tests)
-    * [I would like to run my tests in parallel using ParaTest…](#i-would-like-to-run-my-tests-in-parallel-using-paratest)
-    * [Some of my own code uses transactions…](#some-of-my-own-code-uses-transactions)
-    * [I have my own database dump that I'd like to import…](#i-have-my-own-database-dump-that-id-like-to-import)
-    * [My project uses more than one database…](#my-project-uses-more-than-one-database)
+    * [Using the "default" database connection…](#using-the-default-database-connection)
+    * [Building databases for the non "default" connections, and using more than one database connection…](#building-databases-for-the-non-default-connections-and-using-more-than-one-database-connection)
+    * [Using a different type of database…](#using-a-different-type-of-database)
+    * [Seeding during testing…](#seeding-during-testing)
+    * [Dusk browser tests…](#dusk-browser-tests)
+    * [Running tests in parallel with ParaTest…](#running-tests-in-parallel-with-paratest)
+    * [Testing code that itself uses transactions…](#testing-code-that-itself-uses-transactions)
+    * [Importing custom database dump files…](#importing-custom-database-dump-files)
 * [Testing](#testing)
 * [Changelog](#changelog)
     * [SemVer](#semver)
@@ -54,7 +54,7 @@
 
 ## Introduction
 
-Adapt is a Laravel package which uses a range of techniques to make your test-databases as quick as possible. It's kind of a suite of tools with sensible defaults so you don't need to worry much about them.
+Adapt is a Laravel package that uses a range of techniques to make your test-databases as quick as possible. It's kind of a suite of tools with sensible defaults so you don't need to worry much about them.
 
 All you need to do is replace Laravel's `RefreshDatabase` trait with `LaravelAdapt` and it will build your database for you. Like *RefreshDatabase*, it runs your tests within transactions that are rolled back afterwards.
 
@@ -62,7 +62,7 @@ For a quick-start, it re-uses your test-databases from previous runs (it's caref
 
 Transactions can't be used to roll-back changes during browser tests (eg. [Dusk](https://laravel.com/docs/8.x/dusk)), so it takes snapshot dumps and imports those instead (so it doesn't need to run your migrations and seeders each time).
 
-It detects when you're running tests in parallel with [ParaTest](https://github.com/paratestphp/paratest), and creates a database for each process. **Your Dusk based browser tests will work with ParaTest**.
+It detects when you're running tests in parallel with [ParaTest](https://github.com/paratestphp/paratest), and creates a database for each process. You can run your Dusk browser tests with ParaTest (experimental).
 
 It can build different data scenarios for different tests when you specify which seeders to run. Each scenario gets its own database, so it won't conflict with the others. And it can build multiple databases at the same time for a single test.
 
@@ -153,7 +153,6 @@ use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
 //use Illuminate\Foundation\Testing\DatabaseMigrations;   // not needed
 //use Illuminate\Foundation\Testing\DatabaseTransactions; // not needed
 //use Illuminate\Foundation\Testing\RefreshDatabase;      // not needed
-
 use Tests\TestCase;
 
 class MyFeatureTest extends TestCase
@@ -234,6 +233,8 @@ Adapt's settings can also be [customised](#pest-customisation) on a per-test bas
 
 ### Dusk Browser Test Usage
 
+> ***Note***: Passing your config settings when running Dusk tests (which is needed to run Dusk tests using ParaTest) is **experimental**.
+
 Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run your browser tests in the same test-run as your other tests, and you can also run them in parallel using [ParaTest](https://github.com/paratestphp/paratest).
 
 Adapt detects when Dusk tests are running and turns transactions off - snapshot dumps are turned on instead.
@@ -242,8 +243,6 @@ Build your Dusk tests like normal, and make the two minor changes below.
 
 - Replace the usual `DatabaseMigrations` with the `LaravelAdapt` trait, and
 - When you've created your browser instance, tell it to use your test databases by adding `$this->useCurrentConfig($browser);` (see below).
-
-The test's *current config settings* (built from `.env.testing`) are passed to the server through the browser, so you won't need to configure a `.env.dusk.local` file. For safety, you could leave it there but configure it to refer to databases that don't exist - this way Laravel won't fall-back to your `.env` file if there's a problem passing the config through.
 
 ``` php
 <?php
@@ -274,6 +273,8 @@ class MyDuskTest extends DuskTestCase
     }
 }
 ```
+
+The config settings your tests use (built from `.env.testing`) are passed to the server through the browser, and your `.env.dusk.local` file will be skipped. For safety, you could leave it there in case there's a problem passing the config through.
 
 
 
@@ -310,7 +311,7 @@ As well as the `config/code_distortion.adapt.php` [config settings](#config), yo
 
 ### PHPUnit Customisation
 
-Add any of the following to your test class when needed.
+Add any of the following to your test-class when needed.
 
 ``` php
 <?php
@@ -318,6 +319,7 @@ Add any of the following to your test class when needed.
 
 namespace Tests\Feature;
 
+use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\LaravelAdapt;
 use Tests\TestCase;
 
@@ -326,20 +328,12 @@ class MyFeatureTest extends TestCase
     use LaravelAdapt;
 
     /**
-     * Specify database dump files to import before migrations run.
+     * Enable / disable database building. This is useful when you want to use
+     * Adapt to handle your Browser (Dusk) tests but don't have a database.
      *
-     * NOTE: It's important that these dumps don't contain output from seeders
-     * if those seeders are to be run by Adapt as needed afterwards.
-     *
-     * NOTE: pre_migration_imports aren't available for sqlite :memory:
-     * databases.
-     *
-     * @var string[]|string[][]
+     * @var boolean
      */
-    protected array $preMigrationImports = [
-        'mysql' => ['database/dumps/mysql/my-database.sql'],
-        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
-    ];
+    protected $buildDatabases = true;
 
     /**
      * Specify whether to run migrations or not. You can also specify the
@@ -358,6 +352,22 @@ class MyFeatureTest extends TestCase
      * @var string[]
      */
     protected array $seeders = ['DatabaseSeeder'];
+
+    /**
+     * Specify database dump files to import before migrations run.
+     *
+     * NOTE: It's important that these dumps don't contain output from seeders
+     * if those seeders are to be run by Adapt as needed afterwards.
+     *
+     * NOTE: pre_migration_imports aren't available for sqlite :memory:
+     * databases.
+     *
+     * @var string[]|string[][]
+     */
+    protected array $preMigrationImports = [
+        'mysql' => ['database/dumps/mysql/my-database.sql'],
+        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+    ];
 
     /**
      * Let Adapt re-use databases.
@@ -448,7 +458,8 @@ class MyFeatureTest extends TestCase
      * Each $builder object starts with the combined settings from the config
      * and properties from this test-class.
      *
-     * @param DatabaseBuilder $builder Used to create the first database.
+     * @param DatabaseBuilder $builder Used to create the "default"
+     *                                 connection's database.
      * @return void
      */
     protected function databaseInit(DatabaseBuilder $builder): void
@@ -458,9 +469,10 @@ class MyFeatureTest extends TestCase
             'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
         ];
 
-        // the DatabaseBuilder $builder will contain settings based on the
-        // config and properties above. You can override them like so:
+        // the DatabaseBuilder $builder is pre-built to match your config settings
+        // you can override them with any of the following…
         $builder
+            ->connection('primary-mysql') // specify another connection to build a db for
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
             ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
             ->seeders(['DatabaseSeeder']) // or ->noSeeders()
@@ -471,8 +483,8 @@ class MyFeatureTest extends TestCase
             ->isBrowserTest() // or isNotBrowserTest()
             ->makeDefault(); // make the "default" Laravel connection point to this database
 
-        // define a second database
-        $connection = 'mysql2';
+        // create a database for another connection
+        $connection = 'secondary-mysql';
         $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
         $builder2
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
@@ -593,75 +605,131 @@ Here are various testing scenarios and comments about each:
 
 
 
-### My project only uses the "default" connection&hellip;
+### Using the "default" database connection&hellip;
 
-This is probably the most common scenario. After adding the `LaravelAdapt` trait you can leave Adapt's settings as-is. A test-database will be created with a different name based on the connection's original database name.
+Projects using the "default" database connection is the most common scenario. After adding the `LaravelAdapt` trait to your test-classes, you probably won't need to change any settings.
 
-If you like you could swap it out for a SQLite database which may improve speed by setting the **default-connection** setting.
-
-> ***Note***: **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. **It's less likely to be the quickest type of database to use**.
-
-> ***Note***:  SQLite isn't fully compatible with other databases so your mileage my vary. Because it's important to be confident in your tests, you should **strongly consider** using the same type of database as you use in production.
+When your tests run, a test-database will be created for the default connection.
 
 
 
-### My project uses database connections by name&hellip;
+### Building databases for the non "default" connections, and using more than one database connection&hellip;
 
-Adapt creates test-databases with different names - based on each connection's database name. If your codebase picks database connections by name (instead of letting the "default" connection be used) you can probably leave Adapt's settings as they are.
+Adapt can build extra databases for you. So it knows what to build, [add the databaseInit() method](#phpunit-customisation) to your test-classes.
 
-If you want more flexability in altering the database Laravel uses for each connection, you may want to look at the `remap_connections` setting.
+``` php
+// tests/Feature/MyFeatureTest.php
+…
+class MyFeatureTest extends TestCase
+{
+    use LaravelAdapt;
+    
+    protected function databaseInit(DatabaseBuilder $builder): void
+    {
+        // the DatabaseBuilder $builder is pre-built to match your config
+        // settings. It uses the "default" database connection to begin with.
+        // you can tell it to build a test-database for the "primary-mysql"
+        // connection instead
+        $builder->connection('primary-mysql');
+        
+        // create a database for another connection
+        $connection = 'secondary-mysql';
+        $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
+        $builder2
+            ->migrations('path/to/other/migrations')
+            // … etc
+    }
+
+    …
+}
+
+// somewhere else
+DB::connection('primary-mysql')->select(…);
+DB::connection('secondary-mysql')->select(…);
+```
+
+> If you want more flexibility in altering the database Laravel uses for each connection, you may want to look at the `remap_connections` setting.
 
 
 
-### My seeders take a while to run / I run different seeders for different tests&hellip;
+### Using a different type of database&hellip;
 
-By default, Adapt runs your `DatabaseSeeder` so you don't need to run your seeders within each test. Once run, the seeded data is included in Adapt's caching processes so they won't need to be run again unless the test-database is rebuilt.
+To try to improve speed, you could try using a SQLite database by changing the connection the "default" setting refers to.
 
-You can change which seeders are run by updating the `seeders` config setting.
+``` php
+// .env.testing
+DB_CONNECTION=sqlite
+
+// config/database.php
+'default' => env('DB_CONNECTION', 'mysql'),
+```
+
+> ***Note***: SQLite isn't fully compatible with other databases. You should consider using the same type of database that you use in production as your confidence in the tests is very important.
+
+> ***Note***: **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. It's *less likely* to be the quickest type of database to use.
+
+
+
+### Seeding during testing&hellip;
+
+By default, Adapt runs your `DatabaseSeeder` and incorporates the result in its caching system. This way, you won't need to run your seeders within each test.
 
 If you'd like to run different seeders for different tests, add the `$seeders` property to your test-classes. 
 
+``` php
+// tests/Feature/MyFeatureTest.php
+…
+class MyFeatureTest extends TestCase
+{
+    use LaravelAdapt;
+
+    protected array $seeders = ['SomeOtherDatabaseSeeder'];
+
+    …
+}
+```
 
 
-### I have Dusk browser tests&hellip;
 
-Provided you've added `$this->useCurrentConfig($browser);` to your Dusk browser tests (see [above](#dusk-browser-test-usage)) you'll be able to run your browser tests like normal. You can also run them using ParaTest.
+### Dusk browser tests&hellip;
+
+Once you've added `$this->useCurrentConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests (see [above](#dusk-browser-test-usage)) you'll be able to run your browser tests like normal.
+
+You can also run them in parallel using ParaTest (experimental).
+
+You can run Dusk tests using Adapt when you don't have a database by turning off the `build_databases` config setting (or $buildDatabases test-class property) (this is also experimental).
 
 
 
-### I would like to run my tests in parallel using ParaTest&hellip;
+### Running tests in parallel with ParaTest&hellip;
 
-[paratestphp/paratest](https://github.com/paratestphp/paratest) is a package that splits your test-suite in to parts and runs them in parallel using multiple processes.
+[ParaTest](https://github.com/paratestphp/paratest) is a package that improves testing speed by splitting your test-suite in to parts. Tests are run in different processes and the collated results are shown afterwards.
 
 Adapt detects when ParaTest is being used and creates a distinct database for each process by adding a unique suffix to the database name.
 
 
 
-### Some of my own code uses transactions&hellip;
+### Testing code that itself uses transactions&hellip;
 
-This is fine! To maintain a known state, Adapt normally wraps your tests inside a transaction and rolls it back afterwards. If your own code uses transactions as well, Adapt automatically detects when its own transaction was implicitly committed, and will re-build the database for the next test.
+This is fine! To maintain a known state, Adapt normally wraps your tests inside a transaction and rolls it back afterwards.
 
-> When you can't use transactions to roll-back changes, you may wish to turn on the `snapshots.enabled` config setting (or the `$snapshotsEnabled` test-class property) instead so sql dumps are created and imported.
+If your own code uses transactions as well, Adapt will detect that its own transaction was implicitly committed. It will re-build the database for the next test.
+
+> In this situation, you may wish to turn the `snapshots.enabled` config setting on (or the `$snapshotsEnabled` test-class property) so sql dumps are created and imported instead.
 
 
 
-### I have my own database dump that I'd like to import&hellip;
+### Importing custom database dump files&hellip;
 
-You might have your own database dump file that you'd like to import instead of migrating from scratch. Pop it in your filesystem and add it to the `pre_migration_imports` config setting or `$preMigrationImports` test-class property. There's a spot there to add files for each type of database.
+To import your own database dump sql file, put it in your filesystem and add it to the `pre_migration_imports` config setting (or `$preMigrationImports` test-class property). There's a spot there to add files for each type of database.
 
 This might save time if you have lots of migrations to run, or be useful if you have some other funky data set-up going on.
 
-> You could alternatively look in to [Laravel's schema:dump](https://laravel.com/docs/8.x/migrations#squashing-migrations) functionality which creates a sql dump file and includes it in the migration process.
+> Alternatively you could look in to [Laravel's schema:dump](https://laravel.com/docs/8.x/migrations#squashing-migrations) functionality which creates a sql dump file and includes it in the migration process.
 
 > ***Note***: Any remaining migrations and seeding will run after these have been imported.
 
 > ***Note***: SQLite database files aren't imported, they are simply copied.
-
-
-
-### My project uses more than one database&hellip;
-
-You can build extra databases by adding the `databaseInit()` method to your test-class and setting up more connections there (see the [Customisation](#customisation) section above).
 
 
 

@@ -16,6 +16,21 @@ return [
     'project_name' => env('ADAPT_PROJECT_NAME', ''),
 
     /*
+     |--------------------------------------------------------------------------
+     | Build Databases
+     |--------------------------------------------------------------------------
+     |
+     | Turn database building on or off. This is useful when you want to use
+     | Adapt to handle your Browser (Dusk) tests but don't have a database.
+     |
+     | This config setting can be overridden by adding the
+     | $buildDatabases property to your test-class.
+     |
+     */
+
+    'build_databases' => true,
+
+    /*
     |--------------------------------------------------------------------------
     | Run Migrations
     |--------------------------------------------------------------------------
