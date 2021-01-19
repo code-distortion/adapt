@@ -33,12 +33,11 @@ class AdaptMiddleware
             return $next($request);
         }
 
-        if (!$this->useTemporaryConfig($request)) {
-            return $next($request);
-        }
-
+        $usedTempConfig = $this->useTemporaryConfig($request);
         $response = $next($request);
-        $this->reSetCookie($request, $response);
+        if ($usedTempConfig) {
+            $this->reSetCookie($request, $response);
+        }
         return $response;
     }
 
