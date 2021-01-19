@@ -82,6 +82,21 @@ class AdaptConfigException extends AdaptException
         );
     }
 
+    /**
+     * The seeders directory does not exist.
+     *
+     * @param string $path The invalid path.
+     * @return self
+     */
+    public static function seedersDirInvalid(string $path): self
+    {
+        return new self(
+            'Couldn\'t open file or directory "' . $path . '". '
+            . 'Please review the "look_for_changes_in" config setting. '
+            . 'Note: Laravel renamed the seeders directory from "database/seeds" to "database/seeders" in Laravel 8'
+        );
+    }
+
 
     /**
      * The driver isn't currently supported.
