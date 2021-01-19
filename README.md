@@ -33,7 +33,7 @@
 * [Cache Invalidation](#cache-invalidation)
 * [Testing Scenarios and Techniques](#testing-scenarios-and-techniques)
     * [Using the "default" database connection…](#using-the-default-database-connection)
-    * [Building databases for the non "default" connections, and using more than one database connection…](#building-databases-for-the-non-default-connections-and-using-more-than-one-database-connection)
+    * [Building databases for non "default" connections, and using more than one database connection…](#building-databases-for-non-default-connections-and-using-more-than-one-database-connection)
     * [Using a different type of database…](#using-a-different-type-of-database)
     * [Seeding during testing…](#seeding-during-testing)
     * [Dusk browser tests…](#dusk-browser-tests)
@@ -56,6 +56,8 @@
 
 Adapt is a Laravel package that uses a range of techniques to make your test-databases as quick as possible. It's kind of a suite of tools with sensible defaults so you don't need to worry much about them.
 
+> The article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in more detail.
+
 All you need to do is replace Laravel's `RefreshDatabase` trait with `LaravelAdapt` and it will build your database for you. Like *RefreshDatabase*, it runs your tests within transactions that are rolled back afterwards.
 
 For a quick-start, it re-uses your test-databases from previous runs (it's careful to make sure it's safe to do so).
@@ -67,8 +69,6 @@ It detects when you're running tests in parallel with [ParaTest](https://github.
 It can build different data scenarios for different tests when you specify which seeders to run. Each scenario gets its own database, so it won't conflict with the others. And it can build multiple databases at the same time for a single test.
 
 It also cleans up after itself by removing test-databases and snapshot dump files when they're not needed.
-
-> I wrote the article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/test-database-speed-improvements-a-detailed-look/) to explain the concepts this package uses in more detail.
 
 
 
@@ -139,9 +139,9 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 
 ### PHPUnit Usage
 
-For most projects, all you'll need to do is add the `CodeDistortion\Adapt\LaravelAdapt` trait to your test-classes, and away you go.
+Use the `LaravelAdapt` trait in your test-classes instead of `RefreshDatabase`.
 
-Your migrations and seeders will be run.
+Then just run your tests like normal. If you like you can also [customise Adapt's settings](#customisation) on a per-test basis.
 
 ``` php
 <?php
@@ -164,8 +164,6 @@ class MyFeatureTest extends TestCase
     …
 }
 ```
-
-Just run your tests like normal. If you like you can also [customise Adapt's settings](#customisation) on a per-test basis.
 
 <details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
 <p>
@@ -214,6 +212,8 @@ PEST lets you [assign classes and traits to your Pest tests](https://pestphp.com
 
 Add `uses(LaravelAdapt::class);` to the tests you'd like a database for.
 
+Adapt's settings can also be [customised](#pest-customisation) on a per-test basis when using PEST.
+
 ``` php
 <?php
 // tests\Feature\MyFeatureTest.php
@@ -227,13 +227,11 @@ beforeEach(fn () => factory(User::class)->create());
 it('has users')->assertDatabaseHas('users', ['id' => 1]);
 ```
 
-Adapt's settings can also be [customised](#pest-customisation) on a per-test basis when using PEST.
-
 
 
 ### Dusk Browser Test Usage
 
-> ***Note***: Passing your config settings when running Dusk tests (which is needed to run Dusk tests using ParaTest) is **experimental**.
+> ***Note***: This involves passing your test's config settings via the browser so page-loads use the same environment (this is needed to run Dusk tests using ParaTest). This functionality is new and **experimental**.
 
 Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run your browser tests in the same test-run as your other tests, and you can also run them in parallel using [ParaTest](https://github.com/paratestphp/paratest).
 
@@ -311,7 +309,7 @@ As well as the `config/code_distortion.adapt.php` [config settings](#config), yo
 
 ### PHPUnit Customisation
 
-Add any of the following to your test-class when needed.
+Add any of the following properties to your test-class when needed.
 
 ``` php
 <?php
@@ -613,7 +611,7 @@ When your tests run, a test-database will be created for the default connection.
 
 
 
-### Building databases for the non "default" connections, and using more than one database connection&hellip;
+### Building databases for non "default" connections, and using more than one database connection&hellip;
 
 Adapt can build extra databases for you. So it knows what to build, [add the databaseInit() method](#phpunit-customisation) to your test-classes.
 
@@ -697,7 +695,7 @@ Once you've added `$this->useCurrentConfig($browser);` to your [Dusk](https://la
 
 You can also run them in parallel using ParaTest (experimental).
 
-You can run Dusk tests using Adapt when you don't have a database by turning off the `build_databases` config setting (or $buildDatabases test-class property) (this is also experimental).
+> You can run Dusk tests using Adapt when you don't have a database by turning off the `build_databases` config setting (or $buildDatabases test-class property) (this is also experimental).
 
 
 
