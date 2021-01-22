@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.3.3] - 2021-01-22
+
+### Added
+- Added a fix when the middleware re-sets cookies during browser testing.
+
+
+
 ## [0.3.2] - 2021-01-19
 
 ### Added
@@ -13,13 +20,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Allow Dusk tests to pass a config to the browser more than once
 - Added the ability to change the connection a DatabaseBuilder connects to (eg. to get the first Builder build for a non "default" connection)
 - Improved documentation
-
-
-
-## [0.3.2] - 2021-01-22
-
-### Added
-- Added a fix when the middleware re-sets cookies during browser testing.
 
 
 
