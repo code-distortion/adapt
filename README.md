@@ -664,7 +664,7 @@ DB_CONNECTION=sqlite
 'default' => env('DB_CONNECTION', 'mysql'),
 ```
 
-> ***Note***: SQLite isn't fully compatible with other databases. You ***should*** consider using the same type of database that you use in production as your confidence in the tests is very important.
+> ***Note***: SQLite isn't fully compatible with other databases. You ***should*** consider testing with the same type of database that you use in production as your confidence in the tests is very important.
 
 > ***Note***: **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. Because of this, you might not get the speed-boost you're hoping for, particularly if you have lots of small tests.
 
