@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Exec;
@@ -18,6 +19,8 @@ use CodeDistortion\Adapt\Support\Settings;
  */
 class BootCommandLaravel extends BootCommandAbstract
 {
+    use CheckLaravelHashPathsTrait;
+
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
@@ -71,7 +74,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir(rtrim(config("$c.storage_dir"), '\\/'))
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test_')
-            ->hashPaths(config("$c.look_for_changes_in"))
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
             ->buildSettings(
                 config("$c.pre_migration_imports"),
                 config("$c.migrations"),

@@ -33,25 +33,26 @@ class AdaptMiddleware
             return $next($request);
         }
 
-        if (!$this->useTemporaryConfig($request)) {
-            return $next($request);
-        }
+        $cookieValue = $request->cookie(Settings::CONNECTIONS_COOKIE);
+        $usedTempConfig = $this->useTemporaryConfig($cookieValue);
 
         $response = $next($request);
-        $this->reSetCookie($request, $response);
+        if ($usedTempConfig) {
+            $this->reSetCookie($response, $cookieValue);
+        }
         return $response;
     }
 
     /**
      * Read the Adapt cookie, and if present, load the temporary config file it points to.
      *
-     * @param Request $request The request object.
+     * @param string|null $cookieValue The cookie value.
      * @return boolean
      * @throws AdaptBrowserTestException When there was a problem loading the temporary config.
      */
-    private function useTemporaryConfig(Request $request): bool
+    private function useTemporaryConfig($cookieValue): bool
     {
-        $tempCachePath = $this->getTempCachePath($request);
+        $tempCachePath = $this->getTempCachePath($cookieValue);
         if (!$tempCachePath) {
             return false;
         }
@@ -78,12 +79,11 @@ class AdaptMiddleware
     /**
      * Pick the temporary cache-path from the Adapt cookie.
      *
-     * @param Request $request The request object.
+     * @param string|null $cookieValue The cookie value.
      * @return string|null
      */
-    private function getTempCachePath(Request $request)
+    private function getTempCachePath($cookieValue)
     {
-        $cookieValue = $request->cookie(Settings::CONNECTIONS_COOKIE);
         if (!is_string($cookieValue)) {
             return null;
         }
@@ -122,21 +122,20 @@ class AdaptMiddleware
     /**
      * Add the database config settings to the cookie again - to help it stay when the user logs out.
      *
-     * @param Request        $request  The request object.
-     * @param Response|mixed $response The response object.
+     * @param Response|mixed $response    The response object.
+     * @param string|null    $cookieValue The cookie value.
      * @return void
      */
-    private function reSetCookie(Request $request, $response)
+    private function reSetCookie($response, $cookieValue)
     {
         if (!($response instanceof Response)) {
             return;
         }
 
-        $cookieValue = $request->cookie(Settings::CONNECTIONS_COOKIE);
         if ((!is_string($cookieValue)) || (!mb_strlen($cookieValue))) {
             return;
         }
 
-        $response->cookie(Settings::CONNECTIONS_COOKIE, $cookieValue, null, '/', $request->getHost(), false, false);
+        $response->cookie(Settings::CONNECTIONS_COOKIE, $cookieValue, null, '/', null, false, false);
     }
 }

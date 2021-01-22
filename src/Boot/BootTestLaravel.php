@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Exec;
@@ -26,6 +27,8 @@ use Laravel\Dusk\Browser;
  */
 class BootTestLaravel extends BootTestAbstract
 {
+    use CheckLaravelHashPathsTrait;
+
     /** @var string[] The paths to the temporary config files, created during browser tests. */
     private $tempConfigPaths = [];
 
@@ -133,7 +136,7 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test_')
-            ->hashPaths($this->propBag->config('look_for_changes_in'))
+            ->hashPaths($this->checkLaravelHashPaths($this->propBag->config('look_for_changes_in')))
             ->buildSettings(
                 $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->config('migrations', 'migrations'),
