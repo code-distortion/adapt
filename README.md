@@ -56,7 +56,7 @@
 
 Adapt is a Laravel package that uses a range of techniques to make your test-databases as quick as possible. It's kind of a suite of tools with sensible defaults, so you don't need to worry much about them.
 
-> The article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in detail.
+> The article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/articles/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in detail.
 
 All you need to do is replace Laravel's `RefreshDatabase` trait with `LaravelAdapt` and it will build your database for you. Like *RefreshDatabase*, it runs your tests within transactions that are rolled back afterwards.
 
