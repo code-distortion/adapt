@@ -18,8 +18,6 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
 use Carbon\Carbon;
-use Illuminate\Cookie\CookieValuePrefix;
-use Illuminate\Support\Facades\Crypt;
 use Laravel\Dusk\Browser;
 
 /**
@@ -199,8 +197,7 @@ class BootTestLaravel extends BootTestAbstract
                 $browser->visit(Settings::INITIAL_BROWSER_REQUEST_PATH);
             }
 
-            $this->setBrowserCookie(
-                $browser,
+            $browser->addCookie(
                 Settings::CONNECTIONS_COOKIE,
                 base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
                 null,
@@ -243,42 +240,6 @@ class BootTestLaravel extends BootTestAbstract
             throw AdaptBrowserTestException::tempConfigFileNotSaved($path);
         }
         return $path;
-    }
-
-    /**
-     * Add the given cookie - account for Laravel not adding the safety-check prefix.
-     *
-     * @param Browser                         $browser The browser instance to set the cookie in.
-     * @param string                          $name    The cookie name.
-     * @param string                          $value   The cookie value.
-     * @param integer|\DateTimeInterface|null $expiry  The cookie's expiry.
-     * @param string[]                        $options Extra settings.
-     * @param boolean                         $encrypt Should the cookie be encrypted?.
-     * @return void
-     */
-    private function setBrowserCookie(
-        Browser $browser,
-        string $name,
-        string $value,
-        $expiry = null,
-        array $options = [],
-        bool $encrypt = true
-    ) {
-
-        $browser->addCookie($name, $value, $expiry, $options, $encrypt);
-
-        if (!$encrypt) {
-            return;
-        }
-
-        // check if Laravel forgot to add the safety-check prefix to the value
-        $plainValue = $browser->plainCookie($name);
-        $decryptedValue = decrypt(rawurldecode($plainValue), false);
-        $prefix = CookieValuePrefix::create($name, Crypt::getKey());
-        $hasValuePrefix = strpos($decryptedValue, $prefix) === 0;
-        if (!$hasValuePrefix) {
-            $browser->addCookie($name, $prefix . $value, $expiry, $options, $encrypt);
-        }
     }
 
     /**
