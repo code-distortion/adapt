@@ -115,7 +115,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // 'web', 'api'
         $middlewareGroups = array_keys($this->app->make(HttpKernel::class)->getMiddlewareGroups());
         foreach ($middlewareGroups as $middlewareGroup) {
-            $router->prependMiddlewareToGroup($middlewareGroup, AdaptMiddleware::class);
+            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptMiddleware::class);
         }
     }
 

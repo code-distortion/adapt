@@ -34,11 +34,12 @@ class AdaptMiddleware
         }
 
         $cookieValue = $request->cookie(Settings::CONNECTIONS_COOKIE);
+        $cookieValue = is_string($cookieValue) ? $cookieValue : '';
         $usedTempConfig = $this->useTemporaryConfig($cookieValue);
 
         $response = $next($request);
         if ($usedTempConfig) {
-            $this->reSetCookie($response, $cookieValue);
+            $this->reSetCookie($response, (string) $cookieValue);
         }
         return $response;
     }
@@ -46,11 +47,11 @@ class AdaptMiddleware
     /**
      * Read the Adapt cookie, and if present, load the temporary config file it points to.
      *
-     * @param string|null $cookieValue The cookie value.
+     * @param string $cookieValue The cookie value.
      * @return boolean
      * @throws AdaptBrowserTestException When there was a problem loading the temporary config.
      */
-    private function useTemporaryConfig(?string $cookieValue): bool
+    private function useTemporaryConfig(string $cookieValue): bool
     {
         $tempCachePath = $this->getTempCachePath($cookieValue);
         if (!$tempCachePath) {
@@ -79,15 +80,11 @@ class AdaptMiddleware
     /**
      * Pick the temporary cache-path from the Adapt cookie.
      *
-     * @param string|null $cookieValue The cookie value.
+     * @param string $cookieValue The cookie value.
      * @return string|null
      */
-    private function getTempCachePath(?string $cookieValue): ?string
+    private function getTempCachePath(string $cookieValue): ?string
     {
-        if (!is_string($cookieValue)) {
-            return null;
-        }
-
         $cookieValue = base64_decode($cookieValue);
         if (!is_string($cookieValue)) {
             return null;
@@ -123,10 +120,10 @@ class AdaptMiddleware
      * Add the database config settings to the cookie again - to help it stay when the user logs out.
      *
      * @param Response|mixed $response    The response object.
-     * @param string|null    $cookieValue The cookie value.
+     * @param string         $cookieValue The cookie value.
      * @return void
      */
-    private function reSetCookie($response, ?string $cookieValue): void
+    private function reSetCookie($response, string $cookieValue): void
     {
         if (!($response instanceof Response)) {
             return;
