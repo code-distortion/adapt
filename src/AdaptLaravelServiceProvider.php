@@ -7,12 +7,13 @@ use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 
 /**
  * Adapt's Laravel ServiceProvider.
  */
-class AdaptLaravelServiceProvider extends BaseServiceProvider
+class AdaptLaravelServiceProvider extends ServiceProvider
 {
     /** @var string The path to the config file in the filesystem. */
     private $configPath = __DIR__ . '/../config/config.php';
@@ -111,8 +112,11 @@ class AdaptLaravelServiceProvider extends BaseServiceProvider
             return;
         }
 
-        $router->prependMiddlewareToGroup('web', AdaptMiddleware::class);
-        $router->prependMiddlewareToGroup('api', AdaptMiddleware::class);
+        // 'web', 'api'
+        $middlewareGroups = array_keys($this->app->make(HttpKernel::class)->getMiddlewareGroups());
+        foreach ($middlewareGroups as $middlewareGroup) {
+            $router->prependMiddlewareToGroup($middlewareGroup, AdaptMiddleware::class);
+        }
     }
 
 
