@@ -85,7 +85,7 @@ class AdaptMiddleware
      */
     private function getTempCachePath(string $cookieValue): ?string
     {
-        $cookieValue = base64_decode($cookieValue);
+        $cookieValue = base64_decode($cookieValue, true);
         if (!is_string($cookieValue)) {
             return null;
         }
