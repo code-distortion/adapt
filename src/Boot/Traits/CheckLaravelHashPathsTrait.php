@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Boot\Traits;
 
 use CodeDistortion\Adapt\DI\Injectable\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Support\LaravelSupport;
 
 trait CheckLaravelHashPathsTrait
 {
@@ -46,7 +45,7 @@ trait CheckLaravelHashPathsTrait
     /**
      * Check if the current version of Laravel is >= 8.
      *
-     * @return bool
+     * @return boolean
      */
     private function isLaravel8OrLater(): bool
     {

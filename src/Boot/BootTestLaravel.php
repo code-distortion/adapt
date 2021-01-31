@@ -211,7 +211,7 @@ class BootTestLaravel extends BootTestAbstract
      * Check if the browser has a page of this website open.
      *
      * @param Browser $browser The browser to check.
-     * @return bool
+     * @return boolean
      */
     private function hasTestSitePageLoaded(Browser $browser)
     {
@@ -249,9 +249,9 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function cleanUp()
     {
-        // remove the temporary config files that were created (if this is a browser test)
+        // remove the temporary config files that were created in this test run (if this is a browser test)
         foreach ($this->tempConfigPaths as $path) {
-            unlink($path);
+            @unlink($path);
         }
     }
 
@@ -266,17 +266,33 @@ class BootTestLaravel extends BootTestAbstract
         $paths = (new Filesystem())->filesInDir($this->storageDir());
         foreach ($paths as $path) {
 
-            $tempPath = mb_substr($path, mb_strlen($this->storageDir() . '/'));
-            if (preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $tempPath, $matches)) {
+            $filename = mb_substr($path, mb_strlen($this->storageDir() . '/'));
+            $createdAtUTC = $this->detectConfigCreatedAt($filename);
 
-                // remove if older than 4 hours
-                $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
-                if ($createdAtUTC) {
-                    if ($createdAtUTC->diffInHours($nowUTC, false) > 4) {
-                        unlink($path);
-                    }
-                }
+            if (!$createdAtUTC) {
+                continue;
+            }
+
+            // remove if older than 4 hours
+            if ($createdAtUTC->diffInHours($nowUTC, false) >= 4) {
+                @unlink($path);
             }
         }
+    }
+
+    /**
+     * Look at a temporary config file's name and determine when it was created.
+     *
+     * @param string $filename The name of the temporary config file.
+     * @return Carbon|null
+     */
+    private function detectConfigCreatedAt(string $filename): ?Carbon
+    {
+        if (!preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $filename, $matches)) {
+            return null;
+        }
+
+        $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
+        return $createdAtUTC ?: null;
     }
 }

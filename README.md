@@ -1,4 +1,4 @@
-# Adapt - A Database Preparation Tool (for your tests)
+# Adapt - A Database Preparation Tool
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
@@ -54,19 +54,21 @@
 
 ## Introduction
 
-Adapt is a Laravel package that uses a range of techniques to make your test-databases as quick as possible. It's kind of a suite of tools with sensible defaults, so you don't need to worry much about them.
+Adapt is a Laravel package that builds databases for your tests. It combines a range of techniques to get the most out of them in every situation.
 
-> The article [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/articles/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in detail.
 
-All you need to do is replace Laravel's `RefreshDatabase` trait with `LaravelAdapt` and it will build your database for you. Like *RefreshDatabase*, it runs your tests within transactions that are rolled back afterwards.
 
-For a quick-start, it re-uses your test-databases from previous runs (it's careful to make sure it's safe to do so).
+> The online-book [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/articles/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in detail.
 
-Transactions can't be used to roll-back changes during browser tests (eg. [Dusk](https://laravel.com/docs/8.x/dusk)), so it takes snapshot dumps and imports those instead (so it doesn't need to run your migrations and seeders each time).
+Like Laravel's *RefreshDatabase*, it runs your tests within transactions.
+
+For a quick-start, it re-uses your test-databases from previous runs (it's careful to make sure it's safe to do so, and will re-build them when needed).
+
+During browser tests (eg. [Dusk](https://laravel.com/docs/8.x/dusk)) (where transactions can't be used), it takes snapshot dumps and imports those instead - so your migrations and seeders won't need to run each time.
 
 It detects when you're running tests in parallel with [ParaTest](https://github.com/paratestphp/paratest), and creates a database for each process. You can run your Dusk browser tests with ParaTest (experimental).
 
-It can build different data scenarios for different tests when you specify which seeders to run. Each scenario gets its own database, so it won't conflict with the others. And it can build multiple databases at the same time for a single test.
+It can build different data scenarios when you specify which seeders to run per test. Each scenario gets its own database, so it won't conflict with the others. And it can build multiple databases at the same time for a single test.
 
 It also cleans up after itself by removing test-databases and snapshot dump files when they're not needed.
 
@@ -74,7 +76,9 @@ It also cleans up after itself by removing test-databases and snapshot dump file
 
 ## Compatibility
 
-Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) based tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.0** on **Linux** and **MacOS**.
+Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.0** on **Linux** and **MacOS**.
+
+It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/8.x/dusk).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -168,7 +172,7 @@ class MyFeatureTest extends TestCase
 <details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
 <p>
 
-If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run in to problems because PHPUnit used to initialise things like Adapt [after the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
+If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run in to problems because PHPUnit used to initialise things like Adapt [*after* the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
 
 - To solve this, either put the code to populate the database into a seeder and have Adapt run that.
 
@@ -274,7 +278,7 @@ class MyDuskTest extends DuskTestCase
 }
 ```
 
-> You can run Dusk tests using Adapt when you *don't have a database* by turning off the `build_databases` config setting (or `$buildDatabases` test-class property) (this is also experimental).
+> You can also run Dusk tests using Adapt when you *don't have a database* by turning off the `build_databases` config setting (or `$buildDatabases` test-class property) (this is also experimental).
 
 
 
