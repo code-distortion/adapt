@@ -95,6 +95,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . '--user=' . escapeshellarg($this->conVal('username')) . ' '
             . '--password=' . escapeshellarg($this->conVal('password')) . ' '
             . '--add-drop-table '
+            . '--skip-lock-tables '
             . escapeshellarg((string) $this->config->database) . ' '
             . '> ' . escapeshellarg($path) . ' '
             . '2>/dev/null';
