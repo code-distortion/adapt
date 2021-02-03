@@ -123,14 +123,14 @@ trait HasConfigDTOTrait
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs   Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $dynamicTestDBs Create databases as needed for the database-scenario?.
-     * @param boolean $transactions   Should tests be encapsulated within transactions?.
+     * @param boolean $reuseTestDBs        Reuse databases when possible (instead of rebuilding them)?.
+     * @param boolean $scenarioTestDBs     Create databases as needed for the database-scenario?.
+     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
      * @return static
      */
-    public function cacheTools(bool $reuseTestDBs, bool $dynamicTestDBs, bool $transactions): self
+    public function cacheTools(bool $reuseTestDBs, bool $scenarioTestDBs, bool $transactionRollback): self
     {
-        $this->config->cacheTools($reuseTestDBs, $dynamicTestDBs, $transactions);
+        $this->config->cacheTools($reuseTestDBs, $scenarioTestDBs, $transactionRollback);
         return $this;
     }
 
@@ -158,48 +158,48 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the dynamic-test-dbs setting on (or off).
+     * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean $dynamicTestDBs Create databases as needed for the database-scenario?.
+     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function dynamicTestDBs(bool $dynamicTestDBs = true): self
+    public function scenarioTestDBs(bool $scenarioTestDBs = true): self
     {
-        $this->config->dynamicTestDBs($dynamicTestDBs);
+        $this->config->scenarioTestDBs($scenarioTestDBs);
         return $this;
     }
 
     /**
-     * Turn the dynamic-test-dbs setting off.
+     * Turn the scenario-test-dbs setting off.
      *
      * @return static
      */
-    public function noDynamicTestDBs(): self
+    public function noScenarioTestDBs(): self
     {
-        $this->config->dynamicTestDBs(false);
+        $this->config->scenarioTestDBs(false);
         return $this;
     }
 
     /**
-     * Turn transactions on or off.
+     * Turn transaction-rollback on or off.
      *
-     * @param boolean $transactions Should tests be encapsulated within transactions?.
+     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
      * @return static
      */
-    public function transactions(bool $transactions = true): self
+    public function transactionRollback(bool $transactionRollback = true): self
     {
-        $this->config->transactions($transactions);
+        $this->config->transactionRollback($transactionRollback);
         return $this;
     }
 
     /**
-     * Turn transactions off.
+     * Turn transaction-rollback off.
      *
      * @return static
      */
-    public function noTransactions(): self
+    public function noTransactionRollback(): self
     {
-        $this->config->transactions(false);
+        $this->config->transactionRollback(false);
         return $this;
     }
 

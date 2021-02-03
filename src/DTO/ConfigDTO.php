@@ -97,7 +97,7 @@ class ConfigDTO
     /**
      * Is a browser test being run?.
      *
-     * When true, this will turn of $reuseTestDBs, $dynamicTestDBs and $transactions.
+     * When true, this will turn off $reuseTestDBs, $scenarioTestDBs and $transactionRollback.
      *
      * @var boolean
      */
@@ -116,14 +116,14 @@ class ConfigDTO
      *
      * @var boolean
      */
-    public $dynamicTestDBs;
+    public $scenarioTestDBs;
 
     /**
      * Should tests be encapsulated within transactions?.
      *
      * @var boolean
      */
-    public $transactions;
+    public $transactionRollback;
 
     /**
      * When turned on, snapshot files will created and imported when available.
@@ -361,19 +361,19 @@ class ConfigDTO
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs   Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $dynamicTestDBs Create databases as needed for the database-scenario?.
-     * @param boolean $transactions   Should tests be encapsulated within transactions?.
+     * @param boolean $reuseTestDBs        Reuse databases when possible (instead of rebuilding them)?.
+     * @param boolean $scenarioTestDBs     Create databases as needed for the database-scenario?.
+     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
      * @return static
      */
     public function cacheTools(
         bool $reuseTestDBs,
-        bool $dynamicTestDBs,
-        bool $transactions
+        bool $scenarioTestDBs,
+        bool $transactionRollback
     ): self {
         $this->reuseTestDBs = $reuseTestDBs;
-        $this->dynamicTestDBs = $dynamicTestDBs;
-        $this->transactions = $transactions;
+        $this->scenarioTestDBs = $scenarioTestDBs;
+        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 
@@ -390,26 +390,26 @@ class ConfigDTO
     }
 
     /**
-     * Turn the dynamic-test-dbs setting on (or off).
+     * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean $dynamicTestDBs Create databases as needed for the database-scenario?.
+     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function dynamicTestDBs(bool $dynamicTestDBs): self
+    public function scenarioTestDBs(bool $scenarioTestDBs): self
     {
-        $this->dynamicTestDBs = $dynamicTestDBs;
+        $this->scenarioTestDBs = $scenarioTestDBs;
         return $this;
     }
 
     /**
      * Turn transactions on or off.
      *
-     * @param boolean $transactions Should tests be encapsulated within transactions?.
+     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
      * @return static
      */
-    public function transactions(bool $transactions): self
+    public function transactionRollback(bool $transactionRollback): self
     {
-        $this->transactions = $transactions;
+        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 

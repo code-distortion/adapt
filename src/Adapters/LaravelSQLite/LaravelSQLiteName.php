@@ -18,14 +18,14 @@ class LaravelSQLiteName implements NameInterface
 
 
     /**
-     * Build a dynamic database name.
+     * Build a scenario database name.
      *
      * @param string $dbNameHash The current db-name-hash based on the database-building file content,
      *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
      *                           transactions and isBrowserTest.
      * @return string
      */
-    public function generateDynamicDBName(string $dbNameHash): string
+    public function generateScenarioDBName(string $dbNameHash): string
     {
         if ($this->isMemoryDatabase()) {
             return $this->origDBName(); // ":memory:"

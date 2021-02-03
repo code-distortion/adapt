@@ -226,7 +226,7 @@ class DatabaseBuilder
      */
     private function usingReuseTestDBs(): bool
     {
-        return (($this->config->reuseTestDBs) && ($this->config->transactions) && (!$this->config->isBrowserTest));
+        return (($this->config->reuseTestDBs) && ($this->config->transactionRollback) && (!$this->config->isBrowserTest));
     }
 
     /**
@@ -236,17 +236,17 @@ class DatabaseBuilder
      */
     private function dbWillBeReusable(): bool
     {
-        return (($this->config->transactions) && (!$this->config->isBrowserTest));
+        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
     }
 
     /**
-     * Resolve whether dynamicTestDBs is to be used.
+     * Resolve whether scenarioTestDBs is to be used.
      *
      * @return boolean
      */
-    private function usingDynamicTestDBs(): bool
+    private function usingScenarioTestDBs(): bool
     {
-        return $this->config->dynamicTestDBs;
+        return $this->config->scenarioTestDBs;
     }
 
     /**
@@ -256,7 +256,7 @@ class DatabaseBuilder
      */
     private function usingTransactions(): bool
     {
-        return (($this->config->transactions) && (!$this->config->isBrowserTest));
+        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
     }
 
     /**
@@ -361,12 +361,12 @@ class DatabaseBuilder
     private function pickDatabaseName(): string
     {
         // generate a new name
-        if ($this->usingDynamicTestDBs()) {
+        if ($this->usingScenarioTestDBs()) {
             $dbNameHash = $this->hasher->generateDBNameHash(
                 $this->config->pickSeedersToInclude(),
                 $this->config->databaseModifier
             );
-            return $this->dbAdapter()->name->generateDynamicDBName($dbNameHash);
+            return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
         }
         // or return the original name
         return $this->origDBName();

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.4.0] - 2021-02-03
+
+### Changed (breaking)
+- Renamed the .env value ADAPT_DYNAMIC_TEST_DBS to ADAPT_SCENARIO_TEST_DBS
+- Renamed the .env value ADAPT_TRANSACTIONS to ADAPT_TRANSACTION_ROLLBACK
+- Renamed the config value 'dynamic_test_dbs' to 'scenario_test_dbs'
+- Renamed the config value 'transactions' to 'transaction_rollback'
+- Renamed the test property $dynamicTestDBs to $scenarioTestDBs
+- Renamed the test property $transactions to $transactionRollback
+
+
+
 ## [0.3.4] - 2021-02-01
 
 ### Added
@@ -34,7 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added functionality for each test's config settings to be passed to the server via the browser during Dusk browser tests
-- Added the ability for ParaTest to run Dusk browser tests
+- Added the ability for ParaTest to run Dusk browser testss
 
 
 

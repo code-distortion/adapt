@@ -100,7 +100,7 @@ return [
     |
     | When a test-database already exists (and was left in a clean state),
     | it can be reused without Adapt needing to rebuild it, saving time.
-    | This is best used with the dynamic_test_dbs setting below.
+    | This is best used with the scenario_test_dbs setting below.
     |
     | This config setting can be overridden by adding the
     | $reuseTestDBs property to your test-class.
@@ -113,27 +113,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Dynamic Test-Databases
+    | Scenario Test-Databases
     |--------------------------------------------------------------------------
     |
     | A new database (based on your original database name) will be created
     | for each scenario your tests need. This is best used with the
     | reuse_test_dbs setting above. These dbs are safe to delete.
     |
-    | An dynamic database will be called something like:
+    | An scenario database will be called something like:
     | "test_your_database_name_17bd3c_d266ab43ac75"
     |
-    | This config setting can be overridden by adding the $dynamicTestDBs
+    | This config setting can be overridden by adding the $scenarioTestDBs
     | property to your test-class.
     |
     | NOTE: This is turned off automatically when browser testing (eg. Dusk).
     |
     | eg.
-    | protected bool $dynamicTestDBs = true;
+    | protected bool $scenarioTestDBs = true;
     |
     */
 
-    'dynamic_test_dbs' => env('ADAPT_DYNAMIC_TEST_DBS', true),
+    'scenario_test_dbs' => env('ADAPT_SCENARIO_TEST_DBS', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -150,11 +150,11 @@ return [
     | NOTE: This is turned off automatically when browser testing (eg. Dusk).
     |
     | eg.
-    | protected bool $transactions = true;
+    | protected bool $transactionRollback = true;
     |
     */
 
-    'transactions' => env('ADAPT_TRANSACTIONS', true),
+    'transaction_rollback' => env('ADAPT_TRANSACTION_ROLLBACK', true),
 
     /*
     |--------------------------------------------------------------------------
