@@ -145,8 +145,8 @@ class BootTestLaravel extends BootTestAbstract
             )
             ->cacheTools(
                 $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->config('dynamic_test_dbs', 'dynamicTestDBs'),
-                $this->propBag->config('transactions', 'transactions')
+                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'),
+                $this->propBag->config('transaction_rollback', 'transactionRollback')
             )
             ->snapshots(
                 $this->propBag->config('snapshots.enabled', 'snapshotsEnabled'),
@@ -196,11 +196,11 @@ class BootTestLaravel extends BootTestAbstract
             // make a small request first, so that cookies can then be set
             // (the browser will reject new cookies before it's loaded a webpage).
             if (!$this->hasTestSitePageLoaded($browser)) {
-                $browser->visit(Settings::INITIAL_BROWSER_REQUEST_PATH);
+                $browser->visit(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
             }
 
             $browser->addCookie(
-                Settings::CONNECTIONS_COOKIE,
+                Settings::CONFIG_COOKIE,
                 base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
                 null,
                 [],

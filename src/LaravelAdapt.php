@@ -62,7 +62,7 @@ trait LaravelAdapt
     /**
      * Let Adapt re-use databases.
      *
-     * NOTE: this requires the transactions setting to be on.
+     * NOTE: this requires the transaction_rollback setting to be on.
      *
      * @var boolean
      */
@@ -74,7 +74,7 @@ trait LaravelAdapt
      *
      * @var boolean
      */
-//    protected bool $dynamicTestDBs = true;
+//    protected bool $scenarioTestDBs = true;
 
     /**
      * Encapsulate each test inside a transaction - it's rolled back afterwards
@@ -82,7 +82,7 @@ trait LaravelAdapt
      *
      * @var boolean
      */
-//    protected bool $transactions = true;
+//    protected bool $transactionRollback = true;
 
     /**
      * Enable / disable the use of snapshot files.
@@ -107,8 +107,8 @@ trait LaravelAdapt
 //    protected bool $takeSnapshotAfterSeeders = true;
 
     /**
-     * When performing browser tests "reuse_test_dbs" and "transactions" need
-     * to be turned off.
+     * When performing browser tests "reuse_test_dbs" and
+     * "transaction_rollback" need to be turned off.
      *
      * This is because the browser (which runs in a different process and
      * causes outside requests to your website) needs to access the same
@@ -167,15 +167,16 @@ trait LaravelAdapt
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()
 //            ->reuseTestDBs() // or ->noReuseTestDBs()
-//            ->dynamicTestDBs() // or ->noDynamicTestDBs()
-//            ->transactions() // or ->noTransactions()
+//            ->scenarioTestDBs() // or ->noScenarioTestDBs()
+//            ->transactionRollback() // or ->noTransactionRollback()
 //            ->snapshots() // or ->noSnapshots()
 //            ->isBrowserTest() // or isNotBrowserTest()
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
 //
 //        // create a database for another connection
 //        $connection = 'secondary-mysql';
-//        $builder2 = $this->newBuilder($connection); /** @var DatabaseBuilder $builder2 **/
+//        $builder2 = $this->newBuilder($connection);
+//        /** @var DatabaseBuilder $builder2 **/
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            // …

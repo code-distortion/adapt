@@ -83,8 +83,8 @@ class BootCommandLaravel extends BootCommandAbstract
             )
             ->cacheTools(
                 config("$c.reuse_test_dbs"),
-                config("$c.dynamic_test_dbs"),
-                config("$c.transactions")
+                config("$c.scenario_test_dbs"),
+                config("$c.transaction_rollback")
             )
             ->snapshots(
                 config("$c.snapshots.enabled"),

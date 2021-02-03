@@ -17,7 +17,7 @@ class LaravelMySQLName implements NameInterface
 
 
     /**
-     * Build a dynamic database name.
+     * Build a scenario database name.
      *
      * @param string $dbNameHash The current db-name-hash based on the database-building file content,
      *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
@@ -25,7 +25,7 @@ class LaravelMySQLName implements NameInterface
      * @return string
      * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
      */
-    public function generateDynamicDBName(string $dbNameHash): string
+    public function generateScenarioDBName(string $dbNameHash): string
     {
         $dbNameHash = str_replace('-', '_', $dbNameHash);
         $database = $this->config->databasePrefix . $this->origDBName() . '_' . $dbNameHash;

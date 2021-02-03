@@ -104,8 +104,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'params' => [true, false, false],
                 'outcome' => [
                     'reuseTestDBs' => true,
-                    'dynamicTestDBs' => false,
-                    'transactions' => false,
+                    'scenarioTestDBs' => false,
+                    'transactionRollback' => false,
                 ],
             ],
             'cacheTools 2' => [
@@ -113,8 +113,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'params' => [false, true, false],
                 'outcome' => [
                     'reuseTestDBs' => false,
-                    'dynamicTestDBs' => true,
-                    'transactions' => false,
+                    'scenarioTestDBs' => true,
+                    'transactionRollback' => false,
                 ],
             ],
             'cacheTools 3' => [
@@ -122,8 +122,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'params' => [false, false, true],
                 'outcome' => [
                     'reuseTestDBs' => false,
-                    'dynamicTestDBs' => false,
-                    'transactions' => true,
+                    'scenarioTestDBs' => false,
+                    'transactionRollback' => true,
                 ],
             ],
 
@@ -149,47 +149,47 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'dynamicTestDBs 1' => [
-                'method' => 'dynamicTestDBs',
+            'scenarioTestDBs 1' => [
+                'method' => 'scenarioTestDBs',
                 'params' => [true],
                 'outcome' => [
-                    'dynamicTestDBs' => true,
+                    'scenarioTestDBs' => true,
                 ],
             ],
-            'dynamicTestDBs 2' => [
-                'method' => 'dynamicTestDBs',
+            'scenarioTestDBs 2' => [
+                'method' => 'scenarioTestDBs',
                 'params' => [false],
                 'outcome' => [
-                    'dynamicTestDBs' => false,
+                    'scenarioTestDBs' => false,
                 ],
             ],
-            'noDynamicTestDBs' => [
-                'method' => 'noDynamicTestDBs',
+            'noScenarioTestDBs' => [
+                'method' => 'noScenarioTestDBs',
                 'params' => [],
                 'outcome' => [
-                    'dynamicTestDBs' => false,
+                    'scenarioTestDBs' => false,
                 ],
             ],
 
             'transactions 1' => [
-                'method' => 'transactions',
+                'method' => 'transactionRollback',
                 'params' => [true],
                 'outcome' => [
-                    'transactions' => true,
+                    'transactionRollback' => true,
                 ],
             ],
             'transactions 2' => [
-                'method' => 'transactions',
+                'method' => 'transactionRollback',
                 'params' => [false],
                 'outcome' => [
-                    'transactions' => false,
+                    'transactionRollback' => false,
                 ],
             ],
-            'noTransactions' => [
-                'method' => 'noTransactions',
+            'noTransactionRollback' => [
+                'method' => 'noTransactionRollback',
                 'params' => [],
                 'outcome' => [
-                    'transactions' => false,
+                    'transactionRollback' => false,
                 ],
             ],
 

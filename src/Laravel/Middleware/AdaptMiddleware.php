@@ -33,7 +33,7 @@ class AdaptMiddleware
             return $next($request);
         }
 
-        $cookieValue = $request->cookie(Settings::CONNECTIONS_COOKIE);
+        $cookieValue = $request->cookie(Settings::CONFIG_COOKIE);
         $cookieValue = is_string($cookieValue) ? $cookieValue : '';
         $usedTempConfig = $this->useTemporaryConfig($cookieValue);
 
@@ -133,6 +133,6 @@ class AdaptMiddleware
             return;
         }
 
-        $response->cookie(Settings::CONNECTIONS_COOKIE, $cookieValue, null, '/', null, false, false);
+        $response->cookie(Settings::CONFIG_COOKIE, $cookieValue, null, '/', null, false, false);
     }
 }

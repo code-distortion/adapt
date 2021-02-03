@@ -139,6 +139,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // The path that browsers connect to initially (when browser testing) so that cookies can then be set
         // (the browser will reject new cookies before it's loaded a webpage)
         // this route bypasses all middleware
-        $router->get(Settings::INITIAL_BROWSER_REQUEST_PATH, fn() => '');
+        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, fn() => '');
     }
 }

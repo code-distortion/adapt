@@ -128,32 +128,32 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'cacheTools',
                 'params' => [
                     'reuseTestDBs' => true,
-                    'dynamicTestDBs' => true,
-                    'transactions' => true,
+                    'scenarioTestDBs' => true,
+                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 2' => [
                 'method' => 'cacheTools',
                 'params' => [
                     'reuseTestDBs' => false,
-                    'dynamicTestDBs' => true,
-                    'transactions' => true,
+                    'scenarioTestDBs' => true,
+                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 3' => [
                 'method' => 'cacheTools',
                 'params' => [
                     'reuseTestDBs' => true,
-                    'dynamicTestDBs' => false,
-                    'transactions' => true,
+                    'scenarioTestDBs' => false,
+                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 4' => [
                 'method' => 'cacheTools',
                 'params' => [
                     'reuseTestDBs' => true,
-                    'dynamicTestDBs' => true,
-                    'transactions' => false,
+                    'scenarioTestDBs' => true,
+                    'transactionRollback' => false,
                 ],
             ],
 
@@ -163,16 +163,16 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'reuseTestDBs' => true,
                 ],
             ],
-            'dynamicTestDBs' => [
-                'method' => 'dynamicTestDBs',
+            'scenarioTestDBs' => [
+                'method' => 'scenarioTestDBs',
                 'params' => [
-                    'dynamicTestDBs' => true,
+                    'scenarioTestDBs' => true,
                 ],
             ],
-            'transactions' => [
-                'method' => 'transactions',
+            'transactionRollback' => [
+                'method' => 'transactionRollback',
                 'params' => [
-                    'transactions' => true,
+                    'transactionRollback' => true,
                 ],
             ],
 

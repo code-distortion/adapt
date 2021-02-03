@@ -35,12 +35,12 @@ class Settings
      *
      * @const string
      */
-    public const CONNECTIONS_COOKIE = '____adapt____';
+    public const CONFIG_COOKIE = '____adapt____';
 
     /**
      * The path that browsers connect to initially (when browser testing) so that cookies can then be set.
      *
      * @const string
      */
-    public const INITIAL_BROWSER_REQUEST_PATH = '/____adapt____';
+    public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____';
 }
