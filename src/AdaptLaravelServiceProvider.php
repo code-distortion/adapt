@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 
@@ -112,8 +113,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        // 'web', 'api'
-        $middlewareGroups = array_keys($this->app->make(HttpKernel::class)->getMiddlewareGroups());
+        $httpKernel = $this->app->make(HttpKernel::class);
+        $middlewareGroups = method_exists($httpKernel, 'getMiddlewareGroups')
+            ? array_keys($httpKernel->getMiddlewareGroups())
+            : ['web', 'api'];
         foreach ($middlewareGroups as $middlewareGroup) {
             $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptMiddleware::class);
         }
