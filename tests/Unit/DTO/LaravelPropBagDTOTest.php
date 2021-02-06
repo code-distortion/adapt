@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use App;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptPropBagDTOException;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;

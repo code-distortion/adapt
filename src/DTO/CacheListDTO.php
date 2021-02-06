@@ -10,7 +10,7 @@ class CacheListDTO
     /**
      * The list of snapshot files.
      *
-     * @var SnapshotMetaDTO[]
+     * @var SnapshotMetaInfo[]
      */
     public array $snapshots = [];
 
@@ -25,7 +25,7 @@ class CacheListDTO
     /**
      * Replace the list of snapshot-paths with a new list.
      *
-     * @param SnapshotMetaDTO[] $snapshots The snapshot paths to store.
+     * @param SnapshotMetaInfo[] $snapshots The snapshot paths to store.
      * @return static
      */
     public function snapshots(array $snapshots): self

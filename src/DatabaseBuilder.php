@@ -8,12 +8,13 @@ use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
-use CodeDistortion\Adapt\DTO\SnapshotMetaDTO;
+use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
+use DateTime;
 use Throwable;
 
 /**
@@ -80,13 +81,6 @@ class DatabaseBuilder
     private bool $executed = false;
 
     /**
-     * Whether or not old snapshots have been cleaned up yet. Happens once per test-run.
-     *
-     * @var boolean[]
-     */
-    private static array $removedSnapshots = [];
-
-    /**
      * Whether or not old databases have been cleaned up yet. Happens once per database.
      *
      * @var boolean[][][]
@@ -141,7 +135,7 @@ class DatabaseBuilder
      */
     public static function resetStaticProps(): void
     {
-        static::$removedSnapshots = static::$removedOldDatabases = [];
+        static::$removedOldDatabases = [];
         static::$firstRun = true;
     }
 
@@ -270,13 +264,23 @@ class DatabaseBuilder
     }
 
     /**
+     * Resolve whether snapshots are enabled or not.
+     *
+     * @return boolean
+     */
+    private function snapshotsAreEnabled(): bool
+    {
+        return ($this->config->snapshotsEnabled) || ($this->config->isBrowserTest);
+    }
+
+    /**
      * Derive if a snapshot should be taken after the migrations have been run.
      *
      * @return boolean
      */
     private function shouldTakeSnapshotAfterMigrations(): bool
     {
-        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
+        if (!$this->snapshotsAreEnabled()) {
             return false;
         }
 
@@ -294,7 +298,7 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterSeeders(): bool
     {
-        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
+        if (!$this->snapshotsAreEnabled()) {
             return false;
         }
 
@@ -319,7 +323,7 @@ class DatabaseBuilder
 
             Hasher::resetStaticProps();
             $this->hasher->currentSourceFilesHash();
-            $this->removeSnapshots(true, false);
+            $this->removeInvalidSnapshots();
         }
     }
 
@@ -406,16 +410,10 @@ class DatabaseBuilder
             return false;
         }
 
-        if (
-            !$this->dbAdapter()->reuse->dbIsCleanForReuse(
-                $this->hasher->currentSourceFilesHash(),
-                $this->hasher->currentScenarioHash()
-            )
-        ) {
-            return false;
-        }
-
-        return true;
+        return $this->dbAdapter()->reuse->dbIsCleanForReuse(
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash()
+        );
     }
 
     /**
@@ -432,7 +430,7 @@ class DatabaseBuilder
             $this->dbAdapter()->build->resetDB();
         }
 
-        if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
+        if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
             $this->buildDBFromSnapshot();
         } else {
             $this->buildDBFromScratch();
@@ -489,11 +487,10 @@ class DatabaseBuilder
             return;
         }
 
-        if (
-            (is_string($this->config->migrations))
-            && (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations)))
-        ) {
-            throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+        if (is_string($this->config->migrations)) {
+            if (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations))) {
+                throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+            }
         }
 
         $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
@@ -540,15 +537,19 @@ class DatabaseBuilder
      */
     private function takeDBSnapshot(array $seeders): void
     {
-        if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
-
-            $logTimer = $this->di->log->newTimer();
-
-            $snapshotPath = $this->generateSnapshotPath($seeders);
-            $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
-
-            $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
+        if (!$this->snapshotsAreEnabled()) {
+            return;
         }
+        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+            return;
+        }
+
+        $logTimer = $this->di->log->newTimer();
+
+        $snapshotPath = $this->generateSnapshotPath($seeders);
+        $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
+
+        $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
     }
 
     /**
@@ -677,121 +678,114 @@ class DatabaseBuilder
         return true;
     }
 
+
+
     /**
-     * find old/current snapshots in the storage directory.
+     * find snapshots in the storage directory.
      *
-     * @param boolean $findOld     Remove old snapshots.
-     * @param boolean $findCurrent Remove current snapshots.
-     * @return SnapshotMetaDTO[]
-     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be removed.
+     * @return SnapshotMetaInfo[]
+     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be read.
      */
-    public function findSnapshots(bool $findOld, bool $findCurrent): array
+    public function findSnapshots(): array
     {
-        return $this->removeSnapshots($findOld, $findCurrent, false, true);
+        return $this->buildSnapshotMetaInfos();
     }
 
     /**
-     * Remove old/current snapshots from the storage directory.
+     * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
      *
-     * @param boolean $removeOld      Remove old snapshots.
-     * @param boolean $removeCurrent  Remove current snapshots.
-     * @param boolean $actuallyDelete Should files actually be deleted?.
-     * @param boolean $getSize        Should the sizes of the snapshot files be added?.
-     * @return SnapshotMetaDTO[]
-     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be removed.
+     * @return SnapshotMetaInfo[]
+     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be used.
      */
-    private function removeSnapshots(
-        bool $removeOld,
-        bool $removeCurrent,
-        bool $actuallyDelete = true,
-        bool $getSize = false
-    ): array {
-
+    private function buildSnapshotMetaInfos(): array
+    {
         if (!$this->di->filesystem->dirExists($this->config->storageDir)) {
             return [];
         }
 
-        $key = (int) $removeOld . (int) $removeCurrent . (int) $actuallyDelete;
-        if (isset(static::$removedSnapshots[$key])) {
-            return [];
-        }
-        static::$removedSnapshots[$key] = true;
-
-        $snapshotMetaDTOs = [];
         try {
+            $snapshotMetaInfos = [];
             $filePaths = $this->di->filesystem->filesInDir($this->config->storageDir);
             foreach ($filePaths as $path) {
-
-                if ($this->isSnapshotRelevant($path, $removeOld, $removeCurrent)) {
-
-                    $snapshotMetaDTOs[] = (new SnapshotMetaDTO())
-                        ->path($path)
-                        ->size($getSize ? $this->di->filesystem->size($path) : null);
-
-                    if ($actuallyDelete) {
-                        $isOld = ($removeOld && !$removeCurrent);
-                        $this->removeSnapshotFile($path, $isOld);
-                    }
-                }
+                $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
             }
+            return array_filter($snapshotMetaInfos);
         } catch (Throwable $e) {
-            if ($actuallyDelete) {
-                throw AdaptSnapshotException::couldNotRemoveSnapshots($e);
-            } else {
-                throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
-            }
+            throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
         }
-        return $snapshotMetaDTOs;
     }
 
     /**
-     * Check if the given file is a snapshot, and if it's relevant.
+     * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
      *
-     * @param string  $path          The file to potentially remove.
-     * @param boolean $detectOld     Detect old snapshots.
-     * @param boolean $detectCurrent Detect current snapshots.
-     * @return boolean
+     * @param string $path The file to build a SnapshotMetaInfo object for.
+     * @return SnapshotMetaInfo|null
      */
-    private function isSnapshotRelevant(
-        string $path,
-        bool $detectOld,
-        bool $detectCurrent
-    ): bool {
-
+    private function buildSnapshotMetaInfo(string $path): ?SnapshotMetaInfo
+    {
         $temp = explode('/', $path);
         $filename = (string) array_pop($temp);
         $prefix = $this->config->snapshotPrefix;
 
         if (mb_substr($filename, 0, mb_strlen($prefix)) == $prefix) {
+
             $filename = mb_substr($filename, mb_strlen($prefix));
+            $accessTS = fileatime($path);
 
-            $filesHashMatched = $this->hasher->filenameHasSourceFilesHash($filename);
-
-            if (($detectOld) && (!$filesHashMatched)) {
-                return true;
-            }
-            if (($detectCurrent) && ($filesHashMatched)) {
-                return true;
-            }
+            $snapshotMetaInfo = new SnapshotMetaInfo(
+                $path,
+                $filename,
+                new DateTime("@$accessTS") ?: null,
+                $this->hasher->filenameHasSourceFilesHash($filename),
+                fn() => $this->di->filesystem->size($path),
+            );
+            $snapshotMetaInfo->setDeleteCallback(fn() => $this->removeSnapshotFile($snapshotMetaInfo));
+            return $snapshotMetaInfo;
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * Remove invalid snapshots from the storage directory.
+     *
+     * @return void
+     * @throws AdaptSnapshotException Thrown when the snapshot couldn't be removed.
+     */
+    private function removeInvalidSnapshots()
+    {
+        try {
+            foreach ($this->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
+                if (!$snapshotMetaInfo->isValid) {
+                    $snapshotMetaInfo->delete();
+                }
+            }
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::couldNotRemoveSnapshots($e);
+        }
     }
 
     /**
      * Remove the given snapshot file.
      *
-     * @param string  $path  The file to remove.
-     * @param boolean $isOld If this snapshot is "old" - affects the log message.
-     * @return void
+     * @param SnapshotMetaInfo $snapshotMetaInfo The info object representing the snapshot file.
+     * @return boolean
      */
-    private function removeSnapshotFile(string $path, bool $isOld = false): void
+    private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->filesystem->unlink($path);
+        $removed = $this->di->filesystem->unlink($snapshotMetaInfo->path);
 
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "snapshot: \"$path\"", $logTimer);
+        if ($removed) {
+            $this->di->log->info(
+                'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
+                $logTimer
+            );
+        }
+        return $removed;
     }
+
+
 
     /**
      * find old/current databases.
@@ -868,6 +862,8 @@ class DatabaseBuilder
     {
         return $this->dbAdapter()->reuse->removeDatabase($database);
     }
+
+
 
     /**
      * Create a database adapter to do the database specific work.

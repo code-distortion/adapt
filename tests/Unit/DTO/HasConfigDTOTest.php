@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use App;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;

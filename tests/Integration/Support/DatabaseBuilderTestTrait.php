@@ -131,7 +131,7 @@ trait DatabaseBuilderTestTrait
                 [DatabaseSeeder::class],
                 false
             )
-            ->cacheTools(true, true, true)
+            ->cacheTools(true, true)
             ->snapshots(false, false, true)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');

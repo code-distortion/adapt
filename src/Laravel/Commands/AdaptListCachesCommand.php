@@ -52,15 +52,16 @@ class AdaptListCachesCommand extends Command
         (new ReloadLaravelConfig())->reload($envPath);
 
         $cacheListDTO = $this->getCacheList();
-        if ($cacheListDTO->containsAnyCache()) {
-            $this->listDatabases($cacheListDTO);
-            $this->listSnapshotPaths($cacheListDTO);
-            $this->info('');
-        } else {
+        if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no caches.');
             $this->info('');
+            return;
         }
+
+        $this->listDatabases($cacheListDTO);
+        $this->listSnapshotPaths($cacheListDTO);
+        $this->info('');
     }
 
     /**
@@ -92,8 +93,8 @@ class AdaptListCachesCommand extends Command
     {
         if ($cacheListDTO->snapshots) {
             $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
-            foreach ($cacheListDTO->snapshots as $snapshotMetaDTO) {
-                $this->info('- ' . $snapshotMetaDTO->readable());
+            foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
+                $this->info('- ' . $snapshotMetaInfo->readable());
             }
         }
     }

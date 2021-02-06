@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use App;
 use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 

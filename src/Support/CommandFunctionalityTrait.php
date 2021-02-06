@@ -22,7 +22,7 @@ trait CommandFunctionalityTrait
         $bootCommandLaravel = new BootCommandLaravel();
         $cacheListDTO = new CacheListDTO();
 
-        // get databases
+        // find databases
         foreach (array_keys(config('database.connections')) as $connection) {
             try {
                 $builder = $bootCommandLaravel->makeNewBuilder((string) $connection);
@@ -36,12 +36,10 @@ trait CommandFunctionalityTrait
             }
         }
 
-        // get snapshots
+        // find snapshots
         $defaultConnection = config('database.default');
         $builder = $bootCommandLaravel->makeNewBuilder($defaultConnection);
-        $cacheListDTO->snapshots(
-            $builder->findSnapshots(true, true)
-        );
+        $cacheListDTO->snapshots($builder->findSnapshots());
 
         return $cacheListDTO;
     }

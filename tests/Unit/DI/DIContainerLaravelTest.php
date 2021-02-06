@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DI;
 
-use App;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Filesystem;
