@@ -17,9 +17,8 @@ use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
-use Carbon\Carbon;
-use Illuminate\Cookie\CookieValuePrefix;
-use Illuminate\Support\Facades\Crypt;
+use DateTime;
+use DateTimeZone;
 use Laravel\Dusk\Browser;
 
 /**
@@ -229,7 +228,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function storeTemporaryConfig(): string
     {
-        $dateTime = Carbon::now()->format('YmdHis');
+        $dateTime = (new DateTime('now', new DateTimeZone('UTC')))->format('YmdHis');
         $rand = md5(uniqid((string) mt_rand(), true));
         $filename = "config.$dateTime.$rand.php";
         $path = "{$this->storageDir()}/$filename";
@@ -263,7 +262,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function removeOldTempConfigFiles(): void
     {
-        $nowUTC = Carbon::now();
+        $nowUTC = (new DateTime('now', new DateTimeZone('UTC')));
         $paths = (new Filesystem())->filesInDir($this->storageDir());
         foreach ($paths as $path) {
 
@@ -275,7 +274,7 @@ class BootTestLaravel extends BootTestAbstract
             }
 
             // remove if older than 4 hours
-            if ($createdAtUTC->diffInHours($nowUTC, false) >= 4) {
+            if ($createdAtUTC->diff($nowUTC)->h >= 4) {
                 @unlink($path);
             }
         }
@@ -285,15 +284,15 @@ class BootTestLaravel extends BootTestAbstract
      * Look at a temporary config file's name and determine when it was created.
      *
      * @param string $filename The name of the temporary config file.
-     * @return Carbon|null
+     * @return DateTime|null
      */
-    private function detectConfigCreatedAt(string $filename): ?Carbon
+    private function detectConfigCreatedAt(string $filename): ?DateTime
     {
         if (!preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $filename, $matches)) {
             return null;
         }
 
-        $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
+        $createdAtUTC = DateTime::createFromFormat('YmdHis', $matches[1], new DateTimeZone('UTC'));
         return $createdAtUTC ?: null;
     }
 }
