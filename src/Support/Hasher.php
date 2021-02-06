@@ -225,7 +225,7 @@ class Hasher
             'scenarioHash' => $this->generateScenarioHash($seeders),
             'projectName' => $this->config->projectName,
             'connection' => $this->config->connection,
-            'transactions' => $this->config->transactionRollback,
+            'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));
 

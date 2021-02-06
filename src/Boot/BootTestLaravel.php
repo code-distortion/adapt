@@ -145,8 +145,7 @@ class BootTestLaravel extends BootTestAbstract
             )
             ->cacheTools(
                 $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'),
-                $this->propBag->config('transaction_rollback', 'transactionRollback')
+                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs')
             )
             ->snapshots(
                 $this->propBag->config('snapshots.enabled', 'snapshotsEnabled'),

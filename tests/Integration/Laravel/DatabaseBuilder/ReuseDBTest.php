@@ -33,205 +33,100 @@ class ReuseDBTest extends LaravelTestCase
     public function databaseReuseDataProvider(): array
     {
         return [
-            'reuseTestDBs false, scenarioTestDBs false, transactionRollback false, isBrowserTest false' => [
+            'reuseTestDBs false, scenarioTestDBs false, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(false)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, scenarioTestDBs false, transactionRollback false, isBrowserTest false' => [
+            'reuseTestDBs true, scenarioTestDBs false, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(false)
-                    ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs false, scenarioTestDBs true, transactionRollback false, isBrowserTest false' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(false)
-                    ->scenarioTestDBs(true)
-                    ->transactionRollback(false)
-                    ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-1cfbd6a0bef8.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs true, scenarioTestDBs true, transactionRollback false, isBrowserTest false' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(true)
-                    ->scenarioTestDBs(true)
-                    ->transactionRollback(false)
-                    ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-1cfbd6a0bef8.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs false, scenarioTestDBs false, transactionRollback true, isBrowserTest false' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(false)
-                    ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
-                    ->isBrowserTest(false),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs true, scenarioTestDBs false, transactionRollback true, isBrowserTest false' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(true)
-                    ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
-            'reuseTestDBs false, scenarioTestDBs true, transactionRollback true, isBrowserTest false' => [
+            'reuseTestDBs false, scenarioTestDBs true, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(false)
                     ->scenarioTestDBs(true)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-23eeefb21dcd.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-4b3209375864.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, scenarioTestDBs true, transactionRollback true, isBrowserTest false' => [
+            'reuseTestDBs true, scenarioTestDBs true, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(true)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-23eeefb21dcd.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-d1941e17979a.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
-            'reuseTestDBs false, scenarioTestDBs false, transactionRollback false, isBrowserTest true' => [
+            'reuseTestDBs false, scenarioTestDBs false, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(false)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, scenarioTestDBs false, transactionRollback false, isBrowserTest true' => [
+            'reuseTestDBs true, scenarioTestDBs false, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs false, scenarioTestDBs true, transactionRollback false, isBrowserTest true' => [
+            'reuseTestDBs false, scenarioTestDBs true, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(false)
                     ->scenarioTestDBs(true)
-                    ->transactionRollback(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-e6ecc633a4ee.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-6c78551d61f0.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, scenarioTestDBs true, transactionRollback false, isBrowserTest true' => [
+            'reuseTestDBs true, scenarioTestDBs true, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(true)
-                    ->transactionRollback(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-e6ecc633a4ee.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs false, scenarioTestDBs false, transactionRollback true, isBrowserTest true' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(false)
-                    ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
-                    ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs true, scenarioTestDBs false, transactionRollback true, isBrowserTest true' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(true)
-                    ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
-                    ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs false, scenarioTestDBs true, transactionRollback true, isBrowserTest true' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(false)
-                    ->scenarioTestDBs(true)
-                    ->transactionRollback(true)
-                    ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-d7daa5f2470a.sqlite',
-                'expectedUserCount' => 0,
-                'expectedException' => null,
-            ],
-            'reuseTestDBs true, scenarioTestDBs true, transactionRollback true, isBrowserTest true' => [
-                'config' => $this->newConfigDTO('sqlite')
-                    ->seeders([])
-                    ->reuseTestDBs(true)
-                    ->scenarioTestDBs(true)
-                    ->transactionRollback(true)
-                    ->isBrowserTest(true),
-                'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-d7daa5f2470a.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-e07d09bf11b7.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
 
-            'reuseTestDBs true, transactionRollback true, different reuse_table_version' => [
+            'reuseTestDBs true, different reuse_table_version' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
                     "UPDATE `" . Settings::REUSE_TABLE . "` "
@@ -240,12 +135,11 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, transactionRollback true, different project_name' => [
+            'reuseTestDBs true, different project_name' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
                     "UPDATE `" . Settings::REUSE_TABLE . "` "
@@ -254,36 +148,33 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedUserCount' => 0,
                 'expectedException' => AdaptBuildException::class,
             ],
-            'reuseTestDBs true, transactionRollback true, still in transaction' => [
+            'reuseTestDBs true, still in transaction' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => AdaptBuildException::class,
             ],
-            'reuseTestDBs true, transactionRollback true, empty ____adapt____ table' => [
+            'reuseTestDBs true, empty ____adapt____ table' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "DELETE FROM `" . Settings::REUSE_TABLE . "`",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTestDBs true, transactionRollback true, no ____adapt____ table' => [
+            'reuseTestDBs true, no ____adapt____ table' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTestDBs(true)
                     ->scenarioTestDBs(false)
-                    ->transactionRollback(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "DROP TABLE `" . Settings::REUSE_TABLE . "`",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',

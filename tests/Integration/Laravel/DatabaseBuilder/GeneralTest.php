@@ -74,7 +74,7 @@ class GeneralTest extends LaravelTestCase
         $dbPath = config('database.connections.sqlite.database');
         $this->assertFileExists($dbPath);
         $this->assertSame(
-            "$this->wsAdaptStorageDir/test-database.afd818-c08d1541e81a.sqlite",
+            "$this->wsAdaptStorageDir/test-database.afd818-e2dee1963369.sqlite",
             $dbPath
         );
     }

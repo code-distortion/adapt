@@ -117,18 +117,17 @@ trait InitialiseLaravelAdapt
     {
         $propNames = [
             'buildDatabases',
-            'migrations',
-            'seeders',
-            'preMigrationImports',
             'reuseTestDBs',
             'scenarioTestDBs',
-            'transactionRollback',
             'snapshotsEnabled',
             'takeSnapshotAfterMigrations',
             'takeSnapshotAfterSeeders',
-            'isBrowserTest',
+            'preMigrationImports',
+            'migrations',
+            'seeders',
             'remapConnections',
             'defaultConnection',
+            'isBrowserTest',
         ];
 
         $this->propBag = new LaravelPropBagDTO();

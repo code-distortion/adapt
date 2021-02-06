@@ -97,7 +97,7 @@ class ConfigDTO
     /**
      * Is a browser test being run?.
      *
-     * When true, this will turn off $reuseTestDBs, $scenarioTestDBs and $transactionRollback.
+     * When true, this will turn off $reuseTestDBs and $scenarioTestDBs.
      *
      * @var boolean
      */
@@ -117,13 +117,6 @@ class ConfigDTO
      * @var boolean
      */
     public bool $scenarioTestDBs;
-
-    /**
-     * Should tests be encapsulated within transactions?.
-     *
-     * @var boolean
-     */
-    public bool $transactionRollback;
 
     /**
      * When turned on, snapshot files will created and imported when available.
@@ -361,19 +354,16 @@ class ConfigDTO
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs        Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $scenarioTestDBs     Create databases as needed for the database-scenario?.
-     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
+     * @param boolean $reuseTestDBs    Reuse databases when possible (instead of rebuilding them)?.
+     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
     public function cacheTools(
         bool $reuseTestDBs,
-        bool $scenarioTestDBs,
-        bool $transactionRollback
+        bool $scenarioTestDBs
     ): self {
         $this->reuseTestDBs = $reuseTestDBs;
         $this->scenarioTestDBs = $scenarioTestDBs;
-        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 
@@ -398,18 +388,6 @@ class ConfigDTO
     public function scenarioTestDBs(bool $scenarioTestDBs): self
     {
         $this->scenarioTestDBs = $scenarioTestDBs;
-        return $this;
-    }
-
-    /**
-     * Turn transactions on or off.
-     *
-     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
-     * @return static
-     */
-    public function transactionRollback(bool $transactionRollback): self
-    {
-        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 

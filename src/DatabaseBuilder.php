@@ -226,7 +226,7 @@ class DatabaseBuilder
      */
     private function usingReuseTestDBs(): bool
     {
-        return (($this->config->reuseTestDBs) && ($this->config->transactionRollback) && (!$this->config->isBrowserTest));
+        return (($this->config->reuseTestDBs) && (!$this->config->isBrowserTest));
     }
 
     /**
@@ -236,7 +236,17 @@ class DatabaseBuilder
      */
     private function dbWillBeReusable(): bool
     {
-        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
+        return $this->usingReuseTestDBs();
+    }
+
+    /**
+     * Resolve whether transactions are to be used.
+     *
+     * @return boolean
+     */
+    private function usingTransactions(): bool
+    {
+        return $this->usingReuseTestDBs();
     }
 
     /**
@@ -247,16 +257,6 @@ class DatabaseBuilder
     private function usingScenarioTestDBs(): bool
     {
         return $this->config->scenarioTestDBs;
-    }
-
-    /**
-     * Resolve whether transactions are to be used.
-     *
-     * @return boolean
-     */
-    private function usingTransactions(): bool
-    {
-        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
     }
 
     /**

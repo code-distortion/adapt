@@ -129,7 +129,6 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => [
                     'reuseTestDBs' => true,
                     'scenarioTestDBs' => true,
-                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 2' => [
@@ -137,7 +136,6 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => [
                     'reuseTestDBs' => false,
                     'scenarioTestDBs' => true,
-                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 3' => [
@@ -145,7 +143,6 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => [
                     'reuseTestDBs' => true,
                     'scenarioTestDBs' => false,
-                    'transactionRollback' => true,
                 ],
             ],
             'cacheTools 4' => [
@@ -153,7 +150,6 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => [
                     'reuseTestDBs' => true,
                     'scenarioTestDBs' => true,
-                    'transactionRollback' => false,
                 ],
             ],
 
@@ -167,12 +163,6 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'scenarioTestDBs',
                 'params' => [
                     'scenarioTestDBs' => true,
-                ],
-            ],
-            'transactionRollback' => [
-                'method' => 'transactionRollback',
-                'params' => [
-                    'transactionRollback' => true,
                 ],
             ],
 
