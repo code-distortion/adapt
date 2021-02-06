@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\Adapters\Interfaces\ReuseInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectInclHasherTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
+use DateTime;
+use DateTimeZone;
 use stdClass;
 use Throwable;
 use PDOException;
@@ -45,7 +47,8 @@ class LaravelMySQLReuse implements ReuseInterface
             . "`source_files_hash` varchar(255) NOT NULL, "
             . "`scenario_hash` varchar(255) NOT NULL, "
             . "`reusable` tinyint unsigned, "
-            . "`inside_transaction` tinyint unsigned"
+            . "`inside_transaction` tinyint unsigned, "
+            . "`last_used` timestamp"
             . ")"
         );
         $this->di->db->insert(
@@ -56,7 +59,8 @@ class LaravelMySQLReuse implements ReuseInterface
                 . "`source_files_hash`, "
                 . "`scenario_hash`, "
                 . "`reusable`, "
-                . "`inside_transaction`"
+                . "`inside_transaction`, "
+                . "`last_used`"
             . ") "
             . "VALUES ("
                 . ":projectName, "
@@ -65,7 +69,8 @@ class LaravelMySQLReuse implements ReuseInterface
                 . ":sourceFilesHash, "
                 . ":scenarioHash, "
                 . ":reusable, "
-                . ":insideTransaction"
+                . ":insideTransaction, "
+                . ":lastUsed"
             . ")",
             [
                 'projectName' => $this->config->projectName,
@@ -75,6 +80,7 @@ class LaravelMySQLReuse implements ReuseInterface
                 'scenarioHash' => $scenarioHash,
                 'reusable' => (int) $reusable,
                 'insideTransaction' => false,
+                'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
             ]
         );
     }

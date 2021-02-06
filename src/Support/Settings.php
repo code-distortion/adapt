@@ -28,7 +28,7 @@ class Settings
      *
      * @const string
      */
-    public const REUSE_TABLE_VERSION = '2';
+    public const REUSE_TABLE_VERSION = '3';
 
     /**
      * The name of the cookie used to pass database connection details during browser tests.
