@@ -696,9 +696,9 @@ DB_CONNECTION=sqlite
 
 ### Seeding during testing&hellip;
 
-By default, Adapt runs your `DatabaseSeeder` and incorporates the result in its caching system. This way, you won't need to run your seeders within each test.
+To help Adapt be a drop-in replacement for Laravel's existing options, it doesn't run your seeders default. But you can specify seeders for it to run. The result will be incorporated into Adapt's caching system. This way, you won't need to run the seeders within each test!
 
-If you'd like to run different seeders for different tests, add the `$seeders` property to your test-classes. 
+If you'd like to specify seeders, or run different ones for different tests, see the `seeders` config option (or the `$seeders` test-class property).
 
 ``` php
 // tests/Feature/MyFeatureTest.php
