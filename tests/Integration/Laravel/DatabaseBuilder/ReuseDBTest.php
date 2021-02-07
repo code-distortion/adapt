@@ -218,6 +218,9 @@ class ReuseDBTest extends LaravelTestCase
 
         $this->assertSame($expectedDBName, $config->database);
 
+        // disconnect from the database
+        DB::purge($config->connection);
+
         // set up the database the second time and see if the user is still there
         $this->loadConfigs($this->wsConfigDir);
 
