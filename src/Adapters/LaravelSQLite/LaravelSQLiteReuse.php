@@ -206,7 +206,7 @@ class LaravelSQLiteReuse implements ReuseInterface
         $databaseMetaInfo = new DatabaseMetaInfo(
             $connection,
             $name,
-            DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used, new DateTimeZone('UTC')) ?: null,
+            DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used ?? null, new DateTimeZone('UTC')) ?: null,
             $reuseInfo->orig_db_name == $origDBName,
             $isValid,
             fn() => $this->size($name),
