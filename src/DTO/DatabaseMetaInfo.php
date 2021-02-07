@@ -129,7 +129,7 @@ class DatabaseMetaInfo
             return null;
         }
         if (!$this->accessDT) {
-            return null;
+            return new DateTime('now', new DateTimeZone('UTC'));
         }
 
         return (clone $this->accessDT)->add(new DateInterval("PT{$this->graceSeconds}S"));
