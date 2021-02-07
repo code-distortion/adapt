@@ -6,49 +6,55 @@ use CodeDistortion\Adapt\Support\StringSupport as Str;
 use DateTime;
 
 /**
- * Store some meta-data about a snapshot file.
+ * Store some meta-data about a database.
  */
-class SnapshotMetaInfo
+class DatabaseMetaInfo
 {
-    /** @var string|null The snapshot's path. */
-    public ?string $path;
+    /** @var string The connection the database is within. */
+    public string $connection;
 
-    /** @var string|null The snapshot's filename. */
-    public ?string $filename;
+    /** @var string The database's name / path. */
+    public string $name;
 
     /** @var DateTime|null When the file was last accessed. */
     public ?DateTime $accessDT;
 
-    /** @var boolean Whether the snapshot is valid (current) on not. */
+    /** @var boolean Whether the database matches the "current" databases or not */
+    public bool $matchesOrigDB;
+
+    /** @var boolean Whether the database is valid (current) on not. */
     public bool $isValid;
 
-    /** @var callable The callback to use to get the snapshot's size. */
+    /** @var callable The callback to use to get the database's size. */
     public $getSizeCallback;
 
-    /** @var integer|null The size of the snapshot file in bytes. */
+    /** @var integer|null The size of the database in bytes. */
     public ?int $size = null;
 
-    /** @var callable The callback used to delete the snapshot file. */
+    /** @var callable The callback used to delete the database file. */
     public $deleteCallback = null;
 
 
 
     /**
-     * @param string        $path            The snapshot's path.
-     * @param string        $filename        The snapshot's filename.
-     * @param DateTime|null $accessDT        When the file was last accessed.
-     * @param boolean       $isValid         Whether the snapshot is valid (current) on not.
-     * @param callable      $getSizeCallback The callback to use to get the snapshot's size.
+     * @param string        $connection      The connection the database is within.
+     * @param string        $name            The database's name / path.
+     * @param DateTime|null $accessDT        When the database was last accessed.
+     * @param boolean       $matchesOrigDB   Whether the database matches the "current" databases or not.
+     * @param boolean       $isValid         Whether the database is valid (current) on not.
+     * @param callable      $getSizeCallback The callback to use to calculate the database's size.
      */
     public function __construct(
-        string $path,
-        string $filename,
-        ?DateTime $accessDT,
+        string $connection,
+        string $name,
+        DateTime $accessDT,
+        bool $matchesOrigDB,
         bool $isValid,
         callable $getSizeCallback
     ) {
-        $this->path = $path;
-        $this->filename = $filename;
+        $this->connection = $connection;
+        $this->name = $name;
+        $this->matchesOrigDB = $matchesOrigDB;
         $this->isValid = $isValid;
         $this->accessDT = $accessDT;
         $this->getSizeCallback = $getSizeCallback;
@@ -56,7 +62,7 @@ class SnapshotMetaInfo
     }
 
     /**
-     * Set the callback to delete the snapshot.
+     * Set the callback to delete the database.
      *
      * @param callable $deleteCallback The callback to call.
      * @return $this
@@ -88,7 +94,7 @@ class SnapshotMetaInfo
     }
 
     /**
-     * Delete the snapshot.
+     * Delete the database.
      *
      * @return boolean
      */
@@ -98,7 +104,7 @@ class SnapshotMetaInfo
     }
 
     /**
-     * Get the snapshot's size.
+     * Get the database's size.
      *
      * @return integer
      */
@@ -108,12 +114,12 @@ class SnapshotMetaInfo
     }
 
     /**
-     * Generate a readable version of this snapshot.
+     * Generate a readable version of this database.
      *
      * @return string
      */
     public function readable(): string
     {
-        return $this->path . ' ' . Str::readableSize($this->getSize());
+        return $this->name . ' ' . Str::readableSize($this->getSize());
     }
 }

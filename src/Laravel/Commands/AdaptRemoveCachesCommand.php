@@ -139,17 +139,30 @@ class AdaptRemoveCachesCommand extends Command
             return;
         }
 
+        // several databases may point to the same actual database.
+        // get the sizes before deleting any of them
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+                $databaseMetaDTO->getSize();
+            }
+        }
+
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
             $this->info('- Connection "' . $connection . '":');
-
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                if ($this->deleteDatabase((string) $connection, (string) $databaseMetaDTO->name)) {
-                    $this->info('  - DELETED ' . $databaseMetaDTO->readable());
-                } else {
-                    $this->error('  - COULD NOT DELETE ' . $databaseMetaDTO->readable());
+
+                $deleted = false;
+                try {
+                    $readable = $databaseMetaDTO->readable();
+                    $deleted = $databaseMetaDTO->delete();
+                } catch (Throwable $e) {
                 }
+
+                $deleted
+                    ? $this->info('  - DELETED ' . $readable)
+                    : $this->error('  - COULD NOT DELETE ' . $readable);
             }
         }
     }
@@ -169,14 +182,16 @@ class AdaptRemoveCachesCommand extends Command
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
 
-            $readable = $snapshotMetaInfo->readable();
+            $deleted = false;
             try {
-                $snapshotMetaInfo->delete();
-                $this->info('- DELETED ' . $readable);
+                $readable = $snapshotMetaInfo->readable();
+                $deleted = $snapshotMetaInfo->delete();
             } catch (Throwable $e) {
-                dump($e->getMessage());
-                $this->error('- COULD NOT DELETE ' . $readable);
             }
+
+            $deleted
+                ? $this->info('- DELETED ' . $readable)
+                : $this->error('- COULD NOT DELETE ' . $readable);
         }
     }
 }

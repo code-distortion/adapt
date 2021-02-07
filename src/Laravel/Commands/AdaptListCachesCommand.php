@@ -72,13 +72,15 @@ class AdaptListCachesCommand extends Command
      */
     private function listDatabases(CacheListDTO $cacheListDTO): void
     {
-        if ($cacheListDTO->databases) {
-            $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
-            foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-                $this->info('- Connection "' . $connection . '":');
-                foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                    $this->info('  - ' . $databaseMetaDTO->readable());
-                }
+        if (!$cacheListDTO->databases) {
+            return;
+        }
+
+        $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+            $this->info('- Connection "' . $connection . '":');
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+                $this->info('  - ' . $databaseMetaDTO->readable());
             }
         }
     }
@@ -91,11 +93,13 @@ class AdaptListCachesCommand extends Command
      */
     private function listSnapshotPaths(CacheListDTO $cacheListDTO): void
     {
-        if ($cacheListDTO->snapshots) {
-            $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
-            foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
-                $this->info('- ' . $snapshotMetaInfo->readable());
-            }
+        if (!$cacheListDTO->snapshots) {
+            return;
+        }
+
+        $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
+        foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
+            $this->info('- ' . $snapshotMetaInfo->readable());
         }
     }
 }

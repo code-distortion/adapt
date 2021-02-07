@@ -32,20 +32,35 @@ class LaravelDB
     }
 
     /**
+     * Get the current connection.
+     *
+     * @return string
+     */
+    public function getConnection(): string
+    {
+        return $this->connection;
+    }
+
+
+
+    /**
      * Create a new PDO object, connected to the database server, but without selecting a database.
      *
-     * @param string|null $database The database to connect to (only when required by the driver - eg. sqlite).
+     * @param string|null $database   The database to connect to (only when required by the driver - eg. sqlite).
+     * @param string|null $connection The connection to use (defaults to the current one).
      * @return LaravelPDO
      * @throws AdaptConfigException Thrown when the driver isn't recognised.
      */
-    public function newPDO(string $database = null): LaravelPDO
+    public function newPDO(?string $database = null, ?string $connection = null): LaravelPDO
     {
-        $host = config("database.connections.$this->connection.host");
-        $port = config("database.connections.$this->connection.port");
-        $username = config("database.connections.$this->connection.username");
-        $password = config("database.connections.$this->connection.password");
+        $connection ??= $this->connection;
 
-        $driver = config("database.connections.$this->connection.driver");
+        $host = config("database.connections.$connection.host");
+        $port = config("database.connections.$connection.port");
+        $username = config("database.connections.$connection.username");
+        $password = config("database.connections.$connection.password");
+
+        $driver = config("database.connections.$connection.driver");
         switch ($driver) {
             case 'mysql':
                 $dsn = sprintf('mysql:host=%s;port=%d', $host, $port);
@@ -54,15 +69,10 @@ class LaravelDB
                 $dsn = sprintf('sqlite:%s', $database);
                 break;
             default:
-                throw AdaptConfigException::unsupportedDriver($this->connection, $driver);
+                throw AdaptConfigException::unsupportedDriver($connection, $driver);
         }
 
-        return new LaravelPDO(
-            $dsn,
-            $username,
-            $password,
-            []
-        );
+        return new LaravelPDO($dsn, $username, $password, []);
     }
 
 
@@ -137,7 +147,7 @@ class LaravelDB
      */
     public function dropAllTables(): void
     {
-        // @todo make this work for database types other than mysql
+        // @todo make this works for database types other than mysql
         // @todo make sure this works with views
 //        if (mysql) { ...
         $tables = [];

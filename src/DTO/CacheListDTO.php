@@ -17,7 +17,7 @@ class CacheListDTO
     /**
      * The list of databases (per connection).
      *
-     * @var DatabaseMetaDTO[][]
+     * @var DatabaseMetaInfo[][]
      */
     public array $databases = [];
 
@@ -37,8 +37,8 @@ class CacheListDTO
     /**
      * Replace the list of databases for a particular connection.
      *
-     * @param string            $connection The connection these databases were found in.
-     * @param DatabaseMetaDTO[] $databases  The databases to store.
+     * @param string             $connection The connection these databases were found in.
+     * @param DatabaseMetaInfo[] $databases  The databases to store.
      * @return static
      */
     public function databases(string $connection, array $databases): self
