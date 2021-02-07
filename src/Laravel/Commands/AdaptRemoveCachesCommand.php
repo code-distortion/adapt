@@ -153,6 +153,7 @@ class AdaptRemoveCachesCommand extends Command
             $this->info('- Connection "' . $connection . '":');
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
 
+                $readable = null;
                 $deleted = false;
                 try {
                     $readable = $databaseMetaDTO->readable();
@@ -182,6 +183,7 @@ class AdaptRemoveCachesCommand extends Command
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
 
+            $readable = null;
             $deleted = false;
             try {
                 $readable = $snapshotMetaInfo->readable();

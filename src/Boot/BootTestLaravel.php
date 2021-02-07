@@ -17,6 +17,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
+use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Laravel\Dusk\Browser;
@@ -158,7 +159,8 @@ class BootTestLaravel extends BootTestAbstract
             ->postgresSettings(
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
-            );
+            )
+            ->invalidationGraceSeconds($this->propBag->config('invalidation_grace_seconds'));
     }
 
     /**
@@ -273,8 +275,9 @@ class BootTestLaravel extends BootTestAbstract
                 continue;
             }
 
-            // remove if older than 4 hours
-            if ($createdAtUTC->diff($nowUTC)->h >= 4) {
+            // remove if older than 8 hours
+            $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
+            if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
             }
         }

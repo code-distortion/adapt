@@ -7,7 +7,6 @@ use CodeDistortion\Adapt\Adapters\LaravelMySQLAdapter;
 use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
@@ -16,6 +15,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use DateTime;
+use DateTimeZone;
 use Throwable;
 
 /**
@@ -743,17 +743,21 @@ class DatabaseBuilder
         }
 
         $filename = mb_substr($filename, mb_strlen($prefix));
+
         $accessTS = fileatime($path);
+        $accessDT = new DateTime("@$accessTS") ?: null;
+        $accessDT ? $accessDT->setTimezone(new DateTimeZone('UTC')) : null;
 
         $snapshotMetaInfo = new SnapshotMetaInfo(
             $path,
             $filename,
-            new DateTime("@$accessTS") ?: null,
+            $accessDT,
             $this->hasher->filenameHasSourceFilesHash($filename),
             fn() => $this->di->filesystem->size($path),
+            $this->config->invalidationGraceSeconds
         );
         $snapshotMetaInfo->setDeleteCallback(fn() => $this->removeSnapshotFile($snapshotMetaInfo));
-        return $snapshotMetaInfo;;
+        return $snapshotMetaInfo;
     }
 
     /**

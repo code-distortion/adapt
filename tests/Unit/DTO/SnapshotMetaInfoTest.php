@@ -59,6 +59,7 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
      * @param string   $path             The path to set.
      * @param string   $filename         The filename to set.
      * @param DateTime $accessDT         The accessed-at DateTime to set.
+     * @param boolean  $isValid          Whether the snapshot is valid or not (old).
      * @param integer  $size             The size in bytes to set.
      * @param string   $expectedReadable The expected readable() output.
      * @return void
@@ -75,12 +76,12 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
         $filesizeCallback = fn() => $size;
 
         $calledDeleteCallback = false;
-        $deleteCallback = function() use (&$calledDeleteCallback) {
+        $deleteCallback = function () use (&$calledDeleteCallback) {
             $calledDeleteCallback = true;
             return true;
         };
 
-        $snapshotMetaInfo = (new SnapshotMetaInfo($path, $filename, $accessDT, $isValid, $filesizeCallback))
+        $snapshotMetaInfo = (new SnapshotMetaInfo($path, $filename, $accessDT, $isValid, $filesizeCallback, 14400))
             ->setDeleteCallback($deleteCallback);
 
         $this->assertSame($path, $snapshotMetaInfo->path);

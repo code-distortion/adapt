@@ -3,7 +3,9 @@
 namespace CodeDistortion\Adapt\DTO;
 
 use CodeDistortion\Adapt\Support\StringSupport as Str;
+use DateInterval;
 use DateTime;
+use DateTimeZone;
 
 /**
  * Store some meta-data about a database.
@@ -34,6 +36,9 @@ class DatabaseMetaInfo
     /** @var callable The callback used to delete the database file. */
     public $deleteCallback = null;
 
+    /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */
+    private int $graceSeconds;
+
 
 
     /**
@@ -43,14 +48,16 @@ class DatabaseMetaInfo
      * @param boolean       $matchesOrigDB   Whether the database matches the "current" databases or not.
      * @param boolean       $isValid         Whether the database is valid (current) on not.
      * @param callable      $getSizeCallback The callback to use to calculate the database's size.
+     * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
      */
     public function __construct(
         string $connection,
         string $name,
-        DateTime $accessDT,
+        ?DateTime $accessDT,
         bool $matchesOrigDB,
         bool $isValid,
-        callable $getSizeCallback
+        callable $getSizeCallback,
+        int $graceSeconds
     ) {
         $this->connection = $connection;
         $this->name = $name;
@@ -58,8 +65,10 @@ class DatabaseMetaInfo
         $this->isValid = $isValid;
         $this->accessDT = $accessDT;
         $this->getSizeCallback = $getSizeCallback;
-        return $this;
+        $this->graceSeconds = $graceSeconds;
     }
+
+
 
     /**
      * Set the callback to delete the database.
@@ -74,11 +83,25 @@ class DatabaseMetaInfo
     }
 
     /**
+     * Delete the database.
+     *
+     * @return boolean
+     */
+    public function delete(): bool
+    {
+        return $this->deleteCallback ? ($this->deleteCallback)() : false;
+    }
+
+
+
+    /**
      * Remove the snapshot if it should be removed.
+     *
+     * @return void
      */
     public function purgeIfNeeded(): void
     {
-        if ($this->shouldBePurged()) {
+        if ($this->shouldPurgeNow()) {
             $this->delete();
         }
     }
@@ -88,20 +111,31 @@ class DatabaseMetaInfo
      *
      * @return boolean
      */
-    private function shouldBePurged(): bool
+    private function shouldPurgeNow(): bool
     {
-        return !$this->isValid;
+        $purgeAfter = $this->getPurgeAfter();
+        $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
+        return $purgeAfter && $this->getPurgeAfter() <= $nowUTC;
     }
 
     /**
-     * Delete the database.
+     * Determine if this snapshot should be purged or not.
      *
-     * @return boolean
+     * @return DateTime|null
      */
-    public function delete(): bool
+    private function getPurgeAfter(): ?DateTime
     {
-        return $this->deleteCallback ? ($this->deleteCallback)() : false;
+        if ($this->isValid) {
+            return null;
+        }
+        if (!$this->accessDT) {
+            return null;
+        }
+
+        return (clone $this->accessDT)->add(new DateInterval("PT{$this->graceSeconds}S"));
     }
+
+
 
     /**
      * Get the database's size.
@@ -113,6 +147,8 @@ class DatabaseMetaInfo
         return $this->size ??= ($this->getSizeCallback)();
     }
 
+
+
     /**
      * Generate a readable version of this database.
      *
@@ -120,6 +156,29 @@ class DatabaseMetaInfo
      */
     public function readable(): string
     {
-        return $this->name . ' ' . Str::readableSize($this->getSize());
+        return $this->name
+            . ' ' . Str::readableSize($this->getSize())
+            . ($this->getPurgeAfter() ? ' - Invalid' : '');
+    }
+
+    /**
+     * Generate a readable version of this snapshot.
+     *
+     * @return string
+     */
+    public function readableWithPurgeTimes(): string
+    {
+        $purgeMessage = '';
+        $purgeAfter = $this->getPurgeAfter();
+        if ($purgeAfter) {
+            $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
+            $purgeMessage = $purgeAfter > $nowUTC
+                ? ' - Invalid (removing in ' . Str::readableInterval($nowUTC->diff($purgeAfter)).')'
+                : ' - Invalid (removing next test-run)';
+        }
+
+        return $this->name
+            . ' ' . Str::readableSize($this->getSize())
+            . $purgeMessage;
     }
 }

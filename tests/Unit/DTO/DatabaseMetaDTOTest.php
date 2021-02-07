@@ -2,8 +2,10 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
+use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
+use DateTime;
+use DateTimeZone;
 
 /**
  * Test the DatabaseMetaDTO class.
@@ -38,7 +40,10 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         $return = [];
         foreach ($sizes as $size) {
             $return[] = [
+                'connection' => 'con',
                 'name' => 'abc',
+                'accessDT' => new DateTime('now', new DateTimeZone('UTC')),
+                'isValid' => true,
                 'size' => $size[0],
                 'expectedReadable' => 'abc ' . $size[1],
             ];
@@ -51,20 +56,52 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseMetaDtoDataProvider
-     * @param string  $name             The path to set.
-     * @param integer $size             The size in bytes to set.
-     * @param string  $expectedReadable The expected readable() output.
+     * @param string   $connection       The connection to use.
+     * @param string   $name             The database name to set.
+     * @param DateTime $accessDT         The accessed-at DateTime to set.
+     * @param boolean  $isValid          Whether the snapshot is valid or not (old).
+     * @param integer  $size             The size in bytes to set.
+     * @param string   $expectedReadable The expected readable() output.
      * @return void
      */
     public function database_meta_dto_can_set_and_get_values(
+        string $connection,
         string $name,
+        DateTime $accessDT,
+        bool $isValid,
         int $size,
         string $expectedReadable
     ): void {
 
-        $databaseMetaDTO = (new DatabaseMetaDTO())->name($name)->size($size);
+        $matchesOrigDB = true;
+
+        $getSizeCallback = fn() => $size;
+
+        $calledDeleteCallback = false;
+        $deleteCallback = function () use (&$calledDeleteCallback) {
+            $calledDeleteCallback = true;
+            return true;
+        };
+
+        $databaseMetaDTO = (new DatabaseMetaInfo(
+            $connection,
+            $name,
+            $accessDT,
+            $matchesOrigDB,
+            $isValid,
+            $getSizeCallback,
+            14400
+        ))
+            ->setDeleteCallback($deleteCallback);
+
+        $this->assertSame($connection, $databaseMetaDTO->connection);
         $this->assertSame($name, $databaseMetaDTO->name);
-        $this->assertSame($size, $databaseMetaDTO->size);
+        $this->assertSame($accessDT, $databaseMetaDTO->accessDT);
+        $this->assertSame($matchesOrigDB, $databaseMetaDTO->matchesOrigDB);
+        $this->assertSame($isValid, $databaseMetaDTO->isValid);
+        $this->assertSame($size, $databaseMetaDTO->getSize());
         $this->assertSame($expectedReadable, $databaseMetaDTO->readable());
+        $databaseMetaDTO->delete();
+        $this->assertTrue($calledDeleteCallback);
     }
 }

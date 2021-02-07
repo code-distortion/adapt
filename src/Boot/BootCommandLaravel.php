@@ -97,6 +97,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->postgresSettings(
                 config("$c.database.pgsql.executables.psql"),
                 config("$c.database.pgsql.executables.pg_dump")
-            );
+            )
+            ->invalidationGraceSeconds(config("$c.invalidation_grace_seconds"));
     }
 }

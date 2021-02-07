@@ -209,7 +209,8 @@ class LaravelSQLiteReuse implements ReuseInterface
             DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used, new DateTimeZone('UTC')) ?: null,
             $reuseInfo->orig_db_name == $origDBName,
             $isValid,
-            fn() => $this->size($name)
+            fn() => $this->size($name),
+            $this->config->invalidationGraceSeconds
         );
         $databaseMetaInfo->setDeleteCallback(fn() => $this->removeDatabase($databaseMetaInfo));
         return $databaseMetaInfo;

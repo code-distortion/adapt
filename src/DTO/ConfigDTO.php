@@ -169,6 +169,10 @@ class ConfigDTO
     public string $pgDumpExecutablePath;
 
 
+    /** @var integer The number of seconds grace-period before invalid databases and snapshots are to be deleted. */
+    public int $invalidationGraceSeconds = 0;
+
+
     /**
      * Set the the project-name.
      *
@@ -439,6 +443,20 @@ class ConfigDTO
     ): self {
         $this->psqlExecutablePath = $psqlExecutablePath;
         $this->pgDumpExecutablePath = $pgDumpExecutablePath;
+        return $this;
+    }
+
+
+
+    /**
+     * Set the number of seconds grace-period before invalid databases and snapshots are to be deleted.
+     *
+     * @param integer $invalidationGraceSeconds The number of seconds.
+     * @return static
+     */
+    public function invalidationGraceSeconds(int $invalidationGraceSeconds): self
+    {
+        $this->invalidationGraceSeconds = $invalidationGraceSeconds;
         return $this;
     }
 
