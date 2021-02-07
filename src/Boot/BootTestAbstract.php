@@ -12,53 +12,25 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
  */
 abstract class BootTestAbstract implements BootTestInterface
 {
-    /**
-     * The name of the test being run.
-     *
-     * @var string|null
-     */
+    /** @var string|null The name of the test being run. */
     protected $testName = null;
 
-    /**
-     * The properties that were present in the test-class.
-     *
-     * @var PropBagDTO|null
-     */
+    /** @var PropBagDTO|null The properties that were present in the test-class. */
     protected $propBag = null;
 
-    /**
-     * Whether a browser test is being run.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether a browser test is being run. */
     protected $browserTestDetected = false;
 
-    /**
-     * The closure to call to start a db transaction.
-     *
-     * @var callable|null
-     */
+    /** @var callable|null The closure to call to start a db transaction. */
     protected $transactionClosure = null;
 
-    /**
-     * The callback closure to call that will initialise the DatabaseBuilder/s.
-     *
-     * @var callable|null
-     */
+    /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback = null;
 
-    /**
-     * The database builders made by this object (so they can be executed afterwards).
-     *
-     * @var DatabaseBuilder[]
-     */
+    /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private $builders = [];
 
-    /**
-     * The DIContainer to be used.
-     *
-     * @var DIContainer|null
-     */
+    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
 
@@ -92,7 +64,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param boolean $browserTestDetected Whether or not a browser test is being run.
      * @return static
      */
-    public function browserTestDetected(bool $browserTestDetected): self
+    public function browserTestDetected(bool $browserTestDetected)
     {
         $this->browserTestDetected = $browserTestDetected;
         return $this;
@@ -128,7 +100,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param DIContainer $di The DIContainer to use.
      * @return static
      */
-//    public function setDI(DIContainer $di): self
+//    public function setDI(DIContainer $di)
 //    {
 //        $this->di = $di;
 //        return $this;

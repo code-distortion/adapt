@@ -4,8 +4,11 @@ namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectInclHasherTrait;
+use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
+use DateTime;
+use DateTimeZone;
 use stdClass;
 use Throwable;
 
@@ -28,7 +31,7 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @param boolean $reusable        Whether this database can be reused or not.
      * @return void
      */
-    public function writeReuseData(
+    public function writeReuseMetaData(
         string $origDBName,
         string $sourceFilesHash,
         string $scenarioHash,
@@ -44,7 +47,8 @@ class LaravelSQLiteReuse implements ReuseInterface
             . "`source_files_hash` varchar(255) NOT NULL, "
             . "`scenario_hash` varchar(255) NOT NULL, "
             . "`reusable` tinyint unsigned, "
-            . "`inside_transaction` tinyint unsigned"
+            . "`inside_transaction` tinyint unsigned, "
+            . "`last_used` timestamp"
             . ")"
         );
         $this->di->db->insert(
@@ -55,7 +59,8 @@ class LaravelSQLiteReuse implements ReuseInterface
                 . "`source_files_hash`, "
                 . "`scenario_hash`, "
                 . "`reusable`, "
-                . "`inside_transaction`"
+                . "`inside_transaction`, "
+                . "`last_used`"
             . ") "
             . "VALUES ("
                 . ":projectName, "
@@ -64,7 +69,8 @@ class LaravelSQLiteReuse implements ReuseInterface
                 . ":sourceFilesHash, "
                 . ":scenarioHash, "
                 . ":reusable, "
-                . ":insideTransaction"
+                . ":insideTransaction, "
+                . ":lastUsed"
             . ")",
             [
                 'projectName' => $this->config->projectName,
@@ -74,6 +80,7 @@ class LaravelSQLiteReuse implements ReuseInterface
                 'scenarioHash' => $scenarioHash,
                 'reusable' => (int) $reusable,
                 'insideTransaction' => false,
+                'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
             ]
         );
     }
@@ -136,112 +143,103 @@ class LaravelSQLiteReuse implements ReuseInterface
     }
 
     /**
-     * Look for databases, and check if they're valid or invalid (current or old).
+     * Look for databases and build DatabaseMetaInfo objects for them.
      *
-     * Only removes databases that have reuse-info stored,
-     * and that were for the same original database that this instance is for.
+     * Only pick databases that have "reuse" meta-info stored.
      *
      * @param string|null $origDBName      The original database that this instance is for - will be ignored when null.
      * @param string      $sourceFilesHash The current files-hash based on the database-building file content.
-     * @param boolean     $detectOld       Detect old databases.
-     * @param boolean     $detectCurrent   Detect new databases.
-     * @return string[]
+     * @return DatabaseMetaInfo[]
      */
-    public function findRelevantDatabases(
-        $origDBName,
-        string $sourceFilesHash,
-        bool $detectOld,
-        bool $detectCurrent
-    ): array {
+    public function findDatabases($origDBName, string $sourceFilesHash): array
+    {
 
         if (!$this->di->filesystem->dirExists($this->config->storageDir)) {
             return [];
         }
 
-        $deleteDBs = [];
-        foreach ($this->di->filesystem->filesInDir($this->config->storageDir) as $database) {
+        $databaseMetaInfos = [];
+        foreach ($this->di->filesystem->filesInDir($this->config->storageDir) as $name) {
 
-            $pdo = $this->di->db->newPDO($database);
-            $reuseInfo = $pdo->fetchReuseTableInfo(
-                "SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
+            $pdo = $this->di->db->newPDO($name);
+            $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
+                $this->di->db->getConnection(),
+                $name,
+                $origDBName,
+                $pdo->fetchReuseTableInfo("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
+                $sourceFilesHash
             );
-
-            if (
-                $this->isDatabaseRelevant(
-                    $reuseInfo,
-                    $origDBName,
-                    $sourceFilesHash,
-                    $detectOld,
-                    $detectCurrent
-                )
-            ) {
-                $deleteDBs[] = $database;
-            }
         }
-        return $deleteDBs;
+        return array_filter($databaseMetaInfos);
     }
 
     /**
-     * Check to see if the given database is relevant.
+     * Build DatabaseMetaInfo objects for a database.
      *
-     * @param stdClass|null $reuseInfo       The reuse info from the database.
+     * @param string        $connection      The connection the database is within.
+     * @param string        $name            The database's name.
      * @param string|null   $origDBName      The original database that this instance is for - will be ignored when
      *                                       null.
+     * @param stdClass|null $reuseInfo       The reuse info from the database.
      * @param string        $sourceFilesHash The current files-hash based on the database-building file content.
-     * @param boolean       $detectOld       Detect old databases.
-     * @param boolean       $detectCurrent   Detect new databases.
-     * @return boolean
+     * @return DatabaseMetaInfo|null
      */
-    private function isDatabaseRelevant(
-        $reuseInfo,
+    private function buildDatabaseMetaInfo(
+        string $connection,
+        string $name,
         $origDBName,
-        string $sourceFilesHash,
-        bool $detectOld,
-        bool $detectCurrent
-    ): bool {
+        $reuseInfo,
+        string $sourceFilesHash
+    ) {
 
         if (!$reuseInfo) {
-            return false;
+            return null;
         }
 
         if ($reuseInfo->project_name != $this->config->projectName) {
-            return false;
+            return null;
         }
 
-        if ((!is_null($origDBName)) && ($reuseInfo->orig_db_name != $origDBName)) {
-            return false;
-        }
+        $isValid = ($reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION)
+            && ($reuseInfo->source_files_hash == $sourceFilesHash);
 
-        // pick this up as "relevant" because it's obsolete and should be replaced
-        if ($reuseInfo->reuse_table_version != Settings::REUSE_TABLE_VERSION) {
-            return true;
-        }
-
-        $filesHashMatched = ($reuseInfo->source_files_hash == $sourceFilesHash);
-        return ((($detectOld) && (!$filesHashMatched))
-            || (($detectCurrent) && ($filesHashMatched)));
+        $databaseMetaInfo = new DatabaseMetaInfo(
+            $connection,
+            $name,
+            DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used, new DateTimeZone('UTC')) ?: null,
+            $reuseInfo->orig_db_name == $origDBName,
+            $isValid,
+            function () use ($name) { return $this->size($name); },
+            $this->config->invalidationGraceSeconds
+        );
+        $databaseMetaInfo->setDeleteCallback(
+            function () use ($databaseMetaInfo) { return $this->removeDatabase($databaseMetaInfo); }
+        );
+        return $databaseMetaInfo;
     }
 
     /**
      * Remove the given database.
      *
-     * @param string  $database The database to remove.
-     * @param boolean $isOld    If this database is "old" - affects the log message.
+     * @param DatabaseMetaInfo $databaseMetaInfo The info object representing the database.
      * @return boolean
      */
-    public function removeDatabase(string $database, bool $isOld = false): bool
+    private function removeDatabase(DatabaseMetaInfo $databaseMetaInfo): bool
     {
-        if (!$this->di->filesystem->fileExists($database)) {
+        if (!$this->di->filesystem->fileExists($databaseMetaInfo->name)) {
             return true;
         }
 
         $logTimer = $this->di->log->newTimer();
 
-        $success = $this->di->filesystem->unlink($database);
-
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "database: \"$database\"", $logTimer);
-
-        return $success;
+        if ($this->di->filesystem->unlink($databaseMetaInfo->name)) {
+            $this->di->log->info(
+                'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
+                $logTimer
+            );
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -250,7 +248,7 @@ class LaravelSQLiteReuse implements ReuseInterface
      * @param string $database The database to get the size of.
      * @return integer|null
      */
-    public function size(string $database)
+    private function size(string $database)
     {
         return $this->di->filesystem->size($database);
     }

@@ -14,53 +14,25 @@ use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
  */
 class DIContainer
 {
-    /**
-     * The LaravelArtisan object to use.
-     *
-     * @var LaravelArtisan
-     */
+    /** @var LaravelArtisan The LaravelArtisan object to use. */
     public $artisan;
 
-    /**
-     * The LaravelConfig object to use.
-     *
-     * @var LaravelConfig
-     */
+    /** @var LaravelConfig The LaravelConfig object to use. */
     public $config;
 
-    /**
-     * The LaravelDB object to use.
-     *
-     * @var LaravelDB
-     */
+    /** @var LaravelDB The LaravelDB object to use. */
     public $db;
 
-    /**
-     * The closure to call to start a database transaction.
-     *
-     * @var callable|null
-     */
+    /** @var callable|null The closure to call to start a database transaction. */
     public $dbTransactionClosure;
 
-    /**
-     * The Exec object to use.
-     *
-     * @var Exec
-     */
+    /** @var Exec The Exec object to use. */
     public $exec;
 
-    /**
-     * The Filesystem object to use.
-     *
-     * @var Filesystem
-     */
+    /** @var Filesystem The Filesystem object to use. */
     public $filesystem;
 
-    /**
-     * The Log object to use.
-     *
-     * @var LaravelLog
-     */
+    /** @var LaravelLog The Log object to use. */
     public $log;
 
 

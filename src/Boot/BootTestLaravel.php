@@ -17,7 +17,9 @@ use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
-use Carbon\Carbon;
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 use Laravel\Dusk\Browser;
 
 /**
@@ -143,8 +145,7 @@ class BootTestLaravel extends BootTestAbstract
             )
             ->cacheTools(
                 $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'),
-                $this->propBag->config('transaction_rollback', 'transactionRollback')
+                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs')
             )
             ->snapshots(
                 $this->propBag->config('snapshots.enabled', 'snapshotsEnabled'),
@@ -158,7 +159,12 @@ class BootTestLaravel extends BootTestAbstract
             ->postgresSettings(
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
-            );
+            )
+            ->invalidationGraceSeconds($this->propBag->config(
+                'invalidation_grace_seconds',
+                null,
+                Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+            ));
     }
 
     /**
@@ -228,7 +234,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function storeTemporaryConfig(): string
     {
-        $dateTime = Carbon::now()->format('YmdHis');
+        $dateTime = (new DateTime('now', new DateTimeZone('UTC')))->format('YmdHis');
         $rand = md5(uniqid((string) mt_rand(), true));
         $filename = "config.$dateTime.$rand.php";
         $path = "{$this->storageDir()}/$filename";
@@ -262,7 +268,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function removeOldTempConfigFiles()
     {
-        $nowUTC = Carbon::now();
+        $nowUTC = (new DateTime('now', new DateTimeZone('UTC')));
         $paths = (new Filesystem())->filesInDir($this->storageDir());
         foreach ($paths as $path) {
 
@@ -273,8 +279,9 @@ class BootTestLaravel extends BootTestAbstract
                 continue;
             }
 
-            // remove if older than 4 hours
-            if ($createdAtUTC->diffInHours($nowUTC, false) >= 4) {
+            // remove if older than 8 hours
+            $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
+            if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
             }
         }
@@ -284,15 +291,15 @@ class BootTestLaravel extends BootTestAbstract
      * Look at a temporary config file's name and determine when it was created.
      *
      * @param string $filename The name of the temporary config file.
-     * @return Carbon|null
+     * @return DateTime|null
      */
-    private function detectConfigCreatedAt(string $filename): ?Carbon
+    private function detectConfigCreatedAt(string $filename)
     {
         if (!preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $filename, $matches)) {
             return null;
         }
 
-        $createdAtUTC = Carbon::createFromFormat('YmdHis', $matches[1], 'UTC');
+        $createdAtUTC = DateTime::createFromFormat('YmdHis', $matches[1], new DateTimeZone('UTC'));
         return $createdAtUTC ?: null;
     }
 }

@@ -11,25 +11,13 @@ use CodeDistortion\Adapt\Support\Hasher;
  */
 trait InjectInclHasherTrait
 {
-    /**
-     * The dependency-injection container to use.
-     *
-     * @var DIContainer
-     */
+    /** @var DIContainer The dependency-injection container to use. */
     protected $di;
 
-    /**
-     * A DTO containing the settings to use.
-     *
-     * @var ConfigDTO
-     */
+    /** @var ConfigDTO A DTO containing the settings to use. */
     protected $config;
 
-    /**
-     * A Hasher that's used to generate and check hashes.
-     *
-     * @var Hasher
-     */
+    /** @var Hasher A Hasher that's used to generate and check hashes. */
     protected $hasher;
 
 

@@ -7,25 +7,13 @@ namespace CodeDistortion\Adapt\Tests\Integration\Support;
  */
 class ExpectedValuesDTO
 {
-    /**
-     * The table to expect values in.
-     *
-     * @var string
-     */
+    /** @var string The table to expect values in. */
     public $table;
 
-    /**
-     * The fields to fetch.
-     *
-     * @var string[]
-     */
+    /** @var string[] The fields to fetch. */
     public $fields = [];
 
-    /**
-     * Values expected in this table.
-     *
-     * @var mixed[]
-     */
+    /** @var mixed[] Values expected in this table. */
     public $values = [];
 
     /**

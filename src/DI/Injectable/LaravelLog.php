@@ -9,25 +9,13 @@ use Illuminate\Support\Facades\Log;
  */
 class LaravelLog
 {
-    /**
-     * Internal timers.
-     *
-     * @var float[]
-     */
+    /** @var float[] Internal timers. */
     private $timers = [];
 
-    /**
-     * Should messages be displayed via std-out?.
-     *
-     * @var boolean
-     */
+    /** @var boolean Should messages be displayed via std-out?. */
     private $stdout;
 
-    /**
-     * Should messages be sent to Laravel's logging mechanism?.
-     *
-     * @var boolean
-     */
+    /** @var boolean Should messages be sent to Laravel's logging mechanism?. */
     private $laravel;
 
 

@@ -14,19 +14,10 @@ class AdaptListCachesCommand extends Command
 {
     use CommandFunctionalityTrait;
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'adapt:list-db-caches '
-                            . '{--env-file=.env.testing : The .env file to load from}';
+    /** @var string The name and signature of the console command. */
+    protected $signature = 'adapt:list-db-caches { --env-file=.env.testing : The .env file to load from }';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    /** @var string The console command description. */
     protected $description = 'List Adapt\'s test-databases and snapshot files';
 
     /**
@@ -52,15 +43,16 @@ class AdaptListCachesCommand extends Command
         (new ReloadLaravelConfig())->reload($envPath);
 
         $cacheListDTO = $this->getCacheList();
-        if ($cacheListDTO->containsAnyCache()) {
-            $this->listDatabases($cacheListDTO);
-            $this->listSnapshotPaths($cacheListDTO);
-            $this->info('');
-        } else {
+        if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no caches.');
             $this->info('');
+            return;
         }
+
+        $this->listDatabases($cacheListDTO);
+        $this->listSnapshotPaths($cacheListDTO);
+        $this->info('');
     }
 
     /**
@@ -71,13 +63,15 @@ class AdaptListCachesCommand extends Command
      */
     private function listDatabases(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->databases) {
-            $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
-            foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-                $this->info('- Connection "' . $connection . '":');
-                foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                    $this->info('  - ' . $databaseMetaDTO->readable());
-                }
+        if (!$cacheListDTO->databases) {
+            return;
+        }
+
+        $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+            $this->info('- Connection "' . $connection . '":');
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo());
             }
         }
     }
@@ -90,11 +84,13 @@ class AdaptListCachesCommand extends Command
      */
     private function listSnapshotPaths(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->snapshots) {
-            $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
-            foreach ($cacheListDTO->snapshots as $snapshotMetaDTO) {
-                $this->info('- ' . $snapshotMetaDTO->readable());
-            }
+        if (!$cacheListDTO->snapshots) {
+            return;
+        }
+
+        $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
+        foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
+            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo());
         }
     }
 }

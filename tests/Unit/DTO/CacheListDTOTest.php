@@ -2,11 +2,11 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use App;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
-use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
-use CodeDistortion\Adapt\DTO\SnapshotMetaDTO;
+use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
+use DateTime;
 
 /**
  * Test the ConfigDTO class.
@@ -38,25 +38,25 @@ class CacheListDTOTest extends PHPUnitTestCase
      */
     public function cache_list_dto_can_set_and_get_values()
     {
-        $snapshotMetaDTO1 = new SnapshotMetaDTO();
-        $snapshotMetaDTO2 = new SnapshotMetaDTO();
+        $snapshotMetaInfo1 = new SnapshotMetaInfo('', '', new DateTime(), true, function () { return true; }, 14400);
+        $snapshotMetaInfo2 = new SnapshotMetaInfo('', '', new DateTime(), true, function () { return true; }, 14400);
         $snapshots = [
-            $snapshotMetaDTO1,
-            $snapshotMetaDTO2,
+            $snapshotMetaInfo1,
+            $snapshotMetaInfo2,
         ];
 
-        $databaseMetaDTO1 = new DatabaseMetaDTO();
-        $databaseMetaDTO2 = new DatabaseMetaDTO();
+        $databaseMetaInfo1 = new DatabaseMetaInfo('', '', new DateTime(), true, true, function () { return true; }, 14400);
+        $databaseMetaInfo2 = new DatabaseMetaInfo('', '', new DateTime(), true, true, function () { return true; }, 14400);
         $databases1 = [
-            $databaseMetaDTO1,
-            $databaseMetaDTO2,
+            $databaseMetaInfo1,
+            $databaseMetaInfo2,
         ];
 
-        $databaseMetaDTO3 = new DatabaseMetaDTO();
-        $databaseMetaDTO4 = new DatabaseMetaDTO();
+        $databaseMetaInfo3 = new DatabaseMetaInfo('', '', new DateTime(), true, true, function () { return true; }, 14400);
+        $databaseMetaInfo4 = new DatabaseMetaInfo('', '', new DateTime(), true, true, function () { return true; }, 14400);
         $databases2 = [
-            $databaseMetaDTO3,
-            $databaseMetaDTO4,
+            $databaseMetaInfo3,
+            $databaseMetaInfo4,
         ];
 
 

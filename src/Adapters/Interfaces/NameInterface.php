@@ -5,7 +5,6 @@ namespace CodeDistortion\Adapt\Adapters\Interfaces;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
-use CodeDistortion\Adapt\Support\Hasher;
 
 /**
  * Database-adapter methods related to naming database things.

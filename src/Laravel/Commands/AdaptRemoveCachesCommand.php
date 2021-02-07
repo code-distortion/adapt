@@ -2,11 +2,11 @@
 
 namespace CodeDistortion\Adapt\Laravel\Commands;
 
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * Command to delete the Adapt snapshot and test-databases.
@@ -15,20 +15,12 @@ class AdaptRemoveCachesCommand extends Command
 {
     use CommandFunctionalityTrait;
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    /** @var string The name and signature of the console command. */
     protected $signature = 'adapt:remove-db-caches '
                             . '{--F|force} '
                             . '{--env-file=.env.testing : The .env file to load from}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    /** @var string The console command description. */
     protected $description = 'Remove Adapt\'s test-databases and snapshot files';
 
     /**
@@ -54,24 +46,37 @@ class AdaptRemoveCachesCommand extends Command
         (new ReloadLaravelConfig())->reload($envPath);
 
         $cacheListDTO = $this->getCacheList();
-        if ($cacheListDTO->containsAnyCache()) {
-
-            $delete = true;
-            if (!$this->option('force')) {
-                $this->listDatabases($cacheListDTO);
-                $this->listSnapshotPaths($cacheListDTO);
-                $delete = $this->confirm('Do you wish to proceed?');
-            }
-            if ($delete) {
-                $this->deleteDatabases($cacheListDTO);
-                $this->deleteSnapshots($cacheListDTO);
-                $this->info('');
-            }
-        } else {
+        if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no caches to remove.');
             $this->info('');
+            return;
         }
+
+        if (!$this->getConfirmation($cacheListDTO)) {
+            return;
+        }
+
+        $this->deleteDatabases($cacheListDTO);
+        $this->deleteSnapshots($cacheListDTO);
+        $this->info('');
+    }
+
+    /**
+     * Get confirmation from the user before proceeding.
+     *
+     * @param CacheListDTO $cacheListDTO The list of things to be deleted.
+     * @return boolean
+     */
+    private function getConfirmation(CacheListDTO $cacheListDTO): bool
+    {
+        if ($this->option('force')) {
+            return true;
+        }
+
+        $this->listDatabases($cacheListDTO);
+        $this->listSnapshotPaths($cacheListDTO);
+        return $this->confirm('Do you wish to proceed?');
     }
 
     /**
@@ -82,13 +87,15 @@ class AdaptRemoveCachesCommand extends Command
      */
     private function listDatabases(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->databases) {
-            $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
-            foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-                $this->warn('- Connection "' . $connection . '":');
-                foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                    $this->warn('  - ' . $databaseMetaDTO->readable());
-                }
+        if (!$cacheListDTO->databases) {
+            return;
+        }
+
+        $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+            $this->warn('- Connection "' . $connection . '":');
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+                $this->warn('  - ' . $databaseMetaDTO->readable());
             }
         }
     }
@@ -101,11 +108,13 @@ class AdaptRemoveCachesCommand extends Command
      */
     private function listSnapshotPaths(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->snapshots) {
-            $this->warn(PHP_EOL . 'These snapshots will be DELETED:' . PHP_EOL);
-            foreach ($cacheListDTO->snapshots as $snapshotMetaDTO) {
-                $this->warn('- ' . $snapshotMetaDTO->readable());
-            }
+        if (!$cacheListDTO->snapshots) {
+            return;
+        }
+
+        $this->warn(PHP_EOL . 'These snapshots will be DELETED:' . PHP_EOL);
+        foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
+            $this->warn('- ' . $snapshotMetaInfo->readable());
         }
     }
 
@@ -117,17 +126,35 @@ class AdaptRemoveCachesCommand extends Command
      */
     private function deleteDatabases(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->databases) {
-            $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
-            foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-                $this->info('- Connection "' . $connection . '":');
-                foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                    if ($this->deleteDatabase((string) $connection, (string) $databaseMetaDTO->name)) {
-                        $this->info('  - DELETED ' . $databaseMetaDTO->readable());
-                    } else {
-                        $this->error('  - COULD NOT DELETE ' . $databaseMetaDTO->readable());
-                    }
+        if (!$cacheListDTO->databases) {
+            return;
+        }
+
+        // several databases may point to the same actual database.
+        // get the sizes before deleting any of them
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+                $databaseMetaDTO->getSize();
+            }
+        }
+
+        $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
+        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+
+            $this->info('- Connection "' . $connection . '":');
+            foreach ($databaseMetaDTOs as $databaseMetaDTO) {
+
+                $readable = null;
+                $deleted = false;
+                try {
+                    $readable = $databaseMetaDTO->readable();
+                    $deleted = $databaseMetaDTO->delete();
+                } catch (Throwable $e) {
                 }
+
+                $deleted
+                    ? $this->info('  - DELETED ' . $readable)
+                    : $this->error('  - COULD NOT DELETE ' . $readable);
             }
         }
     }
@@ -140,18 +167,24 @@ class AdaptRemoveCachesCommand extends Command
      */
     private function deleteSnapshots(CacheListDTO $cacheListDTO)
     {
-        if ($cacheListDTO->snapshots) {
+        if (!$cacheListDTO->snapshots) {
+            return;
+        }
 
-            $fileSystem = new Filesystem();
+        $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
+        foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
 
-            $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
-            foreach ($cacheListDTO->snapshots as $snapshotMetaDTO) {
-                if ($fileSystem->unlink((string) $snapshotMetaDTO->path)) {
-                    $this->info('- DELETED ' . $snapshotMetaDTO->readable());
-                } else {
-                    $this->error('- COULD NOT DELETE ' . $snapshotMetaDTO->readable());
-                }
+            $readable = null;
+            $deleted = false;
+            try {
+                $readable = $snapshotMetaInfo->readable();
+                $deleted = $snapshotMetaInfo->delete();
+            } catch (Throwable $e) {
             }
+
+            $deleted
+                ? $this->info('- DELETED ' . $readable)
+                : $this->error('- COULD NOT DELETE ' . $readable);
         }
     }
 }

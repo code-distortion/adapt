@@ -7,173 +7,80 @@ namespace CodeDistortion\Adapt\DTO;
  */
 class ConfigDTO
 {
-    /**
-     * The name of the current project.
-     *
-     * @var string
-     */
+    /** @var string The name of the current project. */
     public $projectName;
 
 
-    /**
-     * The database connection to prepare.
-     *
-     * @var string
-     */
+    /** @var string The database connection to prepare. */
     public $connection;
 
-    /**
-     * The database driver to use when building the database ("mysql", "sqlite" etc).
-     *
-     * @var string|null
-     */
+    /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public $driver = null;
 
-    /**
-     * The name of the database to use.
-     *
-     * @var string|null
-     */
+    /** @var string|null The name of the database to use. */
     public $database = null;
 
-    /**
-     * A modifier on the database name (eg. Paratest adds a TEST_TOKEN env setting to make the database unique).
-     *
-     * @var string
-     */
+    /** @var string A database name modifier (eg. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public $databaseModifier = '';
 
 
-    /**
-     * The directory to store database snapshots in.
-     *
-     * @var string
-     */
+    /** @var string The directory to store database snapshots in. */
     public $storageDir;
 
-    /**
-     * The prefix to add to snapshot filenames.
-     *
-     * @var string
-     */
+    /** @var string The prefix to add to snapshot filenames. */
     public $snapshotPrefix;
 
-    /**
-     * The prefix to add to database names.
-     *
-     * @var string
-     */
+    /** @var string The prefix to add to database names. */
     public $databasePrefix;
 
-    /**
-     * The files and directories to look through. Changes to files will invalidate the snapshots.
-     *
-     * @var string[]
-     */
+    /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public $hashPaths;
 
 
-    /**
-     * The files to import before the migrations are run.
-     *
-     * @var string[]|string[][]
-     */
+    /** @var string[]|string[][] The files to import before the migrations are run. */
     public $preMigrationImports;
 
-    /**
-     * Should the migrations be run? / the location of the migrations to run - if not then the database will be empty.
-     *
-     * @var boolean|string
-     */
+    /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
 
-    /**
-     * The seeders to run after migrating - will only be run if migrations were run.
-     *
-     * @var string[]
-     */
+    /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public $seeders;
 
-    /**
-     * Is a browser test being run?.
-     *
-     * When true, this will turn off $reuseTestDBs, $scenarioTestDBs and $transactionRollback.
-     *
-     * @var boolean
-     */
+    /** @var boolean Is a browser test being run?. When true, this will turn off $reuseTestDBs and $scenarioTestDBs. */
     public $isBrowserTest;
 
 
-    /**
-     * When turned on, databases will be reused when possible instead of rebuilding them.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public $reuseTestDBs;
 
-    /**
-     * When turned on, databases will be created for each scenario (based on migrations and seeders etc).
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
     public $scenarioTestDBs;
 
-    /**
-     * Should tests be encapsulated within transactions?.
-     *
-     * @var boolean
-     */
-    public $transactionRollback;
-
-    /**
-     * When turned on, snapshot files will created and imported when available.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, snapshot files will created and imported when available. */
     public $snapshotsEnabled;
 
-    /**
-     * When turned on, a snapshot (dump/copy) of the database will be taken after migrations have been run.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after migrations have been run. */
     public $takeSnapshotAfterMigrations;
 
-    /**
-     * When turned on, a snapshot (dump/copy) of the database will be taken after seeders have been run.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after seeders have been run. */
     public $takeSnapshotAfterSeeders;
 
 
-    /**
-     * The path to the "mysql" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "mysql" executable. */
     public $mysqlExecutablePath;
 
-    /**
-     * The path to the "mysqldump" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "mysqldump" executable. */
     public $mysqldumpExecutablePath;
 
-    /**
-     * The path to the "psql" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "psql" executable. */
     public $psqlExecutablePath;
 
-    /**
-     * The path to the "pg_dump" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "pg_dump" executable. */
     public $pgDumpExecutablePath;
+
+
+    /** @var integer The number of seconds grace-period before invalid databases and snapshots are to be deleted. */
+    public $invalidationGraceSeconds = 0;
 
 
     /**
@@ -361,19 +268,16 @@ class ConfigDTO
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs        Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $scenarioTestDBs     Create databases as needed for the database-scenario?.
-     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
+     * @param boolean $reuseTestDBs    Reuse databases when possible (instead of rebuilding them)?.
+     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
     public function cacheTools(
         bool $reuseTestDBs,
-        bool $scenarioTestDBs,
-        bool $transactionRollback
+        bool $scenarioTestDBs
     ): self {
         $this->reuseTestDBs = $reuseTestDBs;
         $this->scenarioTestDBs = $scenarioTestDBs;
-        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 
@@ -398,18 +302,6 @@ class ConfigDTO
     public function scenarioTestDBs(bool $scenarioTestDBs): self
     {
         $this->scenarioTestDBs = $scenarioTestDBs;
-        return $this;
-    }
-
-    /**
-     * Turn transactions on or off.
-     *
-     * @param boolean $transactionRollback Should tests be encapsulated within transactions?.
-     * @return static
-     */
-    public function transactionRollback(bool $transactionRollback): self
-    {
-        $this->transactionRollback = $transactionRollback;
         return $this;
     }
 
@@ -461,6 +353,20 @@ class ConfigDTO
     ): self {
         $this->psqlExecutablePath = $psqlExecutablePath;
         $this->pgDumpExecutablePath = $pgDumpExecutablePath;
+        return $this;
+    }
+
+
+
+    /**
+     * Set the number of seconds grace-period before invalid databases and snapshots are to be deleted.
+     *
+     * @param integer $invalidationGraceSeconds The number of seconds.
+     * @return static
+     */
+    public function invalidationGraceSeconds(int $invalidationGraceSeconds): self
+    {
+        $this->invalidationGraceSeconds = $invalidationGraceSeconds;
         return $this;
     }
 

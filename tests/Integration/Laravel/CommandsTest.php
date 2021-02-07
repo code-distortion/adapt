@@ -11,7 +11,6 @@ use CodeDistortion\Adapt\Support\StringSupport;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
-use DB;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -48,7 +47,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
                 ],
             ],
             [
@@ -69,8 +68,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.afd818-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -93,9 +92,9 @@ class CommandsTest extends LaravelTestCase
                     . "- [file2]\n"
                     . "- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.afd818-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
             ],
         ];
@@ -163,7 +162,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
                 ],
             ],
             [
@@ -184,8 +183,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.afd818-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -208,9 +207,9 @@ class CommandsTest extends LaravelTestCase
                     . "- DELETED [file2]\n"
                     . "- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.afd818-c08d1541e81a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.afd818-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
             ],
         ];

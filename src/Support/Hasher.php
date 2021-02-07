@@ -12,18 +12,10 @@ class Hasher
 {
     use InjectTrait;
 
-    /**
-     * The hash of the files that may affect the database - based on the files and directories in hashPaths etc.
-     *
-     * @var string|null
-     */
+    /** @var string|null The hash files that may affect the db - based on the files and dirs in hashPaths etc. */
     private static $sourceFilesHash = null;
 
-    /**
-     * The hash representing the way the database is built.
-     *
-     * @var string|null
-     */
+    /** @var string|null The hash representing the way the database is built. */
     private $scenarioHash = null;
 
 
@@ -225,7 +217,7 @@ class Hasher
             'scenarioHash' => $this->generateScenarioHash($seeders),
             'projectName' => $this->config->projectName,
             'connection' => $this->config->connection,
-            'transactions' => $this->config->transactionRollback,
+            'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));
 

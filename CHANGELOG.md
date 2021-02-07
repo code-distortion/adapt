@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.5.0] - 2021-02-07
+
+### Changed (breaking)
+- Removed the config value 'transaction_rollback' and test property $transactionRollback
+- Merged the transaction functionality with reuse-test-dbs
+- Stopped Adapt from running the "DatabaseSeeder" seeder by default - to make it a drop-in replacement for Laravel's traits
+
+### Changed
+- Re-arranged the config values
+- Removed internal use of Carbon
+
+### Added
+- Added a grace period before automatically deleting invalid databases and snapshots - so now, swapping your repo branch back and forth won't remove the old databases straight away
+
+### Fixed
+- Bug stopping a sql-dump from being created when browser testing is detected
+
+
+
 ## [0.4.0] - 2021-02-03
 
 ### Changed (breaking)

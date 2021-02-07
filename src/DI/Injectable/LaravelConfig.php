@@ -9,11 +9,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
  */
 class LaravelConfig
 {
-    /**
-     * A record of each connection's original database name.
-     *
-     * @var string[]
-     */
+    /** @var string[] A record of each connection's original database name. */
     protected $origDBNames = [];
 
     /**

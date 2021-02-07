@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
-use App;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
@@ -101,29 +100,26 @@ class HasConfigDTOTest extends PHPUnitTestCase
 
             'cacheTools 1' => [
                 'method' => 'cacheTools',
-                'params' => [true, false, false],
+                'params' => [true, false],
                 'outcome' => [
                     'reuseTestDBs' => true,
                     'scenarioTestDBs' => false,
-                    'transactionRollback' => false,
                 ],
             ],
             'cacheTools 2' => [
                 'method' => 'cacheTools',
-                'params' => [false, true, false],
+                'params' => [false, true],
                 'outcome' => [
                     'reuseTestDBs' => false,
                     'scenarioTestDBs' => true,
-                    'transactionRollback' => false,
                 ],
             ],
             'cacheTools 3' => [
                 'method' => 'cacheTools',
-                'params' => [false, false, true],
+                'params' => [false, false],
                 'outcome' => [
                     'reuseTestDBs' => false,
                     'scenarioTestDBs' => false,
-                    'transactionRollback' => true,
                 ],
             ],
 
@@ -168,28 +164,6 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'params' => [],
                 'outcome' => [
                     'scenarioTestDBs' => false,
-                ],
-            ],
-
-            'transactions 1' => [
-                'method' => 'transactionRollback',
-                'params' => [true],
-                'outcome' => [
-                    'transactionRollback' => true,
-                ],
-            ],
-            'transactions 2' => [
-                'method' => 'transactionRollback',
-                'params' => [false],
-                'outcome' => [
-                    'transactionRollback' => false,
-                ],
-            ],
-            'noTransactionRollback' => [
-                'method' => 'noTransactionRollback',
-                'params' => [],
-                'outcome' => [
-                    'transactionRollback' => false,
                 ],
             ],
 

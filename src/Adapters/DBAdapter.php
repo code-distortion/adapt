@@ -16,39 +16,19 @@ use CodeDistortion\Adapt\Support\Hasher;
  */
 abstract class DBAdapter
 {
-    /**
-     * The "build" part of this database-adapter.
-     *
-     * @var BuildInterface
-     */
+    /** @var BuildInterface The "build" part of this database-adapter. */
     public $build;
 
-    /**
-     * The "connection" part of this database-adapter.
-     *
-     * @var ConnectionInterface
-     */
+    /** @var ConnectionInterface The "connection" part of this database-adapter. */
     public $connection;
 
-    /**
-     * The "naming" part of this database-adapter.
-     *
-     * @var NameInterface
-     */
+    /** @var NameInterface The "naming" part of this database-adapter. */
     public $name;
 
-    /**
-     * The "reuse" part of this database-adapter.
-     *
-     * @var ReuseInterface
-     */
+    /** @var ReuseInterface The "reuse" part of this database-adapter. */
     public $reuse;
 
-    /**
-     * The "snapshot" part of this database-adapter.
-     *
-     * @var SnapshotInterface
-     */
+    /** @var SnapshotInterface The "snapshot" part of this database-adapter. */
     public $snapshot;
 
 

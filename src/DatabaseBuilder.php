@@ -7,13 +7,15 @@ use CodeDistortion\Adapt\Adapters\LaravelMySQLAdapter;
 use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\DTO\DatabaseMetaDTO;
-use CodeDistortion\Adapt\DTO\SnapshotMetaDTO;
+use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
+use DateTime;
+use DateTimeZone;
 use Throwable;
 
 /**
@@ -23,25 +25,13 @@ class DatabaseBuilder
 {
     use HasConfigDTOTrait;
 
-    /**
-     * The framework currently being used.
-     *
-     * @var string
-     */
+    /** @var string The framework currently being used. */
     protected $framework;
 
-    /**
-     * The name of the current test.
-     *
-     * @var string
-     */
-    protected$testName;
+    /** @var string The name of the current test. */
+    protected $testName;
 
-    /**
-     * The available database adapters.
-     *
-     * @var string[][]
-     */
+    /** @var string[][] The available database adapters. */
     private $availableDBAdapters = [
         'laravel' => [
             'mysql' => LaravelMySQLAdapter::class,
@@ -50,61 +40,23 @@ class DatabaseBuilder
         ],
     ];
 
-    /**
-     * The dependency-injection container to use.
-     *
-     * @var DIContainer
-     */
+    /** @var DIContainer The dependency-injection container to use. */
     private $di;
 
-    /**
-     * The closure to call to get the driver for a connection.
-     *
-     * @var callable
-     */
+    /** @var callable The closure to call to get the driver for a connection. */
     private $pickDriverClosure;
 
-    /**
-     * Builds and checks hashes.
-     *
-     * @var Hasher
-     */
+    /** @var Hasher Builds and checks hashes. */
     private $hasher;
 
 
-    /**
-     * Whether this builder has been executed yet or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this builder has been executed yet or not. */
     private $executed = false;
 
-    /**
-     * Whether or not old snapshots have been cleaned up yet. Happens once per test-run.
-     *
-     * @var boolean[]
-     */
-    private static $removedSnapshots = [];
-
-    /**
-     * Whether or not old databases have been cleaned up yet. Happens once per database.
-     *
-     * @var boolean[][][]
-     */
-    private static $removedOldDatabases = [];
-
-    /**
-     * The object that will do the database specific work.
-     *
-     * @var DBAdapter|null
-     */
+    /** @var DBAdapter|null The object that will do the database specific work. */
     private $dbAdapter = null;
 
-    /**
-     * Whether this is the first test being run in the suite or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this is the first test being run in the suite or not. */
     private static $firstRun = true;
 
 
@@ -141,7 +93,6 @@ class DatabaseBuilder
      */
     public static function resetStaticProps()
     {
-        static::$removedSnapshots = static::$removedOldDatabases = [];
         static::$firstRun = true;
     }
 
@@ -226,7 +177,7 @@ class DatabaseBuilder
      */
     private function usingReuseTestDBs(): bool
     {
-        return (($this->config->reuseTestDBs) && ($this->config->transactionRollback) && (!$this->config->isBrowserTest));
+        return (($this->config->reuseTestDBs) && (!$this->config->isBrowserTest));
     }
 
     /**
@@ -236,7 +187,17 @@ class DatabaseBuilder
      */
     private function dbWillBeReusable(): bool
     {
-        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
+        return $this->usingReuseTestDBs();
+    }
+
+    /**
+     * Resolve whether transactions are to be used.
+     *
+     * @return boolean
+     */
+    private function usingTransactions(): bool
+    {
+        return $this->usingReuseTestDBs();
     }
 
     /**
@@ -250,16 +211,6 @@ class DatabaseBuilder
     }
 
     /**
-     * Resolve whether transactions are to be used.
-     *
-     * @return boolean
-     */
-    private function usingTransactions(): bool
-    {
-        return (($this->config->transactionRollback) && (!$this->config->isBrowserTest));
-    }
-
-    /**
      * Resolve whether seeding is allowed.
      *
      * @return boolean
@@ -270,13 +221,23 @@ class DatabaseBuilder
     }
 
     /**
+     * Resolve whether snapshots are enabled or not.
+     *
+     * @return boolean
+     */
+    private function snapshotsAreEnabled(): bool
+    {
+        return ($this->config->snapshotsEnabled) || ($this->config->isBrowserTest);
+    }
+
+    /**
      * Derive if a snapshot should be taken after the migrations have been run.
      *
      * @return boolean
      */
     private function shouldTakeSnapshotAfterMigrations(): bool
     {
-        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
+        if (!$this->snapshotsAreEnabled()) {
             return false;
         }
 
@@ -294,7 +255,7 @@ class DatabaseBuilder
      */
     private function shouldTakeSnapshotAfterSeeders(): bool
     {
-        if ((!$this->config->snapshotsEnabled) && (!$this->config->isBrowserTest)) {
+        if (!$this->snapshotsAreEnabled()) {
             return false;
         }
 
@@ -319,7 +280,8 @@ class DatabaseBuilder
 
             Hasher::resetStaticProps();
             $this->hasher->currentSourceFilesHash();
-            $this->removeSnapshots(true, false);
+            $this->removeInvalidDatabases();
+            $this->removeInvalidSnapshots();
         }
     }
 
@@ -335,7 +297,6 @@ class DatabaseBuilder
             'Using connection "' . $this->config->connection . '" (driver "' . $this->config->driver . '")'
         );
 
-        $this->removeDatabases(true, true, false);
         $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDB();
         if ($this->usingTransactions()) {
@@ -387,7 +348,7 @@ class DatabaseBuilder
             $this->buildDBFresh();
         }
 
-        $this->dbAdapter()->reuse->writeReuseData(
+        $this->dbAdapter()->reuse->writeReuseMetaData(
             $this->origDBName(),
             $this->hasher->currentSourceFilesHash(),
             $this->hasher->currentScenarioHash(),
@@ -406,16 +367,10 @@ class DatabaseBuilder
             return false;
         }
 
-        if (
-            !$this->dbAdapter()->reuse->dbIsCleanForReuse(
-                $this->hasher->currentSourceFilesHash(),
-                $this->hasher->currentScenarioHash()
-            )
-        ) {
-            return false;
-        }
-
-        return true;
+        return $this->dbAdapter()->reuse->dbIsCleanForReuse(
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash()
+        );
     }
 
     /**
@@ -432,7 +387,7 @@ class DatabaseBuilder
             $this->dbAdapter()->build->resetDB();
         }
 
-        if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
+        if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
             $this->buildDBFromSnapshot();
         } else {
             $this->buildDBFromScratch();
@@ -468,6 +423,8 @@ class DatabaseBuilder
      */
     private function buildDBFromScratch()
     {
+        // the db may have been reset above in buildDBFresh(),
+        // if it wasn't, do it now to make sure it exists and is empty
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
         }
@@ -489,11 +446,10 @@ class DatabaseBuilder
             return;
         }
 
-        if (
-            (is_string($this->config->migrations))
-            && (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations)))
-        ) {
-            throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+        if (is_string($this->config->migrations)) {
+            if (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations))) {
+                throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
+            }
         }
 
         $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
@@ -540,15 +496,19 @@ class DatabaseBuilder
      */
     private function takeDBSnapshot(array $seeders)
     {
-        if (($this->config->snapshotsEnabled) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
-
-            $logTimer = $this->di->log->newTimer();
-
-            $snapshotPath = $this->generateSnapshotPath($seeders);
-            $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
-
-            $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
+        if (!$this->snapshotsAreEnabled()) {
+            return;
         }
+        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+            return;
+        }
+
+        $logTimer = $this->di->log->newTimer();
+
+        $snapshotPath = $this->generateSnapshotPath($seeders);
+        $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
+
+        $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
     }
 
     /**
@@ -677,197 +637,133 @@ class DatabaseBuilder
         return true;
     }
 
+
+
     /**
-     * find old/current snapshots in the storage directory.
+     * Build DatabaseMetaInfo objects for the existing databases.
      *
-     * @param boolean $findOld     Remove old snapshots.
-     * @param boolean $findCurrent Remove current snapshots.
-     * @return SnapshotMetaDTO[]
-     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be removed.
+     * @return DatabaseMetaInfo[]
      */
-    public function findSnapshots(bool $findOld, bool $findCurrent): array
+    public function buildDatabaseMetaInfos(): array
     {
-        return $this->removeSnapshots($findOld, $findCurrent, false, true);
+        return $this->dbAdapter()->reuse->findDatabases(
+            $this->origDBName(),
+            $this->hasher->currentSourceFilesHash()
+        );
     }
 
     /**
-     * Remove old/current snapshots from the storage directory.
+     * Remove invalid databases.
      *
-     * @param boolean $removeOld      Remove old snapshots.
-     * @param boolean $removeCurrent  Remove current snapshots.
-     * @param boolean $actuallyDelete Should files actually be deleted?.
-     * @param boolean $getSize        Should the sizes of the snapshot files be added?.
-     * @return SnapshotMetaDTO[]
-     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be removed.
+     * @return void
      */
-    private function removeSnapshots(
-        bool $removeOld,
-        bool $removeCurrent,
-        bool $actuallyDelete = true,
-        bool $getSize = false
-    ): array {
+    private function removeInvalidDatabases()
+    {
+        foreach ($this->buildDatabaseMetaInfos() as $databaseMetaInfo) {
+            $databaseMetaInfo->purgeIfNeeded();
+        }
+    }
 
+
+
+    /**
+     * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
+     *
+     * @return SnapshotMetaInfo[]
+     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be used.
+     */
+    public function buildSnapshotMetaInfos(): array
+    {
         if (!$this->di->filesystem->dirExists($this->config->storageDir)) {
             return [];
         }
 
-        $key = (int) $removeOld . (int) $removeCurrent . (int) $actuallyDelete;
-        if (isset(static::$removedSnapshots[$key])) {
-            return [];
-        }
-        static::$removedSnapshots[$key] = true;
-
-        $snapshotMetaDTOs = [];
         try {
+            $snapshotMetaInfos = [];
             $filePaths = $this->di->filesystem->filesInDir($this->config->storageDir);
             foreach ($filePaths as $path) {
-
-                if ($this->isSnapshotRelevant($path, $removeOld, $removeCurrent)) {
-
-                    $snapshotMetaDTOs[] = (new SnapshotMetaDTO())
-                        ->path($path)
-                        ->size($getSize ? $this->di->filesystem->size($path) : null);
-
-                    if ($actuallyDelete) {
-                        $isOld = ($removeOld && !$removeCurrent);
-                        $this->removeSnapshotFile($path, $isOld);
-                    }
-                }
+                $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
             }
+            return array_filter($snapshotMetaInfos);
         } catch (Throwable $e) {
-            if ($actuallyDelete) {
-                throw AdaptSnapshotException::couldNotRemoveSnapshots($e);
-            } else {
-                throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
-            }
+            throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
         }
-        return $snapshotMetaDTOs;
     }
 
     /**
-     * Check if the given file is a snapshot, and if it's relevant.
+     * Build a SnapshotMetaInfo object for a snapshot.
      *
-     * @param string  $path          The file to potentially remove.
-     * @param boolean $detectOld     Detect old snapshots.
-     * @param boolean $detectCurrent Detect current snapshots.
-     * @return boolean
+     * @param string $path The file to build a SnapshotMetaInfo object for.
+     * @return SnapshotMetaInfo|null
      */
-    private function isSnapshotRelevant(
-        string $path,
-        bool $detectOld,
-        bool $detectCurrent
-    ): bool {
-
+    private function buildSnapshotMetaInfo(string $path)
+    {
         $temp = explode('/', $path);
         $filename = (string) array_pop($temp);
         $prefix = $this->config->snapshotPrefix;
 
-        if (mb_substr($filename, 0, mb_strlen($prefix)) == $prefix) {
-            $filename = mb_substr($filename, mb_strlen($prefix));
-
-            $filesHashMatched = $this->hasher->filenameHasSourceFilesHash($filename);
-
-            if (($detectOld) && (!$filesHashMatched)) {
-                return true;
-            }
-            if (($detectCurrent) && ($filesHashMatched)) {
-                return true;
-            }
+        if (mb_substr($filename, 0, mb_strlen($prefix)) != $prefix) {
+            return null;
         }
-        return false;
+
+        $filename = mb_substr($filename, mb_strlen($prefix));
+
+        $accessTS = fileatime($path);
+        $accessDT = new DateTime("@$accessTS") ?: null;
+        $accessDT ? $accessDT->setTimezone(new DateTimeZone('UTC')) : null;
+
+        $snapshotMetaInfo = new SnapshotMetaInfo(
+            $path,
+            $filename,
+            $accessDT,
+            $this->hasher->filenameHasSourceFilesHash($filename),
+            function () use ($path) { return $this->di->filesystem->size($path); },
+            $this->config->invalidationGraceSeconds
+        );
+        $snapshotMetaInfo->setDeleteCallback(
+            function () use ($snapshotMetaInfo) { return $this->removeSnapshotFile($snapshotMetaInfo); }
+        );
+        return $snapshotMetaInfo;
+    }
+
+    /**
+     * Remove invalid snapshots from the storage directory.
+     *
+     * @return void
+     * @throws AdaptSnapshotException Thrown when the snapshot couldn't be removed.
+     */
+    private function removeInvalidSnapshots()
+    {
+        try {
+            foreach ($this->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
+                $snapshotMetaInfo->purgeIfNeeded();
+            }
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::couldNotRemoveSnapshots($e);
+        }
     }
 
     /**
      * Remove the given snapshot file.
      *
-     * @param string  $path  The file to remove.
-     * @param boolean $isOld If this snapshot is "old" - affects the log message.
-     * @return void
+     * @param SnapshotMetaInfo $snapshotMetaInfo The info object representing the snapshot file.
+     * @return boolean
      */
-    private function removeSnapshotFile(string $path, bool $isOld = false)
+    private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->filesystem->unlink($path);
-
-        $this->di->log->info('Removed ' . ($isOld ? 'old ' : '') . "snapshot: \"$path\"", $logTimer);
-    }
-
-    /**
-     * find old/current databases.
-     *
-     * @param boolean $lockToOrigDB Only look at test databases related to the original database this connection uses?.
-     * @param boolean $findOld      Find old databases.
-     * @param boolean $findCurrent  Find new databases.
-     * @return DatabaseMetaDTO[]
-     */
-    public function findDatabases(bool $lockToOrigDB, bool $findOld, bool $findCurrent): array
-    {
-        return $this->removeDatabases($lockToOrigDB, $findOld, $findCurrent, false, true);
-    }
-
-    /**
-     * Remove old/current databases.
-     *
-     * @param boolean $lockToOrigDB   Only look at test dbs related to the original database this connection uses?
-     *                                Otherwise all databases will be looked at.
-     * @param boolean $removeOld      Remove old databases.
-     * @param boolean $removeCurrent  Remove new databases.
-     * @param boolean $actuallyDelete Should databases actually be deleted?.
-     * @param boolean $getSize        Should the sizes of the snapshot files be added?.
-     * @return DatabaseMetaDTO[]
-     */
-    private function removeDatabases(
-        bool $lockToOrigDB,
-        bool $removeOld,
-        bool $removeCurrent,
-        bool $actuallyDelete = true,
-        bool $getSize = false
-    ): array {
-
-        // we only want to remove databases related to the current database
-        // otherwise this might conflict with databases from other projects
-        // - or even ones with a different name in the same project
-        $key = (int) $lockToOrigDB . (int) $removeOld . (int) $removeCurrent . (int) $actuallyDelete;
-        $database = $this->pickDatabaseName();
-        if (isset(static::$removedOldDatabases[$key][$this->config->driver][$database])) {
-            return [];
+        if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
+            $this->di->log->info(
+                'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
+                $logTimer
+            );
+            return true;
         }
-        static::$removedOldDatabases[$key][$this->config->driver][$database] = true;
-
-        $databases = $this->dbAdapter()->reuse->findRelevantDatabases(
-            ($lockToOrigDB ? $this->origDBName() : null),
-            $this->hasher->currentSourceFilesHash(),
-            $removeOld,
-            $removeCurrent
-        );
-
-        $databaseMetaDTOs = [];
-        foreach ($databases as $database) {
-
-            $databaseMetaDTOs[] = (new DatabaseMetaDTO())
-                ->name($database)
-                ->size($getSize ? $this->dbAdapter()->reuse->size($database) : null);
-
-            if ($actuallyDelete) {
-                $isOld = ($removeOld && !$removeCurrent);
-                $this->dbAdapter()->reuse->removeDatabase($database, $isOld);
-            }
-        }
-
-        return $databaseMetaDTOs;
+        return false;
     }
 
-    /**
-     * Remove the given database.
-     *
-     * @param string $database The database to remove.
-     * @return boolean
-     */
-    public function removeDatabase(string $database): bool
-    {
-        return $this->dbAdapter()->reuse->removeDatabase($database);
-    }
+
 
     /**
      * Create a database adapter to do the database specific work.

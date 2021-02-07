@@ -83,8 +83,7 @@ class BootCommandLaravel extends BootCommandAbstract
             )
             ->cacheTools(
                 config("$c.reuse_test_dbs"),
-                config("$c.scenario_test_dbs"),
-                config("$c.transaction_rollback")
+                config("$c.scenario_test_dbs")
             )
             ->snapshots(
                 config("$c.snapshots.enabled"),
@@ -98,6 +97,9 @@ class BootCommandLaravel extends BootCommandAbstract
             ->postgresSettings(
                 config("$c.database.pgsql.executables.psql"),
                 config("$c.database.pgsql.executables.pg_dump")
+            )
+            ->invalidationGraceSeconds(
+                config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
             );
     }
 }

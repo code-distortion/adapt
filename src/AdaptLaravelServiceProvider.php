@@ -112,8 +112,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        // 'web', 'api'
-        $middlewareGroups = array_keys($this->app->make(HttpKernel::class)->getMiddlewareGroups());
+        $httpKernel = $this->app->make(HttpKernel::class);
+        $middlewareGroups = method_exists($httpKernel, 'getMiddlewareGroups')
+            ? array_keys($httpKernel->getMiddlewareGroups())
+            : ['web', 'api'];
         foreach ($middlewareGroups as $middlewareGroup) {
             $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptMiddleware::class);
         }
@@ -139,8 +141,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // The path that browsers connect to initially (when browser testing) so that cookies can then be set
         // (the browser will reject new cookies before it's loaded a webpage)
         // this route bypasses all middleware
-        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, function () {
-            return '';
-        });
+        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, function () { return ''; });
     }
 }

@@ -21,67 +21,31 @@ use Exception;
  */
 trait DatabaseBuilderTestTrait
 {
-    /**
-     * The directory containing the test-workspaces.
-     *
-     * @var string
-     */
+    /** @var string The directory containing the test-workspaces. */
     private $workspaceBaseDir = 'tests/workspaces';
 
-    /**
-     * The current workspace directory - used during testing.
-     *
-     * @var string
-     */
+    /** @var string The current workspace directory - used during testing. */
     private $wsCurrentDir = 'tests/workspaces/current';
 
-    /**
-     * The current workspace config directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace config directory. */
     private $wsConfigDir = 'tests/workspaces/config';
 
-    /**
-     * The current workspace adapt-test-storage directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace adapt-test-storage directory. */
     private $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
 
-    /**
-     * The current workspace databases directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace databases directory. */
     private $wsDatabaseDir = 'tests/workspaces/current/database/databases';
 
-    /**
-     * The current workspace factories directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace factories directory. */
     private $wsFactoriesDir = 'tests/workspaces/current/database/factories';
 
-    /**
-     * The current workspace migrations directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace migrations directory. */
     private $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
 
-    /**
-     * The current workspace pre-migration-imports directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace pre-migration-imports directory. */
     private $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
 
-    /**
-     * The current workspace seeds directory.
-     *
-     * @var string
-     */
+    /** @var string The current workspace seeds directory. */
     private $wsSeedsDir = 'tests/workspaces/current/database/seeds';
 
 
@@ -131,7 +95,7 @@ trait DatabaseBuilderTestTrait
                 [DatabaseSeeder::class],
                 false
             )
-            ->cacheTools(true, true, true)
+            ->cacheTools(true, true)
             ->snapshots(false, false, true)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');

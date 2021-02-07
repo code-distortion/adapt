@@ -20,8 +20,7 @@ return [
      | Build Databases
      |--------------------------------------------------------------------------
      |
-     | Turn database building on or off. This is useful when you want to use
-     | Adapt to handle your Browser (Dusk) tests but don't have a database.
+     | Turn database building on or off.
      |
      | This config setting can be overridden by adding the
      | $buildDatabases property to your test-class.
@@ -29,6 +28,100 @@ return [
      */
 
     'build_databases' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reuse Test-Databases
+    |--------------------------------------------------------------------------
+    |
+    | Tests are wrapped in a transaction to keep the database in a clean
+    | state. Databases are re-used between tests, and between test-runs.
+    | This is best used with the scenario_test_dbs setting below.
+    |
+    | This config setting can be overridden by adding the
+    | $reuseTestDBs property to your test-class.
+    |
+    */
+
+    'reuse_test_dbs' => env('ADAPT_REUSE_TEST_DBS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scenario Test-Databases
+    |--------------------------------------------------------------------------
+    |
+    | A new database (based on the original database name) will be created
+    | for each scenario the tests need. This is best used with the
+    | reuse_test_dbs setting above. These dbs are safe to delete.
+    |
+    | An scenario database will be called something like:
+    | "test_your_database_name_17bd3c_d266ab43ac75"
+    |
+    | This config setting can be overridden by adding the $scenarioTestDBs
+    | property to your test-class.
+    |
+    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
+    |
+    | eg.
+    | protected bool $scenarioTestDBs = true;
+    |
+    */
+
+    'scenario_test_dbs' => env('ADAPT_SCENARIO_TEST_DBS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Snapshots
+    |--------------------------------------------------------------------------
+    |
+    | Database dumps/copies can be taken of each test-db, which are imported
+    | automatically when needed saving migration + seeding time. Snapshot
+    | files are stored in the "storage_dir" and can be removed safely.
+    |
+    | If you use Adapt to seed many tests differently, it may be worth
+    | also taking a snapshot 'after-migrations' (ie. before seeding).
+    |
+    | Taking snapshots after seeding is useful when performing
+    | browser tests (eg. Dusk).
+    |
+    | These config settings can be overridden by adding the $snapshotsEnabled,
+    | $takeSnapshotAfterMigrations and $takeSnapshotAfterSeeders properties
+    | to your test-class.
+    |
+    */
+
+    'snapshots' => [
+        'enabled' => env('ADAPT_USE_SNAPSHOTS', false),
+        'take_after_migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
+        'take_after_seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Imports To Apply Before Migrations & Seeders
+    |--------------------------------------------------------------------------
+    |
+    | If you have your own database-dump/s that you'd like to be applied before
+    | migrations run, list them here. This config setting can be overridden
+    | by adding the $preMigrationImports property to your test-class.
+    |
+    | eg.
+    | protected array $preMigrationImports = [
+    |   'mysql' => [database_path('dumps/mysql/my-database.sql')],
+    |   'sqlite' => [database_path('dumps/sqlite/my-database.sqlite')], // SQLite files are simply copied
+    |   'pgsql' => [database_path('dumps/postgres/my-database.sql')],
+    | ];
+    |
+    | NOTE: It's important that these dumps don't contain output from seeders
+    | if those seeders are to be run by Adapt as needed afterwards.
+    |
+    */
+
+    'pre_migration_imports' => [
+        'mysql' => [],
+        'sqlite' => [],
+        'pgsql' => [],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -64,124 +157,7 @@ return [
     |
     */
 
-    'seeders' => ['DatabaseSeeder'],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Imports To Apply Before Migrations & Seeders
-    |--------------------------------------------------------------------------
-    |
-    | If you have your own database-dump/s that you'd like to be applied before
-    | migrations run, list them here. This config setting can be overridden
-    | by adding the $preMigrationImports property to your test-class.
-    |
-    | eg.
-    | protected array $preMigrationImports = [
-    |   'mysql' => [database_path('dumps/mysql/my-database.sql')],
-    |   'sqlite' => [database_path('dumps/sqlite/my-database.sqlite')], // SQLite files are simply copied
-    |   'pgsql' => [database_path('dumps/postgres/my-database.sql')],
-    | ];
-    |
-    | NOTE: It's important that these dumps don't contain output from seeders
-    | if those seeders are to be run by Adapt as needed afterwards.
-    |
-    */
-
-    'pre_migration_imports' => [
-        'mysql' => [],
-        'sqlite' => [],
-        'pgsql' => [],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Reuse Test-Databases
-    |--------------------------------------------------------------------------
-    |
-    | When a test-database already exists (and was left in a clean state),
-    | it can be reused without Adapt needing to rebuild it, saving time.
-    | This is best used with the scenario_test_dbs setting below.
-    |
-    | This config setting can be overridden by adding the
-    | $reuseTestDBs property to your test-class.
-    |
-    | NOTE: This is only used when transactions are turned on.
-    |
-    */
-
-    'reuse_test_dbs' => env('ADAPT_REUSE_TEST_DBS', true),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Scenario Test-Databases
-    |--------------------------------------------------------------------------
-    |
-    | A new database (based on your original database name) will be created
-    | for each scenario your tests need. This is best used with the
-    | reuse_test_dbs setting above. These dbs are safe to delete.
-    |
-    | An scenario database will be called something like:
-    | "test_your_database_name_17bd3c_d266ab43ac75"
-    |
-    | This config setting can be overridden by adding the $scenarioTestDBs
-    | property to your test-class.
-    |
-    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
-    |
-    | eg.
-    | protected bool $scenarioTestDBs = true;
-    |
-    */
-
-    'scenario_test_dbs' => env('ADAPT_SCENARIO_TEST_DBS', true),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Use Transactions
-    |--------------------------------------------------------------------------
-    |
-    | Your tests can run within a transaction that's rolled-back afterwards.
-    | This leaves the database fresh so it won't need to be rebuilt
-    | during the next test-run.
-    |
-    | This config setting can be overridden by adding the $transactions
-    | property to your test-class.
-    |
-    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
-    |
-    | eg.
-    | protected bool $transactionRollback = true;
-    |
-    */
-
-    'transaction_rollback' => env('ADAPT_TRANSACTION_ROLLBACK', true),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Database Snapshots
-    |--------------------------------------------------------------------------
-    |
-    | Database dumps/copies can be taken of each test-db, which are imported
-    | automatically when needed saving migration + seeding time. Snapshot
-    | files are stored in the "storage_dir" and can be removed safely.
-    |
-    | If you use Adapt to seed many tests differently, it may be worth
-    | also taking a snapshot 'after-migrations' (ie. before seeding).
-    |
-    | Taking snapshots after seeding is useful when performing
-    | browser tests (eg. Dusk).
-    |
-    | These config settings can be overridden by adding the $snapshotsEnabled,
-    | $takeSnapshotAfterMigrations and $takeSnapshotAfterSeeders properties
-    | to your test-class.
-    |
-    */
-
-    'snapshots' => [
-        'enabled' => env('ADAPT_USE_SNAPSHOTS', false),
-        'take_after_migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
-        'take_after_seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
-    ],
+    'seeders' => [], // eg. ['DatabaseSeeder'],
 
     /*
     |--------------------------------------------------------------------------
@@ -190,7 +166,7 @@ return [
     |
     | Database-snapshots (for quicker loading) and disk-based databases will
     | be stored in this directory. It will be created automatically for
-    | you and you can safely remove it or the files inside.
+    | you, and you can safely remove it or the files inside.
     |
     */
 
@@ -219,7 +195,7 @@ return [
     | Remap Database Connections
     |--------------------------------------------------------------------------
     |
-    | This will let you overload database connections with the details from
+    | This lets you overload database connections with the details from
     | others. This config setting can be overridden by adding the
     | $remapConnections property to your test-class.
     |

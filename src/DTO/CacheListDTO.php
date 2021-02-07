@@ -7,25 +7,17 @@ namespace CodeDistortion\Adapt\DTO;
  */
 class CacheListDTO
 {
-    /**
-     * The list of snapshot files.
-     *
-     * @var SnapshotMetaDTO[]
-     */
+    /** @var SnapshotMetaInfo[] The list of snapshot files. */
     public $snapshots = [];
 
-    /**
-     * The list of databases (per connection).
-     *
-     * @var DatabaseMetaDTO[][]
-     */
+    /** @var DatabaseMetaInfo[][] The list of databases (per connection). */
     public $databases = [];
 
 
     /**
      * Replace the list of snapshot-paths with a new list.
      *
-     * @param SnapshotMetaDTO[] $snapshots The snapshot paths to store.
+     * @param SnapshotMetaInfo[] $snapshots The snapshot paths to store.
      * @return static
      */
     public function snapshots(array $snapshots): self
@@ -37,8 +29,8 @@ class CacheListDTO
     /**
      * Replace the list of databases for a particular connection.
      *
-     * @param string            $connection The connection these databases were found in.
-     * @param DatabaseMetaDTO[] $databases  The databases to store.
+     * @param string             $connection The connection these databases were found in.
+     * @param DatabaseMetaInfo[] $databases  The databases to store.
      * @return static
      */
     public function databases(string $connection, array $databases): self

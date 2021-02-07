@@ -14,13 +14,14 @@ class LaravelPropBagDTO extends PropBagDTO
      *
      * @param string      $configKey The key to this setting in the config.
      * @param string|null $propName  The setting to retrieve.
+     * @param mixed       $default   The default value.
      * @return mixed
      */
-    public function config(string $configKey, string $propName = null)
+    public function config(string $configKey, string $propName = null, $default = null)
     {
         return $this->prop(
             $propName,
-            config(Settings::LARAVEL_CONFIG_NAME . '.' . $configKey)
+            config(Settings::LARAVEL_CONFIG_NAME . '.' . $configKey) ?? $default
         );
     }
 }

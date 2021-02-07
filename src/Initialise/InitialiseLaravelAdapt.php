@@ -16,30 +16,16 @@ use Laravel\Dusk\TestCase as DuskTestCase;
  */
 trait InitialiseLaravelAdapt
 {
-    /**
-     * The properties specified in the test-class.
-     *
-     * @var PropBagDTO
-     */
+    /** @var PropBagDTO The properties specified in the test-class. */
     protected $propBag;
 
-    /**
-     * Whether this set-up object's initialisation has been run yet or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this set-up object's initialisation has been run yet or not. */
     private $initialised = false;
 
-    /**
-     * @var BootTestInterface The object used to boot Adapt.
-     */
+    /** @var BootTestInterface The object used to boot Adapt. */
     private $bootTestLaravel;
 
-    /**
-     * Whether this is the first test being run in the suite or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this is the first test being run in the suite or not. */
     private static $firstRun = true;
 
 
@@ -117,18 +103,17 @@ trait InitialiseLaravelAdapt
     {
         $propNames = [
             'buildDatabases',
-            'migrations',
-            'seeders',
-            'preMigrationImports',
             'reuseTestDBs',
             'scenarioTestDBs',
-            'transactionRollback',
             'snapshotsEnabled',
             'takeSnapshotAfterMigrations',
             'takeSnapshotAfterSeeders',
-            'isBrowserTest',
+            'preMigrationImports',
+            'migrations',
+            'seeders',
             'remapConnections',
             'defaultConnection',
+            'isBrowserTest',
         ];
 
         $this->propBag = new LaravelPropBagDTO();

@@ -11,11 +11,7 @@ use Throwable;
  */
 class LaravelPDO
 {
-    /**
-     * The pdo connection to use.
-     *
-     * @var PDO
-     */
+    /** @var PDO The pdo connection to use. */
     private $pdo;
 
 

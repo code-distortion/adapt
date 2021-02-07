@@ -46,7 +46,7 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, false)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -57,7 +57,7 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, false, true)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -68,8 +68,8 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -81,7 +81,7 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, false)
                     ->seeders([]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -101,7 +101,7 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -114,7 +114,7 @@ class SnapshotTest extends LaravelTestCase
                     ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-abda22425307.sqlite',
+                    'snapshot.database.338349-abda22425307.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -126,7 +126,7 @@ class SnapshotTest extends LaravelTestCase
                     ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-0a7748252665.sqlite',
+                    'snapshot.database.338349-0a7748252665.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -138,8 +138,8 @@ class SnapshotTest extends LaravelTestCase
                     ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-0a7748252665.sqlite',
-                    'snapshot.database.afd818-abda22425307.sqlite',
+                    'snapshot.database.338349-0a7748252665.sqlite',
+                    'snapshot.database.338349-abda22425307.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -152,7 +152,7 @@ class SnapshotTest extends LaravelTestCase
                     ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-abda22425307.sqlite',
+                    'snapshot.database.338349-abda22425307.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -174,7 +174,7 @@ class SnapshotTest extends LaravelTestCase
                     ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-abda22425307.sqlite',
+                    'snapshot.database.338349-abda22425307.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => true,
@@ -186,8 +186,8 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => false,
@@ -198,9 +198,9 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([UserSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-5f8175d30493.sqlite',
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-5f8175d30493.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
                 'expectedDatabase' => null,
                 'removeAdaptStorageDir' => false,
@@ -213,10 +213,10 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.afd818-c08d1541e81a-1.sqlite',
+                'expectedDatabase' => 'test-database.338349-e2dee1963369-1.sqlite',
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
@@ -227,10 +227,10 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.afd818-c08d1541e81a-1.sqlite',
+                'expectedDatabase' => 'test-database.338349-e2dee1963369-1.sqlite',
                 'removeAdaptStorageDir' => false,
                 'expectUsers' => ['imported-snapshot-after-seeders'],
             ],
@@ -240,11 +240,11 @@ class SnapshotTest extends LaravelTestCase
                     ->snapshots(true, true, true)
                     ->seeders([UserSeeder::class]),
                 'expectedSnapshots' => [
-                    'snapshot.database.afd818-5f8175d30493.sqlite',
-                    'snapshot.database.afd818-8bd51f9f0b21.sqlite',
-                    'snapshot.database.afd818-a34cd538e35f.sqlite',
+                    'snapshot.database.338349-5f8175d30493.sqlite',
+                    'snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    'snapshot.database.338349-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.afd818-e05e394fe863-1.sqlite',
+                'expectedDatabase' => 'test-database.338349-82c5cbc33fdd-1.sqlite',
                 'removeAdaptStorageDir' => false,
                 'expectUsers' => ['imported-snapshot-before-seeders'],
             ],
@@ -310,7 +310,7 @@ class SnapshotTest extends LaravelTestCase
      * Steps:
      * - delete the snapshot.database.x.sqlite files from tests/workspaces/scenario1/database/adapt-test-storage/
      * - run this test
-     * - copy the tests/workspaces/scenario1/database/adapt-test-storage/snapshot.database.x.sqlite files to dir above.
+     * - copy the tests/workspaces/current/database/adapt-test-storage/snapshot.database.x.sqlite files to dir above.
      */
 /*
     public function test_build_snapshot_sqlite_databases()
