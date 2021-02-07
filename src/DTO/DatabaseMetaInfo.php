@@ -166,15 +166,15 @@ class DatabaseMetaInfo
      *
      * @return string
      */
-    public function readableWithPurgeTimes(): string
+    public function readableWithPurgeInfo(): string
     {
         $purgeMessage = '';
         $purgeAfter = $this->getPurgeAfter();
         if ($purgeAfter) {
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             $purgeMessage = $purgeAfter > $nowUTC
-                ? ' - Invalid (removing in ' . Str::readableInterval($nowUTC->diff($purgeAfter)) . ')'
-                : ' - Invalid (removing next test-run)';
+                ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
+                : ' - Invalid (automatic removal: next test-run)';
         }
 
         return $this->name

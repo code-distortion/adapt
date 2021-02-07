@@ -71,7 +71,7 @@ class AdaptListCachesCommand extends Command
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
             $this->info('- Connection "' . $connection . '":');
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeTimes());
+                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo());
             }
         }
     }
@@ -90,7 +90,7 @@ class AdaptListCachesCommand extends Command
 
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
-            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeTimes());
+            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo());
         }
     }
 }

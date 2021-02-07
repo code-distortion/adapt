@@ -256,17 +256,4 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Invalidation Grace Period
-    |--------------------------------------------------------------------------
-    |
-    | Switching back-and-forth between branches may make databases invalid
-    | straight away, but you might want them to stick around for a while.
-    | This lets them stay a while before being cleaned up.
-    |
-    */
-
-    'invalidation_grace_seconds' => 4 * 60 * 60,
-
 ];

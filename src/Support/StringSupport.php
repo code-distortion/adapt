@@ -3,6 +3,8 @@
 namespace CodeDistortion\Adapt\Support;
 
 use DateInterval;
+use DateTime;
+use DateTimeZone;
 
 /**
  * Provide methods to work with strings.
@@ -40,18 +42,39 @@ class StringSupport
      * @param DateInterval $interval The amount of time to render.
      * @return string
      */
-    public static function readableInterval(DateInterval $interval): string
-    {
-        $format = [];
-        $started = false;
-        foreach (static::INTERVAL_TYPES as $type => $name) {
-            if (($interval->$type != 0) || ($type == 'i') || ($started)) {
-                $type = $started ? mb_strtoupper($type) : $type; // add preceding '0'
-                $format[] = "%$type";
-                $started = true;
-            }
-        }
+//    public static function readableInterval(DateInterval $interval): string
+//    {
+//        $format = [];
+//        $started = false;
+//        foreach (static::INTERVAL_TYPES as $type => $name) {
+//            if (($interval->$type != 0) || ($type == 'i') || ($started)) {
+//                $type = $started ? mb_strtoupper($type) : $type; // add preceding '0'
+//                $format[] = "%$type";
+//                $started = true;
+//            }
+//        }
 
-        return $interval->format(implode(':', $format));
+//        return $interval->format(implode(':', $format));
+//    }
+
+    /**
+     * Generate a human-readable version of the given time in seconds.
+     *
+     * @param DateInterval $interval The amount of time to render.
+     * @return string
+     */
+    public static function vagueReadableInterval(DateInterval $interval): string
+    {
+        $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
+        $laterUTC = (clone $nowUTC)->add($interval);
+        $seconds = $laterUTC->getTimestamp() - $nowUTC->getTimestamp();
+
+        if ($seconds < 600) { // < 10 minutes
+            return 'soon';
+        }
+        if ($seconds < 3600) { // < 1 hour
+            return 'in a while';
+        }
+        return 'later on';
     }
 }

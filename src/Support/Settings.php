@@ -21,4 +21,7 @@ class Settings
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
     public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____';
+
+    /** @var integer The number of seconds grace-period before invalid databases & snapshots are to be deleted. */
+    public const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours
 }

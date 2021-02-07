@@ -63,7 +63,8 @@ abstract class PropBagDTO
      *
      * @param string      $configKey The key to this setting in the config.
      * @param string|null $propName  The setting to retrieve.
+     * @param mixed       $default   The default value.
      * @return mixed
      */
-    abstract public function config(string $configKey, string $propName = null);
+    abstract public function config(string $configKey, string $propName = null, $default = null);
 }

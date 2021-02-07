@@ -160,7 +160,11 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
             )
-            ->invalidationGraceSeconds($this->propBag->config('invalidation_grace_seconds'));
+            ->invalidationGraceSeconds($this->propBag->config(
+                'invalidation_grace_seconds',
+                null,
+                Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+            ));
     }
 
     /**
