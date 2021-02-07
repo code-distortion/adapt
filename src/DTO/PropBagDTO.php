@@ -9,11 +9,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptPropBagDTOException;
  */
 abstract class PropBagDTO
 {
-    /**
-     * The properties and their values.
-     *
-     * @var mixed[];
-     */
+    /** @var mixed[] The properties and their values. */
     private array $props = [];
 
     /**

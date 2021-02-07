@@ -173,7 +173,7 @@ class DatabaseMetaInfo
         if ($purgeAfter) {
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             $purgeMessage = $purgeAfter > $nowUTC
-                ? ' - Invalid (removing in ' . Str::readableInterval($nowUTC->diff($purgeAfter)).')'
+                ? ' - Invalid (removing in ' . Str::readableInterval($nowUTC->diff($purgeAfter)) . ')'
                 : ' - Invalid (removing next test-run)';
         }
 

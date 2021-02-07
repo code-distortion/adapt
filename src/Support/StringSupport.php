@@ -6,10 +6,10 @@ use DateInterval;
 
 /**
  * Provide methods to work with strings.
- *
  */
 class StringSupport
 {
+    /** @var string[] The renderable parts of an DateInterval. */
     private const INTERVAL_TYPES = [
         'y' => 'year',
         'm' => 'month',

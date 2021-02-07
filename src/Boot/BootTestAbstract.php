@@ -12,53 +12,25 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
  */
 abstract class BootTestAbstract implements BootTestInterface
 {
-    /**
-     * The name of the test being run.
-     *
-     * @var string|null
-     */
+    /** @var string|null The name of the test being run. */
     protected ?string $testName = null;
 
-    /**
-     * The properties that were present in the test-class.
-     *
-     * @var PropBagDTO|null
-     */
+    /** @var PropBagDTO|null The properties that were present in the test-class. */
     protected ?PropBagDTO $propBag = null;
 
-    /**
-     * Whether a browser test is being run.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether a browser test is being run. */
     protected bool $browserTestDetected = false;
 
-    /**
-     * The closure to call to start a db transaction.
-     *
-     * @var callable|null
-     */
+    /** @var callable|null The closure to call to start a db transaction. */
     protected $transactionClosure = null;
 
-    /**
-     * The callback closure to call that will initialise the DatabaseBuilder/s.
-     *
-     * @var callable|null
-     */
+    /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback = null;
 
-    /**
-     * The database builders made by this object (so they can be executed afterwards).
-     *
-     * @var DatabaseBuilder[]
-     */
+    /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private array $builders = [];
 
-    /**
-     * The DIContainer to be used.
-     *
-     * @var DIContainer|null
-     */
+    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
 

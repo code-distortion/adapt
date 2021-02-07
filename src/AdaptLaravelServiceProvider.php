@@ -7,7 +7,6 @@ use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 

@@ -7,25 +7,13 @@ namespace CodeDistortion\Adapt\Tests\Integration\Support;
  */
 class ExpectedOutcomeDTO
 {
-    /**
-     * The expected name of the database.
-     *
-     * @var string|null
-     */
+    /** @var string|null The expected name of the database. */
     public ?string $databaseName = null;
 
-    /**
-     * The expected tables in the database.
-     *
-     * @var string[]
-     */
+    /** @var string[] The expected tables in the database. */
     public array $expectedTables = [];
 
-    /**
-     * Values expected in certain tables.
-     *
-     * @var ExpectedValuesDTO[]
-     */
+    /** @var ExpectedValuesDTO[] Values expected in certain tables. */
     public array $expectedValues = [];
 
 

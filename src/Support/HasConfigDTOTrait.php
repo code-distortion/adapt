@@ -9,11 +9,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
  */
 trait HasConfigDTOTrait
 {
-    /**
-     * A DTO containing the settings to use.
-     *
-     * @var ConfigDTO
-     */
+    /** @var ConfigDTO A DTO containing the settings to use. */
     private ConfigDTO $config;
 
     /**

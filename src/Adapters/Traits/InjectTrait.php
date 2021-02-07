@@ -4,25 +4,16 @@ namespace CodeDistortion\Adapt\Adapters\Traits;
 
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use Illuminate\Database\Connection;
 
 /**
  * Database-adapter trait to handle the injection of a DIContainer and a ConfigDTO.
  */
 trait InjectTrait
 {
-    /**
-     * The dependency-injection container to use.
-     *
-     * @var DIContainer
-     */
+    /** @var DIContainer The dependency-injection container to use. */
     protected DIContainer $di;
 
-    /**
-     * A DTO containing the settings to use.
-     *
-     * @var ConfigDTO
-     */
+    /** @var ConfigDTO A DTO containing the settings to use. */
     protected ConfigDTO $config;
 
 

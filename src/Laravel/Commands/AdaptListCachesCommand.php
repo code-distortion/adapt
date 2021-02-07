@@ -14,19 +14,10 @@ class AdaptListCachesCommand extends Command
 {
     use CommandFunctionalityTrait;
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'adapt:list-db-caches '
-                            . '{--env-file=.env.testing : The .env file to load from}';
+    /** @var string The name and signature of the console command. */
+    protected $signature = 'adapt:list-db-caches { --env-file=.env.testing : The .env file to load from }';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    /** @var string The console command description. */
     protected $description = 'List Adapt\'s test-databases and snapshot files';
 
     /**

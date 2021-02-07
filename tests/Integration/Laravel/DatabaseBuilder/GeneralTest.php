@@ -6,7 +6,6 @@ use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
-use DB;
 use Throwable;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
@@ -74,7 +73,7 @@ class GeneralTest extends LaravelTestCase
         $dbPath = config('database.connections.sqlite.database');
         $this->assertFileExists($dbPath);
         $this->assertSame(
-            "$this->wsAdaptStorageDir/test-database.afd818-e2dee1963369.sqlite",
+            "$this->wsAdaptStorageDir/test-database.338349-e2dee1963369.sqlite",
             $dbPath
         );
     }

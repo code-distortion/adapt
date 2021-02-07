@@ -25,25 +25,13 @@ class DatabaseBuilder
 {
     use HasConfigDTOTrait;
 
-    /**
-     * The framework currently being used.
-     *
-     * @var string
-     */
+    /** @var string The framework currently being used. */
     protected string $framework;
 
-    /**
-     * The name of the current test.
-     *
-     * @var string
-     */
+    /** @var string The name of the current test. */
     protected string $testName;
 
-    /**
-     * The available database adapters.
-     *
-     * @var string[][]
-     */
+    /** @var string[][] The available database adapters. */
     private array $availableDBAdapters = [
         'laravel' => [
             'mysql' => LaravelMySQLAdapter::class,
@@ -52,47 +40,23 @@ class DatabaseBuilder
         ],
     ];
 
-    /**
-     * The dependency-injection container to use.
-     *
-     * @var DIContainer
-     */
+    /** @var DIContainer The dependency-injection container to use. */
     private DIContainer $di;
 
-    /**
-     * The closure to call to get the driver for a connection.
-     *
-     * @var callable
-     */
+    /** @var callable The closure to call to get the driver for a connection. */
     private $pickDriverClosure;
 
-    /**
-     * Builds and checks hashes.
-     *
-     * @var Hasher
-     */
+    /** @var Hasher Builds and checks hashes. */
     private Hasher $hasher;
 
 
-    /**
-     * Whether this builder has been executed yet or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this builder has been executed yet or not. */
     private bool $executed = false;
 
-    /**
-     * The object that will do the database specific work.
-     *
-     * @var DBAdapter|null
-     */
+    /** @var DBAdapter|null The object that will do the database specific work. */
     private ?DBAdapter $dbAdapter = null;
 
-    /**
-     * Whether this is the first test being run in the suite or not.
-     *
-     * @var boolean
-     */
+    /** @var boolean Whether this is the first test being run in the suite or not. */
     private static bool $firstRun = true;
 
 

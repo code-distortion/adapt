@@ -7,18 +7,10 @@ namespace CodeDistortion\Adapt\DTO;
  */
 class CacheListDTO
 {
-    /**
-     * The list of snapshot files.
-     *
-     * @var SnapshotMetaInfo[]
-     */
+    /** @var SnapshotMetaInfo[] The list of snapshot files. */
     public array $snapshots = [];
 
-    /**
-     * The list of databases (per connection).
-     *
-     * @var DatabaseMetaInfo[][]
-     */
+    /** @var DatabaseMetaInfo[][] The list of databases (per connection). */
     public array $databases = [];
 
 

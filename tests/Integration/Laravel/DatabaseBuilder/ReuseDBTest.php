@@ -62,7 +62,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->scenarioTestDBs(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-4b3209375864.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.338349-4b3209375864.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -73,7 +73,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->scenarioTestDBs(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-d1941e17979a.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.338349-d1941e17979a.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
@@ -106,7 +106,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->scenarioTestDBs(true)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-6c78551d61f0.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.338349-6c78551d61f0.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
@@ -117,7 +117,7 @@ class ReuseDBTest extends LaravelTestCase
                     ->scenarioTestDBs(true)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
-                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.afd818-e07d09bf11b7.sqlite',
+                'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.338349-e07d09bf11b7.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],

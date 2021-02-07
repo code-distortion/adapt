@@ -7,165 +7,75 @@ namespace CodeDistortion\Adapt\DTO;
  */
 class ConfigDTO
 {
-    /**
-     * The name of the current project.
-     *
-     * @var string
-     */
+    /** @var string The name of the current project. */
     public string $projectName;
 
 
-    /**
-     * The database connection to prepare.
-     *
-     * @var string
-     */
+    /** @var string The database connection to prepare. */
     public string $connection;
 
-    /**
-     * The database driver to use when building the database ("mysql", "sqlite" etc).
-     *
-     * @var string|null
-     */
+    /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public ?string $driver = null;
 
-    /**
-     * The name of the database to use.
-     *
-     * @var string|null
-     */
+    /** @var string|null The name of the database to use. */
     public ?string $database = null;
 
-    /**
-     * A modifier on the database name (eg. Paratest adds a TEST_TOKEN env setting to make the database unique).
-     *
-     * @var string
-     */
+    /** @var string A database name modifier (eg. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public string $databaseModifier = '';
 
 
-    /**
-     * The directory to store database snapshots in.
-     *
-     * @var string
-     */
+    /** @var string The directory to store database snapshots in. */
     public string $storageDir;
 
-    /**
-     * The prefix to add to snapshot filenames.
-     *
-     * @var string
-     */
+    /** @var string The prefix to add to snapshot filenames. */
     public string $snapshotPrefix;
 
-    /**
-     * The prefix to add to database names.
-     *
-     * @var string
-     */
+    /** @var string The prefix to add to database names. */
     public string $databasePrefix;
 
-    /**
-     * The files and directories to look through. Changes to files will invalidate the snapshots.
-     *
-     * @var string[]
-     */
+    /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public array $hashPaths;
 
 
-    /**
-     * The files to import before the migrations are run.
-     *
-     * @var string[]|string[][]
-     */
+    /** @var string[]|string[][] The files to import before the migrations are run. */
     public array $preMigrationImports;
 
-    /**
-     * Should the migrations be run? / the location of the migrations to run - if not then the database will be empty.
-     *
-     * @var boolean|string
-     */
+    /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
 
-    /**
-     * The seeders to run after migrating - will only be run if migrations were run.
-     *
-     * @var string[]
-     */
+    /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public array $seeders;
 
-    /**
-     * Is a browser test being run?.
-     *
-     * When true, this will turn off $reuseTestDBs and $scenarioTestDBs.
-     *
-     * @var boolean
-     */
+    /** @var boolean Is a browser test being run?. When true, this will turn off $reuseTestDBs and $scenarioTestDBs. */
     public bool $isBrowserTest;
 
 
-    /**
-     * When turned on, databases will be reused when possible instead of rebuilding them.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public bool $reuseTestDBs;
 
-    /**
-     * When turned on, databases will be created for each scenario (based on migrations and seeders etc).
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
     public bool $scenarioTestDBs;
 
-    /**
-     * When turned on, snapshot files will created and imported when available.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, snapshot files will created and imported when available. */
     public bool $snapshotsEnabled;
 
-    /**
-     * When turned on, a snapshot (dump/copy) of the database will be taken after migrations have been run.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after migrations have been run. */
     public bool $takeSnapshotAfterMigrations;
 
-    /**
-     * When turned on, a snapshot (dump/copy) of the database will be taken after seeders have been run.
-     *
-     * @var boolean
-     */
+    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after seeders have been run. */
     public bool $takeSnapshotAfterSeeders;
 
 
-    /**
-     * The path to the "mysql" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "mysql" executable. */
     public string $mysqlExecutablePath;
 
-    /**
-     * The path to the "mysqldump" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "mysqldump" executable. */
     public string $mysqldumpExecutablePath;
 
-    /**
-     * The path to the "psql" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "psql" executable. */
     public string $psqlExecutablePath;
 
-    /**
-     * The path to the "pg_dump" executable.
-     *
-     * @var string
-     */
+    /** @var string The path to the "pg_dump" executable. */
     public string $pgDumpExecutablePath;
 
 

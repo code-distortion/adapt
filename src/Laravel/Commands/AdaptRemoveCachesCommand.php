@@ -2,7 +2,6 @@
 
 namespace CodeDistortion\Adapt\Laravel\Commands;
 
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
@@ -16,20 +15,12 @@ class AdaptRemoveCachesCommand extends Command
 {
     use CommandFunctionalityTrait;
 
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    /** @var string The name and signature of the console command. */
     protected $signature = 'adapt:remove-db-caches '
                             . '{--F|force} '
                             . '{--env-file=.env.testing : The .env file to load from}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    /** @var string The console command description. */
     protected $description = 'Remove Adapt\'s test-databases and snapshot files';
 
     /**

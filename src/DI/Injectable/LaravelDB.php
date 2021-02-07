@@ -11,11 +11,7 @@ use Throwable;
  */
 class LaravelDB
 {
-    /**
-     * The database connection this object will use.
-     *
-     * @var string
-     */
+    /** @var string The database connection this object will use. */
     private string $connection;
 
 
