@@ -733,6 +733,28 @@ class DatabaseBuilder
     }
 
 
+    /**
+     * Check to see if any of the transaction was committed (if relevant), and generate a warning.
+     *
+     * @return void
+     */
+    public function checkForCommittedTransaction(): void
+    {
+        if (!$this->usingTransactions()) {
+            return;
+        }
+        if (!$this->dbAdapter()->reuse->wasTransactionCommitted()) {
+            return;
+        }
+
+        $this->di->log->warning(
+            "Test \"$this->testName\" committed its transaction"
+                    . " - consider turning \$reuseTestDBs off to isolate it "
+                    . "from other tests that don't commit their transactions"
+        );
+    }
+
+
 
     /**
      * Create a database adapter to do the database specific work.

@@ -204,6 +204,18 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function defaultDI(string $connection): DIContainer;
 
     /**
+     * Check to see if any of the transactions were committed, and generate a warning.
+     *
+     * @retrun void
+     */
+    public function checkForCommittedTransactions(): void
+    {
+        foreach ($this->builders as $builder) {
+            $builder->checkForCommittedTransaction();
+        }
+    }
+
+    /**
      * Perform any clean-up needed after the test has finished.
      *
      * @return void

@@ -79,7 +79,7 @@ class LaravelSQLiteReuse implements ReuseInterface
                 'sourceFilesHash' => $sourceFilesHash,
                 'scenarioHash' => $scenarioHash,
                 'reusable' => (int) $reusable,
-                'insideTransaction' => false,
+                'insideTransaction' => 0,
                 'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
             ]
         );
@@ -132,14 +132,30 @@ class LaravelSQLiteReuse implements ReuseInterface
         }
 
         if ($reuseInfo->inside_transaction) {
-            $this->di->log->warning(
-                'The previous transaction for database "' . $this->config->database . '" '
-                . 'was committed instead of being rolled-back'
-            );
+//            $this->di->log->warning(
+//                'The previous transaction for database "' . $this->config->database . '" '
+//                . 'was committed instead of being rolled-back'
+//            );
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Check if the transaction was committed.
+     *
+     * @return boolean
+     */
+    public function wasTransactionCommitted(): bool
+    {
+        try {
+            $rows = $this->di->db->select("SELECT `inside_transaction` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
+            $reuseInfo = reset($rows);
+            return (bool) $reuseInfo->inside_transaction;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /**

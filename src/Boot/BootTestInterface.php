@@ -59,6 +59,13 @@ interface BootTestInterface
     public function run(): void;
 
     /**
+     * Check to see if any of the transactions were committed, and generate a warning.
+     *
+     * @retrun void
+     */
+    public function checkForCommittedTransactions(): void;
+
+    /**
      * Perform any clean-up needed after the test has finished.
      *
      * @return void

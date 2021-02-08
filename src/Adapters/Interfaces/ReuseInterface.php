@@ -54,6 +54,13 @@ interface ReuseInterface
     public function dbIsCleanForReuse(string $sourceFilesHash, string $scenarioHash): bool;
 
     /**
+     * Check if the transaction was committed.
+     *
+     * @return boolean
+     */
+    public function wasTransactionCommitted(): bool;
+
+    /**
      * Look for databases and build DatabaseMetaInfo objects for them.
      *
      * Only pick databases that have "reuse" meta-info stored.

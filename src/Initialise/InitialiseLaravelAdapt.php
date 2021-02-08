@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
+use PDOException;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -54,7 +55,7 @@ trait InitialiseLaravelAdapt
     }
 
     /**
-     * Initialise Adapt automatically.
+     * Clean-up after a test has run.
      *
      * @after
      * @return void
@@ -90,6 +91,12 @@ trait InitialiseLaravelAdapt
         }
 
         $this->bootTestLaravel->run();
+
+
+        // to be run after the transaction was rolled back
+        $this->beforeApplicationDestroyed(function () {
+            $this->bootTestLaravel->checkForCommittedTransactions();
+        });
     }
 
 
@@ -292,7 +299,13 @@ trait InitialiseLaravelAdapt
                     if ($useEventDispatcher) {
                         $dispatcher = $connection->getEventDispatcher();
                         $connection->unsetEventDispatcher();
-                        $connection->rollback();
+
+                        try {
+                            $connection->rollback();
+                        } catch (PDOException $e) {
+                            // act gracefully if the transaction was committed already
+                        }
+
                         $connection->setEventDispatcher($dispatcher);
                         $connection->disconnect();
                     } else {
