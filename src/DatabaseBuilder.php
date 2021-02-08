@@ -633,6 +633,8 @@ class DatabaseBuilder
             return false;
         }
 
+        $this->di->filesystem->touch($snapshotPath); // invalidation grace-period will start "now"
+
         $this->di->log->info('Import of snapshot SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
         return true;
     }
