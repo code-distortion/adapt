@@ -160,7 +160,6 @@ class LaravelMySQLReuse implements ReuseInterface
             $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
                 $this->di->db->getConnection(),
                 $name,
-                $origDBName,
                 $pdo->fetchReuseTableInfo("SELECT * FROM `" . $name . "`.`" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
                 $sourceFilesHash
             );
@@ -182,7 +181,6 @@ class LaravelMySQLReuse implements ReuseInterface
     private function buildDatabaseMetaInfo(
         string $connection,
         string $name,
-        ?string $origDBName,
         ?stdClass $reuseInfo,
         string $sourceFilesHash
     ): ?DatabaseMetaInfo {
@@ -202,7 +200,6 @@ class LaravelMySQLReuse implements ReuseInterface
             $connection,
             $name,
             DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used ?? null, new DateTimeZone('UTC')) ?: null,
-            $reuseInfo->orig_db_name == $origDBName,
             $isValid,
             fn() => $this->size($name),
             $this->config->invalidationGraceSeconds

@@ -109,7 +109,7 @@ class SnapshotMetaInfo
     {
         $purgeAfter = $this->getPurgeAfter();
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
-        return $purgeAfter && $this->getPurgeAfter() <= $nowUTC;
+        return $purgeAfter && $purgeAfter <= $nowUTC;
     }
 
     /**
