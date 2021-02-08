@@ -96,6 +96,25 @@ class AdaptSnapshotException extends AdaptException
     }
 
     /**
+     * The MySQL client gave an error while exporting - when renaming the temp file.
+     *
+     * @param string         $srcPath           The path to the file being renamed.
+     * @param string         $destPath          The path to be changed to.
+     * @param Throwable|null $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function mysqlExportErrorRenameTempFile(
+        string $srcPath,
+        string $destPath,
+        ?Throwable $originalException = null
+    ): self {
+
+        return $originalException
+            ? new self("Could not rename temporary snapshot file $srcPath to $destPath", 0, $originalException)
+            : new self("Could not rename temporary snapshot file $srcPath to $destPath");
+    }
+
+    /**
      * Imports aren't allowed for the given driver/database.
      *
      * @param string $driver   The database driver to use when building the database ("mysql", "sqlite" etc).

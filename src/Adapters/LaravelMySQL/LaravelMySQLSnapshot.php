@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\SnapshotInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use Throwable;
 
 /**
  * Database-adapter methods related to managing Laravel/MySQL database snapshots.
@@ -89,6 +90,8 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             throw AdaptSnapshotException::mysqldumpNotPresent($this->config->mysqldumpExecutablePath);
         }
 
+        $tmpPath = "$path.tmp." . mt_rand();
+
         $command = $this->config->mysqldumpExecutablePath . ' '
             . '--host=' . escapeshellarg($this->conVal('host')) . ' '
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
@@ -97,13 +100,22 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . '--add-drop-table '
             . '--skip-lock-tables '
             . escapeshellarg((string) $this->config->database) . ' '
-            . '> ' . escapeshellarg($path) . ' '
+            . '> ' . escapeshellarg($tmpPath) . ' '
             . '2>/dev/null';
 
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
             throw AdaptSnapshotException::mysqlExportError($path, $returnVal);
         }
-        return true;
+
+        try {
+            if ($this->di->filesystem->rename($tmpPath, $path)) {
+                return true;
+            }
+            throw AdaptSnapshotException::mysqlExportErrorRenameTempFile($tmpPath, $path);
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::mysqlExportErrorRenameTempFile($tmpPath, $path, $e);
+        }
+        return false;
     }
 }

@@ -139,6 +139,18 @@ class Filesystem
     }
 
     /**
+     * Rename a file.
+     *
+     * @param string $srcPath  The path to the file to rename.
+     * @param string $destPath The destination name.
+     * @return boolean
+     */
+    public function rename(string $srcPath, string $destPath): bool
+    {
+        return rename($srcPath, $destPath);
+    }
+
+    /**
      * Delete the given file.
      *
      * @param string $path The path to delete.
