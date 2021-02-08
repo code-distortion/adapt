@@ -322,11 +322,25 @@ trait InitialiseLaravelAdapt
     /**
      * Have the Browsers pass the current (test) config to the server when they make requests.
      *
+     * @deprecated
+     * @see shareConfig
      * @param Browser               $browser     The browser to update with the current config.
      * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
      * @return void
      */
     public function useCurrentConfig(Browser $browser, Browser ...$browsers): void
+    {
+        call_user_func_array([$this, 'shareConfig'], func_get_args());
+    }
+
+    /**
+     * Have the Browsers pass the current (test) config to the server when they make requests.
+     *
+     * @param Browser               $browser     The browser to update with the current config.
+     * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
+     * @return void
+     */
+    public function shareConfig(Browser $browser, Browser ...$browsers): void
     {
         $allBrowsers = [];
         $browsers = array_merge([$browser], $browsers);
