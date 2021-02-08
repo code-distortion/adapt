@@ -42,6 +42,13 @@ interface ReuseInterface
     ): void;
 
     /**
+     * Remove the re-use meta-data table.
+     *
+     * @return void
+     */
+    public function removeReuseMetaTable(): void;
+
+    /**
      * Check to see if the database can be reused.
      *
      * @param string $sourceFilesHash The current source-files-hash based on the database-building file content and

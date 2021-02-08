@@ -346,11 +346,22 @@ class DatabaseBuilder
             $this->buildDBFresh();
         }
 
+        $this->writeReuseMetaData($this->dbWillBeReusable());
+    }
+
+    /**
+     * Create the re-use meta-data table.
+     *
+     * @throws AdaptConfigException
+     * @return void
+     */
+    private function writeReuseMetaData($readyForUse)
+    {
         $this->dbAdapter()->reuse->writeReuseMetaData(
             $this->origDBName(),
             $this->hasher->currentSourceFilesHash(),
             $this->hasher->currentScenarioHash(),
-            $this->dbWillBeReusable()
+            $readyForUse
         );
     }
 
@@ -383,6 +394,7 @@ class DatabaseBuilder
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
+            $this->writeReuseMetaData(false); // put the meta-table there straight away
         }
 
         if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
@@ -425,6 +437,7 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
+            $this->writeReuseMetaData(false); // put the meta-table there straight away
         }
 
         $this->importPreMigrationDumps();
@@ -503,8 +516,12 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
+        $this->dbAdapter()->reuse->removeReuseMetaTable(); // remove the meta-table for the snapshot
+
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
+
+        $this->writeReuseMetaData($this->dbWillBeReusable()); // put the meta-table back
 
         $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
     }

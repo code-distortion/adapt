@@ -38,7 +38,8 @@ class LaravelMySQLReuse implements ReuseInterface
         bool $reusable
     ): void {
 
-        $this->di->db->statement("DROP TABLE IF EXISTS `" . Settings::REUSE_TABLE . "`");
+        $this->removeReuseMetaTable();
+
         $this->di->db->statement(
             "CREATE TABLE `" . Settings::REUSE_TABLE . "` ("
             . "`project_name` varchar(255), "
@@ -83,6 +84,16 @@ class LaravelMySQLReuse implements ReuseInterface
                 'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
             ]
         );
+    }
+
+    /**
+     * Remove the re-use meta-data table.
+     *
+     * @return void
+     */
+    public function removeReuseMetaTable(): void
+    {
+        $this->di->db->statement("DROP TABLE IF EXISTS `" . Settings::REUSE_TABLE . "`");
     }
 
     /**
