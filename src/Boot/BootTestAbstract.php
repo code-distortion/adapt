@@ -208,12 +208,12 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-    abstract public function cleanUp(): void;
+    abstract public function postTestCleanUp(): void;
 
     /**
-     * Remove any old (ie. orphaned) temporary config files.
+     * Remove invalid databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    abstract public function removeOldTempConfigFiles(): void;
+    abstract public function purgeInvalidThings(): void;
 }

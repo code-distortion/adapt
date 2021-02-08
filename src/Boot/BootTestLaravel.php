@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Exec;
@@ -21,6 +22,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Laravel\Dusk\Browser;
+use PDOException;
 
 /**
  * Bootstrap Adapt for Laravel tests.
@@ -28,10 +30,10 @@ use Laravel\Dusk\Browser;
 class BootTestLaravel extends BootTestAbstract
 {
     use CheckLaravelHashPathsTrait;
+    use HasMutexTrait;
 
     /** @var string[] The paths to the temporary config files, created during browser tests. */
     private array $tempConfigPaths = [];
-
 
 
     /**
@@ -253,7 +255,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @return void
      */
-    public function cleanUp(): void
+    public function postTestCleanUp(): void
     {
         // remove the temporary config files that were created in this test run (if this is a browser test)
         foreach ($this->tempConfigPaths as $path) {
@@ -261,12 +263,67 @@ class BootTestLaravel extends BootTestAbstract
         }
     }
 
+
+
     /**
-     * Remove any old (ie. orphaned) temporary config files.
+     * Remove invalid databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function removeOldTempConfigFiles(): void
+    public function purgeInvalidThings(): void
+    {
+        if (!$this->getMutexLock("{$this->storageDir()}/purge-lock")) {
+            return;
+        }
+
+        $this->purgeInvalidDatabases();
+        $this->purgeInvalidSnapshots();
+        $this->removeOrphanedTempConfigFiles();
+
+        $this->releaseMutexLock();
+    }
+
+    /**
+     * Remove invalid databases.
+     *
+     * @return void
+     */
+    private function purgeInvalidDatabases(): void
+    {
+        foreach (array_keys(config('database.connections')) as $connection) {
+            try {
+                $builder = $this->createBuilder((string) $connection);
+                foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
+                    $databaseMetaInfo->purgeIfNeeded();
+                }
+            } catch (AdaptConfigException $e) {
+                // ignore exceptions caused because the database can't be connected to
+                // eg. other connections that aren't intended to be used. eg. 'pgsql', 'sqlsrv'
+            } catch (PDOException $e) {
+                // same as above
+            }
+        }
+    }
+
+    /**
+     * Remove invalid snapshots.
+     *
+     * @return void
+     */
+    private function purgeInvalidSnapshots(): void
+    {
+        $builder = $this->createBuilder(config('database.default'));
+        foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
+            $snapshotMetaInfo->purgeIfNeeded();
+        }
+    }
+
+    /**
+     * Remove old (ie. orphaned) temporary config files.
+     *
+     * @return void
+     */
+    private function removeOrphanedTempConfigFiles(): void
     {
         $nowUTC = (new DateTime('now', new DateTimeZone('UTC')));
         $paths = (new Filesystem())->filesInDir($this->storageDir());

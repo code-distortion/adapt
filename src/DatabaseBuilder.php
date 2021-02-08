@@ -280,8 +280,6 @@ class DatabaseBuilder
 
             Hasher::resetStaticProps();
             $this->hasher->currentSourceFilesHash();
-            $this->removeInvalidDatabases();
-            $this->removeInvalidSnapshots();
         }
     }
 
@@ -654,18 +652,6 @@ class DatabaseBuilder
         );
     }
 
-    /**
-     * Remove invalid databases.
-     *
-     * @return void
-     */
-    private function removeInvalidDatabases()
-    {
-        foreach ($this->buildDatabaseMetaInfos() as $databaseMetaInfo) {
-            $databaseMetaInfo->purgeIfNeeded();
-        }
-    }
-
 
 
     /**
@@ -686,7 +672,7 @@ class DatabaseBuilder
             foreach ($filePaths as $path) {
                 $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
             }
-            return array_filter($snapshotMetaInfos);
+            return array_values(array_filter($snapshotMetaInfos));
         } catch (Throwable $e) {
             throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
         }
@@ -724,23 +710,6 @@ class DatabaseBuilder
         );
         $snapshotMetaInfo->setDeleteCallback(fn() => $this->removeSnapshotFile($snapshotMetaInfo));
         return $snapshotMetaInfo;
-    }
-
-    /**
-     * Remove invalid snapshots from the storage directory.
-     *
-     * @return void
-     * @throws AdaptSnapshotException Thrown when the snapshot couldn't be removed.
-     */
-    private function removeInvalidSnapshots()
-    {
-        try {
-            foreach ($this->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
-                $snapshotMetaInfo->purgeIfNeeded();
-            }
-        } catch (Throwable $e) {
-            throw AdaptSnapshotException::couldNotRemoveSnapshots($e);
-        }
     }
 
     /**

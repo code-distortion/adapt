@@ -38,8 +38,7 @@ class Hasher
      */
     public function currentSourceFilesHash(): string
     {
-        static::$sourceFilesHash ??= $this->generateSourceFilesHash();
-        return static::$sourceFilesHash;
+        return static::$sourceFilesHash ??= $this->generateSourceFilesHash();
     }
 
     /**
@@ -64,11 +63,11 @@ class Hasher
             $hashes[$path] = $this->di->filesystem->md5File($path);
         }
 
-        static::$sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
+        $sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
 
         $this->di->log->info('Generated a hash of the database-related files', $logTimer);
 
-        return (string) static::$sourceFilesHash;
+        return $sourceFilesHash;
     }
 
 
@@ -178,8 +177,7 @@ class Hasher
      */
     public function currentScenarioHash(): string
     {
-        $this->scenarioHash ??= $this->generateScenarioHash($this->config->pickSeedersToInclude());
-        return $this->scenarioHash;
+        return $this->scenarioHash ??= $this->generateScenarioHash($this->config->pickSeedersToInclude());
     }
 
     /**

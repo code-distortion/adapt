@@ -63,12 +63,12 @@ interface BootTestInterface
      *
      * @return void
      */
-    public function cleanUp(): void;
+    public function postTestCleanUp(): void;
 
     /**
-     * Remove any old (ie. orphaned) temporary config files.
+     * Remove invalid databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function removeOldTempConfigFiles(): void;
+    public function purgeInvalidThings(): void;
 }

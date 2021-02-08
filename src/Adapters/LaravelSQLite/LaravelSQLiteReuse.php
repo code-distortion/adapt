@@ -170,7 +170,7 @@ class LaravelSQLiteReuse implements ReuseInterface
                 $sourceFilesHash
             );
         }
-        return array_filter($databaseMetaInfos);
+        return array_values(array_filter($databaseMetaInfos));
     }
 
     /**

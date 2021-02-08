@@ -8,6 +8,7 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
 
@@ -25,9 +26,6 @@ trait InitialiseLaravelAdapt
     /** @var BootTestInterface The object used to boot Adapt. */
     private BootTestInterface $bootTestLaravel;
 
-    /** @var boolean Whether this is the first test being run in the suite or not. */
-    private static bool $firstRun = true;
-
 
 
     /**
@@ -37,7 +35,7 @@ trait InitialiseLaravelAdapt
      */
     public static function resetStaticProps(): void
     {
-        static::$firstRun = true;
+        Settings::$isFirstTest = true;
     }
 
 
@@ -63,7 +61,7 @@ trait InitialiseLaravelAdapt
      */
     protected function autoTriggerCleanUp(): void
     {
-        $this->bootTestLaravel->cleanUp();
+        $this->bootTestLaravel->postTestCleanUp();
     }
 
 
@@ -85,9 +83,10 @@ trait InitialiseLaravelAdapt
 
         $this->bootTestLaravel = $this->buildBootObject();
 
-        if (static::$firstRun) {
-            static::$firstRun = false;
-            $this->bootTestLaravel->removeOldTempConfigFiles();
+        if (Settings::$isFirstTest) {
+            Settings::$isFirstTest = false;
+
+            $this->bootTestLaravel->purgeInvalidThings();
         }
 
         $this->bootTestLaravel->run();
