@@ -2,8 +2,7 @@
 
 namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
-use CodeDistortion\Adapt\DatabaseBuilder;
-use CodeDistortion\Adapt\Initialise\InitialiseLaravelAdapt;
+use CodeDistortion\Adapt\Support\Settings;
 
 trait DatabaseBuilderSetUpNoVoidTrait
 {
@@ -15,7 +14,6 @@ trait DatabaseBuilderSetUpNoVoidTrait
     public function setUp()
     {
         parent::setUp();
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
+        Settings::resetStaticProps();
     }
 }

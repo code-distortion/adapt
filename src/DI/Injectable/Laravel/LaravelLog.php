@@ -1,13 +1,14 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Injectable class to abstract logging actions.
  */
-class LaravelLog
+class LaravelLog implements LogInterface
 {
     /** @var float[] Internal timers. */
     private array $timers = [];

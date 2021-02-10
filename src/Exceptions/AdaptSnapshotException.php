@@ -115,6 +115,18 @@ class AdaptSnapshotException extends AdaptException
     }
 
     /**
+     * The MySQL client gave an error while exporting - when renaming the temp file.
+     *
+     * @param string $srcPath  The path to the file being renamed.
+     * @param string $destPath The path to be changed to.
+     * @return self
+     */
+    public static function SQLiteExportError(string $srcPath, string $destPath): self
+    {
+        return new self("Could not export (copy) SQLite file from $srcPath to $destPath");
+    }
+
+    /**
      * Imports aren't allowed for the given driver/database.
      *
      * @param string $driver   The database driver to use when building the database ("mysql", "sqlite" etc).

@@ -71,10 +71,12 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      * Export the database to the specified snapshot file.
      *
      * @param string $path The location of the snapshot file.
-     * @return boolean
+     * @return void
      */
-    public function takeSnapshot(string $path): bool
+    public function takeSnapshot(string $path): void
     {
-        return $this->di->filesystem->copy((string) $this->config->database, $path);
+        if (!$this->di->filesystem->copy((string) $this->config->database, $path)) {
+            throw AdaptSnapshotException::SQLiteExportError((string) $this->config->database, $path);
+        }
     }
 }

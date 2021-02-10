@@ -3,7 +3,7 @@
 namespace CodeDistortion\Adapt\Laravel\Middleware;
 
 use Closure;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;

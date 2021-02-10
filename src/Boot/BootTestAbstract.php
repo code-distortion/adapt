@@ -4,8 +4,10 @@ namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Bootstrap Adapt for tests.
@@ -124,6 +126,12 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     public function run(): void
     {
+        if (Settings::$isFirstTest) {
+            Settings::$isFirstTest = false;
+            $this->newLog()->info('==== Adapt initialisation ================');
+            $this->purgeInvalidThings();
+        }
+
 //        $this->resolveDI();
         $this->initBuilders();
         $this->executeBuilders();
@@ -202,6 +210,13 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DIContainer
      */
     abstract protected function defaultDI(string $connection): DIContainer;
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    abstract protected function newLog(): LogInterface;
 
     /**
      * Check to see if any of the transactions were committed, and generate a warning.

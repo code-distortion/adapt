@@ -6,16 +6,18 @@ use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
-use CodeDistortion\Adapt\DI\Injectable\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
-use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
 use DateInterval;
@@ -54,14 +56,23 @@ class BootTestLaravel extends BootTestAbstract
             ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure($this->transactionClosure)
-            ->log(new LaravelLog(
-                (bool) $this->propBag->config('log.stdout'),
-                (bool) $this->propBag->config('log.laravel')
-            ))
+            ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
     }
 
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    protected function newLog(): LogInterface
+    {
+        return new LaravelLog(
+            (bool) $this->propBag->config('log.stdout'),
+            (bool) $this->propBag->config('log.laravel')
+        );
+    }
 
     /**
      * Create a new DatabaseBuilder object based on the "default" database connection.
@@ -112,7 +123,14 @@ class BootTestLaravel extends BootTestAbstract
         };
 
 //        return new DatabaseBuilder('laravel', $this->testName, $this->di, $config, $pickDriverClosure);
-        return new DatabaseBuilder('laravel', (string) $this->testName, $di, $config, $pickDriverClosure);
+        return new DatabaseBuilder(
+            'laravel',
+            (string) $this->testName,
+            $di,
+            $config,
+            new Hasher($di, $config),
+            $pickDriverClosure
+        );
     }
 
     /**

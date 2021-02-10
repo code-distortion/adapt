@@ -2,6 +2,8 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
+
 /**
  * Common Adapt settings.
  */
@@ -26,10 +28,22 @@ class Settings
     public const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours
 
     /**
-     * A place for InitialiseLaravelAdapt's first-test flag, which can't have its own
+     * A place for BootTestAbstract's first-test flag, which can't have its own
      * (it's not shared between the test-classes the trait is included in).
      *
      * @var boolean
      */
     public static bool $isFirstTest = true;
+
+    /**
+     * Reset anything that should be reset between internal tests of the Adapt package.
+     *
+     * @return void
+     */
+    public static function resetStaticProps(): void
+    {
+        static::$isFirstTest = true;
+        Hasher::resetStaticProps();
+        LaravelMySQLSnapshot::resetStaticProps();
+    }
 }

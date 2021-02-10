@@ -56,9 +56,6 @@ class DatabaseBuilder
     /** @var DBAdapter|null The object that will do the database specific work. */
     private ?DBAdapter $dbAdapter = null;
 
-    /** @var boolean Whether this is the first test being run in the suite or not. */
-    private static bool $firstRun = true;
-
 
     /**
      * Constructor.
@@ -67,6 +64,7 @@ class DatabaseBuilder
      * @param string      $testName          The name of the test being run.
      * @param DIContainer $di                The dependency-injection container to use.
      * @param ConfigDTO   $config            A DTO containing the settings to use.
+     * @param Hasher      $hasher            The Hasher object to use.
      * @param callable    $pickDriverClosure A closure that will return the driver for the given connection.
      */
     public function __construct(
@@ -74,26 +72,15 @@ class DatabaseBuilder
         string $testName,
         DIContainer $di,
         ConfigDTO $config,
+        Hasher $hasher,
         callable $pickDriverClosure
     ) {
         $this->framework = $framework;
         $this->testName = $testName;
         $this->di = $di;
         $this->config = $config;
+        $this->hasher = $hasher;
         $this->pickDriverClosure = $pickDriverClosure;
-
-        $this->hasher = new Hasher($di, $config);
-    }
-
-
-    /**
-     * Reset anything that should be reset between internal tests of the Adapt package.
-     *
-     * @return void
-     */
-    public static function resetStaticProps(): void
-    {
-        static::$firstRun = true;
     }
 
 
@@ -272,15 +259,6 @@ class DatabaseBuilder
     {
         $this->ensureStorageDirExists();
         $this->pickDriver();
-
-        if (static::$firstRun) {
-            static::$firstRun = false;
-
-            $this->di->log->info('==== Adapt initialisation ================');
-
-            Hasher::resetStaticProps();
-            $this->hasher->currentSourceFilesHash();
-        }
     }
 
     /**

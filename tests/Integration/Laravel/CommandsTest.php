@@ -122,21 +122,21 @@ class CommandsTest extends LaravelTestCase
 
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->expectCommandOutput('adapt:list-db-caches', [], 'There are no caches.');
 
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->newDatabaseBuilder($config)->execute();
 
         // Laravel <= 5.1 doesn't have the "testing" connection so the output is different
         $hasTestingConnection = (config('database.connections.testing') !== null);
         $expectedOutput = ($hasTestingConnection ? $expectedOutputWithTestingConn : $expectedOutput);
-
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
         $expectedOutput = $this->resolveExpectedOutput($expectedOutput, $substitutions);
+
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->expectCommandOutput('adapt:list-db-caches', [], $expectedOutput);
     }
 
@@ -237,21 +237,21 @@ class CommandsTest extends LaravelTestCase
 
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->expectCommandOutput('adapt:remove-db-caches', ['--force' => true], 'There are no caches to remove.');
 
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->newDatabaseBuilder($config)->execute();
 
         // Laravel <= 5.1 doesn't have the "testing" connection so the output is different
         $hasTestingConnection = (config('database.connections.testing') !== null);
         $expectedOutput = ($hasTestingConnection ? $expectedOutputWithTestingConn : $expectedOutput);
-
-        DatabaseBuilder::resetStaticProps();
-        InitialiseLaravelAdapt::resetStaticProps();
         $expectedOutput = $this->resolveExpectedOutput($expectedOutput, $substitutions);
+
+        Settings::resetStaticProps();
+        $this->useConfig($config);
         $this->expectCommandOutput('adapt:remove-db-caches', ['--force' => true], $expectedOutput);
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use PDO;
 use stdClass;

@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot\Traits;
 
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 trait CheckLaravelHashPathsTrait

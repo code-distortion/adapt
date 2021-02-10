@@ -225,8 +225,10 @@ class LaravelSQLiteReuse implements ReuseInterface
             return null;
         }
 
-        $isValid = ($reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION)
-            && ($reuseInfo->source_files_hash == $sourceFilesHash);
+        $isValid = (
+            $reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION
+            && $reuseInfo->source_files_hash == $sourceFilesHash
+        );
 
         $databaseMetaInfo = new DatabaseMetaInfo(
             $connection,

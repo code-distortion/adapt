@@ -57,7 +57,6 @@ trait HasMutexTrait
 
         flock($this->lockFP, LOCK_UN);
         fclose($this->lockFP);
-        unlink($this->lockPath);
 
         $this->lockFP = $this->lockPath = null;
 

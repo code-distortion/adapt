@@ -30,18 +30,6 @@ trait InitialiseLaravelAdapt
 
 
     /**
-     * Reset anything that should be reset between internal tests of the Adapt package.
-     *
-     * @return void
-     */
-    public static function resetStaticProps(): void
-    {
-        Settings::$isFirstTest = true;
-    }
-
-
-
-    /**
      * Initialise Adapt automatically.
      *
      * @before
@@ -51,6 +39,13 @@ trait InitialiseLaravelAdapt
     {
         $this->afterApplicationCreated(function () {
             $this->initialiseAdapt();
+        });
+
+        $this->afterApplicationCreated(function () {
+            $this->beforeApplicationDestroyed(function () {
+                // to be run after the transaction was rolled back
+                $this->bootTestLaravel->checkForCommittedTransactions();
+            });
         });
     }
 
@@ -83,20 +78,7 @@ trait InitialiseLaravelAdapt
         $this->prepareLaravelConfig();
 
         $this->bootTestLaravel = $this->buildBootObject();
-
-        if (Settings::$isFirstTest) {
-            Settings::$isFirstTest = false;
-
-            $this->bootTestLaravel->purgeInvalidThings();
-        }
-
         $this->bootTestLaravel->run();
-
-
-        // to be run after the transaction was rolled back
-        $this->beforeApplicationDestroyed(function () {
-            $this->bootTestLaravel->checkForCommittedTransactions();
-        });
     }
 
 

@@ -4,13 +4,14 @@ namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
-use CodeDistortion\Adapt\DI\Injectable\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
-use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use DB;
 use ErrorException;
@@ -117,7 +118,41 @@ trait DatabaseBuilderTestTrait
             return config("database.connections.$connection.driver", 'unknown');
         };
 
-        return new DatabaseBuilder('laravel', 'A test', $di, $config, $pickDriver);
+        return new DatabaseBuilder(
+            'laravel',
+            'A test',
+            $di,
+            $config,
+            $this->newHasher($config, $di),
+            $pickDriver
+        );
+    }
+
+    /**
+     * Use a config as the environment.
+     *
+     * @param ConfigDTO|null   $config The ConfigDTO to use.
+     * @param DIContainer|null $di     The DIContainer to use.
+     * @return void
+     */
+    public function useConfig(?ConfigDTO $config = null, ?DIContainer $di = null): void
+    {
+        // generate a source-files-hash based on the current look_for_changes_in etc dirs
+        $this->newHasher($config, $di)->currentSourceFilesHash();
+    }
+
+    /**
+     * Build a new Hasher based on a ConfigDTO and DIContainer.
+     *
+     * @param ConfigDTO|null   $config
+     * @param DIContainer|null $di
+     * @return Hasher
+     */
+    private function newHasher(?ConfigDTO $config = null, ?DIContainer $di = null): Hasher
+    {
+        $config ??= $this->newConfigDTO('sqlite');
+        $di ??= $this->newDIContainer($config->connection);
+        return new Hasher($di, $config);
     }
 
 

@@ -5,13 +5,14 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
-use CodeDistortion\Adapt\DI\Injectable\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
-use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
@@ -36,7 +37,14 @@ class BootCommandLaravel extends BootCommandAbstract
         };
 
         $testName = '';
-        return new DatabaseBuilder('laravel', $testName, $di, $config, $pickDriverClosure);
+        return new DatabaseBuilder(
+            'laravel',
+            $testName,
+            $di,
+            $config,
+            new Hasher($di, $config),
+            $pickDriverClosure
+        );
     }
 
     /**

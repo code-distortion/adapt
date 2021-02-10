@@ -2,12 +2,12 @@
 
 namespace CodeDistortion\Adapt\DI;
 
-use CodeDistortion\Adapt\DI\Injectable\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
-use CodeDistortion\Adapt\DI\Injectable\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
-use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 
 /**
  * A dependency injection object.
