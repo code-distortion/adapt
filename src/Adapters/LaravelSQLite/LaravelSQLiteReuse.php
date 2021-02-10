@@ -204,8 +204,6 @@ class LaravelSQLiteReuse implements ReuseInterface
      *
      * @param string        $connection      The connection the database is within.
      * @param string        $name            The database's name.
-     * @param string|null   $origDBName      The original database that this instance is for - will be ignored when
-     *                                       null.
      * @param stdClass|null $reuseInfo       The reuse info from the database.
      * @param string        $sourceFilesHash The current files-hash based on the database-building file content.
      * @return DatabaseMetaInfo|null

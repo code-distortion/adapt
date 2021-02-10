@@ -11,15 +11,15 @@ use DateTimeZone;
  */
 class StringSupport
 {
-    /** @var string[] The renderable parts of an DateInterval. */
-    private const INTERVAL_TYPES = [
-        'y' => 'year',
-        'm' => 'month',
-        'd' => 'day',
-        'h' => 'hour',
-        'i' => 'minute',
-        's' => 'second',
-    ];
+//    /** @var string[] The renderable parts of an DateInterval. */
+//    private const INTERVAL_TYPES = [
+//        'y' => 'year',
+//        'm' => 'month',
+//        'd' => 'day',
+//        'h' => 'hour',
+//        'i' => 'minute',
+//        's' => 'second',
+//    ];
 
     /**
      * Generate a human-readable version of the given size in bytes.
