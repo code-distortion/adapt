@@ -15,7 +15,7 @@
 
 > The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides an introduction to this package.
 
-> The online-book [Test Database Speed Improvements - A Detailed Look](https://www.code-distortion.net/articles/test-database-speed-improvements-a-detailed-look/) explains the concepts this package uses in detail.
+> The online-book [Speed Up Your Test Databases - A Detailed Look](https://www.code-distortion.net/books/speed-up-your-test-databases-a-detailed-look/) explains the concepts this package uses in detail.
 
 
 
@@ -242,10 +242,10 @@ Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) b
 > 
 > This config-sharing can also be used in Dusk tests when you *don't have a database*. You can tell Adapt to skip the database-building process by turning off the `build_databases` config setting (or `$buildDatabases` test-class property).
 
-Simply build your Dusk tests like normal, and make these two minor changes:
+Simply create your Dusk tests like normal, and make these two minor changes:
 
-- Replace the usual `DatabaseMigrations` with the `LaravelAdapt` trait (if you need the database), and
-- When you've created your browser instance, tell it to use your test-databases by adding `$this->useCurrentConfig($browser);` (see below).
+- Replace the usual `DatabaseMigrations` with the `LaravelAdapt` trait, and
+- When you've created your browser instance, tell it to use your test-databases by adding `$this->shareConfig($browser);` (see below).
 
 ``` php
 <?php
@@ -268,7 +268,7 @@ class MyDuskTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
 
-            $this->useCurrentConfig($browser); // **** add this ****
+            $this->shareConfig($browser); // **** add this ****
 
             $user = User::factory()->create();
             $browser->visit('/')->assertSee("$user->id $user->name");
@@ -420,7 +420,7 @@ class MyFeatureTest extends TestCase
     protected array $preMigrationImports = [
 //        'mysql' => ['database/dumps/mysql/my-database.sql'],
 //        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
-//    ];
+    ];
 
     /**
      * Specify whether to run migrations or not. You can also specify the
@@ -717,7 +717,7 @@ class MyFeatureTest extends TestCase
 
 ### Dusk browser tests&hellip;
 
-Once you've added `$this->useCurrentConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests (see [above](#dusk-browser-test-usage)), you'll be able to run your browser tests alongside your other tests. Including running them in parallel.
+Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests (see [above](#dusk-browser-test-usage)), you'll be able to run your browser tests alongside your other tests. Including running them in parallel.
 
 
 
