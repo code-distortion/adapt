@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.5.1] - 2021-02-10
+
+### Added
+- A mutex when removing invalid databases, snapshots and orphaned temp-config files
+- A warning when a test commits its transaction unexpectedly - with details about the guilty test
+- Write the re-use meta-data table earlier - to reduce the risk of a database not being recognised as a test-database (when the script building it exits early)
+- MySQL dump files are now written to a temporary file first before being renamed
+
+### Changed
+- Updated config file comments
+- Renamed the browser testing method ->useCurrentConfig($browser) to ->shareConfig($browser) - useCurrentConfig is deprecated
+
+
+
 ## [0.5.0] - 2021-02-07
 
 ### Changed (breaking)
