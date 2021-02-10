@@ -38,9 +38,7 @@ class AdaptListCachesCommand extends Command
     public function handle()
     {
         $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
-
-        $envPath = base_path() . '/' . $envFile;
-        (new ReloadLaravelConfig())->reload($envPath);
+        (new ReloadLaravelConfig())->reload(base_path() . '/' . $envFile);
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
@@ -66,7 +64,6 @@ class AdaptListCachesCommand extends Command
         if (!$cacheListDTO->databases) {
             return;
         }
-
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
             $this->info('- Connection "' . $connection . '":');
@@ -87,7 +84,6 @@ class AdaptListCachesCommand extends Command
         if (!$cacheListDTO->snapshots) {
             return;
         }
-
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
             $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo());

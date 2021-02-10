@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 /**
  * Injectable class to abstract program execution.
@@ -28,7 +28,8 @@ class Exec
      */
     public function commandRuns(string $command): bool
     {
-        exec($command . ' 2>/dev/null', $output, $returnVal); // suppress stderror
+        exec($command . ' 2>/dev/null', $output, $returnVal);
+        // suppress stderror
         return $returnVal == 0;
     }
 }

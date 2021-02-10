@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\SnapshotInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use Throwable;
 
 /**
  * Database-adapter methods related to managing Laravel/MySQL database snapshots.
@@ -14,6 +15,25 @@ class LaravelMySQLSnapshot implements SnapshotInterface
 {
     use InjectTrait;
     use LaravelHelperTrait;
+
+    /** @var boolean|null An internal cache of whether the mysql client exists or not. */
+    private static $mysqlClientExists = null;
+
+    /** @var boolean|null An internal cache of whether mysqldump exists or not. */
+    private static $mysqldumpExists = null;
+
+
+
+    /**
+     * Reset anything that should be reset between internal tests of the Adapt package.
+     *
+     * @return void
+     */
+    public static function resetStaticProps()
+    {
+        static::$mysqlClientExists = null;
+        static::$mysqldumpExists = null;
+    }
 
 
     /**
@@ -52,11 +72,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             }
             return false;
         }
-
-        if (!$this->di->exec->commandRuns($this->config->mysqlExecutablePath . ' --version')) {
-            throw AdaptSnapshotException::mysqlClientNotPresent($this->config->mysqlExecutablePath);
-        }
-
+        $this->ensureMysqlClientExists();
         $command = $this->config->mysqlExecutablePath . ' '
             . '--host=' . escapeshellarg($this->conVal('host')) . ' '
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
@@ -65,7 +81,6 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . escapeshellarg((string) $this->config->database) . ' '
             . '< ' . escapeshellarg($path) . ' '
             . '2>/dev/null';
-
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
             if ($throwException) {
@@ -80,15 +95,13 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      * Export the database to the specified snapshot file.
      *
      * @param string $path The location of the snapshot file.
-     * @return boolean
+     * @return void
      * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
-    public function takeSnapshot(string $path): bool
+    public function takeSnapshot(string $path)
     {
-        if (!$this->di->exec->commandRuns($this->config->mysqldumpExecutablePath . ' --version')) {
-            throw AdaptSnapshotException::mysqldumpNotPresent($this->config->mysqldumpExecutablePath);
-        }
-
+        $this->ensureMysqlDumpExists();
+        $tmpPath = "$path.tmp." . mt_rand();
         $command = $this->config->mysqldumpExecutablePath . ' '
             . '--host=' . escapeshellarg($this->conVal('host')) . ' '
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
@@ -96,14 +109,50 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . '--password=' . escapeshellarg($this->conVal('password')) . ' '
             . '--add-drop-table '
             . '--skip-lock-tables '
+//          . '--ignore-table=' . escapeshellarg((string) $this->config->database . '.' . Settings::REUSE_TABLE) . ' '
             . escapeshellarg((string) $this->config->database) . ' '
-            . '> ' . escapeshellarg($path) . ' '
+            . '> ' . escapeshellarg($tmpPath) . ' '
             . '2>/dev/null';
-
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
             throw AdaptSnapshotException::mysqlExportError($path, $returnVal);
         }
-        return true;
+        try {
+            if (!$this->di->filesystem->rename($tmpPath, $path)) {
+                throw AdaptSnapshotException::mysqlExportErrorRenameTempFile($tmpPath, $path);
+            }
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::mysqlExportErrorRenameTempFile($tmpPath, $path, $e);
+        }
+    }
+
+    /**
+     * Make sure that the mysql client exists.
+     *
+     * @return void
+     * @throws AdaptSnapshotException Thrown when the mysql client can't be run.
+     */
+    private function ensureMysqlClientExists()
+    {
+        static::$mysqlClientExists = static::$mysqlClientExists ?? $this->di->exec->commandRuns($this->config->mysqlExecutablePath . ' --version');
+
+        if (!static::$mysqlClientExists) {
+            throw AdaptSnapshotException::mysqlClientNotPresent($this->config->mysqlExecutablePath);
+        }
+    }
+
+    /**
+     * Make sure that mysqldump exists.
+     *
+     * @return void
+     * @throws AdaptSnapshotException Thrown when mysqldump can't be run.
+     */
+    private function ensureMysqlDumpExists()
+    {
+        static::$mysqldumpExists = static::$mysqldumpExists ?? $this->di->exec->commandRuns($this->config->mysqldumpExecutablePath . ' --version');
+
+        if (!static::$mysqldumpExists) {
+            throw AdaptSnapshotException::mysqldumpNotPresent($this->config->mysqldumpExecutablePath);
+        }
     }
 }

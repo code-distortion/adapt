@@ -19,9 +19,6 @@ class LaravelPropBagDTO extends PropBagDTO
      */
     public function config(string $configKey, string $propName = null, $default = null)
     {
-        return $this->prop(
-            $propName,
-            config(Settings::LARAVEL_CONFIG_NAME . '.' . $configKey) ?? $default
-        );
+        return $this->prop($propName, config(Settings::LARAVEL_CONFIG_NAME . '.' . $configKey) ?? $default);
     }
 }

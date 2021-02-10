@@ -7,9 +7,9 @@ return [
      | Project Name
      |--------------------------------------------------------------------------
      |
-     | You might share your database server between different projects. If so
-     | then you can specify a unique project name here to ensure that Adapt
-     | doesn't interfere with Adapt test-databases from other projects.
+     | You might share your database server between different projects. If so,
+     | specify a unique project name here to ensure that Adapt doesn't
+     | interfere with Adapt test-databases from other projects.
      |
      */
 
@@ -20,10 +20,8 @@ return [
      | Build Databases
      |--------------------------------------------------------------------------
      |
-     | Turn database building on or off.
-     |
-     | This config setting can be overridden by adding the
-     | $buildDatabases property to your test-class.
+     | Turn database building on or off. This config setting can be overridden
+     | by adding the $buildDatabases property to your test-class.
      |
      */
 
@@ -34,8 +32,8 @@ return [
     | Reuse Test-Databases
     |--------------------------------------------------------------------------
     |
-    | Tests are wrapped in a transaction to keep the database in a clean
-    | state. Databases are re-used between tests, and between test-runs.
+    | Tests are wrapped in a transaction to keep the database in a clean state.
+    | Databases are re-used between tests, and also between test-runs.
     | This is best used with the scenario_test_dbs setting below.
     |
     | This config setting can be overridden by adding the
@@ -47,12 +45,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Scenario Test-Databases
+    | "Scenario" Test-Databases
     |--------------------------------------------------------------------------
     |
     | A new database (based on the original database name) will be created
-    | for each scenario the tests need. This is best used with the
-    | reuse_test_dbs setting above. These dbs are safe to delete.
+    | for each "scenario" the tests need. This is best used with the
+    | reuse_test_dbs setting above.
     |
     | An scenario database will be called something like:
     | "test_your_database_name_17bd3c_d266ab43ac75"
@@ -60,10 +58,7 @@ return [
     | This config setting can be overridden by adding the $scenarioTestDBs
     | property to your test-class.
     |
-    | NOTE: This is turned off automatically when browser testing (eg. Dusk).
-    |
-    | eg.
-    | protected bool $scenarioTestDBs = true;
+    | This is turned off automatically when browser testing (eg. Dusk).
     |
     */
 
@@ -74,15 +69,8 @@ return [
     | Database Snapshots
     |--------------------------------------------------------------------------
     |
-    | Database dumps/copies can be taken of each test-db, which are imported
-    | automatically when needed saving migration + seeding time. Snapshot
-    | files are stored in the "storage_dir" and can be removed safely.
-    |
-    | If you use Adapt to seed many tests differently, it may be worth
-    | also taking a snapshot 'after-migrations' (ie. before seeding).
-    |
-    | Taking snapshots after seeding is useful when performing
-    | browser tests (eg. Dusk).
+    | Database dumps/copies can be taken and imported automatically when
+    | needed, saving migration + seeding time.
     |
     | These config settings can be overridden by adding the $snapshotsEnabled,
     | $takeSnapshotAfterMigrations and $takeSnapshotAfterSeeders properties
@@ -101,7 +89,7 @@ return [
     | Imports To Apply Before Migrations & Seeders
     |--------------------------------------------------------------------------
     |
-    | If you have your own database-dump/s that you'd like to be applied before
+    | If you have your own database-dump/s that you'd like to be applied BEFORE
     | migrations run, list them here. This config setting can be overridden
     | by adding the $preMigrationImports property to your test-class.
     |
@@ -113,7 +101,7 @@ return [
     | ];
     |
     | NOTE: It's important that these dumps don't contain output from seeders
-    | if those seeders are to be run by Adapt as needed afterwards.
+    | if those seeders are also run by Adapt afterwards.
     |
     */
 
@@ -129,17 +117,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | Your test-databases can be migrated before use. This can be true/false,
-    | or the location of the migration files. This config setting can be
+    | or the LOCATION of the migration files. This config setting can be
     | overridden by adding the $migrations property to your test-class.
-    |
-    | eg.
-    | protected $migrations = true;
-    | or
-    | protected $migrations = 'database/migrations';
     |
     */
 
-    'migrations' => true,
+    'migrations' => true, // eg. true, false, 'database/migrations',
 
     /*
     |--------------------------------------------------------------------------
@@ -152,9 +135,6 @@ return [
     |
     | NOTE: Seeders are only run when migrations (above) are turned on.
     |
-    | eg.
-    | protected array $seeders = ['DatabaseSeeder'];
-    |
     */
 
     'seeders' => [], // eg. ['DatabaseSeeder'],
@@ -165,8 +145,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Database-snapshots (for quicker loading) and disk-based databases will
-    | be stored in this directory. It will be created automatically for
-    | you, and you can safely remove it or the files inside.
+    | be stored in this directory. It will be created automatically.
     |
     */
 
@@ -174,12 +153,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Files That Alter Test-Databases Set-Up
+    | Files That Alter Test-Databases Building
     |--------------------------------------------------------------------------
     |
     | Changes to files in these directories will invalidate existing
-    | test-databases and snapshots (they'll be re-built the next
-    | time they're needed).
+    | test-databases and snapshots (they'll be re-built).
     |
     */
 

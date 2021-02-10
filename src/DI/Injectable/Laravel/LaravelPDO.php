@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use PDO;
 use stdClass;
@@ -23,12 +23,8 @@ class LaravelPDO
      * @param string|null $password       The password to use when connecting directly to the database.
      * @param mixed[]     $connectOptions The connection-options to use when connecting directly to the database.
      */
-    public function __construct(
-        string $dsn,
-        $username,
-        $password,
-        array $connectOptions
-    ) {
+    public function __construct(string $dsn, $username, $password, array $connectOptions)
+    {
         $this->pdo = new PDO($dsn, $username, $password, $connectOptions);
     }
 

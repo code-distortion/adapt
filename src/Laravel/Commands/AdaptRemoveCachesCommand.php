@@ -41,9 +41,7 @@ class AdaptRemoveCachesCommand extends Command
     public function handle()
     {
         $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
-
-        $envPath = base_path() . '/' . $envFile;
-        (new ReloadLaravelConfig())->reload($envPath);
+        (new ReloadLaravelConfig())->reload(base_path() . '/' . $envFile);
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
@@ -73,7 +71,6 @@ class AdaptRemoveCachesCommand extends Command
         if ($this->option('force')) {
             return true;
         }
-
         $this->listDatabases($cacheListDTO);
         $this->listSnapshotPaths($cacheListDTO);
         return $this->confirm('Do you wish to proceed?');
@@ -90,7 +87,6 @@ class AdaptRemoveCachesCommand extends Command
         if (!$cacheListDTO->databases) {
             return;
         }
-
         $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
             $this->warn('- Connection "' . $connection . '":');
@@ -111,7 +107,6 @@ class AdaptRemoveCachesCommand extends Command
         if (!$cacheListDTO->snapshots) {
             return;
         }
-
         $this->warn(PHP_EOL . 'These snapshots will be DELETED:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
             $this->warn('- ' . $snapshotMetaInfo->readable());
@@ -129,7 +124,6 @@ class AdaptRemoveCachesCommand extends Command
         if (!$cacheListDTO->databases) {
             return;
         }
-
         // several databases may point to the same actual database.
         // get the sizes before deleting any of them
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
@@ -137,7 +131,6 @@ class AdaptRemoveCachesCommand extends Command
                 $databaseMetaDTO->getSize();
             }
         }
-
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
@@ -170,7 +163,6 @@ class AdaptRemoveCachesCommand extends Command
         if (!$cacheListDTO->snapshots) {
             return;
         }
-
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
 

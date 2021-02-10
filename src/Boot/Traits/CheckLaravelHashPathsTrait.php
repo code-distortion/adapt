@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot\Traits;
 
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 trait CheckLaravelHashPathsTrait
@@ -20,7 +20,6 @@ trait CheckLaravelHashPathsTrait
         $filesystem = new Filesystem();
         $seedersDir = database_path('seeders');
         $seedsDir = database_path('seeds');
-
         foreach ($hashPaths as $path) {
 
             if (!in_array($path, [$seedersDir, $seedsDir])) {

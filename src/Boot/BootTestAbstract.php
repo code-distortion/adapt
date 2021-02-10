@@ -4,8 +4,10 @@ namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Bootstrap Adapt for tests.
@@ -100,7 +102,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param DIContainer $di The DIContainer to use.
      * @return static
      */
-//    public function setDI(DIContainer $di)
+//    public function setDI(DIContainer $di): self
 //    {
 //        $this->di = $di;
 //        return $this;
@@ -124,6 +126,12 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     public function run()
     {
+        if (Settings::$isFirstTest) {
+            Settings::$isFirstTest = false;
+            $this->newLog()->info('==== Adapt initialisation ================');
+            $this->purgeInvalidThings();
+        }
+
 //        $this->resolveDI();
         $this->initBuilders();
         $this->executeBuilders();
@@ -165,7 +173,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
-    abstract protected function newBuilder(string $connection): DatabaseBuilder;
+    protected abstract function newBuilder(string $connection): DatabaseBuilder;
 
     /**
      * Execute the builders that this object created (ie. build their databases).
@@ -188,7 +196,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-//    private function resolveDI()
+//    private function resolveDI(): void
 //    {
 //        if (!$this->di) {
 //            $this->setDI($this->defaultDI());
@@ -201,19 +209,39 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param string $connection The connection to start using.
      * @return DIContainer
      */
-    abstract protected function defaultDI(string $connection): DIContainer;
+    protected abstract function defaultDI(string $connection): DIContainer;
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    abstract protected function newLog(): LogInterface;
+
+    /**
+     * Check to see if any of the transactions were committed, and generate a warning.
+     *
+     * @retrun void
+     * @return void
+     */
+    public function checkForCommittedTransactions()
+    {
+        foreach ($this->builders as $builder) {
+            $builder->checkForCommittedTransaction();
+        }
+    }
 
     /**
      * Perform any clean-up needed after the test has finished.
      *
      * @return void
      */
-    abstract public function cleanUp();
+    abstract public function postTestCleanUp();
 
     /**
-     * Remove any old (ie. orphaned) temporary config files.
+     * Remove invalid databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    abstract public function removeOldTempConfigFiles();
+    abstract public function purgeInvalidThings();
 }

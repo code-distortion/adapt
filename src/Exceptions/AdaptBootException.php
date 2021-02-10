@@ -12,7 +12,7 @@ class AdaptBootException extends AdaptException
      *
      * @return self
      */
-    public static function propBagNotSet(): self
+    public static function propBagNotSet()
     {
         return new self('No prob-bag was set');
     }

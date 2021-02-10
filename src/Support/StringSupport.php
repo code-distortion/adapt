@@ -11,15 +11,15 @@ use DateTimeZone;
  */
 class StringSupport
 {
-    /** @var string[] The renderable parts of an DateInterval. */
-    const INTERVAL_TYPES = [
-        'y' => 'year',
-        'm' => 'month',
-        'd' => 'day',
-        'h' => 'hour',
-        'i' => 'minute',
-        's' => 'second',
-    ];
+//    /** @var string[] The renderable parts of an DateInterval. */
+//    private const INTERVAL_TYPES = [
+//        'y' => 'year',
+//        'm' => 'month',
+//        'd' => 'day',
+//        'h' => 'hour',
+//        'i' => 'minute',
+//        's' => 'second',
+//    ];
 
     /**
      * Generate a human-readable version of the given size in bytes.
@@ -32,7 +32,6 @@ class StringSupport
     {
         $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((mb_strlen((string) $bytes) - 1) / 3);
-
         return round($bytes / pow(1024, $factor), $decPl) . @$size[$factor];
     }
 
@@ -68,7 +67,6 @@ class StringSupport
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
         $laterUTC = (clone $nowUTC)->add($interval);
         $seconds = $laterUTC->getTimestamp() - $nowUTC->getTimestamp();
-
         if ($seconds < 600) { // < 10 minutes
             return 'soon';
         }

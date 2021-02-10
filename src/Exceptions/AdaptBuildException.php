@@ -16,11 +16,9 @@ class AdaptBuildException extends AdaptException
      * @param string $projectName  The current owner of the database.
      * @return self
      */
-    public static function databaseOwnedByAnotherProject(string $databaseName, string $projectName): self
+    public static function databaseOwnedByAnotherProject(string $databaseName, string $projectName)
     {
-        return new self(
-            'Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"'
-        );
+        return new self('Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"');
     }
 
     /**
@@ -30,7 +28,7 @@ class AdaptBuildException extends AdaptException
      * @param Throwable $originalException The originally thrown exception.
      * @return self
      */
-    public static function seederFailed(string $seeder, Throwable $originalException): self
+    public static function seederFailed(string $seeder, Throwable $originalException)
     {
         return new self('Could not run seeder "' . $seeder . '"', 0, $originalException);
     }
@@ -40,7 +38,7 @@ class AdaptBuildException extends AdaptException
      *
      * @return self
      */
-    public static function databaseBuilderAlreadyExecuted(): self
+    public static function databaseBuilderAlreadyExecuted()
     {
         return new self('This DatabaseBuilder has already been executed');
     }

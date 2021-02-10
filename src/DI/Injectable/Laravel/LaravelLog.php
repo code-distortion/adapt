@@ -1,13 +1,14 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Injectable class to abstract logging actions.
  */
-class LaravelLog
+class LaravelLog implements LogInterface
 {
     /** @var float[] Internal timers. */
     private $timers = [];
@@ -119,10 +120,9 @@ class LaravelLog
     private function buildMessage(string $message, int $timerRef = null): string
     {
         return $message . $this->formatTime($timerRef);
-
-//        $caller = debug_backtrace()[2];
-//        $temp = explode('\\', $caller['class']);
-//        $class = array_pop($temp);
-//        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
+        //        $caller = debug_backtrace()[2];
+        //        $temp = explode('\\', $caller['class']);
+        //        $class = array_pop($temp);
+        //        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
     }
 }

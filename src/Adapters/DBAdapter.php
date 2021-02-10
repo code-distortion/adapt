@@ -39,5 +39,5 @@ abstract class DBAdapter
      * @param ConfigDTO   $config A DTO containing the settings to use.
      * @param Hasher      $hasher The object used to generate and check hashes.
      */
-    abstract public function __construct(DIContainer $di, ConfigDTO $config, Hasher $hasher);
+    public abstract function __construct(DIContainer $di, ConfigDTO $config, Hasher $hasher);
 }

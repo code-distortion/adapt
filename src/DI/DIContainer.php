@@ -2,12 +2,12 @@
 
 namespace CodeDistortion\Adapt\DI;
 
-use CodeDistortion\Adapt\DI\Injectable\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
-use CodeDistortion\Adapt\DI\Injectable\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\LaravelConfig;
-use CodeDistortion\Adapt\DI\Injectable\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 
 /**
  * A dependency injection object.
@@ -42,7 +42,7 @@ class DIContainer
      * @param LaravelArtisan $artisan The LaravelArtisan object to store.
      * @return static
      */
-    public function artisan(LaravelArtisan $artisan): self
+    public function artisan(LaravelArtisan $artisan)
     {
         $this->artisan = $artisan;
         return $this;
@@ -54,7 +54,7 @@ class DIContainer
      * @param LaravelConfig $config The LaravelConfig object to store.
      * @return static
      */
-    public function config(LaravelConfig $config): self
+    public function config(LaravelConfig $config)
     {
         $this->config = $config;
         return $this;
@@ -66,7 +66,7 @@ class DIContainer
      * @param LaravelDB $db The LaravelDB object to store.
      * @return static
      */
-    public function db(LaravelDB $db): self
+    public function db(LaravelDB $db)
     {
         $this->db = $db;
         return $this;
@@ -78,7 +78,7 @@ class DIContainer
      * @param callable|null $dbTransactionClosure The closure to store.
      * @return static
      */
-    public function dbTransactionClosure($dbTransactionClosure): self
+    public function dbTransactionClosure($dbTransactionClosure)
     {
         $this->dbTransactionClosure = $dbTransactionClosure;
         return $this;
@@ -90,7 +90,7 @@ class DIContainer
      * @param Exec $exec The Exec object to store.
      * @return static
      */
-    public function exec(Exec $exec): self
+    public function exec(Exec $exec)
     {
         $this->exec = $exec;
         return $this;
@@ -102,7 +102,7 @@ class DIContainer
      * @param Filesystem $filesystem The Filesystem object to store.
      * @return static
      */
-    public function filesystem(Filesystem $filesystem): self
+    public function filesystem(Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
         return $this;
@@ -114,7 +114,7 @@ class DIContainer
      * @param LaravelLog $log The Log object to store.
      * @return static
      */
-    public function log(LaravelLog $log): self
+    public function log(LaravelLog $log)
     {
         $this->log = $log;
         return $this;

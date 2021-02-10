@@ -73,8 +73,6 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         string $expectedReadable
     ) {
 
-        $matchesOrigDB = true;
-
         $getSizeCallback = function () use ($size) { return $size; };
 
         $calledDeleteCallback = false;
@@ -87,7 +85,6 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
             $connection,
             $name,
             $accessDT,
-            $matchesOrigDB,
             $isValid,
             $getSizeCallback,
             14400
@@ -97,7 +94,6 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         $this->assertSame($connection, $databaseMetaDTO->connection);
         $this->assertSame($name, $databaseMetaDTO->name);
         $this->assertSame($accessDT, $databaseMetaDTO->accessDT);
-        $this->assertSame($matchesOrigDB, $databaseMetaDTO->matchesOrigDB);
         $this->assertSame($isValid, $databaseMetaDTO->isValid);
         $this->assertSame($size, $databaseMetaDTO->getSize());
         $this->assertSame($expectedReadable, $databaseMetaDTO->readable());

@@ -21,9 +21,6 @@ class DatabaseMetaInfo
     /** @var DateTime|null When the file was last accessed. */
     public $accessDT;
 
-    /** @var boolean Whether the database matches the "current" databases or not */
-    public $matchesOrigDB;
-
     /** @var boolean Whether the database is valid (current) on not. */
     public $isValid;
 
@@ -45,23 +42,14 @@ class DatabaseMetaInfo
      * @param string        $connection      The connection the database is within.
      * @param string        $name            The database's name / path.
      * @param DateTime|null $accessDT        When the database was last accessed.
-     * @param boolean       $matchesOrigDB   Whether the database matches the "current" databases or not.
      * @param boolean       $isValid         Whether the database is valid (current) on not.
      * @param callable      $getSizeCallback The callback to use to calculate the database's size.
      * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
      */
-    public function __construct(
-        string $connection,
-        string $name,
-        $accessDT,
-        bool $matchesOrigDB,
-        bool $isValid,
-        callable $getSizeCallback,
-        int $graceSeconds
-    ) {
+    public function __construct(string $connection, string $name, $accessDT, bool $isValid, callable $getSizeCallback, int $graceSeconds)
+    {
         $this->connection = $connection;
         $this->name = $name;
-        $this->matchesOrigDB = $matchesOrigDB;
         $this->isValid = $isValid;
         $this->accessDT = $accessDT;
         $this->getSizeCallback = $getSizeCallback;
@@ -76,7 +64,7 @@ class DatabaseMetaInfo
      * @param callable $deleteCallback The callback to call.
      * @return $this
      */
-    public function setDeleteCallback(callable $deleteCallback): self
+    public function setDeleteCallback(callable $deleteCallback)
     {
         $this->deleteCallback = $deleteCallback;
         return $this;
@@ -115,7 +103,7 @@ class DatabaseMetaInfo
     {
         $purgeAfter = $this->getPurgeAfter();
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
-        return $purgeAfter && $this->getPurgeAfter() <= $nowUTC;
+        return $purgeAfter && $purgeAfter <= $nowUTC;
     }
 
     /**

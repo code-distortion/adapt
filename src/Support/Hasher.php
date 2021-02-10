@@ -38,8 +38,7 @@ class Hasher
      */
     public function currentSourceFilesHash(): string
     {
-        static::$sourceFilesHash = static::$sourceFilesHash ?? $this->generateSourceFilesHash();
-        return static::$sourceFilesHash;
+        return static::$sourceFilesHash = static::$sourceFilesHash ?? $this->generateSourceFilesHash();
     }
 
     /**
@@ -52,11 +51,7 @@ class Hasher
     {
         $logTimer = $this->di->log->newTimer();
 
-        $paths = array_unique(array_filter(array_merge(
-            $this->resolveHashFilePaths(),
-            $this->resolvePreMigrationPaths(),
-            $this->resolveMigrationPaths()
-        )));
+        $paths = array_unique(array_filter(array_merge($this->resolveHashFilePaths(), $this->resolvePreMigrationPaths(), $this->resolveMigrationPaths())));
         sort($paths);
 
         $hashes = [];
@@ -64,11 +59,11 @@ class Hasher
             $hashes[$path] = $this->di->filesystem->md5File($path);
         }
 
-        static::$sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
+        $sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
 
         $this->di->log->info('Generated a hash of the database-related files', $logTimer);
 
-        return (string) static::$sourceFilesHash;
+        return $sourceFilesHash;
     }
 
 
@@ -80,11 +75,7 @@ class Hasher
      */
     private function resolveHashFilePaths(): array
     {
-        return $this->resolvePaths(
-            $this->config->hashPaths,
-            true,
-            'databaseRelatedFilesPathInvalid'
-        );
+        return $this->resolvePaths($this->config->hashPaths, true, 'databaseRelatedFilesPathInvalid');
     }
 
     /**
@@ -95,11 +86,7 @@ class Hasher
      */
     private function resolvePreMigrationPaths(): array
     {
-        return $this->resolvePaths(
-            $this->config->pickPreMigrationDumps(),
-            false,
-            'preMigrationImportPathInvalid'
-        );
+        return $this->resolvePaths($this->config->pickPreMigrationDumps(), false, 'preMigrationImportPathInvalid');
     }
 
     /**
@@ -110,11 +97,7 @@ class Hasher
      */
     private function resolveMigrationPaths(): array
     {
-        return $this->resolvePaths(
-            is_string($this->config->migrations) ? [$this->config->migrations] : [],
-            true,
-            'migrationsPathInvalid'
-        );
+        return $this->resolvePaths(is_string($this->config->migrations) ? [$this->config->migrations] : [], true, 'migrationsPathInvalid');
     }
 
     /**
@@ -130,10 +113,7 @@ class Hasher
     {
         $resolvedPaths = [];
         foreach ($paths as $path) {
-            $resolvedPaths = array_merge(
-                $resolvedPaths,
-                $this->resolvePath($path, $dirAllowed, $exceptionMethod)
-            );
+            $resolvedPaths = array_merge($resolvedPaths, $this->resolvePath($path, $dirAllowed, $exceptionMethod));
         }
         return $resolvedPaths;
     }
@@ -153,20 +133,16 @@ class Hasher
         if ((!$realPath) || (!$this->di->filesystem->pathExists($realPath))) {
             throw AdaptConfigException::$exceptionMethod($path);
         }
-
         if ($this->di->filesystem->isFile($realPath)) {
             return [$this->di->filesystem->removeBasePath($realPath)];
         }
-
         if (!$dirAllowed) {
             throw AdaptConfigException::$exceptionMethod($path);
         }
-
         $paths = $this->di->filesystem->filesInDir($realPath, true);
         foreach ($paths as $index => $path) {
             $paths[$index] = $this->di->filesystem->removeBasePath($path);
         }
-
         return $paths;
     }
 
@@ -178,8 +154,7 @@ class Hasher
      */
     public function currentScenarioHash(): string
     {
-        $this->scenarioHash = $this->scenarioHash ?? $this->generateScenarioHash($this->config->pickSeedersToInclude());
-        return $this->scenarioHash;
+        return $this->scenarioHash = $this->scenarioHash ?? $this->generateScenarioHash($this->config->pickSeedersToInclude());
     }
 
     /**
@@ -220,7 +195,6 @@ class Hasher
             'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));
-
         return mb_substr($this->currentSourceFilesHash(), 0, 6)
             . '-'
             . mb_substr($databaseHash, 0, 12)
@@ -238,7 +212,6 @@ class Hasher
     {
         $sourceFilesHash = $this->currentSourceFilesHash();
         $scenarioHash = $this->generateScenarioHash($seeders);
-
         return mb_substr($sourceFilesHash, 0, 6)
             . '-'
             . mb_substr($scenarioHash, 0, 12);
@@ -253,10 +226,6 @@ class Hasher
     public function filenameHasSourceFilesHash(string $filename): bool
     {
         $sourceFilesHash = mb_substr($this->currentSourceFilesHash(), 0, 6);
-        return (bool) preg_match(
-            '/^.+\.' . preg_quote($sourceFilesHash) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
-            $filename,
-            $matches
-        );
+        return (bool) preg_match('/^.+\.' . preg_quote($sourceFilesHash) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/', $filename, $matches);
     }
 }

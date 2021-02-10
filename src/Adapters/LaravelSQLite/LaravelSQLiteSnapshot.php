@@ -53,6 +53,11 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
                 throw AdaptSnapshotException::importFailed($path);
             }
 
+            // disconnect to stop the
+            // "PDOException: SQLSTATE[HY000]: General error: 17 database schema has changed"
+            // exception on older versions
+            $this->di->db->purge();
+
             if (!$this->di->filesystem->copy($path, (string) $this->config->database)) {
                 throw AdaptSnapshotException::importFailed($path);
             }
@@ -71,10 +76,12 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      * Export the database to the specified snapshot file.
      *
      * @param string $path The location of the snapshot file.
-     * @return boolean
+     * @return void
      */
-    public function takeSnapshot(string $path): bool
+    public function takeSnapshot(string $path)
     {
-        return $this->di->filesystem->copy((string) $this->config->database, $path);
+        if (!$this->di->filesystem->copy((string) $this->config->database, $path)) {
+            throw AdaptSnapshotException::SQLiteExportError((string) $this->config->database, $path);
+        }
     }
 }

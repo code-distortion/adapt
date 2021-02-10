@@ -18,7 +18,7 @@ trait HasConfigDTOTrait
      * @param string $connection The database connection to prepare.
      * @return static
      */
-    public function connection(string $connection): self
+    public function connection(string $connection)
     {
         $this->config->connection($connection);
         return $this;
@@ -30,7 +30,7 @@ trait HasConfigDTOTrait
      * @param string $databaseModifier The modifier to use.
      * @return static
      */
-    public function databaseModifier(string $databaseModifier): self
+    public function databaseModifier(string $databaseModifier)
     {
         $this->config->databaseModifier($databaseModifier);
         return $this;
@@ -41,7 +41,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noDatabaseModifier(): self
+    public function noDatabaseModifier()
     {
         $this->config->databaseModifier('');
         return $this;
@@ -53,7 +53,7 @@ trait HasConfigDTOTrait
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports(array $preMigrationImports = []): self
+    public function preMigrationImports(array $preMigrationImports = [])
     {
         $this->config->preMigrationImports($preMigrationImports);
         return $this;
@@ -64,7 +64,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noPreMigrationImports(): self
+    public function noPreMigrationImports()
     {
         $this->config->preMigrationImports([]);
         return $this;
@@ -76,7 +76,7 @@ trait HasConfigDTOTrait
      * @param boolean|string $migrations Should the migrations be run? / the path of the migrations to run.
      * @return static
      */
-    public function migrations($migrations = true): self
+    public function migrations($migrations = true)
     {
         $this->config->migrations($migrations);
         return $this;
@@ -87,7 +87,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noMigrations(): self
+    public function noMigrations()
     {
         $this->config->migrations(false);
         return $this;
@@ -99,7 +99,7 @@ trait HasConfigDTOTrait
      * @param string[] $seeders The seeders to run after migrating.
      * @return static
      */
-    public function seeders(array $seeders): self
+    public function seeders(array $seeders)
     {
         $this->config->seeders($seeders);
         return $this;
@@ -110,7 +110,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noSeeders(): self
+    public function noSeeders()
     {
         $this->config->seeders([]);
         return $this;
@@ -123,7 +123,7 @@ trait HasConfigDTOTrait
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function cacheTools(bool $reuseTestDBs, bool $scenarioTestDBs): self
+    public function cacheTools(bool $reuseTestDBs, bool $scenarioTestDBs)
     {
         $this->config->cacheTools($reuseTestDBs, $scenarioTestDBs);
         return $this;
@@ -135,7 +135,7 @@ trait HasConfigDTOTrait
      * @param boolean $reuseTestDBs Reuse existing databases?.
      * @return static
      */
-    public function reuseTestDBs(bool $reuseTestDBs = true): self
+    public function reuseTestDBs(bool $reuseTestDBs = true)
     {
         $this->config->reuseTestDBs($reuseTestDBs);
         return $this;
@@ -146,7 +146,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noReuseTestDBs(): self
+    public function noReuseTestDBs()
     {
         $this->config->reuseTestDBs(false);
         return $this;
@@ -158,7 +158,7 @@ trait HasConfigDTOTrait
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function scenarioTestDBs(bool $scenarioTestDBs = true): self
+    public function scenarioTestDBs(bool $scenarioTestDBs = true)
     {
         $this->config->scenarioTestDBs($scenarioTestDBs);
         return $this;
@@ -169,7 +169,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noScenarioTestDBs(): self
+    public function noScenarioTestDBs()
     {
         $this->config->scenarioTestDBs(false);
         return $this;
@@ -182,7 +182,7 @@ trait HasConfigDTOTrait
      * @param boolean $takeSnapshotAfterSeeders    Take a snapshot of the database after seeders have been run?.
      * @return static
      */
-    public function snapshots(bool $takeSnapshotAfterMigrations = false, bool $takeSnapshotAfterSeeders = true): self
+    public function snapshots(bool $takeSnapshotAfterMigrations = false, bool $takeSnapshotAfterSeeders = true)
     {
         $this->config->snapshots(true, $takeSnapshotAfterMigrations, $takeSnapshotAfterSeeders);
         return $this;
@@ -193,7 +193,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function noSnapshots(): self
+    public function noSnapshots()
     {
         $this->config->snapshots(false, false, false);
         return $this;
@@ -205,7 +205,7 @@ trait HasConfigDTOTrait
      * @param boolean $isBrowserTest Is this test a browser-test?.
      * @return static
      */
-    public function isBrowserTest(bool $isBrowserTest = true): self
+    public function isBrowserTest(bool $isBrowserTest = true)
     {
         $this->config->isBrowserTest($isBrowserTest);
         return $this;
@@ -216,7 +216,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function isNotBrowserTest(): self
+    public function isNotBrowserTest()
     {
         $this->config->isBrowserTest(false);
         return $this;

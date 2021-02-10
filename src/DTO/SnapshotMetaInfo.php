@@ -46,14 +46,8 @@ class SnapshotMetaInfo
      * @param callable      $getSizeCallback The callback to use to get the snapshot's size.
      * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
      */
-    public function __construct(
-        string $path,
-        string $filename,
-        $accessDT,
-        bool $isValid,
-        callable $getSizeCallback,
-        int $graceSeconds
-    ) {
+    public function __construct(string $path, string $filename, $accessDT, bool $isValid, callable $getSizeCallback, int $graceSeconds)
+    {
         $this->path = $path;
         $this->filename = $filename;
         $this->isValid = $isValid;
@@ -70,7 +64,7 @@ class SnapshotMetaInfo
      * @param callable $deleteCallback The callback to call.
      * @return $this
      */
-    public function setDeleteCallback(callable $deleteCallback): self
+    public function setDeleteCallback(callable $deleteCallback)
     {
         $this->deleteCallback = $deleteCallback;
         return $this;
@@ -109,7 +103,7 @@ class SnapshotMetaInfo
     {
         $purgeAfter = $this->getPurgeAfter();
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
-        return $purgeAfter && $this->getPurgeAfter() <= $nowUTC;
+        return $purgeAfter && $purgeAfter <= $nowUTC;
     }
 
     /**

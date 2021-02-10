@@ -13,11 +13,9 @@ class AdaptLaravelMySQLAdapterException extends AdaptException
      * @param string $database The name of the database.
      * @return self
      */
-    public static function yourDatabaseNameIsTooLongCouldYouChangeItThx(string $database): self
+    public static function yourDatabaseNameIsTooLongCouldYouChangeItThx(string $database)
     {
-        return new self(
-            'The database name "' . $database . '" is longer than MySQL\'s limit (64 characters). '
-            . 'Please use a smaller database name'
-        );
+        return new self('The database name "' . $database . '" is longer than MySQL\'s limit (64 characters). '
+        . 'Please use a smaller database name');
     }
 }

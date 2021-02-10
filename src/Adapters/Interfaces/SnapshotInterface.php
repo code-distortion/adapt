@@ -48,8 +48,8 @@ interface SnapshotInterface
      * Export the database to the specified snapshot file.
      *
      * @param string $path The location of the snapshot file.
-     * @return boolean
+     * @return void
      * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
-    public function takeSnapshot(string $path): bool;
+    public function takeSnapshot(string $path);
 }

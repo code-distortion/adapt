@@ -47,7 +47,7 @@ interface BootTestInterface
 //     * @param DIContainer $di The DIContainer to use.
 //     * @return static
 //     */
-//    public function setDI(DIContainer $di);
+//    public function setDI(DIContainer $di): self;
 
 
 
@@ -59,16 +59,24 @@ interface BootTestInterface
     public function run();
 
     /**
+     * Check to see if any of the transactions were committed, and generate a warning.
+     *
+     * @retrun void
+     * @return void
+     */
+    public function checkForCommittedTransactions();
+
+    /**
      * Perform any clean-up needed after the test has finished.
      *
      * @return void
      */
-    public function cleanUp();
+    public function postTestCleanUp();
 
     /**
-     * Remove any old (ie. orphaned) temporary config files.
+     * Remove invalid databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function removeOldTempConfigFiles();
+    public function purgeInvalidThings();
 }

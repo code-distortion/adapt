@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\DI\Injectable;
+namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use DirectoryIterator;
 use IteratorIterator;
@@ -101,7 +101,6 @@ class Filesystem
     {
         $basePath = $basePath ?? realpath('.');
         $basePath = rtrim((string) $basePath, '/') . '/';
-
         if (mb_substr($path, 0, mb_strlen($basePath)) == $basePath) {
             return mb_substr($path, mb_strlen($basePath));
         }
@@ -136,6 +135,18 @@ class Filesystem
     public function copy(string $srcPath, string $destPath): bool
     {
         return copy($srcPath, $destPath);
+    }
+
+    /**
+     * Rename a file.
+     *
+     * @param string $srcPath  The path to the file to rename.
+     * @param string $destPath The destination name.
+     * @return boolean
+     */
+    public function rename(string $srcPath, string $destPath): bool
+    {
+        return rename($srcPath, $destPath);
     }
 
     /**
@@ -202,7 +213,6 @@ class Filesystem
             $dirIterator = new DirectoryIterator($dir);
             $fileIterator = new IteratorIterator($dirIterator);
         }
-
         $files = [];
         foreach ($fileIterator as $file) {
             if (is_file($file->getPathname())) {

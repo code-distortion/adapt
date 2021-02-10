@@ -74,10 +74,7 @@ class ReloadLaravelConfig
 
         config([
             'database' => $this->loadConfigFile(config_path('database.php')),
-            Settings::LARAVEL_CONFIG_NAME => array_merge(
-                $this->loadConfigFile(__DIR__ . '/../../config/config.php'),
-                $this->loadConfigFile($adaptConfigPath)
-            )
+            Settings::LARAVEL_CONFIG_NAME => array_merge($this->loadConfigFile(__DIR__ . '/../../config/config.php'), $this->loadConfigFile($adaptConfigPath))
         ]);
     }
 }

@@ -3,7 +3,7 @@
 namespace CodeDistortion\Adapt\Laravel\Middleware;
 
 use Closure;
-use CodeDistortion\Adapt\DI\Injectable\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
@@ -32,11 +32,9 @@ class AdaptMiddleware
         if (!app()->environment('local', 'testing')) {
             return $next($request);
         }
-
         $cookieValue = $request->cookie(Settings::CONFIG_COOKIE);
         $cookieValue = is_string($cookieValue) ? $cookieValue : '';
         $usedTempConfig = $this->useTemporaryConfig($cookieValue);
-
         $response = $next($request);
         if ($usedTempConfig) {
             $this->reSetCookie($response, (string) $cookieValue);
@@ -57,23 +55,18 @@ class AdaptMiddleware
         if (!$tempCachePath) {
             return false;
         }
-
         if (!(new Filesystem())->fileExists($tempCachePath)) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
         }
-
         try {
             $configData = require $tempCachePath;
         } catch (Throwable $e) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath, $e);
         }
-
         if (!is_array($configData)) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
         }
-
         $this->replaceWholeConfig($configData);
-
         return true;
     }
 
@@ -89,16 +82,13 @@ class AdaptMiddleware
         if (!is_string($cookieValue)) {
             return null;
         }
-
         $cookieValue = @unserialize($cookieValue);
         if (!is_array($cookieValue)) {
             return null;
         }
-
         if (!array_key_exists('tempConfigPath', $cookieValue)) {
             return null;
         }
-
         return $cookieValue['tempConfigPath'];
     }
 
@@ -128,11 +118,9 @@ class AdaptMiddleware
         if (!($response instanceof Response)) {
             return;
         }
-
         if ((!is_string($cookieValue)) || (!mb_strlen($cookieValue))) {
             return;
         }
-
         $response->cookie(Settings::CONFIG_COOKIE, $cookieValue, null, '/', null, false, false);
     }
 }

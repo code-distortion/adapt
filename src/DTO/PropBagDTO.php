@@ -19,7 +19,7 @@ abstract class PropBagDTO
      * @param mixed  $value The value to set.
      * @return static
      */
-    public function addProp(string $name, $value): self
+    public function addProp(string $name, $value)
     {
         $this->props[$name] = $value;
         return $this;
@@ -66,5 +66,5 @@ abstract class PropBagDTO
      * @param mixed       $default   The default value.
      * @return mixed
      */
-    abstract public function config(string $configKey, string $propName = null, $default = null);
+    public abstract function config(string $configKey, string $propName = null, $default = null);
 }
