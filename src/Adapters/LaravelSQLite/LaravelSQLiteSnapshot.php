@@ -53,6 +53,11 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
                 throw AdaptSnapshotException::importFailed($path);
             }
 
+            // disconnect to stop the
+            // "PDOException: SQLSTATE[HY000]: General error: 17 database schema has changed"
+            // exception on older versions
+            $this->di->db->purge();
+
             if (!$this->di->filesystem->copy($path, (string) $this->config->database)) {
                 throw AdaptSnapshotException::importFailed($path);
             }
