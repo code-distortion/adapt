@@ -12,6 +12,7 @@ use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use DateTime;
@@ -431,17 +432,15 @@ class DatabaseBuilder
      */
     private function migrate(): void
     {
-        if (!$this->config->migrations) {
+        $migrationsPath = is_string($this->config->migrations) ? $this->config->migrations : null;
+        if (is_null($migrationsPath)) {
             return;
         }
 
-        if (is_string($this->config->migrations)) {
-            if (!$this->di->filesystem->dirExists((string) realpath($this->config->migrations))) {
-                throw AdaptConfigException::migrationsPathInvalid($this->config->migrations);
-            }
+        if (!$this->di->filesystem->dirExists((string) realpath($migrationsPath))) {
+            throw AdaptConfigException::migrationsPathInvalid($migrationsPath);
         }
 
-        $migrationsPath = (is_string($this->config->migrations) ? $this->config->migrations : null);
         $this->dbAdapter()->build->migrate($migrationsPath);
 
         if ($this->shouldTakeSnapshotAfterMigrations()) {
@@ -732,6 +731,7 @@ class DatabaseBuilder
      * Check to see if any of the transaction was committed (if relevant), and generate a warning.
      *
      * @return void
+     * @throws AdaptTransactionException Thrown when the test committed the test-transaction.
      */
     public function checkForCommittedTransaction(): void
     {
@@ -743,10 +743,12 @@ class DatabaseBuilder
         }
 
         $this->di->log->warning(
-            "Test \"$this->testName\" committed its transaction"
-                    . " - consider turning \$reuseTestDBs off to isolate it "
-                    . "from other tests that don't commit their transactions"
+            "The $this->testName test committed the transaction wrapper - "
+                . "turn \$reuseTestDBs off to isolate it from other "
+                . "tests that don't commit their transactions"
         );
+
+        throw AdaptTransactionException::testCommittedTransaction($this->testName);
     }
 
 

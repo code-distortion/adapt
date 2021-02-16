@@ -228,7 +228,7 @@ trait InitialiseLaravelAdapt
     private function buildBootObject(): BootTestInterface
     {
         return (new BootTestLaravel())
-            ->testName(get_class($this) . ' - "' . $this->getName() . '"')
+            ->testName(get_class($this) . '::' . $this->getName())
             ->props($this->propBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
@@ -285,6 +285,7 @@ trait InitialiseLaravelAdapt
                             $connection->rollback();
                         } catch (PDOException $e) {
                             // act gracefully if the transaction was committed already
+                            // a committed transaction is checked for before this code runs
                         }
 
                         $connection->setEventDispatcher($dispatcher);
