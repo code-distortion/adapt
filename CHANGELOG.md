@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.0] - 2021-02-19
+
+### Changed (breaking)
+- Split the snapshot options out to be controllable when and when not reusing a database
+
+
+
 ## [0.5.1] - 2021-02-10
 
 ### Added
