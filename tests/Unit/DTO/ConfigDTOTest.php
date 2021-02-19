@@ -168,33 +168,36 @@ class ConfigDTOTest extends PHPUnitTestCase
             'snapshots 1' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'snapshotsEnabled' => true,
-                    'takeSnapshotAfterMigrations' => true,
-                    'takeSnapshotAfterSeeders' => true,
+                    'useSnapshotsWhenReusingDB' => false,
+                    'useSnapshotsWhenNotReusingDB' => false,
                 ],
             ],
             'snapshots 2' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'snapshotsEnabled' => false,
-                    'takeSnapshotAfterMigrations' => true,
-                    'takeSnapshotAfterSeeders' => true,
+                    'useSnapshotsWhenReusingDB' => 'afterMigrations',
+                    'useSnapshotsWhenNotReusingDB' => false,
                 ],
             ],
             'snapshots 3' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'snapshotsEnabled' => true,
-                    'takeSnapshotAfterMigrations' => false,
-                    'takeSnapshotAfterSeeders' => true,
+                    'useSnapshotsWhenReusingDB' => 'afterSeeders',
+                    'useSnapshotsWhenNotReusingDB' => 'afterMigrations',
                 ],
             ],
             'snapshots 4' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'snapshotsEnabled' => true,
-                    'takeSnapshotAfterMigrations' => true,
-                    'takeSnapshotAfterSeeders' => false,
+                    'useSnapshotsWhenReusingDB' => 'both',
+                    'useSnapshotsWhenNotReusingDB' => 'afterSeeders',
+                ],
+            ],
+            'snapshots 5' => [
+                'method' => 'snapshots',
+                'params' => [
+                    'useSnapshotsWhenReusingDB' => false,
+                    'useSnapshotsWhenNotReusingDB' => 'both',
                 ],
             ],
 

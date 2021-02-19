@@ -169,29 +169,42 @@ class HasConfigDTOTest extends PHPUnitTestCase
 
             'snapshots 1' => [
                 'method' => 'snapshots',
-                'params' => [true, false],
+                'params' => ['afterMigrations', false],
                 'outcome' => [
-                    'snapshotsEnabled' => true,
-                    'takeSnapshotAfterMigrations' => true,
-                    'takeSnapshotAfterSeeders' => false,
+                    'useSnapshotsWhenReusingDB' => 'afterMigrations',
+                    'useSnapshotsWhenNotReusingDB' => false,
                 ],
             ],
             'snapshots 2' => [
                 'method' => 'snapshots',
-                'params' => [false, true],
+                'params' => ['afterSeeders', 'afterMigrations'],
                 'outcome' => [
-                    'snapshotsEnabled' => true,
-                    'takeSnapshotAfterMigrations' => false,
-                    'takeSnapshotAfterSeeders' => true,
+                    'useSnapshotsWhenReusingDB' => 'afterSeeders',
+                    'useSnapshotsWhenNotReusingDB' => 'afterMigrations',
+                ],
+            ],
+            'snapshots 3' => [
+                'method' => 'snapshots',
+                'params' => ['both', 'afterSeeders'],
+                'outcome' => [
+                    'useSnapshotsWhenReusingDB' => 'both',
+                    'useSnapshotsWhenNotReusingDB' => 'afterSeeders',
+                ],
+            ],
+            'snapshots 4' => [
+                'method' => 'snapshots',
+                'params' => [false, 'both'],
+                'outcome' => [
+                    'useSnapshotsWhenReusingDB' => false,
+                    'useSnapshotsWhenNotReusingDB' => 'both',
                 ],
             ],
             'noSnapshots' => [
                 'method' => 'noSnapshots',
                 'params' => [],
                 'outcome' => [
-                    'snapshotsEnabled' => false,
-                    'takeSnapshotAfterMigrations' => false,
-                    'takeSnapshotAfterSeeders' => false,
+                    'useSnapshotsWhenReusingDB' => false,
+                    'useSnapshotsWhenNotReusingDB' => false,
                 ],
             ],
 

@@ -50,7 +50,24 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(true, true, false),
+                    ->snapshots(false, false),
+                'expectedOutput' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - [file1]",
+                'expectedOutputWithTestingConn' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"testing\":\n"
+                    . "  - [file1]\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - [file1]",
+                'substitutions' => [
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                ],
+            ],
+            [
+                'config' => $this->newConfigDTO('sqlite')
+                    ->snapshots('afterMigrations', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\":\n"
@@ -72,7 +89,29 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(true, true, true),
+                    ->snapshots('afterSeeders', false),
+                'expectedOutput' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - [file1]\n\n"
+                    . "Snapshots:\n\n"
+                    . "- [file2]",
+                'expectedOutputWithTestingConn' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"testing\":\n"
+                    . "  - [file1]\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - [file1]\n\n"
+                    . "Snapshots:\n\n"
+                    . "- [file2]",
+                'substitutions' => [
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                ],
+            ],
+            [
+                'config' => $this->newConfigDTO('sqlite')
+                    ->snapshots('both', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\":\n"
@@ -165,7 +204,24 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(true, true, false),
+                    ->snapshots(false, false),
+                'expectedOutput' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - DELETED [file1]",
+                'expectedOutputWithTestingConn' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"testing\":\n"
+                    . "  - DELETED [file1]\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - DELETED [file1]",
+                'substitutions' => [
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                ],
+            ],
+            [
+                'config' => $this->newConfigDTO('sqlite')
+                    ->snapshots('afterMigrations', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\":\n"
@@ -187,7 +243,29 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(true, true, true),
+                    ->snapshots('afterSeeders', false),
+                'expectedOutput' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - DELETED [file1]\n\n"
+                    . "Snapshots:\n\n"
+                    . "- DELETED [file2]",
+                'expectedOutputWithTestingConn' =>
+                    "Test-databases:\n\n"
+                    . "- Connection \"testing\":\n"
+                    . "  - DELETED [file1]\n"
+                    . "- Connection \"sqlite\":\n"
+                    . "  - DELETED [file1]\n\n"
+                    . "Snapshots:\n\n"
+                    . "- DELETED [file2]",
+                'substitutions' => [
+                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                ],
+            ],
+            [
+                'config' => $this->newConfigDTO('sqlite')
+                    ->snapshots('both', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\":\n"

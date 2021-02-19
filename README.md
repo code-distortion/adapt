@@ -11,9 +11,11 @@
 
 ## Introduction
 
-***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests, improving their speed.
+***code-distortion/adapt*** is a [Laravel](https://github.com/laravel/laravel) package that builds databases for your tests. It uses a range of techniques to safely get the fastest speeds from them.
 
-> The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides an introduction to this package.
+It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations` (and `DatabaseTransactions`) traits. It handles more situations like ***parallel browser*** testing. And does so safely, so you can be sure your tests don't interfere with each other.
+
+> The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides further introduction to this package.
 
 > The online-book [Speed Up Your Test Databases - A Detailed Look](https://www.code-distortion.net/books/speed-up-your-test-databases-a-detailed-look/) explains the concepts this package uses in detail.
 
@@ -45,12 +47,12 @@
 * [Testing Scenarios and Techniques](#testing-scenarios-and-techniques)
     * [Using the "default" database connection…](#using-the-default-database-connection)
     * [Building databases for non "default" connections, and using more than one database connection…](#building-databases-for-non-default-connections-and-using-more-than-one-database-connection)
-    * [Using a different type of database…](#using-a-different-type-of-database)
-    * [Seeding during testing…](#seeding-during-testing)
-    * [Dusk browser tests…](#dusk-browser-tests)
-    * [Running tests in parallel with ParaTest…](#running-tests-in-parallel-with-paratest)
-    * [Testing code that itself uses transactions…](#testing-code-that-itself-uses-transactions)
-    * [Importing custom database dump files…](#importing-custom-database-dump-files)
+    * [Using a different type of database](#using-a-different-type-of-database)
+    * [Seeding during testing](#seeding-during-testing)
+    * [Dusk browser tests](#dusk-browser-tests)
+    * [Running tests in parallel](#running-tests-in-parallel)
+    * [Importing custom database dump files](#importing-custom-database-dump-files)
+    * [Testing code that uses transactions](#testing-code-that-uses-transactions)
 * [Testing](#testing)
 * [Changelog](#changelog)
     * [SemVer](#semver)
@@ -124,7 +126,7 @@ You can alter the default settings by publishing the `config/code_distortion.ada
 php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceProvider" --tag="config"
 ```
 
-> ***Note***: If you'd like to add custom environment values, put them in your `.env.testing` file if you use one (rather than `.env`).
+> ***Note:*** If you'd like to add custom environment values, put them in your `.env.testing` file if you use one (rather than `.env`).
 
 
 
@@ -135,8 +137,9 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 - Step 1 - Replace the `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits in your test classes with `LaravelAdapt`.
 - Step 2 - Run your tests like normal.
   ``` bash
-  # you can include browser tests by running
-  # all tests in the "tests" directory
+  # you can include browser tests by telling
+  # it to run all your tests. In this case
+  # all the tests in the "tests" directory
   php artisan test --parallel tests
   ```
 
@@ -236,9 +239,9 @@ it('has users')->assertDatabaseHas('users', ['id' => 1]);
 
 ### Dusk Browser Test Usage
 
-Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can even run them alongside your non-browser tests, including when running them in parallel.
+Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run them alongside your non-browser tests, including when running them in parallel.
 
-> ***Note***: This implements a new technique to share your test's config settings with the process handling the browser requests. This allows page-loads to ***share the same config settings as your tests - including the database details***. This functionality is new and **experimental**.
+> ***Note:*** This implements a new technique to share your test's config settings with the process handling the browser requests. This allows page-loads to ***share the same config settings as your tests - including the database details***. This functionality is new and **experimental**.
 > 
 > This config-sharing can also be used in Dusk tests when you *don't have a database*. You can tell Adapt to skip the database-building process by turning off the `build_databases` config setting (or `$buildDatabases` test-class property).
 
@@ -277,11 +280,11 @@ class MyDuskTest extends DuskTestCase
 }
 ```
 
-The config settings your tests use (built from `.env.testing`) are passed to the server through the browser, and your `.env.dusk.local` file will be skipped.
-
-You **don't need** to run `php artisan dusk` to run your dusk browser tests. Just include the browser tests in your normal test-run.
+The config settings your tests use (built from `.env.testing`) are passed to the server through the browser. Your `.env.dusk.local` file will be skipped.
 
 > When Dusk tests are run, transactions are turned off and snapshot dumps are turned on instead.
+
+***Note:*** Running your Dusk tests with `php artisan dusk` works. However if you do, it goes through the process of copying `.env.dusk.local` over `.env`, which is then discarded anyway. Use one of the other methods below instead.
 
 
 
@@ -290,10 +293,10 @@ You **don't need** to run `php artisan dusk` to run your dusk browser tests. Jus
 Just run your tests like normal.
 
 ``` bash
+php artisan test --parallel
+# or also include your dusk tests
 php artisan test --parallel tests
 ```
-
-> You can **include your browser tests in the same run** as the rest (no need to run `php artisan dusk` especially). Just add them to the list of things to test. In the example above, "tests" is the base directory containing *all* your tests.
 
 All the normal methods of running your tests work:
 
@@ -308,7 +311,15 @@ php artisan test --parallel
 ./vendor/bin/paratest
 ```
 
-> Running your Dusk tests with `php artisan dusk` works, however you should probably use one of the other methods. If you do, it will go through the process of copying `.env.dusk.local` over `.env`, which is then discarded anyway.
+
+
+### Artisan Console Commands
+
+`php artisan adapt:list-db-caches` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
+
+You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
+
+`php artisan adapt:remove-db-caches`
 
 
 
@@ -324,16 +335,6 @@ To carry out the different types of caching that this package uses, you may need
 - Adapt creates a table in your test-databases called `____adapt____` which holds meta-data used to identify when the database can be used.
 
 See the [scenarios and techniques](#scenarios-and-techniques) section below for more tips.
-
-
-
-### Artisan Console Commands
-
-`php artisan adapt:list-db-caches` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
-
-You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
-
-`php artisan adapt:remove-db-caches`
 
 
 
@@ -385,26 +386,24 @@ class MyFeatureTest extends TestCase
     protected bool $scenarioTestDBs = true;
 
     /**
-     * Enable / disable the use of snapshot files.
+     * Enable snapshots, and specify when to take them - when reusing the
+     * database.
      *
-     * @var boolean
+     * false, 'afterMigrations', 'afterSeeders', 'both'.
+     *
+     * @var string|boolean
      */
-    protected bool $snapshotsEnabled = true;
+    protected $useSnapshotsWhenReusingDB = 'afterMigrations';
 
     /**
-     * Adapt can take a snapshot after migrations have run (but before
-     * seeders).
+     * Enable snapshots, and specify when to take them - when NOT reusing the
+     * database.
      *
-     * @var boolean
-     */
-    protected bool $takeSnapshotAfterMigrations = true;
-
-    /**
-     * Adapt can take a snapshot after migrations and seeders have run.
+     * false, 'afterMigrations', 'afterSeeders', 'both'.
      *
-     * @var boolean
+     * @var string|boolean
      */
-    protected bool $takeSnapshotAfterSeeders = true;
+    protected $useSnapshotsWhenNotReusingDB = 'afterMigrations';
 
     /**
      * Specify database dump files to import before migrations run.
@@ -418,8 +417,8 @@ class MyFeatureTest extends TestCase
      * @var string[]|string[][]
      */
     protected array $preMigrationImports = [
-//        'mysql' => ['database/dumps/mysql/my-database.sql'],
-//        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+        'mysql' => ['database/dumps/mysql/my-database.sql'],
+        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
     ];
 
     /**
@@ -578,13 +577,13 @@ A snapshot can be taken right after the migrations have run (but before seeding)
 
 Snapshot files are stored in the `database/adapt-test-storage` directory, and are automatically removed when they're not valid anymore.
 
-> ***Snapshots*** are turned **OFF** by default, and turned **ON** when [browser-testing](#dusk-browser-test-usage) is detected.
+> ***Snapshots*** are turned **OFF** by default, and turned **ON** when the `reuse_test_dbs` setting is off.
 
 
 
 ### Re-using Databases *Within* A Test-Run
 
-Adapt wraps your tests inside a transaction, and rolls it back afterwards. When the next test runs, it checks to make sure the transaction wasn't committed, and will re-use it if so.
+Adapt wraps your tests inside a transaction, and rolls it back afterwards. When the next test runs, it checks to make sure the transaction wasn't committed.
 
 > ***Transaction-rollback*** is turned **ON** by default, but turned off automatically during browser tests.
 
@@ -592,11 +591,11 @@ Adapt wraps your tests inside a transaction, and rolls it back afterwards. When 
 
 ### Re-using Databases *Between* Test-Runs
 
-Adapt will re-use your test-databases between test-runs. It checks to make sure the database was left in a clean state (as above), but also checks to make sure the scenario hasn't changed since last time (eg. if you're edited your migrations or seeders etc).
+Adapt will re-use your test-databases between test-runs. It checks to make sure the database was left in a clean state (as above), but also checks to make sure the scenario hasn't changed since last time (eg. if you've [edited your migrations or seeders](#cache-invalidation) etc).
 
 > ***Reuse test dbs*** is turned **ON** by default, but turned off automatically during browser tests.
 
-> ***Note***: You can safely delete test-databases left by Adapt but **don't change data** in them as they are assumed to be in a clean state.
+> ***Note:*** You can safely delete test-databases left by Adapt but **don't change data** in them as they are assumed to be in a clean state.
 
 
 
@@ -614,7 +613,7 @@ Old scenario databases are removed automatically when they aren't valid anymore.
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* will invalidate existing test-databases and snapshots (the `pre_migration_imports` and `migrations` files are also taken in to account).
+So that you don't run in to problems when you update the structure of your database or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeds* are detected and will invalidate existing test-databases and snapshots (the `pre_migration_imports` and `migrations` files are also taken in to account).
 
 These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
@@ -628,15 +627,15 @@ Here are various testing scenarios and comments about each:
 
 
 
-### Using the "default" database connection&hellip;
+### Using the "default" database connection
 
-Projects using the "default" database connection is the most common scenario. After adding the `LaravelAdapt` trait to your test-classes, you probably won't need to change any settings.
+Projects using the "default" database connection is the most common scenario. After adding the `LaravelAdapt` trait to your test-classes, a test-database will be created for the default connection.
 
-When your tests run, a test-database will be created for the default connection.
+You probably won't need to change any configuration settings.
 
 
 
-### Building databases for non "default" connections, and using more than one database connection&hellip;
+### Building databases for non "default" connections, and using more than one database connection
 
 Adapt can build extra databases for you. So it knows what to build, [add the databaseInit() method](#phpunit-customisation) to your test-classes.
 
@@ -676,7 +675,7 @@ DB::connection('secondary-mysql')->select(…);
 
 
 
-### Using a different type of database&hellip;
+### Using a different type of database
 
 As a part of Laravel's database functionality, you could try using a SQLite database by changing the connection the "default" setting refers to.
 
@@ -688,15 +687,15 @@ DB_CONNECTION=sqlite
 'default' => env('DB_CONNECTION', 'mysql'),
 ```
 
-> ***Note***: SQLite isn't fully compatible with other databases. To be safe, you ***should*** consider running your tests with the **same type of database that you use in production**. Your confidence in the tests is very important.
+> ***Note:*** SQLite isn't fully compatible with other databases. To be safe, you ***should*** consider running your tests with the **same type of database that you use in production**. Your confidence in the tests is very important.
 
-> ***Note***: **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. Because of this, you might not get the speed-boost you're hoping for, particularly if you have lots of small tests.
+> ***Note:*** **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. Because of this, you might not get the speed-boost you're hoping for, particularly if you have lots of small tests.
 
 
 
-### Seeding during testing&hellip;
+### Seeding during testing
 
-To help Adapt be a drop-in replacement for Laravel's existing options, it doesn't run your seeders default. But you can specify seeders for it to run. The result will be incorporated into Adapt's caching system. This way, you won't need to run the seeders within each test!
+Adapt can run seeders for you automatically. The result will be incorporated into Adapt's caching system. This way, you won't need to run the seeders within each test!
 
 If you'd like to specify seeders, or run different ones for different tests, see the `seeders` config option (or the `$seeders` test-class property).
 
@@ -715,13 +714,15 @@ class MyFeatureTest extends TestCase
 
 
 
-### Dusk browser tests&hellip;
+### Dusk browser tests
 
-Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests (see [above](#dusk-browser-test-usage)), you'll be able to run your browser tests alongside your other tests. Including running them in parallel.
+Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including running them in parallel.
+
+See the [dusk browser testing section](#dusk-browser-test-usage) for more details.
 
 
 
-### Running tests in parallel&hellip;
+### Running tests in parallel
 
 Laravel 8 integrates [ParaTest](https://github.com/paratestphp/paratest), allowing your tests to run in parallel. Tests are run in different processes, and the collated results are shown afterwards.
 
@@ -729,17 +730,7 @@ Adapt detects when ParaTest used and creates a distinct database for each proces
 
 
 
-### Testing code that itself uses transactions&hellip;
-
-To maintain a known state, Adapt normally wraps your tests inside a transaction and rolls it back afterwards.
-
-If your own code uses transactions as well, Adapt will detect that its own transaction was implicitly committed, and will re-build the database for the next test.
-
-> In this situation, you may wish to turn the `reuse_test_dbs` option off, so it gets a different "scenario" to other tests where it's on. This will stop "thrashing" from occurring between these two situations. You may also want to turn `snapshots.enabled` on (or the `$snapshotsEnabled` test-class property) so sql dumps are created and imported.
-
-
-
-### Importing custom database dump files&hellip;
+### Importing custom database dump files
 
 To import your own database dump sql file, put it in your filesystem and add it to the `pre_migration_imports` config setting (or `$preMigrationImports` test-class property). There's a spot there to add files for each type of database.
 
@@ -747,9 +738,23 @@ This might save time if you have lots of migrations to run, or be useful if you 
 
 > Any remaining migrations and seeding will run after these have been imported.
 
-> SQLite database files aren't imported, they are simply copied.
-
 > You might want to look at [Laravel's migration squashing](https://laravel.com/docs/8.x/migrations#squashing-migrations) feature to do this *within* Laravel's migration process.
+
+> ***Note:*** SQLite database files aren't imported, they are simply copied.
+
+
+
+### Testing code that uses transactions
+
+As mentioned above, tests are run inside transactions that are rolled-back afterwards - leaving the database in a clean state, so it can be reused. If this transaction is committed, the roll-back would fail, and the database would need to be rebuilt.
+
+If your *own code* uses transactions as well, this will cause the original transaction to be committed. It can also happen unintentionally (eg. in MySQL, truncating or altering a table will do this).
+
+Adapt detects when this happens and throws an `AdaptTransactionException` to let you know which test caused it.
+
+To stop the exception from occurring, turn the "reuse_test_dbs" option off for that test - by adding `protected bool $reuseTestDBs = false;` [to your test class](#customisation). Or turn it off for *all tests* by updating the `reuse_test_dbs` config setting.
+
+This will isolate the test from other tests that *can* reuse the database.
 
 
 

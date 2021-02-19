@@ -56,14 +56,11 @@ class ConfigDTO
     /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
     public $scenarioTestDBs;
 
-    /** @var boolean When turned on, snapshot files will created and imported when available. */
-    public $snapshotsEnabled;
+    /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
+    public $useSnapshotsWhenReusingDB;
 
-    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after migrations have been run. */
-    public $takeSnapshotAfterMigrations;
-
-    /** @var boolean When turned on, a snapshot (dump/copy) of the db will be taken after seeders have been run. */
-    public $takeSnapshotAfterSeeders;
+    /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
+    public $useSnapshotsWhenNotReusingDB;
 
 
     /** @var string The path to the "mysql" executable. */
@@ -302,16 +299,16 @@ class ConfigDTO
     /**
      * Set the the snapshot settings.
      *
-     * @param boolean $snapshotsEnabled            Is the snapshot feature enabled?.
-     * @param boolean $takeSnapshotAfterMigrations Take a snapshot of the database after migrations have been run?.
-     * @param boolean $takeSnapshotAfterSeeders    Take a snapshot of the database after seeders have been run?.
+     * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
+     * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
      * @return static
      */
-    public function snapshots(bool $snapshotsEnabled, bool $takeSnapshotAfterMigrations, bool $takeSnapshotAfterSeeders)
+    public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB)
     {
-        $this->snapshotsEnabled = $snapshotsEnabled;
-        $this->takeSnapshotAfterMigrations = $takeSnapshotAfterMigrations;
-        $this->takeSnapshotAfterSeeders = $takeSnapshotAfterSeeders;
+        $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
+        $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
         return $this;
     }
 

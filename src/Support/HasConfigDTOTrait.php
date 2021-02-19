@@ -178,13 +178,15 @@ trait HasConfigDTOTrait
     /**
      * Turn the snapshots setting on.
      *
-     * @param boolean $takeSnapshotAfterMigrations Take a snapshot of the database after migrations have been run?.
-     * @param boolean $takeSnapshotAfterSeeders    Take a snapshot of the database after seeders have been run?.
+     * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
+     * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
      * @return static
      */
-    public function snapshots(bool $takeSnapshotAfterMigrations = false, bool $takeSnapshotAfterSeeders = true)
+    public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB)
     {
-        $this->config->snapshots(true, $takeSnapshotAfterMigrations, $takeSnapshotAfterSeeders);
+        $this->config->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB);
         return $this;
     }
 
@@ -195,7 +197,7 @@ trait HasConfigDTOTrait
      */
     public function noSnapshots()
     {
-        $this->config->snapshots(false, false, false);
+        $this->config->snapshots(false, false);
         return $this;
     }
 

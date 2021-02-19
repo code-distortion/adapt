@@ -92,9 +92,8 @@ trait InitialiseLaravelAdapt
             'buildDatabases',
             'reuseTestDBs',
             'scenarioTestDBs',
-            'snapshotsEnabled',
-            'takeSnapshotAfterMigrations',
-            'takeSnapshotAfterSeeders',
+            'useSnapshotsWhenReusingDB',
+            'useSnapshotsWhenNotReusingDB',
             'preMigrationImports',
             'migrations',
             'seeders',
@@ -221,7 +220,7 @@ trait InitialiseLaravelAdapt
      */
     private function buildBootObject(): BootTestInterface
     {
-        return (new BootTestLaravel())->testName(get_class($this) . ' - "' . $this->getName() . '"')->props($this->propBag)->browserTestDetected($this->detectBrowserTest())->transactionClosure($this->adaptBuildTransactionClosure())->initCallback($this->adaptBuildInitCallback());
+        return (new BootTestLaravel())->testName(get_class($this) . '::' . $this->getName())->props($this->propBag)->browserTestDetected($this->detectBrowserTest())->transactionClosure($this->adaptBuildTransactionClosure())->initCallback($this->adaptBuildInitCallback());
     }
 
 
@@ -270,6 +269,7 @@ trait InitialiseLaravelAdapt
                         $connection->rollback();
                     } catch (PDOException $e) {
                         // act gracefully if the transaction was committed already
+                        // a committed transaction is checked for before this code runs
                     }
 
                     $connection->setEventDispatcher($dispatcher);
