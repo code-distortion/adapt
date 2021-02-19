@@ -97,7 +97,7 @@ trait DatabaseBuilderTestTrait
                 false
             )
             ->cacheTools(true, true)
-            ->snapshots(false, false, true)
+            ->snapshots(false, 'afterMigrations')
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');
     }

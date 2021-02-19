@@ -215,7 +215,9 @@ class DatabaseBuilder
      */
     private function snapshotsAreEnabled(): bool
     {
-        return ($this->config->snapshotsEnabled) || ($this->config->isBrowserTest);
+        return $this->usingReuseTestDBs()
+            ? in_array($this->config->useSnapshotsWhenReusingDB, ['afterMigrations', 'afterSeeders', 'both'], true)
+            : in_array($this->config->useSnapshotsWhenNotReusingDB, ['afterMigrations', 'afterSeeders', 'both'], true);
     }
 
     /**
@@ -230,10 +232,13 @@ class DatabaseBuilder
         }
 
         // take in to consideration when there are no seeders to run, but a snapshot should be taken after seeders
-        $seeders = $this->config->pickSeedersToInclude();
-        return (count($seeders))
-            ? $this->config->takeSnapshotAfterMigrations
-            : $this->config->takeSnapshotAfterMigrations || $this->config->takeSnapshotAfterSeeders;
+        $setting = $this->usingReuseTestDBs()
+            ? $this->config->useSnapshotsWhenReusingDB
+            : $this->config->useSnapshotsWhenNotReusingDB;
+
+        return count($this->config->pickSeedersToInclude())
+            ? in_array($setting, ['afterMigrations', 'both'], true)
+            : in_array($setting, ['afterMigrations', 'afterSeeders', 'both'], true);
     }
 
     /**
@@ -246,9 +251,15 @@ class DatabaseBuilder
         if (!$this->snapshotsAreEnabled()) {
             return false;
         }
+        if (!count($this->config->pickSeedersToInclude())) {
+            return false;
+        }
 
-        $seeders = $this->config->pickSeedersToInclude();
-        return ((count($seeders)) && ($this->config->takeSnapshotAfterSeeders));
+        $setting = $this->usingReuseTestDBs()
+            ? $this->config->useSnapshotsWhenReusingDB
+            : $this->config->useSnapshotsWhenNotReusingDB;
+
+        return in_array($setting, ['afterSeeders', 'both'], true);
     }
 
     /**
@@ -432,13 +443,20 @@ class DatabaseBuilder
      */
     private function migrate(): void
     {
-        $migrationsPath = is_string($this->config->migrations) ? $this->config->migrations : null;
-        if (is_null($migrationsPath)) {
+        $migrationsPath = is_string($this->config->migrations)
+            ? $this->config->migrations
+            : (bool) $this->config->migrations;
+
+        if (!mb_strlen($migrationsPath)) {
             return;
         }
 
-        if (!$this->di->filesystem->dirExists((string) realpath($migrationsPath))) {
-            throw AdaptConfigException::migrationsPathInvalid($migrationsPath);
+        if (is_string($migrationsPath)) {
+            if (!$this->di->filesystem->dirExists((string) realpath($migrationsPath))) {
+                throw AdaptConfigException::migrationsPathInvalid($migrationsPath);
+            }
+        } else {
+            $migrationsPath = null;
         }
 
         $this->dbAdapter()->build->migrate($migrationsPath);

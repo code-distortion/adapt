@@ -41,26 +41,24 @@ trait LaravelAdapt
 //    protected bool $scenarioTestDBs = true;
 
     /**
-     * Enable / disable the use of snapshot files.
+     * Enable snapshots, and specify when to take them - when reusing the
+     * database.
      *
-     * @var boolean
+     * false, 'afterMigrations', 'afterSeeders', 'both'.
+     *
+     * @var string|boolean
      */
-//    protected bool $snapshotsEnabled = true;
+//    protected $useSnapshotsWhenReusingDB = 'afterMigrations';
 
     /**
-     * Adapt can take a snapshot after migrations have run (but before
-     * seeders).
+     * Enable snapshots, and specify when to take them - when NOT reusing the
+     * database.
      *
-     * @var boolean
-     */
-//    protected bool $takeSnapshotAfterMigrations = true;
-
-    /**
-     * Adapt can take a snapshot after migrations and seeders have run.
+     * false, 'afterMigrations', 'afterSeeders', 'both'.
      *
-     * @var boolean
+     * @var string|boolean
      */
-//    protected bool $takeSnapshotAfterSeeders = true;
+//    protected $useSnapshotsWhenNotReusingDB = 'afterMigrations';
 
     /**
      * Specify database dump files to import before migrations run.

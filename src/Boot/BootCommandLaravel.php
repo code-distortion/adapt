@@ -94,9 +94,8 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.scenario_test_dbs")
             )
             ->snapshots(
-                config("$c.snapshots.enabled"),
-                config("$c.snapshots.take_after_migrations"),
-                config("$c.snapshots.take_after_seeders")
+                config("$c.use_snapshots_when_reusing_db"),
+                config("$c.use_snapshots_when_not_reusing_db"),
             )
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),

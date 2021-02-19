@@ -122,7 +122,6 @@ class BootTestLaravel extends BootTestAbstract
             return config("database.connections.$connection.driver", 'unknown');
         };
 
-//        return new DatabaseBuilder('laravel', $this->testName, $this->di, $config, $pickDriverClosure);
         return new DatabaseBuilder(
             'laravel',
             (string) $this->testName,
@@ -168,9 +167,8 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs')
             )
             ->snapshots(
-                $this->propBag->config('snapshots.enabled', 'snapshotsEnabled'),
-                $this->propBag->config('snapshots.take_after_migrations', 'takeSnapshotAfterMigrations'),
-                $this->propBag->config('snapshots.take_after_seeders', 'takeSnapshotAfterSeeders')
+                $this->propBag->config('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
+                $this->propBag->config('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
             )
             ->mysqlSettings(
                 $this->propBag->config('database.mysql.executables.mysql'),

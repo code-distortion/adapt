@@ -72,17 +72,15 @@ return [
     | Database dumps/copies can be taken and imported automatically when
     | needed, saving migration + seeding time.
     |
-    | These config settings can be overridden by adding the $snapshotsEnabled,
-    | $takeSnapshotAfterMigrations and $takeSnapshotAfterSeeders properties
-    | to your test-class.
+    | These config settings can be overridden by adding the
+    | $useSnapshotsWhenReusingDB and $useSnapshotsWhenNotReusingDB
+    | properties to your test-class.
     |
     */
 
-    'snapshots' => [
-        'enabled' => env('ADAPT_USE_SNAPSHOTS', false),
-        'take_after_migrations' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_MIGRATIONS', false),
-        'take_after_seeders' => env('ADAPT_TAKE_SNAPSHOTS_AFTER_SEEDERS', true),
-    ],
+    // false, 'afterMigrations', 'afterSeeders', 'both'
+    'use_snapshots_when_reusing_db' => env('ADAPT_USE_SNAPSHOTS_WHEN_REUSING_DB', false),
+    'use_snapshots_when_not_reusing_db' => env('ADAPT_USE_SNAPSHOTS_WHEN_NOT_REUSING_DB', 'afterMigrations'),
 
     /*
     |--------------------------------------------------------------------------
