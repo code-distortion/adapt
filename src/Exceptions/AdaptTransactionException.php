@@ -17,7 +17,7 @@ class AdaptTransactionException extends AdaptException
     {
         return new self(
             "The $testName test committed the transaction wrapper - see "
-            . "https://github.com/code-distortion/adapt#my-tests-throw-adapttransactionexceptions for more details"
+            . "https://github.com/code-distortion/adapt#testing-code-that-uses-transactions for more details"
         );
     }
 }
