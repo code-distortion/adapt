@@ -6,10 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.1] - 2021-02-20
+
+### Fixed
+- Updated the url shown in the exception thrown when the wrapper-transaction is committed
+
+### Added
+- Improved documentation
+
+
+
 ## [0.6.0] - 2021-02-19
 
 ### Changed (breaking)
 - Split the snapshot options out to be controllable when and when not reusing a database
+- A exception is now thrown when a test runs in a wrapper-transaction, and commits it
 
 
 

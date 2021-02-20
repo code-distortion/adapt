@@ -37,10 +37,9 @@ trait InitialiseLaravelAdapt
     protected function autoTriggerInitialisation()
     {
         $this->afterApplicationCreated(function () {
-            $this->initialiseAdapt();
-        });
 
-        $this->afterApplicationCreated(function () {
+            $this->initialiseAdapt();
+
             $this->beforeApplicationDestroyed(function () {
                 // to be run after the transaction was rolled back
                 $this->bootTestLaravel->checkForCommittedTransactions();
