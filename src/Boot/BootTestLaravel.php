@@ -172,7 +172,7 @@ class BootTestLaravel extends BootTestAbstract
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
-            ->databasePrefix('test_')
+            ->databasePrefix('')
             ->hashPaths($this->checkLaravelHashPaths($this->propBag->config('look_for_changes_in')))
             ->buildSettings(
                 $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
