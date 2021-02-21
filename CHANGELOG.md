@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.2] - 2021-02-21
+
+### Fixed
+- Fixed a bug that caused failure on new installations - as the storage-directory was used before being checked/created
+
+
+
 ## [0.6.1] - 2021-02-20
 
 ### Fixed
