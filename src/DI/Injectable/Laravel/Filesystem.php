@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\FilesystemInterface;
 use DirectoryIterator;
 use IteratorIterator;
 use RecursiveDirectoryIterator;
@@ -10,7 +11,7 @@ use RecursiveIteratorIterator;
 /**
  * Injectable class to abstract interaction with the filesystem.
  */
-class Filesystem
+class Filesystem implements FilesystemInterface
 {
     /**
      * Check whether the given path exists.

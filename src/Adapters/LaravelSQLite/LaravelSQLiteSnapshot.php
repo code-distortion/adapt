@@ -77,6 +77,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      *
      * @param string $path The location of the snapshot file.
      * @return void
+     * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
     public function takeSnapshot(string $path)
     {

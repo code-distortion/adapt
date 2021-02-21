@@ -219,7 +219,8 @@ trait InitialiseLaravelAdapt
      */
     private function buildBootObject(): BootTestInterface
     {
-        return (new BootTestLaravel())->testName(get_class($this) . '::' . $this->getName())->props($this->propBag)->browserTestDetected($this->detectBrowserTest())->transactionClosure($this->adaptBuildTransactionClosure())->initCallback($this->adaptBuildInitCallback());
+        return (new BootTestLaravel())->testName(get_class($this) . '::' . $this->getName())->props($this->propBag)->browserTestDetected($this->detectBrowserTest())->transactionClosure($this->adaptBuildTransactionClosure())->initCallback($this->adaptBuildInitCallback())
+            ->ensureStorageDirExists();
     }
 
 

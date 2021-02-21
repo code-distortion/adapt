@@ -3,12 +3,14 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 /**
  * Bootstrap Adapt for tests.
  */
 interface BootTestInterface
 {
+
     /**
      * Set the name of the test being run.
      *
@@ -49,6 +51,14 @@ interface BootTestInterface
 //     */
 //    public function setDI(DIContainer $di): self;
 
+    /**
+     * Ensure the storage-directory exists.
+     *
+     * @return static
+     * @throws AdaptConfigException When the storage directory cannot be created.
+     */
+    public function ensureStorageDirExists();
+
 
 
     /**
@@ -61,7 +71,6 @@ interface BootTestInterface
     /**
      * Check to see if any of the transactions were committed, and generate a warning.
      *
-     * @retrun void
      * @return void
      */
     public function checkForCommittedTransactions();

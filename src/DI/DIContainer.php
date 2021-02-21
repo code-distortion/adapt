@@ -3,11 +3,11 @@
 namespace CodeDistortion\Adapt\DI;
 
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\FilesystemInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 
 /**
  * A dependency injection object.
@@ -29,10 +29,10 @@ class DIContainer
     /** @var Exec The Exec object to use. */
     public $exec;
 
-    /** @var Filesystem The Filesystem object to use. */
+    /** @var FilesystemInterface The Filesystem object to use. */
     public $filesystem;
 
-    /** @var LaravelLog The Log object to use. */
+    /** @var LogInterface The Log object to use. */
     public $log;
 
 
@@ -99,10 +99,10 @@ class DIContainer
     /**
      * Set the Filesystem object to use.
      *
-     * @param Filesystem $filesystem The Filesystem object to store.
+     * @param FilesystemInterface $filesystem The Filesystem object to store.
      * @return static
      */
-    public function filesystem(Filesystem $filesystem)
+    public function filesystem(FilesystemInterface $filesystem)
     {
         $this->filesystem = $filesystem;
         return $this;
@@ -111,10 +111,10 @@ class DIContainer
     /**
      * Set the Log object to use.
      *
-     * @param LaravelLog $log The Log object to store.
+     * @param LogInterface $log The Log object to store.
      * @return static
      */
-    public function log(LaravelLog $log)
+    public function log(LogInterface $log)
     {
         $this->log = $log;
         return $this;

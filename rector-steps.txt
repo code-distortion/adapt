@@ -1,0 +1,32 @@
+vendor/rector/rector/packages/set/src/ValueObject/SetList.php
+
+    public const DOWNGRADE_PHP80 = __DIR__ . '/../../../../config/set/downgrade-php80.php';
+    public const DOWNGRADE_PHP74 = __DIR__ . '/../../../../config/set/downgrade-php74.php';
+    public const DOWNGRADE_PHP73 = __DIR__ . '/../../../../config/set/downgrade-php73.php';
+    public const DOWNGRADE_PHP72 = __DIR__ . '/../../../../config/set/downgrade-php72.php';
+    public const DOWNGRADE_PHP71 = __DIR__ . '/../../../../config/set/downgrade-php71.php';
+
+
+
+cp -pr config _config
+cp -pr src _src
+
+./vendor/bin/rector process _src _config
+./vendor/bin/phpcbf _src _config
+
+git checkout master
+
+git merge latest
+
+rm -rf config
+rm -rf src
+
+mv _config config
+mv _src src
+
+git add . --all
+
+
+
+git commit -m "Merge branch 'latest'"
+

@@ -173,7 +173,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
-    protected abstract function newBuilder(string $connection): DatabaseBuilder;
+    abstract protected function newBuilder(string $connection): DatabaseBuilder;
 
     /**
      * Execute the builders that this object created (ie. build their databases).
@@ -209,7 +209,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param string $connection The connection to start using.
      * @return DIContainer
      */
-    protected abstract function defaultDI(string $connection): DIContainer;
+    abstract protected function defaultDI(string $connection): DIContainer;
 
     /**
      * Build a new Log instance.
@@ -221,7 +221,6 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Check to see if any of the transactions were committed, and generate a warning.
      *
-     * @retrun void
      * @return void
      */
     public function checkForCommittedTransactions()
