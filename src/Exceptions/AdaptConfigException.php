@@ -30,13 +30,12 @@ class AdaptConfigException extends AdaptException
      * @param Throwable|null $originalException The originally thrown exception.
      * @return self
      */
-    public static function cannotCreateStorageDir(string $storageDir, ?Throwable $originalException): self
+    public static function cannotCreateStorageDir(string $storageDir, ?Throwable $originalException = null): self
     {
-        return new self(
-            "Could not create the storage directory \"$storageDir\". Please review the \"storage_dir\" setting",
-            0,
-            $originalException
-        );
+        $message = "Could not create the storage directory \"$storageDir\". Please review the \"storage_dir\" setting";
+        return $originalException
+            ? new self($message, 0, $originalException)
+            : new self($message);
     }
 
     /**

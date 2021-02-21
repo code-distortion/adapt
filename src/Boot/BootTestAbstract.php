@@ -221,7 +221,7 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Check to see if any of the transactions were committed, and generate a warning.
      *
-     * @retrun void
+     * @return void
      */
     public function checkForCommittedTransactions(): void
     {

@@ -161,7 +161,9 @@ class LaravelMySQLReuse implements ReuseInterface
     public function wasTransactionCommitted(): bool
     {
         try {
-            $rows = $this->di->db->select("SELECT `inside_transaction` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
+            $rows = $this->di->db->select(
+                "SELECT `inside_transaction` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
+            );
             $reuseInfo = reset($rows);
             return (bool) $reuseInfo->inside_transaction;
         } catch (Throwable $e) {

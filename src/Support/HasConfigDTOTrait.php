@@ -179,9 +179,9 @@ trait HasConfigDTOTrait
      * Turn the snapshots setting on.
      *
      * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
      * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'
+     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
      * @return static
      */
     public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB): self

@@ -82,6 +82,10 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function newLog(): LogInterface
     {
+        if (!$this->propBag) {
+            throw AdaptBootException::propBagNotSet();
+        }
+
         return new LaravelLog(
             (bool) $this->propBag->config('log.stdout'),
             (bool) $this->propBag->config('log.laravel')

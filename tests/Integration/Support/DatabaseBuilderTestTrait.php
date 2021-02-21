@@ -156,8 +156,8 @@ trait DatabaseBuilderTestTrait
     /**
      * Build a new Hasher based on a ConfigDTO and DIContainer.
      *
-     * @param ConfigDTO|null   $config
-     * @param DIContainer|null $di
+     * @param ConfigDTO|null   $config The ConfigDTO to use.
+     * @param DIContainer|null $di     The DIContainer to use.
      * @return Hasher
      */
     private function newHasher(?ConfigDTO $config = null, ?DIContainer $di = null): Hasher

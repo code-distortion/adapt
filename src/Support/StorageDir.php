@@ -7,6 +7,9 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\FilesystemInterface;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Throwable;
 
+/**
+ * Methods relating to the set up of the storage directory.
+ */
 class StorageDir
 {
     /**

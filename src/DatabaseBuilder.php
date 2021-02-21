@@ -341,16 +341,16 @@ class DatabaseBuilder
     /**
      * Create the re-use meta-data table.
      *
-     * @throws AdaptConfigException
+     * @param boolean $reusable Whether this database can be reused or not.
      * @return void
      */
-    private function writeReuseMetaData($readyForUse)
+    private function writeReuseMetaData(bool $reusable)
     {
         $this->dbAdapter()->reuse->writeReuseMetaData(
             $this->origDBName(),
             $this->hasher->currentSourceFilesHash(),
             $this->hasher->currentScenarioHash(),
-            $readyForUse
+            $reusable
         );
     }
 
