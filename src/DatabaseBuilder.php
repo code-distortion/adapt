@@ -269,7 +269,6 @@ class DatabaseBuilder
      */
     private function initialise(): void
     {
-        $this->ensureStorageDirExists();
         $this->pickDriver();
     }
 
@@ -545,45 +544,6 @@ class DatabaseBuilder
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "' . $path . '"', $logTimer);
-        }
-    }
-
-    /**
-     * Create the storage directory if it doesn't exist.
-     *
-     * @return void
-     * @throws AdaptConfigException Thrown when the directory could not be created.
-     */
-    private function ensureStorageDirExists(): void
-    {
-        $storageDir = $this->config->storageDir;
-
-        if ($this->di->filesystem->pathExists($storageDir)) {
-            if ($this->di->filesystem->isFile($storageDir)) {
-                throw AdaptConfigException::storageDirIsAFile($storageDir);
-            }
-        } else {
-
-            $e = null;
-            try {
-                $logTimer = $this->di->log->newTimer();
-
-                // create the storage directory
-                if ($this->di->filesystem->mkdir($storageDir, 0777, true)) {
-                    // create a .gitignore file
-                    $this->di->filesystem->writeFile(
-                        $storageDir . '/.gitignore',
-                        'w',
-                        '*' . PHP_EOL . '!.gitignore' . PHP_EOL
-                    );
-                }
-                $this->di->log->info('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
-            } catch (Throwable $e) {
-            }
-
-            if (($e) || (!$this->di->filesystem->dirExists($storageDir))) {
-                throw AdaptConfigException::cannotCreateStorageDir($storageDir, $e);
-            }
         }
     }
 

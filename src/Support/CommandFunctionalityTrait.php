@@ -19,7 +19,7 @@ trait CommandFunctionalityTrait
      */
     protected function getCacheList(): CacheListDTO
     {
-        $bootCommandLaravel = new BootCommandLaravel();
+        $bootCommandLaravel = (new BootCommandLaravel())->ensureStorageDirExists();
         $cacheListDTO = new CacheListDTO();
 
         // find databases

@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
@@ -12,8 +13,10 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
+use CodeDistortion\Adapt\Support\StorageDir;
 
 /**
  * Bootstrap Adapt for Laravel commands.
@@ -21,6 +24,20 @@ use CodeDistortion\Adapt\Support\Settings;
 class BootCommandLaravel extends BootCommandAbstract
 {
     use CheckLaravelHashPathsTrait;
+
+
+    /**
+     * Ensure the storage-directory exists.
+     *
+     * @return static
+     * @throws AdaptConfigException When the storage directory cannot be created.
+     */
+    public function ensureStorageDirExists(): self
+    {
+        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        return $this;
+    }
+
 
     /**
      * Create a new DatabaseBuilder object and set its initial values.
@@ -35,6 +52,7 @@ class BootCommandLaravel extends BootCommandAbstract
         $pickDriverClosure = function (string $connection) {
             return config("database.connections.$connection.driver", 'unknown');
         };
+        StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
 
         $testName = '';
         return new DatabaseBuilder(
@@ -61,9 +79,19 @@ class BootCommandLaravel extends BootCommandAbstract
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
-            ->log(new LaravelLog(false, false))
+            ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
+    }
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        return new LaravelLog(false, false);
     }
 
     /**
@@ -79,7 +107,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->projectName(config("$c.project_name"))
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
-            ->storageDir(rtrim(config("$c.storage_dir"), '\\/'))
+            ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test_')
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
@@ -108,5 +136,16 @@ class BootCommandLaravel extends BootCommandAbstract
             ->invalidationGraceSeconds(
                 config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
             );
+    }
+
+    /**
+     * Get the storage directory.
+     *
+     * @return string
+     */
+    private function storageDir(): string
+    {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        return rtrim(config("$c.storage_dir"), '\\/');
     }
 }

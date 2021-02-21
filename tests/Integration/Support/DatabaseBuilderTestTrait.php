@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
@@ -12,6 +13,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Hasher;
+use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use DB;
 use ErrorException;
@@ -64,9 +66,19 @@ trait DatabaseBuilderTestTrait
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
-            ->log(new LaravelLog(false, false))
+            ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
+    }
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        return new LaravelLog(false, false);
     }
 
     /**
@@ -173,6 +185,8 @@ trait DatabaseBuilderTestTrait
         }
         $this->createGitIgnoreFile($destDir . '/.gitignore');
         $this->loadConfigs($destDir . '/config');
+
+        StorageDir::ensureStorageDirExists($this->wsAdaptStorageDir, new Filesystem(), $this->newLog());
     }
 
     /**

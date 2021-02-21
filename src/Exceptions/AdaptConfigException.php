@@ -33,8 +33,7 @@ class AdaptConfigException extends AdaptException
     public static function cannotCreateStorageDir(string $storageDir, ?Throwable $originalException): self
     {
         return new self(
-            'Could not create the storage directory "' . $storageDir . '". '
-            . 'Please review the "storage_dir" setting',
+            "Could not create the storage directory \"$storageDir\". Please review the \"storage_dir\" setting",
             0,
             $originalException
         );

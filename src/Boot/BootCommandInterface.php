@@ -3,12 +3,21 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 /**
  * Bootstrap Adapt for commands.
  */
 interface BootCommandInterface
 {
+    /**
+     * Ensure the storage-directory exists.
+     *
+     * @return static
+     * @throws AdaptConfigException When the storage directory cannot be created.
+     */
+    public function ensureStorageDirExists(): self;
+
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *

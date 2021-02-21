@@ -230,7 +230,8 @@ trait InitialiseLaravelAdapt
             ->props($this->propBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
-            ->initCallback($this->adaptBuildInitCallback());
+            ->initCallback($this->adaptBuildInitCallback())
+            ->ensureStorageDirExists();
     }
 
 

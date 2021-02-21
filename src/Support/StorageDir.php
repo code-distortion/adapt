@@ -1,0 +1,60 @@
+<?php
+
+namespace CodeDistortion\Adapt\Support;
+
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\FilesystemInterface;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use Throwable;
+
+class StorageDir
+{
+    /**
+     * Create the storage directory if it doesn't exist.
+     *
+     * @param string              $storageDir The storage directory to check/create.
+     * @param FilesystemInterface $filesystem The filesystem object to use.
+     * @param LogInterface        $log        The log object to use.
+     * @return void
+     * @throws AdaptConfigException Thrown when the directory could not be created.
+     */
+    public static function ensureStorageDirExists(
+        string $storageDir,
+        FilesystemInterface $filesystem,
+        LogInterface $log
+    ): void {
+
+        if (!$storageDir) {
+            throw AdaptConfigException::cannotCreateStorageDir($storageDir);
+        }
+
+        if ($filesystem->pathExists($storageDir)) {
+            if ($filesystem->isFile($storageDir)) {
+                throw AdaptConfigException::storageDirIsAFile($storageDir);
+            }
+        } else {
+
+            $e = null;
+            try {
+                $logTimer = $log->newTimer();
+
+                // create the storage directory
+                if ($filesystem->mkdir($storageDir, 0744, true)) {
+
+                    // create a .gitignore file
+                    $filesystem->writeFile(
+                        $storageDir . '/.gitignore',
+                        'w',
+                        '*' . PHP_EOL . '!.gitignore' . PHP_EOL
+                    );
+                }
+                $log->info('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
+            } catch (Throwable $e) {
+            }
+
+            if (($e) || (!$filesystem->dirExists($storageDir))) {
+                throw AdaptConfigException::cannotCreateStorageDir($storageDir, $e);
+            }
+        }
+    }
+}

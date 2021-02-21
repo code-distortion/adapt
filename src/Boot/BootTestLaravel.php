@@ -17,6 +17,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
 use Config;
@@ -36,6 +37,19 @@ class BootTestLaravel extends BootTestAbstract
 
     /** @var string[] The paths to the temporary config files, created during browser tests. */
     private array $tempConfigPaths = [];
+
+
+    /**
+     * Ensure the storage-directory exists.
+     *
+     * @return static
+     * @throws AdaptConfigException When the storage directory cannot be created.
+     */
+    public function ensureStorageDirExists(): self
+    {
+        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        return $this;
+    }
 
 
     /**

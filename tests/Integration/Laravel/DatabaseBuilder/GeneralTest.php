@@ -44,21 +44,6 @@ class GeneralTest extends LaravelTestCase
     }
 
     /**
-     * Test that the DatabaseBuilder creates the database/adapt_test_storage directory.
-     *
-     * @test
-     * @return void
-     */
-    public function test_database_builder_creates_adapt_test_storage_dir(): void
-    {
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
-
-        $this->assertFalse(file_exists($this->wsAdaptStorageDir));
-        $this->newDatabaseBuilder()->execute();
-        $this->assertFileExists($this->wsAdaptStorageDir);
-    }
-
-    /**
      * Test that the DatabaseBuilder creates the sqlite database.
      *
      * @test
