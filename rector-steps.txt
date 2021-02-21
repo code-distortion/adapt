@@ -12,6 +12,7 @@ cp -pr config _config
 cp -pr src _src
 
 ./vendor/bin/rector process _src _config
+./vendor/bin/phpcbf _src _config
 
 git checkout master
 
