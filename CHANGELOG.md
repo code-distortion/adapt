@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.3] - 2021-02-22
+
+### Added
+- Removed the "test_" prefix added to test-database names
+
+
+
 ## [0.6.2] - 2021-02-21
 
 ### Fixed

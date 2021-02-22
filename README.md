@@ -13,7 +13,7 @@
 
 ***code-distortion/adapt*** is a [Laravel](https://laravel.com/) package that builds databases for your tests. It uses a range of techniques to safely get the fastest speeds from them.
 
-It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations` (and `DatabaseTransactions`) traits. It handles more situations like ***parallel browser*** testing. And does so safely, so you can be sure your tests don't interfere with each other.
+It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`, and `DatabaseTransactions` traits.
 
 > The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides further introduction to this package.
 
