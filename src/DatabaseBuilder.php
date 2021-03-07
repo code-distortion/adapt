@@ -17,6 +17,7 @@ use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use DateTime;
 use DateTimeZone;
+use PDOException;
 use Throwable;
 
 /**
@@ -329,13 +330,18 @@ class DatabaseBuilder
     {
         $logTimer = $this->di->log->newTimer();
 
-        if ($this->canReuseDB()) {
-            $this->di->log->info('Reusing the existing database', $logTimer);
-        } else {
-            $this->buildDBFresh();
-        }
+        try {
 
-        $this->writeReuseMetaData($this->dbWillBeReusable());
+            if ($this->canReuseDB()) {
+                $this->di->log->info('Reusing the existing database', $logTimer);
+            } else {
+                $this->buildDBFresh();
+            }
+            $this->writeReuseMetaData($this->dbWillBeReusable());
+
+        } catch (Throwable $e) {
+            throw $this->transformAccessDeniedException($e);
+        }
     }
 
     /**
@@ -778,5 +784,25 @@ class DatabaseBuilder
     private function origDBName(): string
     {
         return $this->di->config->origDBName($this->config->connection);
+    }
+
+    /**
+     * Throw a custom exception if the given exception is, or contains a PDOException - "access denied" exception.
+     *
+     * @param Throwable $e The exception to check.
+     * @return Throwable
+     */
+    private function transformAccessDeniedException(Throwable $e): Throwable
+    {
+        $previous = $e;
+        do {
+            if ($previous instanceof PDOException) {
+                if ($previous->getCode() == 1044) {
+                    return AdaptBuildException::accessDenied($e);
+                }
+            }
+            $previous = $previous->getPrevious();
+        } while ($previous);
+        return $e;
     }
 }

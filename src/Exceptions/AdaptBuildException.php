@@ -10,6 +10,23 @@ use Throwable;
 class AdaptBuildException extends AdaptException
 {
     /**
+     * The db user doesn't have permission to access the database.
+     *
+     * @param Throwable $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function accessDenied(Throwable $originalException): self
+    {
+        return new self(
+            'Database access denied. TRY CONNECTING AS THE ROOT USER while testing. '
+            .'The user you connect with needs to have read + write access, '
+            .'as well as permission to create new databases',
+            0,
+            $originalException
+        );
+    }
+
+    /**
      * Could not reuse a database - it's owned by another project.
      *
      * @param string $databaseName The database that was to be used.
