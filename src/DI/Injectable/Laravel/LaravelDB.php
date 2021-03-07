@@ -59,10 +59,11 @@ class LaravelDB
         $driver = config("database.connections.$connection.driver");
         switch ($driver) {
             case 'mysql':
-                $dsn = sprintf('mysql:host=%s;port=%d', $host, $port);
+            case 'pgsql':
+                $dsn = sprintf("$driver:host=%s;port=%d", $host, $port);
                 break;
             case 'sqlite':
-                $dsn = sprintf('sqlite:%s', $database);
+                $dsn = sprintf("$driver:%s", $database);
                 break;
             default:
                 throw AdaptConfigException::unsupportedDriver($connection, $driver);
