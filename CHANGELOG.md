@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.4] - 2021-03-07
+
+### Added
+- Added custom exception to give more details when database access is denied.
+
+
+
 ## [0.6.3] - 2021-02-22
 
 ### Added

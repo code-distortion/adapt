@@ -63,7 +63,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function mysqldumpNotPresent(string $path)
     {
-        return new self('The mysqldump executable "' . $path . '" isn\'t available to use'
+        return new self('The mysqldump executable "' . $path . '" isn\'t available to use '
         . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)');
     }
 
