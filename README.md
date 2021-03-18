@@ -11,9 +11,9 @@
 
 ## Introduction
 
-***code-distortion/adapt*** is a [Laravel](https://laravel.com/) package that builds databases for your tests. It uses a range of techniques to safely get the fastest speeds from them.
+***code-distortion/adapt*** is a [Laravel](https://laravel.com/) package that unifies the process of building databases for your tests, with a focus on speed and convenience.
 
-It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`, and `DatabaseTransactions` traits.
+It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`, and `DatabaseTransactions` traits. And it allows for things that aren't normally possible, like [*running browser tests in parallel*](#dusk-browser-test-usage).
 
 > The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides further introduction to this package.
 
@@ -280,11 +280,11 @@ class MyDuskTest extends DuskTestCase
 }
 ```
 
-The config settings your tests use (built from `.env.testing`) are passed to the server through the browser. Your `.env.dusk.local` file will be ignored.
+Your test's config settings (from `.env.testing`) are passed to the server through the browser. Your `.env.dusk.local` file are ignored.
 
 > When Dusk tests are run, transactions are turned off and snapshot dumps are turned on instead.
 
-***Note:*** Running your Dusk tests with `php artisan dusk` works. However, if you do, it goes through the process of copying `.env.dusk.local` over `.env`, which is then ignored anyway. Use one of the other [methods below](#running-your-tests) instead.
+***Note:*** Running your Dusk tests with `php artisan dusk` works. However, if you do, it goes through the process of copying `.env.dusk.local` over `.env`, which isn't necessary. Use one of the other [methods below](#running-your-tests) instead.
 
 You might like to add the `test/Browser` directory as a [PHPUnit test suite](https://phpunit.readthedocs.io/en/9.5/organizing-tests.html#composing-a-test-suite-using-xml-configuration), so it's picked up by default when you run your tests:
 
