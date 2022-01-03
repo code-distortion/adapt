@@ -16,12 +16,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     ]);
 
     // Define what rule sets will be applied
-//    $containerConfigurator->import(LevelSetList::UP_TO_PHP_74);
-    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_80);
-    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_74);
-    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_73);
-    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_72);
-    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_71);
+//    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_80);
+//    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_74);
+//    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_73);
+//    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_72);
+//    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_71);
     $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_70);
 
     // get services (needed for register a single rule)
