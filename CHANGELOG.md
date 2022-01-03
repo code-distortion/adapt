@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.6] - 2022-01-04
+
+### Changed
+- Updated dependencies
+
+
+
 ## [0.6.5] - 2022-01-03
 
 ### Added
