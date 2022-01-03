@@ -31,7 +31,7 @@
         }
     ],
     "require": {
-        "php": "^7.4 | ^8.0",
+        "php": "7.4.* | 8.0.* | 8.1.*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "code-distortion/fluent-dotenv": "^0.1.1"
