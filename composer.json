@@ -57,8 +57,8 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
-        "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon --level=max .",
-        "phpcs": "vendor/bin/phpcs ."
+        "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon --level=max",
+        "phpcs": "vendor/bin/phpcs"
     },
     "config": {
         "sort-packages": true
