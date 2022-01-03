@@ -6,10 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.5] - 2022-01-03
+
+### Added
+- Added support for PHP 8.1
+
+
+
 ## [0.6.4] - 2021-03-07
 
 ### Added
-- Added custom exception to give more details when database access is denied.
+- Added custom exception to give more details when database access is denied
 
 
 
@@ -140,7 +147,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.2.4] - 2021-01-06
 
 ### Added
-- Support for PHP 8.0
+- Added support for PHP 8.0
 - PSR12 formatting
 - Documentation updates
 
