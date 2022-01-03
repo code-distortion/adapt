@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 use Rector\Core\Configuration\Option;
 use Rector\Php74\Rector\Property\TypedPropertyRector;
-use Rector\Set\ValueObject\SetList;
+use Rector\Set\ValueObject\DowngradeLevelSetList;
+use Rector\Set\ValueObject\LevelSetList;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     // get parameters
     $parameters = $containerConfigurator->parameters();
+    $parameters->set(Option::PATHS, [
+        __DIR__ . '/src'
+    ]);
 
     // Define what rule sets will be applied
-    $parameters->set(Option::SETS, [
-        SetList::DOWNGRADE_PHP80,
-        SetList::DOWNGRADE_PHP74,
-        SetList::DOWNGRADE_PHP73,
-        SetList::DOWNGRADE_PHP72,
-        SetList::DOWNGRADE_PHP71,
-    ]);
+//    $containerConfigurator->import(LevelSetList::UP_TO_PHP_74);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_80);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_74);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_73);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_72);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_71);
+    $containerConfigurator->import(DowngradeLevelSetList::DOWN_TO_PHP_70);
 
     // get services (needed for register a single rule)
     // $services = $containerConfigurator->services();
