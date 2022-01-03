@@ -15,7 +15,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
-use DB;
+use Illuminate\Support\Facades\DB;
 use ErrorException;
 use Exception;
 

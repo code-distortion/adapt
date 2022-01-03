@@ -3,7 +3,7 @@
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**

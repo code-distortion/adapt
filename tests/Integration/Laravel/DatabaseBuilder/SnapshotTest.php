@@ -8,7 +8,7 @@ use CodeDistortion\Adapt\Tests\Database\Seeders\UserSeeder;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -304,7 +304,7 @@ class SnapshotTest extends LaravelTestCase
         foreach ($expectUsers as $user) {
             $row = DB::connection($config->connection)
                 ->select("SELECT COUNT(*) AS total FROM `users` WHERE username = :user", ['user' => $user]);
-            $this->assertSame('1', $row[0]->total);
+            $this->assertSame(1, (int) $row[0]->total);
         }
     }
 
