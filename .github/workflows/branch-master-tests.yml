@@ -51,7 +51,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -96,7 +95,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -168,7 +166,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -235,7 +232,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -300,7 +296,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -361,7 +356,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
@@ -416,7 +410,6 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer remove "rector/rector" --dev --no-interaction --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
