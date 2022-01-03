@@ -15,7 +15,7 @@ class AdaptBrowserTestException extends AdaptException
      * @param string $path The path to the temporary config file.
      * @return self
      */
-    public static function tempConfigFileNotSaved(string $path)
+    public static function tempConfigFileNotSaved($path): self
     {
         return new self("The temporary config file \"$path\" could not be created");
     }
@@ -27,7 +27,7 @@ class AdaptBrowserTestException extends AdaptException
      * @param Throwable|null $e    The original exception (if relevant).
      * @return self
      */
-    public static function tempConfigFileNotLoaded(string $path, $e = null)
+    public static function tempConfigFileNotLoaded($path, $e = null): self
     {
         return $e
             ? new self("The temporary config file \"$path\" could not be loaded", 0, $e)

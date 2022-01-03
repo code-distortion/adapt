@@ -25,7 +25,7 @@ trait LaravelConnectionTrait
      * @param string $database The name of the database to use.
      * @return void
      */
-    protected function laravelUseDatabase(string $database)
+    protected function laravelUseDatabase($database)
     {
         $connection = $this->config->connection;
         $this->config->database($database);

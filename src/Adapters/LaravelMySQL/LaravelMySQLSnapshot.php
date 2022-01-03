@@ -17,10 +17,10 @@ class LaravelMySQLSnapshot implements SnapshotInterface
     use LaravelHelperTrait;
 
     /** @var boolean|null An internal cache of whether the mysql client exists or not. */
-    private static $mysqlClientExists = null;
+    private static $mysqlClientExists;
 
     /** @var boolean|null An internal cache of whether mysqldump exists or not. */
-    private static $mysqldumpExists = null;
+    private static $mysqldumpExists;
 
 
 
@@ -64,7 +64,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      * @return boolean
      * @throws AdaptSnapshotException Thrown when the import fails.
      */
-    public function importSnapshot(string $path, bool $throwException = false): bool
+    public function importSnapshot($path, $throwException = false): bool
     {
         if (!$this->di->filesystem->fileExists($path)) {
             if ($throwException) {
@@ -72,7 +72,9 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             }
             return false;
         }
+
         $this->ensureMysqlClientExists();
+
         $command = $this->config->mysqlExecutablePath . ' '
             . '--host=' . escapeshellarg($this->conVal('host')) . ' '
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
@@ -81,6 +83,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . escapeshellarg((string) $this->config->database) . ' '
             . '< ' . escapeshellarg($path) . ' '
             . '2>/dev/null';
+
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
             if ($throwException) {
@@ -98,10 +101,12 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      * @return void
      * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
-    public function takeSnapshot(string $path)
+    public function takeSnapshot($path)
     {
         $this->ensureMysqlDumpExists();
+
         $tmpPath = "$path.tmp." . mt_rand();
+
         $command = $this->config->mysqldumpExecutablePath . ' '
             . '--host=' . escapeshellarg($this->conVal('host')) . ' '
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
@@ -113,10 +118,12 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . escapeshellarg((string) $this->config->database) . ' '
             . '> ' . escapeshellarg($tmpPath) . ' '
             . '2>/dev/null';
+
         $this->di->exec->run($command, $output, $returnVal);
         if ($returnVal != 0) {
             throw AdaptSnapshotException::mysqlExportError($path, $returnVal);
         }
+
         try {
             if (!$this->di->filesystem->rename($tmpPath, $path)) {
                 throw AdaptSnapshotException::mysqlExportErrorRenameTempFile($tmpPath, $path);

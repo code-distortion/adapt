@@ -3,7 +3,7 @@
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -21,7 +21,7 @@ class LaravelDB
      * @param string $connection The connection to use.
      * @return static
      */
-    public function useConnection(string $connection)
+    public function useConnection($connection): self
     {
         $this->connection = $connection;
         return $this;
@@ -50,10 +50,12 @@ class LaravelDB
     public function newPDO($database = null, $connection = null): LaravelPDO
     {
         $connection = $connection ?? $this->connection;
+
         $host = config("database.connections.$connection.host");
         $port = config("database.connections.$connection.port");
         $username = config("database.connections.$connection.username");
         $password = config("database.connections.$connection.password");
+
         $driver = config("database.connections.$connection.driver");
         switch ($driver) {
             case 'mysql':
@@ -66,6 +68,7 @@ class LaravelDB
             default:
                 throw AdaptConfigException::unsupportedDriver($connection, $driver);
         }
+
         return new LaravelPDO($dsn, $username, $password, []);
     }
 
@@ -93,7 +96,7 @@ class LaravelDB
      * @param mixed[] $bindings The values to bind.
      * @return boolean
      */
-    public function statement(string $query, array $bindings = []): bool
+    public function statement($query, $bindings = []): bool
     {
         return DB::connection($this->connection)->statement($query, $bindings);
     }
@@ -105,7 +108,7 @@ class LaravelDB
      * @param mixed[] $bindings The values to bind.
      * @return mixed[]
      */
-    public function select(string $query, array $bindings = []): array
+    public function select($query, $bindings = []): array
     {
         return DB::connection($this->connection)->select($query, $bindings);
     }
@@ -117,7 +120,7 @@ class LaravelDB
      * @param mixed[] $bindings The values to bind.
      * @return boolean
      */
-    public function insert(string $query, array $bindings = []): bool
+    public function insert($query, $bindings = []): bool
     {
         return DB::connection($this->connection)->insert($query, $bindings);
     }
@@ -129,7 +132,7 @@ class LaravelDB
      * @param mixed[] $bindings The values to bind.
      * @return boolean
      */
-    public function update(string $query, array $bindings = []): bool
+    public function update($query, $bindings = []): bool
     {
         return DB::connection($this->connection)->update($query, $bindings);
     }

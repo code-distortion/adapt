@@ -8,7 +8,7 @@ use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
@@ -238,8 +238,8 @@ class ReuseDBTest extends LaravelTestCase
         } else {
             $this->newDatabaseBuilder($config2, $this->newDIContainer($config2->connection))->execute();
             $this->assertSame(
-                (string) $expectedUserCount,
-                DB::connection($config2->connection)->select("SELECT COUNT(*) as total FROM `users`")[0]->total
+                $expectedUserCount,
+                (int) DB::connection($config2->connection)->select("SELECT COUNT(*) as total FROM `users`")[0]->total
             );
         }
     }

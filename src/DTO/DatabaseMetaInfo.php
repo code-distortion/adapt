@@ -28,7 +28,7 @@ class DatabaseMetaInfo
     public $getSizeCallback;
 
     /** @var integer|null The size of the database in bytes. */
-    public $size = null;
+    public $size;
 
     /** @var callable The callback used to delete the database file. */
     public $deleteCallback = null;
@@ -46,8 +46,14 @@ class DatabaseMetaInfo
      * @param callable      $getSizeCallback The callback to use to calculate the database's size.
      * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
      */
-    public function __construct(string $connection, string $name, $accessDT, bool $isValid, callable $getSizeCallback, int $graceSeconds)
-    {
+    public function __construct(
+        string $connection,
+        string $name,
+        $accessDT,
+        bool $isValid,
+        callable $getSizeCallback,
+        int $graceSeconds
+    ) {
         $this->connection = $connection;
         $this->name = $name;
         $this->isValid = $isValid;
@@ -64,7 +70,7 @@ class DatabaseMetaInfo
      * @param callable $deleteCallback The callback to call.
      * @return $this
      */
-    public function setDeleteCallback(callable $deleteCallback)
+    public function setDeleteCallback($deleteCallback): self
     {
         $this->deleteCallback = $deleteCallback;
         return $this;

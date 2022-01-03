@@ -56,7 +56,7 @@ class DatabaseBuilder
     private $executed = false;
 
     /** @var DBAdapter|null The object that will do the database specific work. */
-    private $dbAdapter = null;
+    private $dbAdapter;
 
 
     /**
@@ -69,8 +69,14 @@ class DatabaseBuilder
      * @param Hasher      $hasher            The Hasher object to use.
      * @param callable    $pickDriverClosure A closure that will return the driver for the given connection.
      */
-    public function __construct(string $framework, string $testName, DIContainer $di, ConfigDTO $config, Hasher $hasher, callable $pickDriverClosure)
-    {
+    public function __construct(
+        string $framework,
+        string $testName,
+        DIContainer $di,
+        ConfigDTO $config,
+        Hasher $hasher,
+        callable $pickDriverClosure
+    ) {
         $this->framework = $framework;
         $this->testName = $testName;
         $this->di = $di;
@@ -85,7 +91,7 @@ class DatabaseBuilder
      *
      * @return static
      */
-    public function makeDefault()
+    public function makeDefault(): self
     {
         $this->dbAdapter()->connection->makeThisConnectionDefault();
         return $this;
@@ -120,7 +126,7 @@ class DatabaseBuilder
      *
      * @return static
      */
-    public function execute()
+    public function execute(): self
     {
         $this->onlyExecuteOnce();
         $this->initialise();
@@ -275,7 +281,9 @@ class DatabaseBuilder
     private function prepareDB()
     {
         $this->di->log->info('---- Preparing a database for test: ' . $this->testName . ' ----------------');
-        $this->di->log->info('Using connection "' . $this->config->connection . '" (driver "' . $this->config->driver . '")');
+        $this->di->log->info(
+            'Using connection "' . $this->config->connection . '" (driver "' . $this->config->driver . '")'
+        );
 
         $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDB();
@@ -303,7 +311,10 @@ class DatabaseBuilder
     {
         // generate a new name
         if ($this->usingScenarioTestDBs()) {
-            $dbNameHash = $this->hasher->generateDBNameHash($this->config->pickSeedersToInclude(), $this->config->databaseModifier);
+            $dbNameHash = $this->hasher->generateDBNameHash(
+                $this->config->pickSeedersToInclude(),
+                $this->config->databaseModifier
+            );
             return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
         }
         // or return the original name
@@ -341,7 +352,12 @@ class DatabaseBuilder
      */
     private function writeReuseMetaData(bool $reusable)
     {
-        $this->dbAdapter()->reuse->writeReuseMetaData($this->origDBName(), $this->hasher->currentSourceFilesHash(), $this->hasher->currentScenarioHash(), $reusable);
+        $this->dbAdapter()->reuse->writeReuseMetaData(
+            $this->origDBName(),
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash(),
+            $reusable
+        );
     }
 
     /**
@@ -355,7 +371,10 @@ class DatabaseBuilder
             return false;
         }
 
-        return $this->dbAdapter()->reuse->dbIsCleanForReuse($this->hasher->currentSourceFilesHash(), $this->hasher->currentScenarioHash());
+        return $this->dbAdapter()->reuse->dbIsCleanForReuse(
+            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->currentScenarioHash()
+        );
     }
 
     /**
@@ -464,13 +483,16 @@ class DatabaseBuilder
         if (!$this->seedingIsAllowed()) {
             return;
         }
+
         if (is_null($seeders)) {
             $seeders = $this->config->pickSeedersToInclude();
         }
         if (!count($seeders)) {
             return;
         }
+
         $this->dbAdapter()->build->seed($seeders);
+
         if ($this->shouldTakeSnapshotAfterSeeders()) {
             $seedersRun = $this->config->pickSeedersToInclude(); // ie. all seeders
             $this->takeDBSnapshot($seedersRun);
@@ -491,13 +513,16 @@ class DatabaseBuilder
         if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
             return;
         }
+
         $logTimer = $this->di->log->newTimer();
-        $this->dbAdapter()->reuse->removeReuseMetaTable();
-        // remove the meta-table for the snapshot
+
+        $this->dbAdapter()->reuse->removeReuseMetaTable(); // remove the meta-table for the snapshot
+
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
-        $this->writeReuseMetaData($this->dbWillBeReusable());
-        // put the meta-table back
+
+        $this->writeReuseMetaData($this->dbWillBeReusable()); // put the meta-table back
+
         $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
     }
 
@@ -515,7 +540,10 @@ class DatabaseBuilder
         }
 
         if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
-            throw AdaptSnapshotException::importsNotAllowed((string) $this->config->driver, (string) $this->config->database);
+            throw AdaptSnapshotException::importsNotAllowed(
+                (string) $this->config->driver,
+                (string) $this->config->database
+            );
         }
 
         foreach ($preMigrationDumps as $path) {
@@ -554,7 +582,9 @@ class DatabaseBuilder
      */
     private function generateSnapshotPath(array $seeders): string
     {
-        return $this->dbAdapter()->name->generateSnapshotPath($this->hasher->generateSnapshotHash($seeders));
+        return $this->dbAdapter()->name->generateSnapshotPath(
+            $this->hasher->generateSnapshotHash($seeders)
+        );
     }
 
     /**
@@ -566,17 +596,21 @@ class DatabaseBuilder
     private function trySnapshot(array $seeders): bool
     {
         $logTimer = $this->di->log->newTimer();
+
         $snapshotPath = $this->generateSnapshotPath($seeders);
+
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
             $this->di->log->info('Snapshot NOT FOUND: "' . $snapshotPath . '"', $logTimer);
             return false;
         }
+
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
             $this->di->log->info('Import of snapshot FAILED: "' . $snapshotPath . '"', $logTimer);
             return false;
         }
-        $this->di->filesystem->touch($snapshotPath);
-        // invalidation grace-period will start "now"
+
+        $this->di->filesystem->touch($snapshotPath); // invalidation grace-period will start "now"
+
         $this->di->log->info('Import of snapshot SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
         return true;
     }
@@ -590,7 +624,10 @@ class DatabaseBuilder
      */
     public function buildDatabaseMetaInfos(): array
     {
-        return $this->dbAdapter()->reuse->findDatabases($this->origDBName(), $this->hasher->currentSourceFilesHash());
+        return $this->dbAdapter()->reuse->findDatabases(
+            $this->origDBName(),
+            $this->hasher->currentSourceFilesHash()
+        );
     }
 
 
@@ -630,16 +667,27 @@ class DatabaseBuilder
         $temp = explode('/', $path);
         $filename = (string) array_pop($temp);
         $prefix = $this->config->snapshotPrefix;
+
         if (mb_substr($filename, 0, mb_strlen($prefix)) != $prefix) {
             return null;
         }
+
         $filename = mb_substr($filename, mb_strlen($prefix));
+
         $accessTS = fileatime($path);
         $accessDT = new DateTime("@$accessTS") ?: null;
         $accessDT ? $accessDT->setTimezone(new DateTimeZone('UTC')) : null;
-        $snapshotMetaInfo = new SnapshotMetaInfo($path, $filename, $accessDT, $this->hasher->filenameHasSourceFilesHash($filename), function () use ($path) {
-            return $this->di->filesystem->size($path);
-        }, $this->config->invalidationGraceSeconds);
+
+        $snapshotMetaInfo = new SnapshotMetaInfo(
+            $path,
+            $filename,
+            $accessDT,
+            $this->hasher->filenameHasSourceFilesHash($filename),
+            function () use ($path) {
+                return $this->di->filesystem->size($path);
+            },
+            $this->config->invalidationGraceSeconds
+        );
         $snapshotMetaInfo->setDeleteCallback(function () use ($snapshotMetaInfo) {
             return $this->removeSnapshotFile($snapshotMetaInfo);
         });
@@ -655,8 +703,12 @@ class DatabaseBuilder
     private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
         $logTimer = $this->di->log->newTimer();
+
         if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-            $this->di->log->info('Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"", $logTimer);
+            $this->di->log->info(
+                'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
+                $logTimer
+            );
             return true;
         }
         return false;
@@ -678,9 +730,11 @@ class DatabaseBuilder
             return;
         }
 
-        $this->di->log->warning("The $this->testName test committed the transaction wrapper - "
-            . "turn \$reuseTestDBs off to isolate it from other "
-            . "tests that don't commit their transactions");
+        $this->di->log->warning(
+            "The $this->testName test committed the transaction wrapper - "
+                . "turn \$reuseTestDBs off to isolate it from other "
+                . "tests that don't commit their transactions"
+        );
 
         throw AdaptTransactionException::testCommittedTransaction($this->testName);
     }

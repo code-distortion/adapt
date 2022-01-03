@@ -24,12 +24,17 @@ trait LaravelBuildTrait
         $artisan = $this->di->artisan;
         if ($artisan->commandExists('db:wipe')) {
 
-            $this->di->artisan->call('db:wipe', array_filter([
-                '--database' => $this->config->connection,
-                '--drop-views' => true,
-                '--drop-types' => ($this->config->driver == 'pgsql'),
-                '--force' => true,
-            ]));
+            $this->di->artisan->call(
+                'db:wipe',
+                array_filter(
+                    [
+                        '--database' => $this->config->connection,
+                        '--drop-views' => true,
+                        '--drop-types' => ($this->config->driver == 'pgsql'),
+                        '--force' => true,
+                    ]
+                )
+            );
         } else {
             // @todo test dropAllTables when views exist, and Postgres Types exist
             $this->di->db->dropAllTables();
@@ -47,6 +52,7 @@ trait LaravelBuildTrait
     protected function laravelMigrate($migrationsPath)
     {
         $logTimer = $this->di->log->newTimer();
+
         $useRealPath = false;
         if (!is_null($migrationsPath)) {
 
@@ -57,12 +63,17 @@ trait LaravelBuildTrait
                 ? realpath($migrationsPath)
                 : $this->makeRealpathRelative((string) realpath($migrationsPath)));
         }
-        $this->di->artisan->call('migrate', array_filter([
-            '--database' => $this->config->connection,
-            '--force' => true,
-            '--path' => $migrationsPath,
-            '--realpath' => ($useRealPath ? true : null),
-        ]));
+
+        $this->di->artisan->call(
+            'migrate',
+            array_filter([
+                '--database' => $this->config->connection,
+                '--force' => true,
+                '--path' => $migrationsPath,
+                '--realpath' => ($useRealPath ? true : null),
+            ])
+        );
+
         $this->di->log->info('Ran migrations', $logTimer);
     }
 
@@ -73,18 +84,23 @@ trait LaravelBuildTrait
      * @return void
      * @throws AdaptBuildException Thrown when the seeder couldn't be run.
      */
-    protected function laravelSeed(array $seeders)
+    protected function laravelSeed($seeders)
     {
         foreach ($seeders as $seeder) {
 
             $logTimer = $this->di->log->newTimer();
 
             try {
-                $this->di->artisan->call('db:seed', array_filter([
-                    '--database' => $this->config->connection,
-                    '--class' => $seeder,
-                    '--force' => true,
-                ]));
+                $this->di->artisan->call(
+                    'db:seed',
+                    array_filter(
+                        [
+                            '--database' => $this->config->connection,
+                            '--class' => $seeder,
+                            '--force' => true,
+                        ]
+                    )
+                );
             } catch (Throwable $e) {
                 throw AdaptBuildException::seederFailed($seeder, $e);
             }
@@ -115,6 +131,7 @@ trait LaravelBuildTrait
     private function makeRealpathRelative(string $path): string
     {
         $path = $this->di->filesystem->removeBasePath($path);
+
         // when running in orchestra, the base_path() is
         // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
         // prefixing the path with "../../../../" accounts for this

@@ -11,7 +11,7 @@ trait HasMutexTrait
     private $lockFP = null;
 
     /** @var string|null The path to the lock file. */
-    private $lockPath = null;
+    private $lockPath;
 
 
 
@@ -21,21 +21,24 @@ trait HasMutexTrait
      * @param string $path The path of the file to use as the locking mechanism.
      * @return boolean
      */
-    public function getMutexLock(string $path): bool
+    public function getMutexLock($path): bool
     {
         if ($this->lockFP) {
             return false;
         }
+
         $fp = fopen($path, 'w+');
         if (!$fp) {
             return false;
         }
+
         if (!flock($fp, LOCK_EX | LOCK_NB)) {
             fclose($fp);
             return false;
         }
         $this->lockPath = $path;
         $this->lockFP = $fp;
+
         return true;
     }
 

@@ -21,11 +21,16 @@ class StorageDir
      * @return void
      * @throws AdaptConfigException Thrown when the directory could not be created.
      */
-    public static function ensureStorageDirExists(string $storageDir, FilesystemInterface $filesystem, LogInterface $log)
-    {
+    public static function ensureStorageDirExists(
+        $storageDir,
+        $filesystem,
+        $log
+    ) {
+
         if (!$storageDir) {
             throw AdaptConfigException::cannotCreateStorageDir($storageDir);
         }
+
         if ($filesystem->pathExists($storageDir)) {
             if ($filesystem->isFile($storageDir)) {
                 throw AdaptConfigException::storageDirIsAFile($storageDir);
@@ -40,7 +45,11 @@ class StorageDir
                 if ($filesystem->mkdir($storageDir, 0744, true)) {
 
                     // create a .gitignore file
-                    $filesystem->writeFile($storageDir . '/.gitignore', 'w', '*' . PHP_EOL . '!.gitignore' . PHP_EOL);
+                    $filesystem->writeFile(
+                        $storageDir . '/.gitignore',
+                        'w',
+                        '*' . PHP_EOL . '!.gitignore' . PHP_EOL
+                    );
                 }
                 $log->info('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
             } catch (Throwable $e) {

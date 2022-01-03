@@ -29,7 +29,7 @@ interface NameInterface
      * @return string
      * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
      */
-    public function generateScenarioDBName(string $dbNameHash): string;
+    public function generateScenarioDBName($dbNameHash): string;
 
     /**
      * Generate the path (including filename) for the snapshot file.
@@ -38,5 +38,5 @@ interface NameInterface
      *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotHash): string;
+    public function generateSnapshotPath($snapshotHash): string;
 }

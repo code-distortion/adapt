@@ -46,7 +46,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      * @return boolean
      * @throws AdaptSnapshotException Thrown when the import fails.
      */
-    public function importSnapshot(string $path, bool $throwException = false): bool
+    public function importSnapshot($path, $throwException = false): bool
     {
         try {
             if (!$this->di->filesystem->fileExists($path)) {
@@ -79,7 +79,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      * @return void
      * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
-    public function takeSnapshot(string $path)
+    public function takeSnapshot($path)
     {
         if (!$this->di->filesystem->copy((string) $this->config->database, $path)) {
             throw AdaptSnapshotException::SQLiteExportError((string) $this->config->database, $path);

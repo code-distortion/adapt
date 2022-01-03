@@ -42,7 +42,7 @@ interface SnapshotInterface
      * @return boolean
      * @throws AdaptSnapshotException Thrown when the import fails.
      */
-    public function importSnapshot(string $path, bool $throwException = false): bool;
+    public function importSnapshot($path, $throwException = false): bool;
 
     /**
      * Export the database to the specified snapshot file.
@@ -51,5 +51,5 @@ interface SnapshotInterface
      * @return void
      * @throws AdaptSnapshotException Thrown when the snapshot export fails.
      */
-    public function takeSnapshot(string $path);
+    public function takeSnapshot($path);
 }

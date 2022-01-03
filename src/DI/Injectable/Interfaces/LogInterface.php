@@ -14,7 +14,7 @@ interface LogInterface
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info(string $message, int $timerRef = null);
+    public function info($message, $timerRef = null);
 
     /**
      * Display some debug output - WARNING level.
@@ -23,7 +23,7 @@ interface LogInterface
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function warning(string $message, int $timerRef = null);
+    public function warning($message, $timerRef = null);
 
     /**
      * Create a new timer and return a reference to it.
@@ -38,5 +38,5 @@ interface LogInterface
      * @param integer|null $timerRef The timer to get the time taken from.
      * @return float|null
      */
-    public function getDuration(int $timerRef = null);
+    public function getDuration($timerRef = null);
 }

@@ -70,7 +70,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->publishes([$this->configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),], 'config');
+        $this->publishes(
+            [$this->configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),],
+            'config'
+        );
     }
 
 
@@ -100,7 +103,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * @param Router $router Laravel's router.
      * @return void
      */
-    protected function initialiseMiddleware(Router $router)
+    protected function initialiseMiddleware($router)
     {
         if ($this->app->runningInConsole()) {
             return;
@@ -108,6 +111,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         if (!$this->app->environment('local', 'testing')) {
             return;
         }
+
         $httpKernel = $this->app->make(HttpKernel::class);
         $middlewareGroups = method_exists($httpKernel, 'getMiddlewareGroups')
             ? array_keys($httpKernel->getMiddlewareGroups())
@@ -125,7 +129,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * @param Router $router Laravel's router.
      * @return void
      */
-    protected function initialiseRoutes(Router $router)
+    protected function initialiseRoutes($router)
     {
         if ($this->app->runningInConsole()) {
             return;
@@ -133,6 +137,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         if (!$this->app->environment('local', 'testing')) {
             return;
         }
+
         // The path that browsers connect to initially (when browser testing) so that cookies can then be set
         // (the browser will reject new cookies before it's loaded a webpage)
         // this route bypasses all middleware

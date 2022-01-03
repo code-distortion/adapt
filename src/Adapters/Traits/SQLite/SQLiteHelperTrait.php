@@ -23,7 +23,7 @@ trait SQLiteHelperTrait
      * @param string $path The path to inspect.
      * @return string
      */
-    protected function pickBaseFilename(string $path): string
+    protected function pickBaseFilename($path): string
     {
         $temp = explode('.', $this->pickFilename($path));
         if (count($temp) > 1) {
@@ -38,7 +38,7 @@ trait SQLiteHelperTrait
      * @param string $path The path to inspect.
      * @return string
      */
-    protected function pickFilename(string $path): string
+    protected function pickFilename($path): string
     {
         $temp = explode('/', $path);
         return (string) array_pop($temp);

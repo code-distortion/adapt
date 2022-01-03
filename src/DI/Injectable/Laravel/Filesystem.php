@@ -19,7 +19,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to check.
      * @return boolean
      */
-    public function pathExists(string $path): bool
+    public function pathExists($path): bool
     {
         return file_exists($path);
     }
@@ -30,7 +30,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to check.
      * @return boolean
      */
-    public function fileExists(string $path): bool
+    public function fileExists($path): bool
     {
         return ((file_exists($path)) && (is_file($path)));
     }
@@ -41,7 +41,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to check.
      * @return boolean
      */
-    public function dirExists(string $path): bool
+    public function dirExists($path): bool
     {
         return ((file_exists($path)) && (is_dir($path)));
     }
@@ -52,7 +52,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to check.
      * @return boolean
      */
-    public function isFile(string $path): bool
+    public function isFile($path): bool
     {
         return is_file($path);
     }
@@ -74,7 +74,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to touch.
      * @return boolean
      */
-    public function touch(string $path): bool
+    public function touch($path): bool
     {
         return touch($path);
     }
@@ -85,7 +85,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path being checked.
      * @return string|null
      */
-    public function realpath(string $path)
+    public function realpath($path)
     {
         $path = realpath($path);
         return (is_string($path) ? $path : null);
@@ -98,10 +98,11 @@ class Filesystem implements FilesystemInterface
      * @param string|null $basePath The base-path prefix to remove.
      * @return string
      */
-    public function removeBasePath(string $path, $basePath = null): string
+    public function removeBasePath($path, $basePath = null): string
     {
         $basePath = $basePath ?? realpath('.');
         $basePath = rtrim((string) $basePath, '/') . '/';
+
         if (mb_substr($path, 0, mb_strlen($basePath)) == $basePath) {
             return mb_substr($path, mb_strlen($basePath));
         }
@@ -116,7 +117,7 @@ class Filesystem implements FilesystemInterface
      * @param mixed  $content The content to write.
      * @return boolean
      */
-    public function writeFile(string $path, string $mode, $content): bool
+    public function writeFile($path, $mode, $content): bool
     {
         if ($fp = fopen($path, $mode)) {
             fwrite($fp, $content);
@@ -133,7 +134,7 @@ class Filesystem implements FilesystemInterface
      * @param string $destPath The destination location.
      * @return boolean
      */
-    public function copy(string $srcPath, string $destPath): bool
+    public function copy($srcPath, $destPath): bool
     {
         return copy($srcPath, $destPath);
     }
@@ -145,7 +146,7 @@ class Filesystem implements FilesystemInterface
      * @param string $destPath The destination name.
      * @return boolean
      */
-    public function rename(string $srcPath, string $destPath): bool
+    public function rename($srcPath, $destPath): bool
     {
         return rename($srcPath, $destPath);
     }
@@ -156,7 +157,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path to delete.
      * @return boolean
      */
-    public function unlink(string $path): bool
+    public function unlink($path): bool
     {
         return unlink($path);
     }
@@ -169,7 +170,7 @@ class Filesystem implements FilesystemInterface
      * @param boolean $recursive Allows the creation of nested directories specified in the pathname.
      * @return boolean
      */
-    public function mkdir(string $pathname, int $mode = 0777, bool $recursive = false): bool
+    public function mkdir($pathname, $mode = 0777, $recursive = false): bool
     {
         return mkdir($pathname, $mode, $recursive);
     }
@@ -180,7 +181,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path of the file to hash.
      * @return string|null
      */
-    public function md5File(string $path)
+    public function md5File($path)
     {
         $md5 = md5_file($path);
         return (is_string($md5) ? $md5 : null);
@@ -192,7 +193,7 @@ class Filesystem implements FilesystemInterface
      * @param string $path The path of the file to get the size of.
      * @return integer|null
      */
-    public function size(string $path)
+    public function size($path)
     {
         $size = filesize($path);
         return (is_integer($size) ? $size : null);
@@ -205,7 +206,7 @@ class Filesystem implements FilesystemInterface
      * @param boolean $recursive Look for files recursively?.
      * @return string[]
      */
-    public function filesInDir(string $dir, bool $recursive = false): array
+    public function filesInDir($dir, $recursive = false): array
     {
         if ($recursive) {
             $dirIterator = new RecursiveDirectoryIterator($dir);
@@ -214,6 +215,7 @@ class Filesystem implements FilesystemInterface
             $dirIterator = new DirectoryIterator($dir);
             $fileIterator = new IteratorIterator($dirIterator);
         }
+
         $files = [];
         foreach ($fileIterator as $file) {
             if (is_file($file->getPathname())) {

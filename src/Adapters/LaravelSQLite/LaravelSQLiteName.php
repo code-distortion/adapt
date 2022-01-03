@@ -25,7 +25,7 @@ class LaravelSQLiteName implements NameInterface
      *                           transactions and isBrowserTest.
      * @return string
      */
-    public function generateScenarioDBName(string $dbNameHash): string
+    public function generateScenarioDBName($dbNameHash): string
     {
         if ($this->isMemoryDatabase()) {
             return $this->origDBName(); // ":memory:"
@@ -43,7 +43,7 @@ class LaravelSQLiteName implements NameInterface
      *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotHash): string
+    public function generateSnapshotPath($snapshotHash): string
     {
         $filename = $this->pickBaseFilename($this->origDBName());
         $filename = $this->config->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';

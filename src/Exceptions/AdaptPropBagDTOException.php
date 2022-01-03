@@ -13,7 +13,7 @@ class AdaptPropBagDTOException extends AdaptException
      * @param string $name The name of the unexpected property.
      * @return self
      */
-    public static function propertyDoesNotExist(string $name)
+    public static function propertyDoesNotExist($name): self
     {
         return new self('Property "' . $name . '" hasn\'t been added');
     }

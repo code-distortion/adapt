@@ -39,7 +39,7 @@ class LaravelConfig
      * @return string
      * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
-    public function origDBName(string $connection): string
+    public function origDBName($connection): string
     {
         if (!isset($this->origDBNames[$connection])) {
             throw AdaptConfigException::invalidConnection($connection);

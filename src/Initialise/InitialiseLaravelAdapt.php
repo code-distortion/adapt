@@ -162,7 +162,12 @@ trait InitialiseLaravelAdapt
      */
     private function parseRemapDBStrings(): array
     {
-        return array_merge($this->parseRemapDBString($this->propBag->config('remap_connections'), null, true), $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false), $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true), $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false));
+        return array_merge(
+            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
+            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
+        );
     }
 
     /**
@@ -179,6 +184,7 @@ trait InitialiseLaravelAdapt
         if (is_null($remapString)) {
             return [];
         }
+
         $remap = [];
         foreach (explode(',', $remapString) as $mapping) {
 
@@ -219,7 +225,12 @@ trait InitialiseLaravelAdapt
      */
     private function buildBootObject(): BootTestInterface
     {
-        return (new BootTestLaravel())->testName(get_class($this) . '::' . $this->getName())->props($this->propBag)->browserTestDetected($this->detectBrowserTest())->transactionClosure($this->adaptBuildTransactionClosure())->initCallback($this->adaptBuildInitCallback())
+        return (new BootTestLaravel())
+            ->testName(get_class($this) . '::' . $this->getName())
+            ->props($this->propBag)
+            ->browserTestDetected($this->detectBrowserTest())
+            ->transactionClosure($this->adaptBuildTransactionClosure())
+            ->initCallback($this->adaptBuildInitCallback())
             ->ensureStorageDirExists();
     }
 
@@ -247,8 +258,10 @@ trait InitialiseLaravelAdapt
     private function adaptBuildTransactionClosure(): callable
     {
         return function (string $conn) {
+
             $database = $this->app->make('db');
             $connection = $database->connection($conn);
+
             // this allows this code to run with older versions of Laravel versions
             $useEventDispatcher = (method_exists($connection, 'unsetEventDispatcher'));
             if ($useEventDispatcher) {
@@ -259,25 +272,28 @@ trait InitialiseLaravelAdapt
             } else {
                 $connection->beginTransaction();
             }
-            $this->beforeApplicationDestroyed(function () use ($database, $conn, $useEventDispatcher) {
-                $connection = $database->connection($conn);
-                if ($useEventDispatcher) {
-                    $dispatcher = $connection->getEventDispatcher();
-                    $connection->unsetEventDispatcher();
 
-                    try {
+            $this->beforeApplicationDestroyed(
+                function () use ($database, $conn, $useEventDispatcher) {
+                    $connection = $database->connection($conn);
+                    if ($useEventDispatcher) {
+                        $dispatcher = $connection->getEventDispatcher();
+                        $connection->unsetEventDispatcher();
+
+                        try {
+                            $connection->rollback();
+                        } catch (PDOException $e) {
+                            // act gracefully if the transaction was committed already
+                            // a committed transaction is checked for before this code runs
+                        }
+
+                        $connection->setEventDispatcher($dispatcher);
+                        $connection->disconnect();
+                    } else {
                         $connection->rollback();
-                    } catch (PDOException $e) {
-                        // act gracefully if the transaction was committed already
-                        // a committed transaction is checked for before this code runs
                     }
-
-                    $connection->setEventDispatcher($dispatcher);
-                    $connection->disconnect();
-                } else {
-                    $connection->rollback();
                 }
-            });
+            );
         };
     }
 
@@ -301,11 +317,11 @@ trait InitialiseLaravelAdapt
      *
      * @deprecated
      * @see shareConfig
-     * @param Browser               $browser     The browser to update with the current config.
-     * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
+     * @param \Laravel\Dusk\Browser $browser     The browser to update with the current config.
+     * @param \Laravel\Dusk\Browser ...$browsers Any additional browsers to update with the current config.
      * @return void
      */
-    public function useCurrentConfig(Browser $browser, Browser ...$browsers)
+    public function useCurrentConfig($browser, ...$browsers)
     {
         call_user_func_array([$this, 'shareConfig'], func_get_args());
     }
@@ -313,17 +329,21 @@ trait InitialiseLaravelAdapt
     /**
      * Have the Browsers pass the current (test) config to the server when they make requests.
      *
-     * @param Browser               $browser     The browser to update with the current config.
-     * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
+     * @param \Laravel\Dusk\Browser $browser     The browser to update with the current config.
+     * @param \Laravel\Dusk\Browser ...$browsers Any additional browsers to update with the current config.
      * @return void
      */
-    public function shareConfig(Browser $browser, Browser ...$browsers)
+    public function shareConfig($browser, ...$browsers)
     {
         $allBrowsers = [];
         $browsers = array_merge([$browser], $browsers);
         foreach ($browsers as $browser) {
-            $allBrowsers = array_merge($allBrowsers, is_array($browser) ? $browser : [$browser]);
+            $allBrowsers = array_merge(
+                $allBrowsers,
+                is_array($browser) ? $browser : [$browser]
+            );
         }
+
         $this->bootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
     }
 }

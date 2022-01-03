@@ -20,6 +20,7 @@ trait CheckLaravelHashPathsTrait
         $filesystem = new Filesystem();
         $seedersDir = database_path('seeders');
         $seedsDir = database_path('seeds');
+
         foreach ($hashPaths as $path) {
 
             if (!in_array($path, [$seedersDir, $seedsDir])) {

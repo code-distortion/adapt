@@ -18,13 +18,16 @@ class LaravelArtisan
      * @param OutputInterface|null $outputBuffer The buffer to output to.
      * @return integer
      */
-    public function call(string $command, array $parameters = [], $outputBuffer = null): int
+    public function call($command, $parameters = [], $outputBuffer = null): int
     {
         // Laravel < 7 would update the config values
         // record the current values and replace afterwards
         $configValues = config()->all();
+
         $return = Artisan::call($command, $parameters, $outputBuffer);
+
         config($configValues);
+
         return $return;
     }
 
@@ -34,7 +37,7 @@ class LaravelArtisan
      * @param string $command The command to check.
      * @return boolean
      */
-    public function commandExists(string $command): bool
+    public function commandExists($command): bool
     {
         return array_key_exists($command, Artisan::all());
     }

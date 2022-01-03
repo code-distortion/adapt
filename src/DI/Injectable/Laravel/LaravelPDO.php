@@ -23,8 +23,12 @@ class LaravelPDO
      * @param string|null $password       The password to use when connecting directly to the database.
      * @param mixed[]     $connectOptions The connection-options to use when connecting directly to the database.
      */
-    public function __construct(string $dsn, $username, $password, array $connectOptions)
-    {
+    public function __construct(
+        string $dsn,
+        $username,
+        $password,
+        array $connectOptions
+    ) {
         $this->pdo = new PDO($dsn, $username, $password, $connectOptions);
     }
 
@@ -35,7 +39,7 @@ class LaravelPDO
      * @param string $createQuery The query to run to create the database.
      * @return boolean
      */
-    public function createDatabase(string $createQuery): bool
+    public function createDatabase($createQuery): bool
     {
         try {
             $this->pdo->exec($createQuery);
@@ -51,7 +55,7 @@ class LaravelPDO
      * @param string $dropQuery The query to run to remove the database.
      * @return boolean
      */
-    public function dropDatabase(string $dropQuery): bool
+    public function dropDatabase($dropQuery): bool
     {
         try {
             $this->pdo->exec($dropQuery);
@@ -91,7 +95,7 @@ class LaravelPDO
      * @param string $query The query to run to fetch the reuse-data.
      * @return stdClass|null
      */
-    public function fetchReuseTableInfo(string $query)
+    public function fetchReuseTableInfo($query)
     {
         try {
             $pdoStatement = $this->pdo->query($query);
@@ -113,7 +117,7 @@ class LaravelPDO
      * @param string $getSizeQuery The query to run to determine the database size.
      * @return integer|boolean
      */
-    public function size(string $getSizeQuery)
+    public function size($getSizeQuery)
     {
         try {
             $pdoStatement = $this->pdo->query($getSizeQuery);

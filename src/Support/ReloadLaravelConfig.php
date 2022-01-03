@@ -16,7 +16,7 @@ class ReloadLaravelConfig
      * @param string $envPath The .env file to load.
      * @return void
      */
-    public function reload(string $envPath)
+    public function reload($envPath)
     {
         $dotEnvValues = FluentDotEnv::new()->safeLoad($envPath)->all();
         $this->addValuesToEnvHelper($dotEnvValues);
@@ -74,7 +74,10 @@ class ReloadLaravelConfig
 
         config([
             'database' => $this->loadConfigFile(config_path('database.php')),
-            Settings::LARAVEL_CONFIG_NAME => array_merge($this->loadConfigFile(__DIR__ . '/../../config/config.php'), $this->loadConfigFile($adaptConfigPath))
+            Settings::LARAVEL_CONFIG_NAME => array_merge(
+                $this->loadConfigFile(__DIR__ . '/../../config/config.php'),
+                $this->loadConfigFile($adaptConfigPath)
+            )
         ]);
     }
 }

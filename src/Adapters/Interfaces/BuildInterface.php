@@ -40,7 +40,7 @@ interface BuildInterface
      * @param string[] $seeders The seeders to run.
      * @return void
      */
-    public function seed(array $seeders);
+    public function seed($seeders);
 
     /**
      * Determine if a transaction can (and should) be used on this database.

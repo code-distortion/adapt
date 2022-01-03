@@ -16,7 +16,7 @@ class AdaptSnapshotException extends AdaptException
      * @param Throwable $originalException The originally thrown exception.
      * @return self
      */
-    public static function couldNotRemoveSnapshots(Throwable $originalException)
+    public static function couldNotRemoveSnapshots($originalException): self
     {
         return new self('Had trouble removing snapshot files', 0, $originalException);
     }
@@ -27,7 +27,7 @@ class AdaptSnapshotException extends AdaptException
      * @param Throwable $originalException The originally thrown exception.
      * @return self
      */
-    public static function hadTroubleFindingSnapshots(Throwable $originalException)
+    public static function hadTroubleFindingSnapshots($originalException): self
     {
         return new self('Had trouble finding snapshot files', 0, $originalException);
     }
@@ -38,7 +38,7 @@ class AdaptSnapshotException extends AdaptException
      * @param string $path The path of the file being imported.
      * @return self
      */
-    public static function importFailed(string $path)
+    public static function importFailed($path): self
     {
         return new self('The import of "' . $path . '" failed');
     }
@@ -49,10 +49,12 @@ class AdaptSnapshotException extends AdaptException
      * @param string $path The path to the mysql executable.
      * @return self
      */
-    public static function mysqlClientNotPresent(string $path)
+    public static function mysqlClientNotPresent($path): self
     {
-        return new self('The mysql client "' . $path . '" executable isn\'t available to use '
-        . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)');
+        return new self(
+            'The mysql client "' . $path . '" executable isn\'t available to use '
+            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
+        );
     }
 
     /**
@@ -61,10 +63,12 @@ class AdaptSnapshotException extends AdaptException
      * @param string $path The path to the mysql executable.
      * @return self
      */
-    public static function mysqldumpNotPresent(string $path)
+    public static function mysqldumpNotPresent($path): self
     {
-        return new self('The mysqldump executable "' . $path . '" isn\'t available to use '
-        . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)');
+        return new self(
+            'The mysqldump executable "' . $path . '" isn\'t available to use '
+            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
+        );
     }
 
     /**
@@ -74,7 +78,7 @@ class AdaptSnapshotException extends AdaptException
      * @param integer $returnVal The error code given by mysql.
      * @return self
      */
-    public static function mysqlImportError(string $path, int $returnVal)
+    public static function mysqlImportError($path, $returnVal): self
     {
         return new self('Could not import database from "' . $path . '" - the mysql return value was: ' . $returnVal);
     }
@@ -86,7 +90,7 @@ class AdaptSnapshotException extends AdaptException
      * @param integer $returnVal The error code given by mysql.
      * @return self
      */
-    public static function mysqlExportError(string $path, int $returnVal)
+    public static function mysqlExportError($path, $returnVal): self
     {
         return new self('Could not export database to "' . $path . '" - the mysqldump return value was: ' . $returnVal);
     }
@@ -99,8 +103,12 @@ class AdaptSnapshotException extends AdaptException
      * @param Throwable|null $originalException The originally thrown exception.
      * @return self
      */
-    public static function mysqlExportErrorRenameTempFile(string $srcPath, string $destPath, $originalException = null)
-    {
+    public static function mysqlExportErrorRenameTempFile(
+        $srcPath,
+        $destPath,
+        $originalException = null
+    ): self {
+
         return $originalException
             ? new self("Could not rename temporary snapshot file $srcPath to $destPath", 0, $originalException)
             : new self("Could not rename temporary snapshot file $srcPath to $destPath");
@@ -113,7 +121,7 @@ class AdaptSnapshotException extends AdaptException
      * @param string $destPath The path to be changed to.
      * @return self
      */
-    public static function SQLiteExportError(string $srcPath, string $destPath)
+    public static function SQLiteExportError($srcPath, $destPath): self
     {
         return new self("Could not export (copy) SQLite file from $srcPath to $destPath");
     }
@@ -125,7 +133,7 @@ class AdaptSnapshotException extends AdaptException
      * @param string $database The name of the database being used.
      * @return self
      */
-    public static function importsNotAllowed(string $driver, string $database)
+    public static function importsNotAllowed($driver, $database): self
     {
         return new self('Sorry, database imports aren\'t available for ' . $database . ' ' . $driver . ' databases');
     }

@@ -14,7 +14,7 @@ trait LaravelHelperTrait
      * @param mixed  $default The default value to fall-back to.
      * @return mixed
      */
-    protected function conVal(string $var, $default = null)
+    protected function conVal($var, $default = null)
     {
         return config("database.connections.{$this->config->connection}.$var", $default);
     }

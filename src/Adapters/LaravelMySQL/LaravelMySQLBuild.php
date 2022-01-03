@@ -41,7 +41,14 @@ class LaravelMySQLBuild implements BuildInterface
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->db->newPDO()->createDatabase(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s', $this->config->database, $this->conVal('charset', 'utf8mb4'), $this->conVal('collation', 'utf8mb4_unicode_ci')));
+        $this->di->db->newPDO()->createDatabase(
+            sprintf(
+                'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
+                $this->config->database,
+                $this->conVal('charset', 'utf8mb4'),
+                $this->conVal('collation', 'utf8mb4_unicode_ci')
+            )
+        );
 
         $this->di->log->info('Created database', $logTimer);
     }
@@ -63,7 +70,7 @@ class LaravelMySQLBuild implements BuildInterface
      * @param string[] $seeders The seeders to run.
      * @return void
      */
-    public function seed(array $seeders)
+    public function seed($seeders)
     {
         $this->laravelSeed($seeders);
     }

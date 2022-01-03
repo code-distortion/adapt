@@ -15,10 +15,10 @@ class ConfigDTO
     public $connection;
 
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
-    public $driver = null;
+    public $driver;
 
     /** @var string|null The name of the database to use. */
-    public $database = null;
+    public $database;
 
     /** @var string A database name modifier (eg. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public $databaseModifier = '';
@@ -86,7 +86,7 @@ class ConfigDTO
      * @param string $projectName The name of this project.
      * @return static
      */
-    public function projectName(string $projectName)
+    public function projectName($projectName): self
     {
         $this->projectName = $projectName;
         return $this;
@@ -98,7 +98,7 @@ class ConfigDTO
      * @param string $connection The database connection to prepare.
      * @return static
      */
-    public function connection(string $connection)
+    public function connection($connection): self
     {
         $this->connection = $connection;
         return $this;
@@ -110,7 +110,7 @@ class ConfigDTO
      * @param string $driver The database driver to use.
      * @return static
      */
-    public function driver(string $driver)
+    public function driver($driver): self
     {
         $this->driver = $driver;
         return $this;
@@ -122,7 +122,7 @@ class ConfigDTO
      * @param string $database The name of the database to use.
      * @return static
      */
-    public function database(string $database)
+    public function database($database): self
     {
         $this->database = $database;
         return $this;
@@ -134,7 +134,7 @@ class ConfigDTO
      * @param string $databaseModifier The modifier to use.
      * @return static
      */
-    public function databaseModifier(string $databaseModifier)
+    public function databaseModifier($databaseModifier): self
     {
         $this->databaseModifier = $databaseModifier;
         return $this;
@@ -146,7 +146,7 @@ class ConfigDTO
      * @param string $storageDir The storage directory to use.
      * @return static
      */
-    public function storageDir(string $storageDir)
+    public function storageDir($storageDir): self
     {
         $this->storageDir = $storageDir;
         return $this;
@@ -158,7 +158,7 @@ class ConfigDTO
      * @param string $snapshotPrefix The prefix to use.
      * @return static
      */
-    public function snapshotPrefix(string $snapshotPrefix)
+    public function snapshotPrefix($snapshotPrefix): self
     {
         $this->snapshotPrefix = $snapshotPrefix;
         return $this;
@@ -170,7 +170,7 @@ class ConfigDTO
      * @param string $databasePrefix The prefix to use.
      * @return static
      */
-    public function databasePrefix(string $databasePrefix)
+    public function databasePrefix($databasePrefix): self
     {
         $this->databasePrefix = $databasePrefix;
         return $this;
@@ -182,7 +182,7 @@ class ConfigDTO
      * @param string[] $hashPaths The files and directories to look through.
      * @return static
      */
-    public function hashPaths(array $hashPaths)
+    public function hashPaths($hashPaths): self
     {
         $this->hashPaths = $hashPaths;
         return $this;
@@ -198,8 +198,12 @@ class ConfigDTO
      * @param boolean             $isBrowserTest       Is a browser test running?.
      * @return static
      */
-    public function buildSettings(array $preMigrationImports, $migrations, array $seeders, bool $isBrowserTest)
-    {
+    public function buildSettings(
+        $preMigrationImports,
+        $migrations,
+        $seeders,
+        $isBrowserTest
+    ): self {
         $this->preMigrationImports = $preMigrationImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
@@ -213,7 +217,7 @@ class ConfigDTO
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports(array $preMigrationImports)
+    public function preMigrationImports($preMigrationImports): self
     {
         $this->preMigrationImports = $preMigrationImports;
         return $this;
@@ -225,7 +229,7 @@ class ConfigDTO
      * @param boolean|string $migrations Should the migrations be run? / the path of the migrations to run.
      * @return static
      */
-    public function migrations($migrations)
+    public function migrations($migrations): self
     {
         $this->migrations = false;
         if ((is_string($migrations) && (mb_strlen($migrations))) || (is_bool($migrations))) {
@@ -240,7 +244,7 @@ class ConfigDTO
      * @param string[] $seeders The seeders to run after migrating.
      * @return static
      */
-    public function seeders(array $seeders)
+    public function seeders($seeders): self
     {
         $this->seeders = $seeders;
         return $this;
@@ -252,7 +256,7 @@ class ConfigDTO
      * @param boolean $isBrowserTest Is this test a browser-test?.
      * @return static
      */
-    public function isBrowserTest(bool $isBrowserTest)
+    public function isBrowserTest($isBrowserTest): self
     {
         $this->isBrowserTest = $isBrowserTest;
         return $this;
@@ -265,8 +269,10 @@ class ConfigDTO
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function cacheTools(bool $reuseTestDBs, bool $scenarioTestDBs)
-    {
+    public function cacheTools(
+        $reuseTestDBs,
+        $scenarioTestDBs
+    ): self {
         $this->reuseTestDBs = $reuseTestDBs;
         $this->scenarioTestDBs = $scenarioTestDBs;
         return $this;
@@ -278,7 +284,7 @@ class ConfigDTO
      * @param boolean $reuseTestDBs Reuse existing databases?.
      * @return static
      */
-    public function reuseTestDBs(bool $reuseTestDBs)
+    public function reuseTestDBs($reuseTestDBs): self
     {
         $this->reuseTestDBs = $reuseTestDBs;
         return $this;
@@ -290,7 +296,7 @@ class ConfigDTO
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function scenarioTestDBs(bool $scenarioTestDBs)
+    public function scenarioTestDBs($scenarioTestDBs): self
     {
         $this->scenarioTestDBs = $scenarioTestDBs;
         return $this;
@@ -305,8 +311,10 @@ class ConfigDTO
      *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
      * @return static
      */
-    public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB)
-    {
+    public function snapshots(
+        $useSnapshotsWhenReusingDB,
+        $useSnapshotsWhenNotReusingDB
+    ): self {
         $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
         $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
         return $this;
@@ -319,8 +327,10 @@ class ConfigDTO
      * @param string $mysqldumpExecutablePath The path to the "mysqldump" executable.
      * @return static
      */
-    public function mysqlSettings(string $mysqlExecutablePath, string $mysqldumpExecutablePath)
-    {
+    public function mysqlSettings(
+        $mysqlExecutablePath,
+        $mysqldumpExecutablePath
+    ): self {
         $this->mysqlExecutablePath = $mysqlExecutablePath;
         $this->mysqldumpExecutablePath = $mysqldumpExecutablePath;
         return $this;
@@ -333,8 +343,10 @@ class ConfigDTO
      * @param string $pgDumpExecutablePath The path to the "pg_dump" executable.
      * @return static
      */
-    public function postgresSettings(string $psqlExecutablePath, string $pgDumpExecutablePath)
-    {
+    public function postgresSettings(
+        $psqlExecutablePath,
+        $pgDumpExecutablePath
+    ): self {
         $this->psqlExecutablePath = $psqlExecutablePath;
         $this->pgDumpExecutablePath = $pgDumpExecutablePath;
         return $this;
@@ -348,7 +360,7 @@ class ConfigDTO
      * @param integer $invalidationGraceSeconds The number of seconds.
      * @return static
      */
-    public function invalidationGraceSeconds(int $invalidationGraceSeconds)
+    public function invalidationGraceSeconds($invalidationGraceSeconds): self
     {
         $this->invalidationGraceSeconds = $invalidationGraceSeconds;
         return $this;

@@ -59,12 +59,20 @@ class BootTestLaravel extends BootTestAbstract
      * @return DIContainer
      * @throws AdaptBootException Thrown when a PropBag hasn't been set yet.
      */
-    protected function defaultDI(string $connection): DIContainer
+    protected function defaultDI($connection): DIContainer
     {
         if (!$this->propBag) {
             throw AdaptBootException::propBagNotSet();
         }
-        return (new DIContainer())->artisan(new LaravelArtisan())->config(new LaravelConfig())->db((new LaravelDB())->useConnection($connection))->dbTransactionClosure($this->transactionClosure)->log($this->newLog())->exec(new Exec())->filesystem(new Filesystem());
+
+        return (new DIContainer())
+            ->artisan(new LaravelArtisan())
+            ->config(new LaravelConfig())
+            ->db((new LaravelDB())->useConnection($connection))
+            ->dbTransactionClosure($this->transactionClosure)
+            ->log($this->newLog())
+            ->exec(new Exec())
+            ->filesystem(new Filesystem());
     }
 
     /**
@@ -78,7 +86,10 @@ class BootTestLaravel extends BootTestAbstract
             throw AdaptBootException::propBagNotSet();
         }
 
-        return new LaravelLog((bool) $this->propBag->config('log.stdout'), (bool) $this->propBag->config('log.laravel'));
+        return new LaravelLog(
+            (bool) $this->propBag->config('log.stdout'),
+            (bool) $this->propBag->config('log.laravel')
+        );
     }
 
     /**
@@ -98,7 +109,7 @@ class BootTestLaravel extends BootTestAbstract
      * @return DatabaseBuilder
      * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
-    public function newBuilder(string $connection): DatabaseBuilder
+    public function newBuilder($connection): DatabaseBuilder
     {
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidConnection($connection);
@@ -120,13 +131,23 @@ class BootTestLaravel extends BootTestAbstract
     private function createBuilder(string $connection): DatabaseBuilder
     {
         $config = $this->newConfigDTO($connection);
+
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
         $di = $this->defaultDI($connection);
+
         $pickDriverClosure = function (string $connection) {
             return config("database.connections.$connection.driver", 'unknown');
         };
-        return new DatabaseBuilder('laravel', (string) $this->testName, $di, $config, new Hasher($di, $config), $pickDriverClosure);
+
+        return new DatabaseBuilder(
+            'laravel',
+            (string) $this->testName,
+            $di,
+            $config,
+            new Hasher($di, $config),
+            $pickDriverClosure
+        );
     }
 
     /**
@@ -141,8 +162,41 @@ class BootTestLaravel extends BootTestAbstract
         if (!$this->propBag) {
             throw AdaptBootException::propBagNotSet();
         }
+
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
-        return (new ConfigDTO())->projectName($this->propBag->config('project_name'))->connection($connection)->database(config("database.connections.$connection.database"))->databaseModifier($paraTestDBModifier)->storageDir($this->storageDir())->snapshotPrefix('snapshot.')->databasePrefix('')->hashPaths($this->checkLaravelHashPaths($this->propBag->config('look_for_changes_in')))->buildSettings($this->propBag->config('pre_migration_imports', 'preMigrationImports'), $this->propBag->config('migrations', 'migrations'), $this->propBag->config('seeders', 'seeders'), $this->propBag->prop('isBrowserTest', $this->browserTestDetected))->cacheTools($this->propBag->config('reuse_test_dbs', 'reuseTestDBs'), $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($this->propBag->config('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $this->propBag->config('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))->mysqlSettings($this->propBag->config('database.mysql.executables.mysql'), $this->propBag->config('database.mysql.executables.mysqldump'))->postgresSettings($this->propBag->config('database.pgsql.executables.psql'), $this->propBag->config('database.pgsql.executables.pg_dump'))->invalidationGraceSeconds($this->propBag->config('invalidation_grace_seconds', null, Settings::DEFAULT_INVALIDATION_GRACE_SECONDS));
+
+        return (new ConfigDTO())
+            ->projectName($this->propBag->config('project_name'))
+            ->connection($connection)
+            ->database(config("database.connections.$connection.database"))
+            ->databaseModifier($paraTestDBModifier)
+            ->storageDir($this->storageDir())
+            ->snapshotPrefix('snapshot.')
+            ->databasePrefix('')
+            ->hashPaths($this->checkLaravelHashPaths($this->propBag->config('look_for_changes_in')))
+            ->buildSettings(
+                $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
+                $this->propBag->config('migrations', 'migrations'),
+                $this->propBag->config('seeders', 'seeders'),
+                $this->propBag->prop('isBrowserTest', $this->browserTestDetected)
+            )
+            ->cacheTools(
+                $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
+                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs')
+            )->snapshots($this->propBag->config('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $this->propBag->config('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
+            ->mysqlSettings(
+                $this->propBag->config('database.mysql.executables.mysql'),
+                $this->propBag->config('database.mysql.executables.mysqldump')
+            )
+            ->postgresSettings(
+                $this->propBag->config('database.pgsql.executables.psql'),
+                $this->propBag->config('database.pgsql.executables.pg_dump')
+            )
+            ->invalidationGraceSeconds($this->propBag->config(
+                'invalidation_grace_seconds',
+                null,
+                Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+            ));
     }
 
     /**
@@ -165,12 +219,14 @@ class BootTestLaravel extends BootTestAbstract
      * @param Browser[] $browsers The browsers to update with the current config.
      * @return void
      */
-    public function getBrowsersToPassThroughCurrentConfig(array $browsers)
+    public function getBrowsersToPassThroughCurrentConfig($browsers)
     {
         if (!count($browsers)) {
             return;
         }
+
         $this->tempConfigPaths[] = $tempConfigPath = $this->storeTemporaryConfig();
+
         foreach ($browsers as $browser) {
 
             // make a small request first, so that cookies can then be set
@@ -179,7 +235,13 @@ class BootTestLaravel extends BootTestAbstract
                 $browser->visit(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
             }
 
-            $browser->addCookie(Settings::CONFIG_COOKIE, base64_encode(serialize(['tempConfigPath' => $tempConfigPath])), null, [], false);
+            $browser->addCookie(
+                Settings::CONFIG_COOKIE,
+                base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
+                null,
+                [],
+                false
+            );
         }
     }
 
@@ -323,6 +385,7 @@ class BootTestLaravel extends BootTestAbstract
         if (!preg_match('/^config\.([0-9]{14})\.[0-9a-z]{32}\.php$/', $filename, $matches)) {
             return null;
         }
+
         $createdAtUTC = DateTime::createFromFormat('YmdHis', $matches[1], new DateTimeZone('UTC'));
         return $createdAtUTC ?: null;
     }

@@ -32,5 +32,5 @@ interface ConnectionInterface
      * @param string $database The name of the database to use.
      * @return void
      */
-    public function useDatabase(string $database);
+    public function useDatabase($database);
 }

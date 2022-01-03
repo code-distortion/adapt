@@ -39,7 +39,7 @@ class LaravelLog implements LogInterface
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info(string $message, int $timerRef = null)
+    public function info($message, $timerRef = null)
     {
         $this->output('info', $this->buildMessage($message, $timerRef));
     }
@@ -51,7 +51,7 @@ class LaravelLog implements LogInterface
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function warning(string $message, int $timerRef = null)
+    public function warning($message, $timerRef = null)
     {
         $this->output('warning', $this->buildMessage($message, $timerRef));
     }
@@ -91,7 +91,7 @@ class LaravelLog implements LogInterface
      * @param integer|null $timerRef The timer to get the time taken from.
      * @return float|null
      */
-    public function getDuration(int $timerRef = null)
+    public function getDuration($timerRef = null)
     {
         return isset($this->timers[$timerRef])
             ? microtime(true) - $this->timers[$timerRef]
@@ -120,9 +120,10 @@ class LaravelLog implements LogInterface
     private function buildMessage(string $message, int $timerRef = null): string
     {
         return $message . $this->formatTime($timerRef);
-        //        $caller = debug_backtrace()[2];
-        //        $temp = explode('\\', $caller['class']);
-        //        $class = array_pop($temp);
-        //        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
+
+//        $caller = debug_backtrace()[2];
+//        $temp = explode('\\', $caller['class']);
+//        $class = array_pop($temp);
+//        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
     }
 }

@@ -15,10 +15,10 @@ use CodeDistortion\Adapt\Support\Settings;
 abstract class BootTestAbstract implements BootTestInterface
 {
     /** @var string|null The name of the test being run. */
-    protected $testName = null;
+    protected $testName;
 
     /** @var PropBagDTO|null The properties that were present in the test-class. */
-    protected $propBag = null;
+    protected $propBag;
 
     /** @var boolean Whether a browser test is being run. */
     protected $browserTestDetected = false;
@@ -42,7 +42,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param string $testName The name of the test being run.
      * @return static
      */
-    public function testName(string $testName)
+    public function testName($testName)
     {
         $this->testName = $testName;
         return $this;
@@ -54,7 +54,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param PropBagDTO $propBag A populated PropBagDTO.
      * @return static
      */
-    public function props(PropBagDTO $propBag)
+    public function props($propBag)
     {
         $this->propBag = $propBag;
         return $this;
@@ -66,7 +66,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param boolean $browserTestDetected Whether or not a browser test is being run.
      * @return static
      */
-    public function browserTestDetected(bool $browserTestDetected)
+    public function browserTestDetected($browserTestDetected)
     {
         $this->browserTestDetected = $browserTestDetected;
         return $this;
@@ -78,7 +78,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param callable $transactionClosure The closure to use.
      * @return static
      */
-    public function transactionClosure(callable $transactionClosure)
+    public function transactionClosure($transactionClosure)
     {
         $this->transactionClosure = $transactionClosure;
         return $this;
@@ -102,7 +102,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param DIContainer $di The DIContainer to use.
      * @return static
      */
-//    public function setDI(DIContainer $di): self
+//    public function setDI(DIContainer $di)
 //    {
 //        $this->di = $di;
 //        return $this;
@@ -114,7 +114,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param DatabaseBuilder $builder The database builder to store.
      * @return void
      */
-    public function addBuilder(DatabaseBuilder $builder)
+    public function addBuilder($builder)
     {
         $this->builders[] = $builder;
     }
@@ -173,7 +173,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
-    abstract protected function newBuilder(string $connection): DatabaseBuilder;
+    abstract protected function newBuilder($connection): DatabaseBuilder;
 
     /**
      * Execute the builders that this object created (ie. build their databases).
@@ -209,7 +209,7 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param string $connection The connection to start using.
      * @return DIContainer
      */
-    abstract protected function defaultDI(string $connection): DIContainer;
+    abstract protected function defaultDI($connection): DIContainer;
 
     /**
      * Build a new Log instance.

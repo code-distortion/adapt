@@ -20,7 +20,7 @@ class CacheListDTO
      * @param SnapshotMetaInfo[] $snapshots The snapshot paths to store.
      * @return static
      */
-    public function snapshots(array $snapshots)
+    public function snapshots($snapshots): self
     {
         $this->snapshots = $snapshots;
         return $this;
@@ -33,7 +33,7 @@ class CacheListDTO
      * @param DatabaseMetaInfo[] $databases  The databases to store.
      * @return static
      */
-    public function databases(string $connection, array $databases)
+    public function databases($connection, $databases): self
     {
         if ($databases) {
             $this->databases[$connection] = $databases;

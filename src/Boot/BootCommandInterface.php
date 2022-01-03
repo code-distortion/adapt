@@ -24,5 +24,5 @@ interface BootCommandInterface
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder(string $connection): DatabaseBuilder;
+    public function makeNewBuilder($connection): DatabaseBuilder;
 }

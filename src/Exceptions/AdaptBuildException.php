@@ -15,11 +15,15 @@ class AdaptBuildException extends AdaptException
      * @param Throwable $originalException The originally thrown exception.
      * @return self
      */
-    public static function accessDenied(Throwable $originalException)
+    public static function accessDenied($originalException): self
     {
-        return new self('Database access denied. TRY CONNECTING AS THE ROOT USER while testing. '
-        . 'The user you connect with needs to have read + write access, '
-        . 'as well as permission to create new databases', 0, $originalException);
+        return new self(
+            'Database access denied. TRY CONNECTING AS THE ROOT USER while testing. '
+            . 'The user you connect with needs to have read + write access, '
+            . 'as well as permission to create new databases',
+            0,
+            $originalException
+        );
     }
 
     /**
@@ -29,9 +33,11 @@ class AdaptBuildException extends AdaptException
      * @param string $projectName  The current owner of the database.
      * @return self
      */
-    public static function databaseOwnedByAnotherProject(string $databaseName, string $projectName)
+    public static function databaseOwnedByAnotherProject($databaseName, $projectName): self
     {
-        return new self('Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"');
+        return new self(
+            'Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"'
+        );
     }
 
     /**
@@ -41,7 +47,7 @@ class AdaptBuildException extends AdaptException
      * @param Throwable $originalException The originally thrown exception.
      * @return self
      */
-    public static function seederFailed(string $seeder, Throwable $originalException)
+    public static function seederFailed($seeder, $originalException): self
     {
         return new self('Could not run seeder "' . $seeder . '"', 0, $originalException);
     }
@@ -51,7 +57,7 @@ class AdaptBuildException extends AdaptException
      *
      * @return self
      */
-    public static function databaseBuilderAlreadyExecuted()
+    public static function databaseBuilderAlreadyExecuted(): self
     {
         return new self('This DatabaseBuilder has already been executed');
     }

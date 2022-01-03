@@ -25,16 +25,18 @@ class AdaptMiddleware
      * @param \Closure                 $next    The next thing to run.
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
+    public function handle($request, $next)
     {
         // the service-provider won't register this middleware when in production
         // this is an extra safety check - we definitely don't want this to run in production
         if (!app()->environment('local', 'testing')) {
             return $next($request);
         }
+
         $cookieValue = $request->cookie(Settings::CONFIG_COOKIE);
         $cookieValue = is_string($cookieValue) ? $cookieValue : '';
         $usedTempConfig = $this->useTemporaryConfig($cookieValue);
+
         $response = $next($request);
         if ($usedTempConfig) {
             $this->reSetCookie($response, (string) $cookieValue);
@@ -55,18 +57,23 @@ class AdaptMiddleware
         if (!$tempCachePath) {
             return false;
         }
+
         if (!(new Filesystem())->fileExists($tempCachePath)) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
         }
+
         try {
             $configData = require $tempCachePath;
         } catch (Throwable $e) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath, $e);
         }
+
         if (!is_array($configData)) {
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
         }
+
         $this->replaceWholeConfig($configData);
+
         return true;
     }
 
@@ -82,13 +89,16 @@ class AdaptMiddleware
         if (!is_string($cookieValue)) {
             return null;
         }
+
         $cookieValue = @unserialize($cookieValue);
         if (!is_array($cookieValue)) {
             return null;
         }
+
         if (!array_key_exists('tempConfigPath', $cookieValue)) {
             return null;
         }
+
         return $cookieValue['tempConfigPath'];
     }
 
@@ -118,9 +128,11 @@ class AdaptMiddleware
         if (!($response instanceof Response)) {
             return;
         }
+
         if ((!is_string($cookieValue)) || (!mb_strlen($cookieValue))) {
             return;
         }
+
         $response->cookie(Settings::CONFIG_COOKIE, $cookieValue, null, '/', null, false, false);
     }
 }

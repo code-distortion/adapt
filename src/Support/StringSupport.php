@@ -28,10 +28,11 @@ class StringSupport
      * @param integer $decPl The number of decimal places to use.
      * @return string
      */
-    public static function readableSize(int $bytes, int $decPl = 2): string
+    public static function readableSize($bytes, $decPl = 2): string
     {
         $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((mb_strlen((string) $bytes) - 1) / 3);
+
         return round($bytes / pow(1024, $factor), $decPl) . @$size[$factor];
     }
 
@@ -62,11 +63,12 @@ class StringSupport
      * @param DateInterval $interval The amount of time to render.
      * @return string
      */
-    public static function vagueReadableInterval(DateInterval $interval): string
+    public static function vagueReadableInterval($interval): string
     {
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
         $laterUTC = (clone $nowUTC)->add($interval);
         $seconds = $laterUTC->getTimestamp() - $nowUTC->getTimestamp();
+
         if ($seconds < 600) { // < 10 minutes
             return 'soon';
         }

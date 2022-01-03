@@ -10,14 +10,13 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
  */
 interface BootTestInterface
 {
-
     /**
      * Set the name of the test being run.
      *
      * @param string $testName The name of the test being run.
      * @return static
      */
-    public function testName(string $testName);
+    public function testName($testName);
 
     /**
      * Specify the properties that were present in the test-class.
@@ -25,7 +24,7 @@ interface BootTestInterface
      * @param PropBagDTO $propBag A populated PropBagDTO.
      * @return static
      */
-    public function props(PropBagDTO $propBag);
+    public function props($propBag);
 
     /**
      * Specify the closure to call to start a db transaction.
@@ -33,7 +32,7 @@ interface BootTestInterface
      * @param callable $transactionClosure The closure to use.
      * @return static
      */
-    public function transactionClosure(callable $transactionClosure);
+    public function transactionClosure($transactionClosure);
 
     /**
      * Specify the callback closure to call that will initialise the DatabaseBuilder/s.
@@ -49,7 +48,7 @@ interface BootTestInterface
 //     * @param DIContainer $di The DIContainer to use.
 //     * @return static
 //     */
-//    public function setDI(DIContainer $di): self;
+//    public function setDI(DIContainer $di);
 
     /**
      * Ensure the storage-directory exists.

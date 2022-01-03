@@ -15,7 +15,7 @@ class Exec
      * @param mixed  $returnVal Will contain the script's exit-code.
      * @return string
      */
-    public function run(string $command, &$output, &$returnVal): string
+    public function run($command, &$output, &$returnVal): string
     {
         return exec($command, $output, $returnVal);
     }
@@ -26,10 +26,9 @@ class Exec
      * @param string $command The command to run.
      * @return boolean
      */
-    public function commandRuns(string $command): bool
+    public function commandRuns($command): bool
     {
-        exec($command . ' 2>/dev/null', $output, $returnVal);
-        // suppress stderror
+        exec($command . ' 2>/dev/null', $output, $returnVal); // suppress stderror
         return $returnVal == 0;
     }
 }

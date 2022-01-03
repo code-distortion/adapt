@@ -45,7 +45,7 @@ class BootCommandLaravel extends BootCommandAbstract
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder(string $connection): DatabaseBuilder
+    public function makeNewBuilder($connection): DatabaseBuilder
     {
         $config = $this->newConfigDTO($connection);
         $di = $this->defaultDI($connection);
@@ -53,8 +53,16 @@ class BootCommandLaravel extends BootCommandAbstract
             return config("database.connections.$connection.driver", 'unknown');
         };
         StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
+
         $testName = '';
-        return new DatabaseBuilder('laravel', $testName, $di, $config, new Hasher($di, $config), $pickDriverClosure);
+        return new DatabaseBuilder(
+            'laravel',
+            $testName,
+            $di,
+            $config,
+            new Hasher($di, $config),
+            $pickDriverClosure
+        );
     }
 
     /**
@@ -65,8 +73,15 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function defaultDI(string $connection): DIContainer
     {
-        return (new DIContainer())->artisan(new LaravelArtisan())->config(new LaravelConfig())->db((new LaravelDB())->useConnection($connection))->dbTransactionClosure(function () {
-        })->log($this->newLog())->exec(new Exec())->filesystem(new Filesystem());
+        return (new DIContainer())
+            ->artisan(new LaravelArtisan())
+            ->config(new LaravelConfig())
+            ->db((new LaravelDB())->useConnection($connection))
+            ->dbTransactionClosure(function () {
+            })
+            ->log($this->newLog())
+            ->exec(new Exec())
+            ->filesystem(new Filesystem());
     }
 
     /**
@@ -88,7 +103,35 @@ class BootCommandLaravel extends BootCommandAbstract
     private function newConfigDTO(string $connection): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return (new ConfigDTO())->projectName(config("$c.project_name"))->connection($connection)->database(config("database.connections.$connection.database"))->storageDir($this->storageDir())->snapshotPrefix('snapshot.')->databasePrefix('')->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))->buildSettings(config("$c.pre_migration_imports"), config("$c.migrations"), config("$c.seeders"), false)->cacheTools(config("$c.reuse_test_dbs"), config("$c.scenario_test_dbs"))->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->invalidationGraceSeconds(config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS);
+        return (new ConfigDTO())
+            ->projectName(config("$c.project_name"))
+            ->connection($connection)
+            ->database(config("database.connections.$connection.database"))
+            ->storageDir($this->storageDir())
+            ->snapshotPrefix('snapshot.')
+            ->databasePrefix('')
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
+            ->buildSettings(
+                config("$c.pre_migration_imports"),
+                config("$c.migrations"),
+                config("$c.seeders"),
+                false
+            )
+            ->cacheTools(
+                config("$c.reuse_test_dbs"),
+                config("$c.scenario_test_dbs")
+            )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
+            ->mysqlSettings(
+                config("$c.database.mysql.executables.mysql"),
+                config("$c.database.mysql.executables.mysqldump")
+            )
+            ->postgresSettings(
+                config("$c.database.pgsql.executables.psql"),
+                config("$c.database.pgsql.executables.pg_dump")
+            )
+            ->invalidationGraceSeconds(
+                config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+            );
     }
 
     /**

@@ -34,7 +34,12 @@ interface ReuseInterface
      * @param boolean $reusable        Whether this database can be reused or not.
      * @return void
      */
-    public function writeReuseMetaData(string $origDBName, string $sourceFilesHash, string $scenarioHash, bool $reusable);
+    public function writeReuseMetaData(
+        $origDBName,
+        $sourceFilesHash,
+        $scenarioHash,
+        $reusable
+    );
 
     /**
      * Remove the re-use meta-data table.
@@ -53,7 +58,7 @@ interface ReuseInterface
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
-    public function dbIsCleanForReuse(string $sourceFilesHash, string $scenarioHash): bool;
+    public function dbIsCleanForReuse($sourceFilesHash, $scenarioHash): bool;
 
     /**
      * Check if the transaction was committed.
@@ -71,5 +76,5 @@ interface ReuseInterface
      * @param string      $sourceFilesHash The current files-hash based on the database-building file content.
      * @return DatabaseMetaInfo[]
      */
-    public function findDatabases($origDBName, string $sourceFilesHash): array;
+    public function findDatabases($origDBName, $sourceFilesHash): array;
 }

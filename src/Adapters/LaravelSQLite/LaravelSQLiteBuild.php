@@ -103,7 +103,7 @@ class LaravelSQLiteBuild implements BuildInterface
      * @param string[] $seeders The seeders to run.
      * @return void
      */
-    public function seed(array $seeders)
+    public function seed($seeders)
     {
         $this->laravelSeed($seeders);
     }

@@ -25,7 +25,7 @@ class LaravelMySQLName implements NameInterface
      * @return string
      * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
      */
-    public function generateScenarioDBName(string $dbNameHash): string
+    public function generateScenarioDBName($dbNameHash): string
     {
         $dbNameHash = str_replace('-', '_', $dbNameHash);
         $database = $this->config->databasePrefix . $this->origDBName() . '_' . $dbNameHash;
@@ -40,7 +40,7 @@ class LaravelMySQLName implements NameInterface
      *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotHash): string
+    public function generateSnapshotPath($snapshotHash): string
     {
         $filename = $this->config->snapshotPrefix . $this->origDBName() . '.' . $snapshotHash . '.mysql';
         $filename = str_replace('_', '-', $filename);
