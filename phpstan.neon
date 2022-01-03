@@ -1,5 +1,5 @@
 parameters:
-    excludes_analyse:
+    excludePaths:
         - %rootDir%/../../../vendor
     parallel:
         processTimeout: 300.0
