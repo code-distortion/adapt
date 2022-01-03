@@ -16,7 +16,7 @@ sed -i 's/public function boot(\$router)/public function boot(Router \$router)/'
 
 git checkout master
 
-git merge latest
+git merge latest --no-commit
 
 # fix conflicts
 
