@@ -9,26 +9,23 @@ on:
     branches:
       - master
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 
 jobs:
-  test-in-php80:
+
+  test-in-php81:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        php: ["8.0"]
-        testbench: [^6.0, ^5.0, ^4.0]
+        php: [8.1]
+        phpunit: [^9.3]
+        testbench: [^6.22]
         dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - testbench: ^6.0
-            phpunit: ^8.5 || ^9.0
-          - testbench: ^5.0
-            phpunit: ^8.5 || ^9.0
-          - testbench: ^4.0
-            phpunit: ^8.4 || ^9.0
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -40,7 +37,7 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
@@ -54,13 +51,60 @@ jobs:
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: vendor/bin/phpunit
+
+  test-in-php80:
+
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        php: ["8.0"]
+        phpunit: [^9.3]
+        testbench: [^6.0, ^5.0, ^4.0]
+        dependency-prefer: [prefer-stable, prefer-lowest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, pdo_sqlite
+          coverage: none
+
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
+      - name: Determine composer's cache directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies (composer)
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies (composer)
+        run: |
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit
 
   test-in-php74:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -83,13 +127,13 @@ jobs:
             dependency-prefer: prefer-lowest
         include:
           - testbench: ^6.0
-            phpunit: ^8.5 || ^9.0
+            phpunit: "^8.5 | ^9.0"
           - testbench: ^5.0
-            phpunit: ^8.5 || ^9.0
+            phpunit: "^8.5 | ^9.0"
           - testbench: ^4.0
-            phpunit: ^8.4 || ^9.0
+            phpunit: "^8.4 | ^9.0"
           - testbench: ^3.8.1
-            phpunit: ^7.5 || ^8.0
+            phpunit: "^7.5 | ^8.0"
           - testbench: 3.7.*
             phpunit: ^7.0
           - testbench: 3.6.*
@@ -98,6 +142,7 @@ jobs:
             phpunit: ~6.0
           - testbench: 3.4.*
             phpunit: ~5.7
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -109,27 +154,29 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies (composer)
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit
 
   test-in-php73:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -141,13 +188,13 @@ jobs:
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
           - testbench: ^6.0
-            phpunit: ^8.5 || ^9.0
+            phpunit: "^8.5 | ^9.0"
           - testbench: ^5.0
-            phpunit: ^8.5 || ^9.0
+            phpunit: "^8.5 | ^9.0"
           - testbench: ^4.0
-            phpunit: ^8.4 || ^9.0
+            phpunit: "^8.4 | ^9.0"
           - testbench: ^3.8.1
-            phpunit: ^7.5 || ^8.0
+            phpunit: "^7.5 | ^8.0"
           - testbench: 3.7.*
             phpunit: ^7.0
           - testbench: 3.6.*
@@ -157,11 +204,11 @@ jobs:
           - testbench: 3.4.*
             phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.2.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
 
     steps:
       - name: Checkout code
@@ -174,27 +221,29 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies (composer)
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit
 
   test-in-php72:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -206,11 +255,11 @@ jobs:
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
           - testbench: ^5.0
-            phpunit: ^8.5 || ^9.0
+            phpunit: "^8.5 | ^9.0"
           - testbench: ^4.0
-            phpunit: ^8.4 || ^9.0
+            phpunit: "^8.4 | ^9.0"
           - testbench: ^3.8.1
-            phpunit: ^7.5 || ^8.0
+            phpunit: "^7.5 | ^8.0"
           - testbench: 3.7.*
             phpunit: ^7.0
           - testbench: 3.6.*
@@ -220,11 +269,11 @@ jobs:
           - testbench: 3.4.*
             phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.2.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
 
     steps:
       - name: Checkout code
@@ -237,27 +286,29 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies (composer)
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit
 
   test-in-php71:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -269,7 +320,7 @@ jobs:
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
           - testbench: ^3.8.1
-            phpunit: ^7.5 || ^8.0
+            phpunit: "^7.5 | ^8.0"
           - testbench: 3.7.*
             phpunit: ^7.0
           - testbench: 3.6.*
@@ -279,11 +330,11 @@ jobs:
           - testbench: 3.4.*
             phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.2.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
 
     steps:
       - name: Checkout code
@@ -296,27 +347,29 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies (composer)
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit
 
   test-in-php70:
+
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -332,11 +385,11 @@ jobs:
           - testbench: 3.4.*
             phpunit: ~5.7
           - testbench: 3.3.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.2.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
-            phpunit: ~4.8|~5.0
+            phpunit: "~4.8 | ~5.0"
 
     steps:
       - name: Checkout code
@@ -349,21 +402,22 @@ jobs:
           extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
 
-      # find out composer's cache directory on the current os - for the "Cache composer dependencies" step below
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
       - name: Determine composer's cache directory
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies (composer)
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
 
       - name: Install dependencies (composer)
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer remove "rector/rector" --dev --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
