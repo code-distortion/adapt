@@ -1,7 +1,7 @@
 # Adapt - A Database Preparation Tool
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
-![PHP from Packagist](https://img.shields.io/packagist/php-v/code-distortion/adapt?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.1-blue?style=flat-square)
 ![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/run-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
@@ -28,7 +28,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 * [Installation](#installation)
     * [Config](#config)
 * [Usage](#usage)
-    * [Quick-Start](#quick-start)
+    * [TL-DR - Quick-Start](#tl-dr---quick-start)
     * [PHPUnit Usage](#phpunit-usage)
     * [PEST Usage](#pest-usage)
     * [Dusk Browser Test Usage](#dusk-browser-test-usage)
@@ -132,7 +132,7 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 
 ## Usage
 
-### Quick-Start
+### TL-DR - Quick-Start
 
 - Step 1 - Replace the `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits in your test classes with `LaravelAdapt`.
 
@@ -280,7 +280,7 @@ class MyDuskTest extends DuskTestCase
 }
 ```
 
-Your test's config settings (from `.env.testing`) are passed to the server through the browser. Your `.env.dusk.local` file are ignored.
+Your test's config settings (from `.env.testing`) are passed to the server through the browser. Your `.env.dusk.local` file is ignored.
 
 > When Dusk tests are run, transactions are turned off and snapshot dumps are turned on instead.
 
