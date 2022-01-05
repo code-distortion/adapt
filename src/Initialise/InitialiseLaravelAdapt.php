@@ -18,13 +18,13 @@ use PDOException;
 trait InitialiseLaravelAdapt
 {
     /** @var PropBagDTO The properties specified in the test-class. */
-    protected PropBagDTO $propBag;
+    protected PropBagDTO $adaptPropBag;
 
     /** @var boolean Whether this set-up object's initialisation has been run yet or not. */
-    private bool $initialised = false;
+    private bool $adaptInitialised = false;
 
     /** @var BootTestInterface The object used to boot Adapt. */
-    private BootTestInterface $bootTestLaravel;
+    private BootTestInterface $adaptBootTestLaravel;
 
 
 
@@ -42,7 +42,7 @@ trait InitialiseLaravelAdapt
 
             $this->beforeApplicationDestroyed(function () {
                 // to be run after the transaction was rolled back
-                $this->bootTestLaravel->checkForCommittedTransactions();
+                $this->adaptBootTestLaravel->checkForCommittedTransactions();
             });
         });
     }
@@ -55,7 +55,7 @@ trait InitialiseLaravelAdapt
      */
     protected function autoTriggerCleanUp(): void
     {
-        $this->bootTestLaravel->postTestCleanUp();
+        $this->adaptBootTestLaravel->postTestCleanUp();
     }
 
 
@@ -67,16 +67,16 @@ trait InitialiseLaravelAdapt
      */
     protected function initialiseAdapt(): void
     {
-        if ($this->initialised) {
+        if ($this->adaptInitialised) {
             return;
         }
-        $this->initialised = true;
+        $this->adaptInitialised = true;
 
         $this->buildPropBag();
         $this->prepareLaravelConfig();
 
-        $this->bootTestLaravel = $this->buildBootObject();
-        $this->bootTestLaravel->run();
+        $this->adaptBootTestLaravel = $this->buildBootObject();
+        $this->adaptBootTestLaravel->run();
     }
 
 
@@ -101,10 +101,10 @@ trait InitialiseLaravelAdapt
             'isBrowserTest',
         ];
 
-        $this->propBag = new LaravelPropBagDTO();
+        $this->adaptPropBag = new LaravelPropBagDTO();
         foreach ($propNames as $propName) {
             if (property_exists(static::class, $propName)) {
-                $this->propBag->addProp($propName, $this->$propName);
+                $this->adaptPropBag->addProp($propName, $this->$propName);
             }
         }
     }
@@ -128,11 +128,11 @@ trait InitialiseLaravelAdapt
      */
     private function initLaravelDefaultConnection(): void
     {
-        if (!$this->propBag->hasProp('defaultConnection')) {
+        if (!$this->adaptPropBag->hasProp('defaultConnection')) {
             return;
         }
 
-        $connection = $this->propBag->prop('defaultConnection');
+        $connection = $this->adaptPropBag->prop('defaultConnection');
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidDefaultConnection($connection);
         }
@@ -163,10 +163,10 @@ trait InitialiseLaravelAdapt
     private function parseRemapDBStrings(): array
     {
         return array_merge(
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
-            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
-            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
+            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), null, false),
+            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), true, false)
         );
     }
 
@@ -227,7 +227,7 @@ trait InitialiseLaravelAdapt
     {
         return (new BootTestLaravel())
             ->testName(get_class($this) . '::' . $this->getName())
-            ->props($this->propBag)
+            ->props($this->adaptPropBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
             ->initCallback($this->adaptBuildInitCallback())
@@ -344,6 +344,6 @@ trait InitialiseLaravelAdapt
             );
         }
 
-        $this->bootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+        $this->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
     }
 }
