@@ -167,8 +167,9 @@ class DatabaseMetaInfo
         if ($purgeAfter) {
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             $purgeMessage = $purgeAfter > $nowUTC
-                ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
-                : ' - Invalid (automatic removal: next test-run)';
+//                ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
+                ? ' - Invalid (will be automatically removed in a while)'
+                : ' - Invalid (will be automatically removed during the next test-run)';
         }
 
         return $this->name

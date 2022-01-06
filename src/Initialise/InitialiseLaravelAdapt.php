@@ -219,7 +219,7 @@ trait InitialiseLaravelAdapt
     }
 
     /**
-     * Build the test object and run it.
+     * Build the boot-test object.
      *
      * @return BootTestInterface
      */

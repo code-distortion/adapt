@@ -127,6 +127,20 @@ trait LaravelAdapt
 //    protected bool $isBrowserTest = true;
 
     /**
+     * Adapt can be configured so it uses another installation of Adapt
+     * to build the databases instead of doing it itself. This may be
+     * useful when sharing a database between projects.
+     *
+     * The other installation must be web-accessible to the first.
+     *
+     * eg.
+     * 'https://other-site.local/'
+     *
+     * @var ?string
+     */
+//    protected ?string $remoteBuildUrl = null;
+
+    /**
      * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:

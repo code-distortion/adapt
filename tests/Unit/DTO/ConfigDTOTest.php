@@ -64,7 +64,9 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'preMigrationImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
+                    'remoteBuildUrl' => 'https://something',
                     'isBrowserTest' => true,
+                    'isRemoteBuild' => false,
                 ],
             ],
             'buildSettings 2' => [
@@ -73,7 +75,9 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'preMigrationImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => false,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
+                    'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isRemoteBuild' => false,
                 ],
             ],
             'buildSettings 3' => [
@@ -82,7 +86,9 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'preMigrationImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
+                    'remoteBuildUrl' => null,
                     'isBrowserTest' => false,
+                    'isRemoteBuild' => true,
                 ],
             ],
             'buildSettings 4' => [
@@ -91,7 +97,9 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'preMigrationImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => '/migrations-path',
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
+                    'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isRemoteBuild' => false,
                 ],
             ],
             'preMigrationImports' => [
@@ -114,6 +122,14 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'seeders',
                 'params' => ['seeders' => ['DatabaseSeeder', 'TestSeeder']],
             ],
+            'remoteBuildUrl 1' => [
+                'method' => 'remoteBuildUrl',
+                'params' => ['remoteBuildUrl' => 'https://something'],
+            ],
+            'remoteBuildUrl 2' => [
+                'method' => 'remoteBuildUrl',
+                'params' => ['remoteBuildUrl' => null],
+            ],
             'isBrowserTest 1' => [
                 'method' => 'isBrowserTest',
                 'params' => ['isBrowserTest' => true],
@@ -121,6 +137,14 @@ class ConfigDTOTest extends PHPUnitTestCase
             'isBrowserTest 2' => [
                 'method' => 'isBrowserTest',
                 'params' => ['isBrowserTest' => false],
+            ],
+            'isRemoteBuild 1' => [
+                'method' => 'isRemoteBuild',
+                'params' => ['isRemoteBuild' => true],
+            ],
+            'isRemoteBuild 2' => [
+                'method' => 'isRemoteBuild',
+                'params' => ['isRemoteBuild' => false],
             ],
 
             'cacheTools 1' => [

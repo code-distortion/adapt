@@ -10,7 +10,6 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
  */
 interface BootTestInterface
 {
-
     /**
      * Set the name of the test being run.
      *
@@ -69,7 +68,7 @@ interface BootTestInterface
     public function run(): void;
 
     /**
-     * Check to see if any of the transactions were committed, and generate a warning.
+     * Check to see if any of the transactions were committed, and generate an exception.
      *
      * @return void
      */

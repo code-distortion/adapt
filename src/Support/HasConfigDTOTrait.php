@@ -233,4 +233,14 @@ trait HasConfigDTOTrait
     {
         return $this->config->connection;
     }
+
+    /**
+     * Retrieve the database being used.
+     *
+     * @return string
+     */
+    public function getDatabase(): string
+    {
+        return $this->config->database;
+    }
 }

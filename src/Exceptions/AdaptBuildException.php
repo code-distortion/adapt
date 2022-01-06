@@ -61,4 +61,16 @@ class AdaptBuildException extends AdaptException
     {
         return new self('This DatabaseBuilder has already been executed');
     }
+
+    /**
+     * The request to build a database remotely failed.
+     *
+     * @param string    $databaseName      The database that was to be used.
+     * @param Throwable $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function remoteBuildFailed(string $databaseName, Throwable $originalException): self
+    {
+        return new self("The remote database \"$databaseName\" could not be built", 0, $originalException);
+    }
 }

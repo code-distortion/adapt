@@ -41,7 +41,7 @@ class AdaptRemoveCachesCommand extends Command
     public function handle()
     {
         $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
-        (new ReloadLaravelConfig())->reload(base_path() . '/' . $envFile);
+        (new ReloadLaravelConfig())->reload(base_path($envFile));
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {

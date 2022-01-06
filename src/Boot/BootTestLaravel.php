@@ -130,7 +130,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function createBuilder(string $connection): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection);
+        $config = $this->newConfigDTO($connection, (string) $this->testName);
 
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
@@ -142,7 +142,6 @@ class BootTestLaravel extends BootTestAbstract
 
         return new DatabaseBuilder(
             'laravel',
-            (string) $this->testName,
             $di,
             $config,
             new Hasher($di, $config),
@@ -154,10 +153,11 @@ class BootTestLaravel extends BootTestAbstract
      * Create a new ConfigDTO object with default values.
      *
      * @param string $connection The connection to use.
+     * @param string $testName   The current test's name.
      * @return ConfigDTO
      * @throws AdaptBootException Thrown when a PropBag hasn't been set yet.
      */
-    private function newConfigDTO(string $connection): configDTO
+    private function newConfigDTO(string $connection, string $testName): configDTO
     {
         if (!$this->propBag) {
             throw AdaptBootException::propBagNotSet();
@@ -167,6 +167,7 @@ class BootTestLaravel extends BootTestAbstract
 
         return (new ConfigDTO())
             ->projectName($this->propBag->config('project_name'))
+            ->testName($testName)
             ->connection($connection)
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
@@ -178,7 +179,9 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->config('migrations', 'migrations'),
                 $this->propBag->config('seeders', 'seeders'),
-                $this->propBag->prop('isBrowserTest', $this->browserTestDetected)
+                $this->propBag->config('remote_build_url', 'remoteBuildUrl'),
+                $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
+                false
             )
             ->cacheTools(
                 $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),

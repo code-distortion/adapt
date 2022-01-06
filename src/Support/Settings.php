@@ -22,7 +22,10 @@ class Settings
     public const CONFIG_COOKIE = '____adapt____';
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
-    public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____';
+    public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____/cookie';
+
+    /** @var string The path used by Adapt when instructing another installation of Adapt to build a database. */
+    public const REMOTE_BUILD_REQUEST_PATH = '/____adapt____/remote-build';
 
     /** @var integer The number of seconds grace-period before invalid databases & snapshots are to be deleted. */
     public const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours

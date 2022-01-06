@@ -186,9 +186,31 @@ return [
     |
     | eg.
     | '!mysql < sqlite'
+    |
     */
 
     'remap_connections' => env('ADAPT_REMAP_CONNECTIONS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remote Database Building
+    |--------------------------------------------------------------------------
+    |
+    | Adapt can be configured so it uses another installation of Adapt
+    | to build the databases instead of doing it itself. This may be
+    | useful when sharing a database between projects.
+    |
+    | The other installation must be web-accessible to the first.
+    |
+    | This config setting can be overridden by adding the
+    | $remoteBuildUrl property to your test-class.
+    |
+    | eg.
+    | 'https://other-site.local/'
+    |
+    */
+
+    'remote_build_url' => env('ADAPT_REMOTE_BUILD_URL', null),
 
     /*
      |--------------------------------------------------------------------------

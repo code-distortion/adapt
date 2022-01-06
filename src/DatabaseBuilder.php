@@ -15,8 +15,11 @@ use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
+use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ClientException;
 use PDOException;
 use Throwable;
 
@@ -29,9 +32,6 @@ class DatabaseBuilder
 
     /** @var string The framework currently being used. */
     protected string $framework;
-
-    /** @var string The name of the current test. */
-    protected string $testName;
 
     /** @var string[][] The available database adapters. */
     private array $availableDBAdapters = [
@@ -63,7 +63,6 @@ class DatabaseBuilder
      * Constructor.
      *
      * @param string      $framework         The framework currently being used.
-     * @param string      $testName          The name of the test being run.
      * @param DIContainer $di                The dependency-injection container to use.
      * @param ConfigDTO   $config            A DTO containing the settings to use.
      * @param Hasher      $hasher            The Hasher object to use.
@@ -71,14 +70,12 @@ class DatabaseBuilder
      */
     public function __construct(
         string $framework,
-        string $testName,
         DIContainer $di,
         ConfigDTO $config,
         Hasher $hasher,
         callable $pickDriverClosure
     ) {
         $this->framework = $framework;
-        $this->testName = $testName;
         $this->di = $di;
         $this->config = $config;
         $this->hasher = $hasher;
@@ -200,6 +197,16 @@ class DatabaseBuilder
     }
 
     /**
+     * Check if the database should be built remotely.
+     *
+     * @return boolean
+     */
+    private function shouldBuildRemotely(): bool
+    {
+        return mb_strlen($this->config->remoteBuildUrl) > 0;
+    }
+
+    /**
      * Resolve whether seeding is allowed.
      *
      * @return boolean
@@ -280,16 +287,16 @@ class DatabaseBuilder
      */
     private function prepareDB(): void
     {
-        $this->di->log->info('---- Preparing a database for test: ' . $this->testName . ' ----------------');
-        $this->di->log->info(
-            'Using connection "' . $this->config->connection . '" (driver "' . $this->config->driver . '")'
-        );
+        $this->di->log->info("---- Preparing a database for test: {$this->config->testName}----------------");
+        $this->di->log->info("Using connection \"{$this->config->connection}\" (driver \"{$this->config->driver}\")");
 
-        $this->pickDatabaseNameAndUse();
-        $this->buildOrReuseDB();
-        if ($this->usingTransactions()) {
-            $this->dbAdapter()->build->applyTransaction();
+        if ($this->shouldBuildRemotely()) {
+            $this->buildDBRemotely();
+        } else {
+            $this->pickDatabaseNameAndUse();
+            $this->buildOrReuseDBLocally();
         }
+        $this->applyTransaction();
     }
 
     /**
@@ -299,7 +306,11 @@ class DatabaseBuilder
      */
     private function pickDatabaseNameAndUse(): void
     {
-        $this->dbAdapter()->connection->useDatabase($this->pickDatabaseName());
+        if ($this->shouldBuildRemotely()) {
+            return;
+        }
+
+        $this->useDatabase($this->pickDatabaseName());
     }
 
     /**
@@ -322,16 +333,25 @@ class DatabaseBuilder
     }
 
     /**
-     * Build or reuse an existing database.
+     * Use the desired database.
      *
      * @return void
      */
-    private function buildOrReuseDB(): void
+    private function useDatabase(string $name): void
+    {
+        $this->dbAdapter()->connection->useDatabase($name);
+    }
+
+    /**
+     * Build or reuse an existing database - locally.
+     *
+     * @return void
+     */
+    private function buildOrReuseDBLocally(): void
     {
         $logTimer = $this->di->log->newTimer();
 
         try {
-
             if ($this->canReuseDB()) {
                 $this->di->log->info('Reusing the existing database', $logTimer);
             } else {
@@ -378,7 +398,7 @@ class DatabaseBuilder
     }
 
     /**
-     * Pick a process and build the database fresh.
+     * Build the database fresh.
      *
      * @return void
      */
@@ -399,6 +419,55 @@ class DatabaseBuilder
         }
 
         $this->di->log->info('Database total build time', $logTimer);
+    }
+
+    /**
+     * Build or reuse an existing database - remotely.
+     *
+     * @return void
+     */
+    private function buildDBRemotely(): void
+    {
+        $this->di->log->info('Building database remotely…');
+        $logTimer = $this->di->log->newTimer();
+
+        $data = ['configDTO' => serialize(get_object_vars($this->config))];
+
+        $httpClient = new HttpClient(['timeout' => 60 * 10,]);
+        try {
+            $response = $httpClient->post(
+                $this->buildRemoteUrl(),
+                ['form_params' => $data]
+            );
+
+            $database = (string) $response->getBody();
+            $this->useDatabase($database);
+
+            $this->di->log->info('Database total remote build time', $logTimer);
+
+        } catch (ClientException $e) {
+            throw AdaptBuildException::remoteBuildFailed($this->config->database, $e);
+        }
+    }
+
+    /**
+     * Build the url to use when building the database remotely.
+     *
+     * @return string
+     */
+    private function buildRemoteUrl(): string
+    {
+        $remoteUrl = $this->config->remoteBuildUrl;
+        $pos = mb_strpos($remoteUrl, '?');
+        if ($pos !== false) {
+            $remoteUrl = mb_substr($remoteUrl, 0, $pos);
+        }
+
+        $remoteUrl = "$remoteUrl/" . Settings::REMOTE_BUILD_REQUEST_PATH;
+
+        $parts = parse_url($remoteUrl);
+        $path = preg_replace('%//+%', '/', $parts['path']);
+        return str_replace($parts['path'], $path, $remoteUrl);
     }
 
     /**
@@ -712,6 +781,23 @@ class DatabaseBuilder
 
 
     /**
+     * Start the datbase transaction.
+     *
+     * @throws AdaptConfigException
+     */
+    private function applyTransaction(): void
+    {
+        if ($this->config->isRemoteBuild) {
+            return;
+        }
+        if (!$this->usingTransactions()) {
+            return;
+        }
+
+        $this->dbAdapter()->build->applyTransaction();
+    }
+
+    /**
      * Check to see if any of the transaction was committed (if relevant), and generate a warning.
      *
      * @return void
@@ -719,6 +805,9 @@ class DatabaseBuilder
      */
     public function checkForCommittedTransaction(): void
     {
+        if ($this->config->isRemoteBuild) {
+            return;
+        }
         if (!$this->usingTransactions()) {
             return;
         }
@@ -727,12 +816,12 @@ class DatabaseBuilder
         }
 
         $this->di->log->warning(
-            "The $this->testName test committed the transaction wrapper - "
-                . "turn \$reuseTestDBs off to isolate it from other "
-                . "tests that don't commit their transactions"
+            "The {$this->config->testName} test committed the transaction wrapper - "
+            . "turn \$reuseTestDBs off to isolate it from other "
+            . "tests that don't commit their transactions"
         );
 
-        throw AdaptTransactionException::testCommittedTransaction($this->testName);
+        throw AdaptTransactionException::testCommittedTransaction($this->config->testName);
     }
 
 
