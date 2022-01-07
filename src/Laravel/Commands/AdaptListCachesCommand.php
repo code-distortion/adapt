@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Laravel\Commands;
 
+use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
@@ -65,11 +66,13 @@ class AdaptListCachesCommand extends Command
             return;
         }
 
+        $canPurge = (new BootCommandLaravel())->canPurgeInvalidThings();
+
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
             $this->info('- Connection "' . $connection . '":');
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo());
+                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo($canPurge));
             }
         }
     }
@@ -86,9 +89,11 @@ class AdaptListCachesCommand extends Command
             return;
         }
 
+        $canPurge = (new BootCommandLaravel())->canPurgeInvalidThings();
+
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
-            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo());
+            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo($canPurge));
         }
     }
 }

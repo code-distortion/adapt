@@ -150,4 +150,18 @@ class BootCommandLaravel extends BootCommandAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         return rtrim(config("$c.storage_dir"), '\\/');
     }
+
+    /**
+     * Work out if invalid things are allowed to be purged.
+     *
+     * @return boolean
+     */
+    public function canPurgeInvalidThings(): bool
+    {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        if (config("$c.remote_build_url")) {
+            return false;
+        }
+        return (bool) config("$c.remove_invalid_things", true);
+    }
 }

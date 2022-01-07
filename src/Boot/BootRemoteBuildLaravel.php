@@ -89,7 +89,10 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false);
+        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
+
+        // don't use stdout debugging, it will ruin the output being generated that the calling Adapt instance reads.
+        return new LaravelLog(false, $useLaravelLog);
     }
 
     /**

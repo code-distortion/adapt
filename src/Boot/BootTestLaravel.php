@@ -309,6 +309,10 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function purgeInvalidThings(): void
     {
+        if (!$this->canPurgeInvalidThings()) {
+            return;
+        }
+
         if (!$this->getMutexLock("{$this->storageDir()}/purge-lock")) {
             return;
         }
@@ -318,6 +322,19 @@ class BootTestLaravel extends BootTestAbstract
         $this->removeOrphanedTempConfigFiles();
 
         $this->releaseMutexLock();
+    }
+
+    /**
+     * Work out if invalid things are allowed to be purged.
+     *
+     * @return boolean
+     */
+    protected function canPurgeInvalidThings(): bool
+    {
+        if ($this->propBag->config('remote_build_url')) {
+            return false;
+        }
+        return (bool) $this->propBag->config('remove_invalid_things', null, true);
     }
 
     /**

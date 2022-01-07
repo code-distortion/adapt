@@ -66,5 +66,5 @@ abstract class PropBagDTO
      * @param mixed       $default   The default value.
      * @return mixed
      */
-    abstract public function config(string $configKey, string $propName = null, $default = null);
+    abstract public function config(string $configKey, ?string $propName = null, $default = null);
 }

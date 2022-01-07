@@ -441,9 +441,9 @@ class DatabaseBuilder
             );
 
             $database = (string) $response->getBody();
-            $this->useDatabase($database);
-
             $this->di->log->info('Database total remote build time', $logTimer);
+
+            $this->useDatabase($database);
 
         } catch (ClientException $e) {
             throw AdaptBuildException::remoteBuildFailed($this->config->database, $e);

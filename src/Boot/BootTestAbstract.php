@@ -243,4 +243,11 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return void
      */
     abstract public function purgeInvalidThings(): void;
+
+    /**
+     * Work out if invalid things are allowed to be purged.
+     *
+     * @return boolean
+     */
+    abstract protected function canPurgeInvalidThings(): bool;
 }

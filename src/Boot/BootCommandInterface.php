@@ -25,4 +25,11 @@ interface BootCommandInterface
      * @return DatabaseBuilder
      */
     public function makeNewBuilder(string $connection): DatabaseBuilder;
+
+    /**
+     * Work out if invalid things are allowed to be purged.
+     *
+     * @return boolean
+     */
+    public function canPurgeInvalidThings(): bool;
 }

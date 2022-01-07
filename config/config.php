@@ -168,6 +168,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Purging of Invalid Test-Databases And Snapshot Files
+    |--------------------------------------------------------------------------
+    |
+    | Test-databases and snapshot files become invalid when factories,
+    | migrations and seeders change. When turned on, invalid ones will
+    | be removed after a "while" (this allows for you to change code
+    | branches without them being removed straight away).
+    |
+    | NOTE: This setting is disabled automatically when using the
+    | "remote_build_url" config setting below.
+    |
+    */
+
+    'remove_invalid_things' => env('ADAPT_REMOVE_INVALID_THINGS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Remap Database Connections
     |--------------------------------------------------------------------------
     |
@@ -184,8 +201,7 @@ return [
     | You can make the settings here more important than your test-class
     | settings by adding "!".
     |
-    | eg.
-    | '!mysql < sqlite'
+    | eg. '!mysql < sqlite'
     |
     */
 
@@ -196,8 +212,8 @@ return [
     | Remote Database Building
     |--------------------------------------------------------------------------
     |
-    | Adapt can be configured so it uses another installation of Adapt
-    | to build the databases instead of doing it itself. This may be
+    | Adapt can be configured to use another installation of Adapt to
+    | build databases instead of doing it itself. This may be
     | useful when sharing a database between projects.
     |
     | The other installation must be web-accessible to the first.
@@ -205,8 +221,7 @@ return [
     | This config setting can be overridden by adding the
     | $remoteBuildUrl property to your test-class.
     |
-    | eg.
-    | 'https://other-site.local/'
+    | eg. 'https://other-site.local/'
     |
     */
 
