@@ -12,6 +12,8 @@ use CodeDistortion\Adapt\Initialise\InitialiseLaravelAdapt;
  * The properties below can be set in your test-class to alter how the
  * test-database is set up. Or alternatively, more customisation is possible
  * by adding the databaseInit(DatabaseBuilder $builder) method.
+ *
+ * @see InitialiseLaravelAdapt
  */
 trait LaravelAdapt
 {

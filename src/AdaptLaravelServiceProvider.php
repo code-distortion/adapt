@@ -6,13 +6,15 @@ use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptMiddleware;
-use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
+use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConfigMiddleware;
+use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConnectionMiddleware;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Throwable;
 
 /**
  * Adapt's Laravel ServiceProvider.
@@ -121,7 +123,13 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             ? array_keys($httpKernel->getMiddlewareGroups())
             : ['web', 'api'];
         foreach ($middlewareGroups as $middlewareGroup) {
-            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptMiddleware::class);
+
+            // look for the cookie that conveys the recorded config to use
+            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptShareConfigMiddleware::class);
+
+            // look for the header that remote installations of Adapt can add to indicate that database connections use
+            // particular databases.
+            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptShareConnectionMiddleware::class);
         }
     }
 
@@ -145,49 +153,36 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // The path that browsers connect to initially (when browser testing) so that cookies can then be set
         // (the browser will reject new cookies before it's loaded a webpage)
         // this route bypasses all middleware
-        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, fn() => '');
+        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
 
-        // Adapt sends "remote build" requests to this url
-        $router->post(
-            Settings::REMOTE_BUILD_REQUEST_PATH,
-            function(Request $request) {
+        $router->group(['middleware' => ['web']], function (Router $router) {
 
-                $this->runFromBasePathDir();
+            // Adapt sends "remote build" requests to this url
+            $callback = fn(Request $request) => $this->handleBuildRequest($request);
+            $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
 
-                // use settings from .env.testing
-                $this->useTestingConfig();
-
-                $database = $this->executeBuilder($request->input('configDTO'));
-
-                print $database;
-            }
-        );
+        });
     }
 
-    /**
-     * make sure the code is running from the Laravel base dir.
-     *
-     * e.g. /var/www/html instead of /var/www/html/public
-     *
-     * This ensures that the paths of hash files (migrations, seeders etc) are resolved identically, compared to when
-     * Adapt is running in non-web situations tests (e.g. tests).
-     *
-     * @return void
-     */
-    private function runFromBasePathDir(): void
-    {
-        chdir(base_path());
-    }
+
 
     /**
-     * Re-load Laravel's config using the .env.testing file.
+     * Build a test-database for a remote installation of Adapt.
      *
+     * @param Request $request
      * @return void
      */
-    private function useTestingConfig(): void
+    private function handleBuildRequest(Request $request): void
     {
-        $envFile = '.env.testing';
-        (new ReloadLaravelConfig())->reload(base_path($envFile));
+        LaravelSupport::runFromBasePathDir();
+        LaravelSupport::useTestingConfig();
+
+        try {
+            $database = $this->executeBuilder($request->input('configDTO'));
+            print $database; // output for the remote Adapt installation to see
+        } catch (Throwable $e) {
+            abort(500);
+        }
     }
 
     /**
@@ -203,6 +198,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         $bootRemoteBuildLaravel = new BootRemoteBuildLaravel();
         $bootRemoteBuildLaravel->ensureStorageDirExists();
+
         $builder = $bootRemoteBuildLaravel->makeNewBuilder($remoteConfig);
         $builder->execute();
 

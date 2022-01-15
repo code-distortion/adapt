@@ -16,7 +16,7 @@ use Throwable;
  *
  * Added to local and testing environments.
  */
-class AdaptMiddleware
+class AdaptShareConfigMiddleware
 {
     /**
      * Handle an incoming request.

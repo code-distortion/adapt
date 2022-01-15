@@ -16,7 +16,7 @@ class Settings
     public const REUSE_TABLE = '____adapt____';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    public const REUSE_TABLE_VERSION = '3';
+    public const REUSE_TABLE_VERSION = '4';
 
     /** @var string The name of the cookie used to pass database connection details during browser tests. */
     public const CONFIG_COOKIE = '____adapt____';
@@ -26,6 +26,9 @@ class Settings
 
     /** @var string The path used by Adapt when instructing another installation of Adapt to build a database. */
     public const REMOTE_BUILD_REQUEST_PATH = '/____adapt____/remote-build';
+
+    /** @var string The http-header used to pass database connection details to other Adapt installations. */
+    public const SHARE_CONNECTIONS_HTTP_HEADER_NAME = 'adapt-connection-dbs';
 
     /** @var integer The number of seconds grace-period before invalid databases & snapshots are to be deleted. */
     public const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours

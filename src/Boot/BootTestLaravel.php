@@ -111,9 +111,6 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function newBuilder(string $connection): DatabaseBuilder
     {
-        if (!config("database.connections.$connection")) {
-            throw AdaptConfigException::invalidConnection($connection);
-        }
         $builder = $this->createBuilder($connection);
         $this->addBuilder($builder);
         return $builder;
@@ -169,6 +166,7 @@ class BootTestLaravel extends BootTestAbstract
             ->projectName($this->propBag->config('project_name'))
             ->testName($testName)
             ->connection($connection)
+            ->connectionExists(!is_null(config("database.connections.$connection")))
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
@@ -216,6 +214,19 @@ class BootTestLaravel extends BootTestAbstract
         return $this->propBag
             ? rtrim($this->propBag->config('storage_dir'), '\\/')
             : '';
+    }
+
+
+
+    /**
+     * Record the list of connections and their databases with the framework.
+     *
+     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @return void
+     */
+    protected function registerConnectionDBsWithFramework(array $connectionDatabases): void
+    {
+        app()->singleton('adapt-connection-databases', fn() => $connectionDatabases);
     }
 
 

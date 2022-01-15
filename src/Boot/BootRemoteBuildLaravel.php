@@ -75,8 +75,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->artisan(new LaravelArtisan())
             ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-            })
+            ->dbTransactionClosure(fn() => null)
             ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -104,11 +103,12 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     private function newConfigDTO(ConfigDTO $remoteConfig): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        $connection =  $remoteConfig->connection;
+        $connection = $remoteConfig->connection;
         return (new ConfigDTO())
             ->projectName($remoteConfig->projectName)
             ->testName($remoteConfig->testName)
-            ->connection($connection) // ?
+            ->connection($connection)
+            ->connectionExists(!is_null(config("database.connections.$connection")))
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfig->databaseModifier)
             ->storageDir($this->storageDir())
@@ -121,15 +121,15 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 $remoteConfig->seeders,
                 null, // don't forward again
                 $remoteConfig->isBrowserTest,
-                true
+                true // yes, a remote database is being built here now, locally
             )
             ->cacheTools(
-                config("$c.reuse_test_dbs"),
-                config("$c.scenario_test_dbs")
+                $remoteConfig->reuseTestDBs,
+                $remoteConfig->scenarioTestDBs
             )
             ->snapshots(
-                config("$c.use_snapshots_when_reusing_db"),
-                config("$c.use_snapshots_when_not_reusing_db"),
+                $remoteConfig->useSnapshotsWhenReusingDB,
+                $remoteConfig->useSnapshotsWhenNotReusingDB,
             )
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
@@ -140,7 +140,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 config("$c.database.pgsql.executables.pg_dump")
             )
             ->invalidationGraceSeconds(
-                config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+                config("$c.invalidation_grace_seconds", Settings::DEFAULT_INVALIDATION_GRACE_SECONDS)
             );
     }
 

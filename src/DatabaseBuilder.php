@@ -19,7 +19,7 @@ use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
 use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use PDOException;
 use Throwable;
 
@@ -126,7 +126,6 @@ class DatabaseBuilder
     public function execute(): self
     {
         $this->onlyExecuteOnce();
-        $this->initialise();
         $this->prepareDB();
         return $this;
     }
@@ -183,6 +182,12 @@ class DatabaseBuilder
      */
     private function usingTransactions(): bool
     {
+        if ($this->config->isRemoteBuild) {
+            return false;
+        }
+        if (!$this->config->connectionExists) {
+            return false;
+        }
         return $this->usingReuseTestDBs();
     }
 
@@ -271,32 +276,57 @@ class DatabaseBuilder
     }
 
     /**
-     * Initialise this object ready for running.
-     *
-     * @return void
-     */
-    private function initialise(): void
-    {
-        $this->pickDriver();
-    }
-
-    /**
      * Reuse the existing database, populate it from a snapshot or build it from scratch - whatever is necessary.
      *
      * @return void
      */
     private function prepareDB(): void
     {
-        $this->di->log->info("---- Preparing a database for test: {$this->config->testName}----------------");
-        $this->di->log->info("Using connection \"{$this->config->connection}\" (driver \"{$this->config->driver}\")");
+        $this->di->log->info("---- Preparing a database for test: {$this->config->testName} ----------------");
 
-        if ($this->shouldBuildRemotely()) {
-            $this->buildDBRemotely();
-        } else {
-            $this->pickDatabaseNameAndUse();
-            $this->buildOrReuseDBLocally();
-        }
+        $this->shouldBuildRemotely()
+            ? $this->buildDBRemotely()
+            : $this->buildDBLocally();
+
         $this->applyTransaction();
+    }
+
+    /**
+     * Perform the process of building (or reuse an existing) database - locally.
+     *
+     * @throws AdaptConfigException Thrown when building failed.
+     */
+    private function buildDBLocally(): void
+    {
+        $this->initialise();
+        $this->pickDatabaseNameAndUse();
+        $this->buildOrReuseDBLocally();
+    }
+
+    /**
+     * Check if initialisation is possible.
+     *
+     * @return boolean
+     */
+    private function shouldInitialise(): bool
+    {
+        return $this->config->connectionExists;
+    }
+
+    /**
+     * Initialise this object ready for running.
+     *
+     * @return void
+     */
+    private function initialise(): void
+    {
+        if (!$this->config->connectionExists) {
+            throw AdaptConfigException::invalidConnection($this->config->connection);
+        }
+
+        $this->pickDriver();
+
+        $this->di->log->info("Using connection \"{$this->config->connection}\" (driver \"{$this->config->driver}\")");
     }
 
     /**
@@ -419,55 +449,6 @@ class DatabaseBuilder
         }
 
         $this->di->log->info('Database total build time', $logTimer);
-    }
-
-    /**
-     * Build or reuse an existing database - remotely.
-     *
-     * @return void
-     */
-    private function buildDBRemotely(): void
-    {
-        $this->di->log->info('Building database remotely…');
-        $logTimer = $this->di->log->newTimer();
-
-        $data = ['configDTO' => serialize(get_object_vars($this->config))];
-
-        $httpClient = new HttpClient(['timeout' => 60 * 10,]);
-        try {
-            $response = $httpClient->post(
-                $this->buildRemoteUrl(),
-                ['form_params' => $data]
-            );
-
-            $database = (string) $response->getBody();
-            $this->di->log->info('Database total remote build time', $logTimer);
-
-            $this->useDatabase($database);
-
-        } catch (ClientException $e) {
-            throw AdaptBuildException::remoteBuildFailed($this->config->database, $e);
-        }
-    }
-
-    /**
-     * Build the url to use when building the database remotely.
-     *
-     * @return string
-     */
-    private function buildRemoteUrl(): string
-    {
-        $remoteUrl = $this->config->remoteBuildUrl;
-        $pos = mb_strpos($remoteUrl, '?');
-        if ($pos !== false) {
-            $remoteUrl = mb_substr($remoteUrl, 0, $pos);
-        }
-
-        $remoteUrl = "$remoteUrl/" . Settings::REMOTE_BUILD_REQUEST_PATH;
-
-        $parts = parse_url($remoteUrl);
-        $path = preg_replace('%//+%', '/', $parts['path']);
-        return str_replace($parts['path'], $path, $remoteUrl);
     }
 
     /**
@@ -687,6 +668,77 @@ class DatabaseBuilder
 
 
     /**
+     * Perform the process of building (or reuse an existing) database - remotely.
+     *
+     * @return void
+     */
+    private function buildDBRemotely(): void
+    {
+        $this->di->log->info("Building a database for connection \"{$this->config->connection}\" remotely…");
+        $logTimer = $this->di->log->newTimer();
+
+        $database = $this->sendBuildRemoteRequest();
+
+        $this->di->log->info("Database \"$database\" was built. Remote build time", $logTimer);
+
+        if (!$this->shouldInitialise()) {
+            $this->config->database($database);
+            $this->di->log->info("Not using connection \"{$this->config->connection}\" locally");
+            return;
+        }
+
+        $this->initialise();
+        $this->useDatabase($database);
+    }
+
+    /**
+     * Send the http request to build the database remotely.
+     *
+     * @return string
+     * @throws AdaptBuildException Thrown when the database couldn't be built.
+     */
+    private function sendBuildRemoteRequest(): string
+    {
+        try {
+
+            $httpClient = new HttpClient(['timeout' => 60 * 10]);
+            $data = ['configDTO' => serialize(get_object_vars($this->config))];
+            $response = $httpClient->post(
+                $this->buildRemoteUrl(),
+                ['form_params' => $data]
+            );
+
+            $database = (string) $response->getBody();
+            return $database;
+
+        } catch (GuzzleException $e) {
+            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $e);
+        }
+    }
+
+    /**
+     * Build the url to use when building the database remotely.
+     *
+     * @return string
+     */
+    private function buildRemoteUrl(): string
+    {
+        $remoteUrl = $this->config->remoteBuildUrl;
+        $pos = mb_strpos($remoteUrl, '?');
+        if ($pos !== false) {
+            $remoteUrl = mb_substr($remoteUrl, 0, $pos);
+        }
+
+        $remoteUrl = "$remoteUrl/" . Settings::REMOTE_BUILD_REQUEST_PATH;
+
+        $parts = parse_url($remoteUrl);
+        $path = preg_replace('%//+%', '/', $parts['path']);
+        return str_replace($parts['path'], $path, $remoteUrl);
+    }
+
+
+
+    /**
      * Build DatabaseMetaInfo objects for the existing databases.
      *
      * @return DatabaseMetaInfo[]
@@ -781,15 +833,12 @@ class DatabaseBuilder
 
 
     /**
-     * Start the datbase transaction.
+     * Start the database transaction.
      *
      * @throws AdaptConfigException
      */
     private function applyTransaction(): void
     {
-        if ($this->config->isRemoteBuild) {
-            return;
-        }
         if (!$this->usingTransactions()) {
             return;
         }
@@ -805,9 +854,6 @@ class DatabaseBuilder
      */
     public function checkForCommittedTransaction(): void
     {
-        if ($this->config->isRemoteBuild) {
-            return;
-        }
         if (!$this->usingTransactions()) {
             return;
         }

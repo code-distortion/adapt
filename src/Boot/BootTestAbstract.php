@@ -189,7 +189,21 @@ abstract class BootTestAbstract implements BootTestInterface
                 $builder->execute();
             }
         }
+
+        $connectionDatabases = [];
+        foreach ($this->builders as $builder) {
+            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
+        }
+        $this->registerConnectionDBsWithFramework($connectionDatabases);
     }
+
+    /**
+     * Record the list of connections and their databases with the framework.
+     *
+     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @return void
+     */
+    abstract protected function registerConnectionDBsWithFramework(array $connectionDatabases): void;
 
     /**
      * Use the existing DIContainer, but build a default one if it hasn't been set.

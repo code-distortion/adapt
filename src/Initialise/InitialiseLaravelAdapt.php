@@ -8,6 +8,7 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
 use PDOException;
@@ -313,6 +314,20 @@ trait InitialiseLaravelAdapt
     }
 
     /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    protected function newBuilder(string $connection): DatabaseBuilder
+    {
+        return $this->adaptBootTestLaravel->newBuilder($connection);
+    }
+
+    /**
      * Have the Browsers pass the current (test) config to the server when they make requests.
      *
      * @deprecated
@@ -345,5 +360,37 @@ trait InitialiseLaravelAdapt
         }
 
         $this->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+    }
+
+
+
+    /**
+     * Get the name of the http-header used to pass connection-database details to a remote installation of Adapt.
+     *
+     * @return string
+     */
+    public static function connectionsHeaderKey(): string
+    {
+        return Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME;
+    }
+
+    /**
+     * Get the http-header value used to pass connection-database details to a remote installation of Adapt.
+     *
+     * @return string
+     */
+    public static function connectionsHeaderValue(): string
+    {
+        return serialize(app('adapt-connection-databases'));
+    }
+
+    /**
+     * Get the http-header used to pass connection-database details to a remote installation of Adapt.
+     *
+     * @return string
+     */
+    public static function connectionsHeader(): string
+    {
+        return static::connectionsHeaderKey() . ': '.  static::connectionsHeaderValue();
     }
 }

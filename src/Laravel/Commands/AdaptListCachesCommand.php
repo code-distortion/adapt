@@ -5,7 +5,7 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -39,7 +39,7 @@ class AdaptListCachesCommand extends Command
     public function handle()
     {
         $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
-        (new ReloadLaravelConfig())->reload(base_path($envFile));
+        LaravelSupport::useTestingConfig($envFile);
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {

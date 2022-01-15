@@ -17,6 +17,9 @@ class ConfigDTO
     /** @var string The database connection to prepare. */
     public string $connection;
 
+    /** @var boolean Whether the connection exists or not (it's ok to not exist locally when the building remotely). */
+    public bool $connectionExists;
+
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public ?string $driver = null;
 
@@ -55,7 +58,7 @@ class ConfigDTO
     /** @var boolean Is a browser test being run?. When true, this will turn off $reuseTestDBs and $scenarioTestDBs. */
     public bool $isBrowserTest;
 
-    /** @var boolean Is this process building a db for another Adapt installation?. */
+    /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
 
@@ -127,6 +130,19 @@ class ConfigDTO
     }
 
     /**
+     * Set the connectionExists value.
+     *
+     * @param boolean $connectionExists Whether the connection exists or not (it's ok to not exist locally when the
+     *                                  building remotely).
+     * @return static
+     */
+    public function connectionExists(bool $connectionExists): self
+    {
+        $this->connectionExists = $connectionExists;
+        return $this;
+    }
+
+    /**
      * Set the database driver to use when building the database ("mysql", "sqlite" etc).
      *
      * @param string $driver The database driver to use.
@@ -141,10 +157,10 @@ class ConfigDTO
     /**
      * Set the database to use.
      *
-     * @param string $database The name of the database to use.
+     * @param string|null $database The name of the database to use.
      * @return static
      */
-    public function database(string $database): self
+    public function database(?string $database): self
     {
         $this->database = $database;
         return $this;
@@ -431,7 +447,7 @@ class ConfigDTO
      * @param mixed[] $data The raw ConfigDTO data from the request.
      * @return static
      */
-    static public function buildFromRemoteBuildRequest(array $data): self
+    public static function buildFromRemoteBuildRequest(array $data): self
     {
         $configDTO = new self();
         foreach ($data as $name => $value) {

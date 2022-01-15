@@ -106,6 +106,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->projectName(config("$c.project_name"))
             ->testName($testName)
             ->connection($connection)
+            ->connectionExists(!is_null(config("database.connections.$connection")))
             ->database(config("database.connections.$connection.database"))
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
@@ -136,7 +137,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.database.pgsql.executables.pg_dump")
             )
             ->invalidationGraceSeconds(
-                config("$c.invalidation_grace_seconds") ?? Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+                config("$c.invalidation_grace_seconds", Settings::DEFAULT_INVALIDATION_GRACE_SECONDS)
             );
     }
 

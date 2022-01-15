@@ -93,6 +93,7 @@ trait DatabaseBuilderTestTrait
             ->projectName('')
             ->testName('A test')
             ->connection($connection)
+            ->connectionExists(true)
 //            ->database('test_db')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')

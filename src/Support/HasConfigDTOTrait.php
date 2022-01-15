@@ -117,6 +117,29 @@ trait HasConfigDTOTrait
     }
 
     /**
+     * Specify the url to send "build" requests to.
+     *
+     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @return static
+     */
+    public function remoteBuildUrl(?string $remoteBuildUrl): self
+    {
+        $this->config->remoteBuildUrl($remoteBuildUrl);
+        return $this;
+    }
+
+    /**
+     * Turn remote building off.
+     *
+     * @return static
+     */
+    public function noRemoteBuildUrl(): self
+    {
+        $this->config->remoteBuildUrl(null);
+        return $this;
+    }
+
+    /**
      * Set the types of cache to use.
      *
      * @param boolean $reuseTestDBs    Reuse databases when possible (instead of rebuilding them)?.

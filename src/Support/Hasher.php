@@ -214,7 +214,8 @@ class Hasher
         $databaseHash = md5(serialize([
             'scenarioHash' => $this->generateScenarioHash($seeders),
             'projectName' => $this->config->projectName,
-            'connection' => $this->config->connection,
+//            'connection' => $this->config->connection,
+            'database' => $this->config->database,
             'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));

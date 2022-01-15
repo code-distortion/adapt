@@ -28,6 +28,10 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'connection',
                 'params' => ['connection' => 'mysql'],
             ],
+            'connectionExists' => [
+                'method' => 'connectionExists',
+                'params' => ['connectionExists' => true],
+            ],
             'driver' => [
                 'method' => 'driver',
                 'params' => ['driver' => 'mysql'],
