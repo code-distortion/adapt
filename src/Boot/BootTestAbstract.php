@@ -32,7 +32,7 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private array $builders = [];
 
-    /** @var DIContainer|null The DIContainer to be used. */
+//    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
 
@@ -135,6 +135,8 @@ abstract class BootTestAbstract implements BootTestInterface
 //        $this->resolveDI();
         $this->initBuilders();
         $this->executeBuilders();
+
+        $this->registerConnectionDBs();
     }
 
     /**
@@ -176,7 +178,7 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function newBuilder(string $connection): DatabaseBuilder;
 
     /**
-     * Execute the builders that this object created (ie. build their databases).
+     * Execute the builders that this object created (i.e. build their databases).
      *
      * Any that have already been executed will be skipped.
      *
@@ -184,12 +186,41 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function executeBuilders(): void
     {
-        foreach ($this->builders as $builder) {
-            if (!$builder->hasExecuted()) {
-                $builder->execute();
-            }
+        $builders = $this->pickBuildersToExecute();
+
+        foreach ($builders as $builder) {
+            $builder->execute();
         }
 
+        // apply the transactions, AFTER all the databases have been built
+        foreach ($builders as $builder) {
+            $builder->applyTransaction();
+        }
+    }
+
+    /**
+     * Pick the list of Builders that haven't been executed yet.
+     *
+     * @return DatabaseBuilder[]
+     */
+    private function pickBuildersToExecute(): array
+    {
+        $builders = [];
+        foreach ($this->builders as $builder) {
+            if (!$builder->hasExecuted()) {
+                $builders[] = $builder;
+            }
+        }
+        return $builders;
+    }
+
+    /**
+     * Pick the connections' databases, and register them with the framework.
+     *
+     * @return void
+     */
+    private function registerConnectionDBs(): void
+    {
         $connectionDatabases = [];
         foreach ($this->builders as $builder) {
             $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();

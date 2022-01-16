@@ -497,7 +497,7 @@ class MyFeatureTest extends TestCase
      *
      * The other installation must be web-accessible to the first.
      *
-     * eg. 'https://other-site.local/'
+     * e.g. 'https://other-site.local/'
      *
      * @var ?string
      */

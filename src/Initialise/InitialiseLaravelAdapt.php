@@ -9,6 +9,7 @@ use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
 use PDOException;
@@ -365,32 +366,52 @@ trait InitialiseLaravelAdapt
 
 
     /**
-     * Get the name of the http-header used to pass connection-database details to a remote installation of Adapt.
+     * Fetch the http headers that lets Adapt share the connections it's built.
      *
-     * @return string
+     * @param boolean $includeKey Include the key in the value.
+     * @return array<string, string>
      */
-    public static function connectionsHeaderKey(): string
+    public static function getShareConnectionsHeaders(bool $includeKey = false): array
     {
-        return Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME;
+        $value = static::connectionsHeaderValue($includeKey);
+
+        return $value
+            ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]
+            : [];
     }
 
     /**
      * Get the http-header value used to pass connection-database details to a remote installation of Adapt.
      *
-     * @return string
+     * @param boolean $includeKey Include the key in the value.
+     * @return string|null
      */
-    public static function connectionsHeaderValue(): string
+    private static function connectionsHeaderValue(bool $includeKey = false): ?string
     {
-        return serialize(app('adapt-connection-databases'));
+        $connectionDatabases = static::getFrameworkConnectionDatabases();
+
+        if (is_null($connectionDatabases)) {
+            return null;
+        }
+
+        $value = serialize($connectionDatabases);
+
+        return $includeKey
+            ? Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME . ": $value"
+            : $value;
     }
 
     /**
-     * Get the http-header used to pass connection-database details to a remote installation of Adapt.
+     * Fetch the connection-databases list from Laravel.
      *
-     * @return string
+     * @return array|null
      */
-    public static function connectionsHeader(): string
+    private static function getFrameworkConnectionDatabases(): ?array
     {
-        return static::connectionsHeaderKey() . ': '.  static::connectionsHeaderValue();
+        try {
+            return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+        } catch (BindingResolutionException $e) {
+            return null;
+        }
     }
 }

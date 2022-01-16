@@ -100,7 +100,7 @@ trait LaravelAdapt
      * Overwrite the details of certain database connections with values from
      * others.
      *
-     * eg. overwrite the "mysql" connection with the "sqlite" connection's
+     * e.g. overwrite the "mysql" connection with the "sqlite" connection's
      * details so sqlite is used instead.
      *
      * @var string
@@ -135,7 +135,7 @@ trait LaravelAdapt
      *
      * The other installation must be web-accessible to the first.
      *
-     * eg. 'https://other-site.local/'
+     * e.g. 'https://other-site.local/'
      *
      * @var ?string
      */

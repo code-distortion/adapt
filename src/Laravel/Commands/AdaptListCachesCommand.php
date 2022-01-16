@@ -34,11 +34,14 @@ class AdaptListCachesCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
-        $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
+        $envFile = !is_array($this->option('env-file'))
+            ? (string) $this->option('env-file')
+            : '';
+
         LaravelSupport::useTestingConfig($envFile);
 
         $cacheListDTO = $this->getCacheList();
@@ -89,11 +92,9 @@ class AdaptListCachesCommand extends Command
             return;
         }
 
-        $canPurge = (new BootCommandLaravel())->canPurgeInvalidThings();
-
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
-            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo($canPurge));
+            $this->info('- ' . $snapshotMetaInfo->readableWithPurgeInfo());
         }
     }
 }

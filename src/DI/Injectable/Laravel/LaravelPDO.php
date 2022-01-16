@@ -121,10 +121,17 @@ class LaravelPDO
     {
         try {
             $pdoStatement = $this->pdo->query($getSizeQuery);
-            if ($pdoStatement) {
-                $row = $pdoStatement->fetch(PDO::FETCH_ASSOC);
-                return (int) array_shift($row);
+            if (!$pdoStatement) {
+                return false;
             }
+
+            $row = $pdoStatement->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($row)) {
+                return false;
+            }
+
+            return (int) array_shift($row);
+
         } catch (Throwable $e) {
         }
         return false;

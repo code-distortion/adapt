@@ -58,7 +58,7 @@ return [
     | This config setting can be overridden by adding the $scenarioTestDBs
     | property to your test-class.
     |
-    | This is turned off automatically when browser testing (eg. Dusk).
+    | This is turned off automatically when browser testing (e.g. Dusk).
     |
     */
 
@@ -91,7 +91,7 @@ return [
     | migrations run, list them here. This config setting can be overridden
     | by adding the $preMigrationImports property to your test-class.
     |
-    | eg.
+    | e.g.
     | protected array $preMigrationImports = [
     |   'mysql' => [database_path('dumps/mysql/my-database.sql')],
     |   'sqlite' => [database_path('dumps/sqlite/my-database.sqlite')], // SQLite files are simply copied
@@ -120,7 +120,7 @@ return [
     |
     */
 
-    'migrations' => true, // eg. true, false, 'database/migrations',
+    'migrations' => true, // e.g. true, false, 'database/migrations',
 
     /*
     |--------------------------------------------------------------------------
@@ -135,7 +135,7 @@ return [
     |
     */
 
-    'seeders' => [], // eg. ['DatabaseSeeder'],
+    'seeders' => [], // e.g. ['DatabaseSeeder'],
 
     /*
     |--------------------------------------------------------------------------
@@ -192,7 +192,7 @@ return [
     | others. This config setting can be overridden by adding the
     | $remapConnections property to your test-class.
     |
-    | eg.
+    | e.g.
     | // reassign the "mysql" and "mysql2" connections to use the "sqlite"
     | // and "sqlite2" details respectively.
     |
@@ -201,8 +201,7 @@ return [
     | You can make the settings here more important than your test-class
     | settings by adding "!".
     |
-    | eg.
-    | '!mysql < sqlite'
+    | e.g. '!mysql < sqlite'
     |
     */
 
@@ -222,7 +221,7 @@ return [
     | This config setting can be overridden by adding the
     | $remoteBuildUrl property to your test-class.
     |
-    | eg. 'https://other-site.local/'
+    | e.g. 'https://other-site.local/'
     |
     */
 

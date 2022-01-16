@@ -19,8 +19,8 @@ class AdaptBuildException extends AdaptException
     {
         return new self(
             'Database access denied. TRY CONNECTING AS THE ROOT USER while testing. '
-            .'The user you connect with needs to have read + write access, '
-            .'as well as permission to create new databases',
+            . 'The user you connect with needs to have read + write access, '
+            . 'as well as permission to create new databases',
             0,
             $originalException
         );
@@ -35,9 +35,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function databaseOwnedByAnotherProject(string $databaseName, string $projectName): self
     {
-        return new self(
-            'Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"'
-        );
+        return new self("Could not re-use database \"$databaseName\" as it is owned by project \"$projectName\"");
     }
 
     /**
@@ -49,7 +47,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function seederFailed(string $seeder, Throwable $originalException): self
     {
-        return new self('Could not run seeder "' . $seeder . '"', 0, $originalException);
+        return new self("Could not run seeder \"$seeder\"", 0, $originalException);
     }
 
     /**
@@ -65,12 +63,14 @@ class AdaptBuildException extends AdaptException
     /**
      * The request to build a database remotely failed.
      *
-     * @param string|null $connection        The connection the database was being built for.
-     * @param Throwable   $originalException The originally thrown exception.
+     * @param string|null    $connection        The connection the database was being built for.
+     * @param Throwable|null $originalException The originally thrown exception.
      * @return self
      */
-    public static function remoteBuildFailed(?string $connection, Throwable $originalException): self
+    public static function remoteBuildFailed(?string $connection, ?Throwable $originalException = null): self
     {
-        return new self("The remote database for connection \"$connection\" could not be built", 0, $originalException);
+        return $originalException
+            ? new self("The remote database for connection \"$connection\" could not be built", 0, $originalException)
+            : new self("The remote database for connection \"$connection\" could not be built");
     }
 }

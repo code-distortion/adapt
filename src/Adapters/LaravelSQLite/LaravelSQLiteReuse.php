@@ -110,7 +110,8 @@ class LaravelSQLiteReuse implements ReuseInterface
     {
         try {
             $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
-            $reuseInfo = reset($rows);
+            /** @var stdClass|null $reuseInfo */
+            $reuseInfo = $rows[0] ?? null;
         } catch (Throwable $e) {
             return false;
         }
@@ -164,8 +165,9 @@ class LaravelSQLiteReuse implements ReuseInterface
             $rows = $this->di->db->select(
                 "SELECT `inside_transaction` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
             );
-            $reuseInfo = reset($rows);
-            return (bool) $reuseInfo->inside_transaction;
+            /** @var stdClass|null $reuseInfo */
+            $reuseInfo = $rows[0] ?? null;
+            return (bool) ($reuseInfo->inside_transaction ?? false);
         } catch (Throwable $e) {
             return false;
         }

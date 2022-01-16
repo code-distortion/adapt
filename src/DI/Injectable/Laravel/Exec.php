@@ -13,9 +13,9 @@ class Exec
      * @param string $command   The command to run.
      * @param mixed  $output    Will be populated with the script's output.
      * @param mixed  $returnVal Will contain the script's exit-code.
-     * @return string
+     * @return string|boolean
      */
-    public function run(string $command, &$output, &$returnVal): string
+    public function run(string $command, &$output, &$returnVal)
     {
         return exec($command, $output, $returnVal);
     }

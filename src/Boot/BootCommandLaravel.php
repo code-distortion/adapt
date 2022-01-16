@@ -15,6 +15,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Hasher;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Support\StorageDir;
 
@@ -49,8 +50,8 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         $config = $this->newConfigDTO($connection, '');
         $di = $this->defaultDI($connection);
-        $pickDriverClosure = function (string $connection) {
-            return config("database.connections.$connection.driver", 'unknown');
+        $pickDriverClosure = function (string $connection): string {
+            return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
         StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
 

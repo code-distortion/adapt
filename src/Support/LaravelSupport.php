@@ -2,6 +2,8 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use Illuminate\Foundation\Application;
+
 /**
  * Provides extra miscellaneous Laravel related support functionality.
  */
@@ -14,7 +16,7 @@ class LaravelSupport
      */
     public static function isRunningInOrchestra(): bool
     {
-        $basePath = (string) base_path();
+        $basePath = base_path();
         $realpath = (string) realpath('.');
         if (mb_strpos($basePath, $realpath) === 0) {
             $rest = mb_substr($basePath, mb_strlen($realpath));
@@ -32,7 +34,9 @@ class LaravelSupport
     public static function useTestingConfig(string $envFile = '.env.testing'): void
     {
         (new ReloadLaravelConfig())->reload(base_path($envFile));
-        app()->detectEnvironment(fn() => 'testing');
+        /** @var Application $app */
+        $app = app();
+        $app->detectEnvironment(fn() => 'testing');
     }
 
     /**
@@ -48,5 +52,43 @@ class LaravelSupport
     public static function runFromBasePathDir(): void
     {
         chdir(base_path());
+    }
+
+    /**
+     * Get a value from Laravel's config, and make sure it's a string.
+     *
+     * @param string $key     The config key to get.
+     * @param string $default The default value.
+     * @return string
+     */
+    public static function configString(string $key, string $default = ''): string
+    {
+        $value = config($key, $default);
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value)) {
+            return (string) $value;
+        }
+        if (is_bool($value)) {
+            return (string) $value;
+        }
+        return '';
+    }
+
+    /**
+     * Get a value from Laravel's config, and make sure it's an array.
+     *
+     * @param string $key     The config key to get.
+     * @param array  $default The default value.
+     * @return mixed[]
+     */
+    public static function configArray(string $key, array $default = []): array
+    {
+        $value = config($key, $default);
+        if (is_array($value)) {
+            return $value;
+        }
+        return [];
     }
 }

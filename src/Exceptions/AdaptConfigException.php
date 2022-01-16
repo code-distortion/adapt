@@ -18,8 +18,7 @@ class AdaptConfigException extends AdaptException
     public static function storageDirIsAFile(string $storageDir): self
     {
         return new self(
-            'The storage directory "' . $storageDir . '" exists and is a file. '
-            . 'Please review the "storage_dir" setting'
+            "The storage directory \"$storageDir\" exists and is a file. Please review the \"storage_dir\" setting"
         );
     }
 
@@ -47,8 +46,8 @@ class AdaptConfigException extends AdaptException
     public static function preMigrationImportPathInvalid(string $path): self
     {
         return new self(
-            'Couldn\'t open pre-migration-dump file "' . $path . '". '
-            . 'Please review the "pre_migration_imports" config setting'
+            "Couldn't open pre-migration-dump file \"$path\". "
+            . "Please review the \"pre_migration_imports\" config setting"
         );
     }
 
@@ -61,8 +60,7 @@ class AdaptConfigException extends AdaptException
     public static function migrationsPathInvalid(string $path): self
     {
         return new self(
-            'The migrations directory "' . $path . '" does not exist. '
-            . 'Please review the "migrations" config setting'
+            "The migrations directory \"$path\" does not exist. Please review the \"migrations\" config setting"
         );
     }
 
@@ -75,8 +73,7 @@ class AdaptConfigException extends AdaptException
     public static function databaseRelatedFilesPathInvalid(string $path): self
     {
         return new self(
-            'Couldn\'t open file or directory "' . $path . '". '
-            . 'Please review the "look_for_changes_in" config setting'
+            "Couldn't open file or directory \"$path\". Please review the \"look_for_changes_in\" config setting"
         );
     }
 
@@ -89,12 +86,23 @@ class AdaptConfigException extends AdaptException
     public static function seedersDirInvalid(string $path): self
     {
         return new self(
-            'Couldn\'t open file or directory "' . $path . '". '
-            . 'Please review the "look_for_changes_in" config setting. '
-            . 'Note: Laravel renamed the seeders directory from "database/seeds" to "database/seeders" in Laravel 8'
+            "Couldn't open file or directory \"$path\". "
+            . "Please review the \"look_for_changes_in\" config setting. "
+            . "Note: Laravel renamed the seeders directory from \"database/seeds\" to \"database/seeders\" in Laravel 8"
         );
     }
 
+
+    /**
+     * The connection details couldn't be read.
+     *
+     * @param string $connection The connection used.
+     * @return self
+     */
+    public static function couldNotReadConnectionDetails(string $connection): self
+    {
+        return new self("Could not read connection details for connection \"$connection\"");
+    }
 
     /**
      * The driver isn't currently supported.
@@ -106,8 +114,7 @@ class AdaptConfigException extends AdaptException
     public static function unsupportedDriver(string $connection, string $driver): self
     {
         return new self(
-            'Connection "' . $connection . '" uses driver "' . $driver . '" '
-            . 'which unfortunately isn\'t supported (yet!)'
+            "Connection \"$connection\" uses driver \"$driver\" which unfortunately isn\'t supported (yet!)"
         );
     }
 
@@ -120,8 +127,8 @@ class AdaptConfigException extends AdaptException
     public static function invalidDefaultConnection(string $connection): self
     {
         return new self(
-            'The default connection "' . $connection . '" does not exist. '
-            . 'Please check the $defaultConnection test-class property'
+            "The default connection \"$connection\" does not exist. "
+            . "Please check the \$defaultConnection test-class property"
         );
     }
 
@@ -133,7 +140,7 @@ class AdaptConfigException extends AdaptException
      */
     public static function invalidConnection(string $connection): self
     {
-        return new self('The connection "' . $connection . '" does not exist.');
+        return new self("The connection \"$connection\" does not exist.");
     }
 
     /**
@@ -146,10 +153,10 @@ class AdaptConfigException extends AdaptException
      */
     public static function missingDestRemapConnection(string $connection, bool $isConfig): self
     {
-        $errorPart = ($isConfig
+        $errorPart = $isConfig
             ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property');
-        return new self('Cannot remap the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
+            : 'Please review the $remapConnections test-class property';
+        return new self("Cannot remap the connection \"$connection\" as it doesn't exist. $errorPart");
     }
 
     /**
@@ -162,10 +169,10 @@ class AdaptConfigException extends AdaptException
      */
     public static function missingSrcRemapConnection(string $connection, bool $isConfig): self
     {
-        $errorPart = ($isConfig
+        $errorPart = $isConfig
             ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property');
-        return new self('Cannot remap using the connection "' . $connection . '" as it doesn\'t exist. ' . $errorPart);
+            : 'Please review the $remapConnections test-class property';
+        return new self("Cannot remap using the connection \"$connection\" as it doesn't exist. $errorPart");
     }
 
     /**
@@ -178,9 +185,9 @@ class AdaptConfigException extends AdaptException
      */
     public static function invalidConnectionRemapString(string $orig, bool $isConfig): self
     {
-        $errorPart = ($isConfig
+        $errorPart = $isConfig
             ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property');
-        return new self('Cannot interpret remap-database string "' . $orig . '". ' . $errorPart);
+            : 'Please review the $remapConnections test-class property';
+        return new self("Cannot interpret remap-database string \"$orig\". $errorPart");
     }
 }

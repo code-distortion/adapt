@@ -77,10 +77,10 @@ interface FilesystemInterface
      *
      * @param string $path    The path of the file to write to.
      * @param string $mode    The write-mode.
-     * @param mixed  $content The content to write.
+     * @param string $content The content to write.
      * @return boolean
      */
-    public function writeFile(string $path, string $mode, $content): bool;
+    public function writeFile(string $path, string $mode, string $content): bool;
 
     /**
      * Copy the given file to another location.

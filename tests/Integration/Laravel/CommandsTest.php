@@ -2,13 +2,13 @@
 
 namespace CodeDistortion\Adapt\Tests\Integration\Laravel;
 
-use Artisan;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Support\StringSupport;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
+use Illuminate\Support\Facades\Artisan;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -24,8 +24,7 @@ class CommandsTest extends LaravelTestCase
 
 
     /**
-     * Provide data for the
-     * test_list_db_caches_command test.
+     * Provide data for the test_list_db_caches_command test.
      *
      * @return mixed[][]
      */
@@ -347,9 +346,9 @@ class CommandsTest extends LaravelTestCase
 
         foreach ($substitutions as $key => $file) {
             $file = str_replace(array_keys($replacements), $replacements, $file);
-            $size = (file_exists($file)
+            $size = file_exists($file)
                 ? StringSupport::readableSize((int) filesize($file))
-                : 0);
+                : 0;
             $substitutions[$key] = "$file $size";
         }
 

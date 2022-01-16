@@ -26,7 +26,7 @@ class ConfigDTO
     /** @var string|null The name of the database to use. */
     public ?string $database = null;
 
-    /** @var string A database name modifier (eg. Paratest adds a TEST_TOKEN env value to make the db unique). */
+    /** @var string A database name modifier (e.g. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public string $databaseModifier = '';
 
 
@@ -167,7 +167,7 @@ class ConfigDTO
     }
 
     /**
-     * Set the database-modifier to use (eg. Paratest adds a TEST_TOKEN env value to make the db unique).
+     * Set the database-modifier to use (e.g. Paratest adds a TEST_TOKEN env value to make the db unique).
      *
      * @param string $databaseModifier The modifier to use.
      * @return static
@@ -227,7 +227,7 @@ class ConfigDTO
     }
 
     /**
-     * Set the details that affect what is being built (ie. the database-scenario).
+     * Set the details that affect what is being built (i.e. the database-scenario).
      *
      * @param string[]|string[][] $preMigrationImports The files to import before the migrations are run.
      * @param boolean|string      $migrations          Should the migrations be run? / the path of the migrations to
@@ -445,7 +445,7 @@ class ConfigDTO
      * Build a new ConfigDTO from the data given in a request to build the database remotely.
      *
      * @param mixed[] $data The raw ConfigDTO data from the request.
-     * @return static
+     * @return self
      */
     public static function buildFromRemoteBuildRequest(array $data): self
     {
@@ -482,7 +482,7 @@ class ConfigDTO
         if (isset($preMigrationImports[$driver])) {
 
             $paths = $preMigrationImports[$driver];
-            $paths = (is_string($paths) ? [$paths] : $paths);
+            $paths = is_string($paths) ? [$paths] : $paths;
 
             if (is_array($paths)) {
                 foreach ($paths as $path) {

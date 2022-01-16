@@ -17,13 +17,15 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
-use Config;
+use Illuminate\Support\Facades\Config;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Foundation\Application;
 use Laravel\Dusk\Browser;
 use PDOException;
 
@@ -57,7 +59,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @param string $connection The connection to start using.
      * @return DIContainer
-     * @throws AdaptBootException Thrown when a PropBag hasn't been set yet.
+     * @throws AdaptBootException Thrown when a PropBagDTO hasn't been set yet.
      */
     protected function defaultDI(string $connection): DIContainer
     {
@@ -79,6 +81,7 @@ class BootTestLaravel extends BootTestAbstract
      * Build a new Log instance.
      *
      * @return LogInterface
+     * @throws AdaptBootException Thrown when the propBag hasn't been set.
      */
     protected function newLog(): LogInterface
     {
@@ -99,7 +102,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function newDefaultBuilder(): DatabaseBuilder
     {
-        return $this->newBuilder(config('database.default'));
+        return $this->newBuilder(LaravelSupport::configString('database.default'));
     }
 
     /**
@@ -133,8 +136,8 @@ class BootTestLaravel extends BootTestAbstract
         // - clone the one that was passed in? pass in a closure to create one?
         $di = $this->defaultDI($connection);
 
-        $pickDriverClosure = function (string $connection) {
-            return config("database.connections.$connection.driver", 'unknown');
+        $pickDriverClosure = function (string $connection): string {
+            return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
 
         return new DatabaseBuilder(
@@ -226,7 +229,9 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function registerConnectionDBsWithFramework(array $connectionDatabases): void
     {
-        app()->singleton('adapt-connection-databases', fn() => $connectionDatabases);
+        /** @var Application $app */
+        $app = app();
+        $app->singleton(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
     }
 
 
@@ -250,7 +255,9 @@ class BootTestLaravel extends BootTestAbstract
             // make a small request first, so that cookies can then be set
             // (the browser will reject new cookies before it's loaded a webpage).
             if (!$this->hasTestSitePageLoaded($browser)) {
-                $browser->visit(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
+                $browser->visit(
+                    LaravelSupport::configString('app.url') . Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH
+                );
             }
 
             $browser->addCookie(
@@ -272,7 +279,7 @@ class BootTestLaravel extends BootTestAbstract
     private function hasTestSitePageLoaded(Browser $browser)
     {
         $currentURL = $browser->driver->getCurrentURL();
-        $siteHost = config('app.url');
+        $siteHost = LaravelSupport::configString('app.url');
         return mb_substr($currentURL, 0, mb_strlen($siteHost)) === $siteHost;
     }
 
@@ -355,7 +362,8 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeInvalidDatabases(): void
     {
-        foreach (array_keys(config('database.connections')) as $connection) {
+        $connections = LaravelSupport::configArray('database.connections');
+        foreach (array_keys($connections) as $connection) {
             try {
                 $builder = $this->createBuilder((string) $connection);
                 foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
@@ -363,7 +371,7 @@ class BootTestLaravel extends BootTestAbstract
                 }
             } catch (AdaptConfigException $e) {
                 // ignore exceptions caused because the database can't be connected to
-                // eg. other connections that aren't intended to be used. eg. 'pgsql', 'sqlsrv'
+                // e.g. other connections that aren't intended to be used. e.g. 'pgsql', 'sqlsrv'
             } catch (PDOException $e) {
                 // same as above
             }
@@ -377,20 +385,20 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeInvalidSnapshots(): void
     {
-        $builder = $this->createBuilder(config('database.default'));
+        $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
             $snapshotMetaInfo->purgeIfNeeded();
         }
     }
 
     /**
-     * Remove old (ie. orphaned) temporary config files.
+     * Remove old (i.e. orphaned) temporary config files.
      *
      * @return void
      */
     private function removeOrphanedTempConfigFiles(): void
     {
-        $nowUTC = (new DateTime('now', new DateTimeZone('UTC')));
+        $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
         $paths = (new Filesystem())->filesInDir($this->storageDir());
         foreach ($paths as $path) {
 

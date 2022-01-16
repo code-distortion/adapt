@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 
 /**
  * Injectable class to abstract some interaction with Laravel's config.
@@ -27,7 +28,8 @@ class LaravelConfig
      */
     public function recordOrigDBNames(): void
     {
-        foreach (config('database.connections') as $conName => $connection) {
+        $connections = LaravelSupport::configArray('database.connections');
+        foreach ($connections as $conName => $connection) {
             $this->origDBNames[$conName] = $connection['database'];
         }
     }

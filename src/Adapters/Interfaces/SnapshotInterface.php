@@ -28,7 +28,7 @@ interface SnapshotInterface
     public function isSnapshottable(): bool;
 
     /**
-     * Determine if snapshot files are simply copied when importing (eg. for sqlite).
+     * Determine if snapshot files are simply copied when importing (e.g. for sqlite).
      *
      * @return boolean
      */

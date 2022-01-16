@@ -30,7 +30,7 @@ class DatabaseMetaInfo
     /** @var integer|null The size of the database in bytes. */
     public ?int $size = null;
 
-    /** @var callable The callback used to delete the database file. */
+    /** @var callable|null The callback used to delete the database file. */
     public $deleteCallback = null;
 
     /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */

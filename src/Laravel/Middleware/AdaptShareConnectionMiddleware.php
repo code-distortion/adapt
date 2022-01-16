@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Laravel\Middleware;
 use Closure;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
 /**
@@ -38,7 +39,9 @@ class AdaptShareConnectionMiddleware
     {
         // the service-provider won't register this middleware when in production
         // this is an extra safety check - we definitely don't want this to run in production
-        if (!app()->environment('local', 'testing')) {
+        /** @var Application $app */
+        $app = app();
+        if (!$app->environment('local', 'testing')) {
             return;
         }
 
@@ -54,12 +57,12 @@ class AdaptShareConnectionMiddleware
      * Look for the http header in the request.
      *
      * @param Request $request The request object.
-     * @return array|null
+     * @return array<string,string>|null
      */
     private function pickConnectionDBsFromRequest(Request $request): ?array
     {
         $connectionDatabases = $request->headers->get(Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME);
-        if (!mb_strlen($connectionDatabases)) {
+        if ((!is_string($connectionDatabases)) || (!mb_strlen($connectionDatabases))) {
             return null;
         }
 
@@ -74,7 +77,7 @@ class AdaptShareConnectionMiddleware
     /**
      * Build Laravel's config.
      *
-     * @param array $connectionDatabases The connections' databases.
+     * @param array<string,string> $connectionDatabases The connections' databases.
      * @return void
      */
     private function prepareConfig(array $connectionDatabases): void

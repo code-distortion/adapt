@@ -22,23 +22,46 @@ trait CommandFunctionalityTrait
         $bootCommandLaravel = (new BootCommandLaravel())->ensureStorageDirExists();
         $cacheListDTO = new CacheListDTO();
 
-        // find databases
-        foreach (array_keys(config('database.connections')) as $connection) {
+        $this->findDatabases($bootCommandLaravel, $cacheListDTO);
+        $this->findSnapshots($bootCommandLaravel, $cacheListDTO);
+
+        return $cacheListDTO;
+    }
+
+    /**
+     * Find databases using the connections available.
+     *
+     * @param BootCommandLaravel $bootCommandLaravel The BootCommand object.
+     * @param CacheListDTO       $cacheListDTO       The cache list that's being updated.
+     * @return void
+     */
+    private function findDatabases(BootCommandLaravel $bootCommandLaravel, CacheListDTO $cacheListDTO): void
+    {
+        $connections = LaravelSupport::configArray('database.connections');
+        foreach (array_keys($connections) as $connection) {
             try {
                 $builder = $bootCommandLaravel->makeNewBuilder((string) $connection);
                 $cacheListDTO->databases((string) $connection, $builder->buildDatabaseMetaInfos());
             } catch (AdaptConfigException $e) {
                 // ignore exceptions caused because the database can't be connected to
-                // eg. other connections that aren't intended to be used. eg. 'pgsql', 'sqlsrv'
+                // e.g. other connections that aren't intended to be used. e.g. 'pgsql', 'sqlsrv'
             } catch (PDOException $e) {
                 // same as above
             }
         }
+    }
 
-        // find snapshots
-        $builder = $bootCommandLaravel->makeNewBuilder(config('database.default'));
+    /**
+     * Find snapshot files.
+     *
+     * @param BootCommandLaravel $bootCommandLaravel The BootCommand object.
+     * @param CacheListDTO       $cacheListDTO       The cache list that's being updated.
+     * @return void
+     */
+    private function findSnapshots(BootCommandLaravel $bootCommandLaravel, CacheListDTO $cacheListDTO): void
+    {
+        $connection = LaravelSupport::configString('database.default');
+        $builder = $bootCommandLaravel->makeNewBuilder($connection);
         $cacheListDTO->snapshots($builder->buildSnapshotMetaInfos());
-
-        return $cacheListDTO;
     }
 }

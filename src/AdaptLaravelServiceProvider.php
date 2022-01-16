@@ -118,18 +118,14 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        $httpKernel = $this->app->make(HttpKernel::class);
-        $middlewareGroups = method_exists($httpKernel, 'getMiddlewareGroups')
-            ? array_keys($httpKernel->getMiddlewareGroups())
-            : ['web', 'api'];
-        foreach ($middlewareGroups as $middlewareGroup) {
+        foreach ($this->getMiddlewareGroups() as $middlewareGroup) {
 
             // look for the cookie that conveys the recorded config to use
-            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptShareConfigMiddleware::class);
+            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConfigMiddleware::class);
 
             // look for the header that remote installations of Adapt can add to indicate that database connections use
             // particular databases.
-            $router->prependMiddlewareToGroup((string) $middlewareGroup, AdaptShareConnectionMiddleware::class);
+            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConnectionMiddleware::class);
         }
     }
 
@@ -155,13 +151,13 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // this route bypasses all middleware
         $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
 
-        $router->group(['middleware' => ['web']], function (Router $router) {
+//        $router->group(['middleware' => $this->getMiddlewareGroups()], function (Router $router) {
 
             // Adapt sends "remote build" requests to this url
             $callback = fn(Request $request) => $this->handleBuildRequest($request);
             $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
 
-        });
+//        });
     }
 
 
@@ -169,7 +165,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
     /**
      * Build a test-database for a remote installation of Adapt.
      *
-     * @param Request $request
+     * @param Request $request The request object.
      * @return void
      */
     private function handleBuildRequest(Request $request): void
@@ -203,5 +199,18 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $builder->execute();
 
         return $builder->getDatabase();
+    }
+
+    /**
+     * Generate the list of Laravel's middleware groups.
+     *
+     * @return string[]
+     */
+    private function getMiddlewareGroups(): array
+    {
+        $httpKernel = $this->app->make(HttpKernel::class);
+        return method_exists($httpKernel, 'getMiddlewareGroups')
+            ? array_keys($httpKernel->getMiddlewareGroups())
+            : ['web', 'api'];
     }
 }

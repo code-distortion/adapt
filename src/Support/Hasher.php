@@ -26,7 +26,7 @@ class Hasher
      */
     public static function resetStaticProps(): void
     {
-        static::$sourceFilesHash = null;
+        self::$sourceFilesHash = null;
     }
 
 
@@ -38,7 +38,7 @@ class Hasher
      */
     public function currentSourceFilesHash(): string
     {
-        return static::$sourceFilesHash ??= $this->generateSourceFilesHash();
+        return self::$sourceFilesHash ??= $this->generateSourceFilesHash();
     }
 
     /**
@@ -206,7 +206,7 @@ class Hasher
      * seeder-settings, connection, transactions and isBrowserTest.
      *
      * @param string[] $seeders          The seeders that will be run.
-     * @param string   $databaseModifier The modifier to use (eg. ParaTest suffix).
+     * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
      * @return string
      */
     public function generateDBNameHash(array $seeders, string $databaseModifier): string

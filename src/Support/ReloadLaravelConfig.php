@@ -26,7 +26,7 @@ class ReloadLaravelConfig
     /**
      * Apply the given values to the env() helper function.
      *
-     * @param string[] $values The values to add.
+     * @param mixed[] $values The values to add.
      * @return void
      */
     private function addValuesToEnvHelper(array $values): void

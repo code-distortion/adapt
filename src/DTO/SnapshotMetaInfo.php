@@ -30,7 +30,7 @@ class SnapshotMetaInfo
     /** @var integer|null The size of the snapshot file in bytes. */
     public ?int $size = null;
 
-    /** @var callable The callback used to delete the snapshot file. */
+    /** @var callable|null The callback used to delete the snapshot file. */
     public $deleteCallback = null;
 
     /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */

@@ -202,13 +202,13 @@ class DatabaseBuilder
     }
 
     /**
-     * Check if the database should be built remotely.
+     * Check if the database should be built remotely (instead of locally).
      *
      * @return boolean
      */
     private function shouldBuildRemotely(): bool
     {
-        return mb_strlen($this->config->remoteBuildUrl) > 0;
+        return mb_strlen((string) $this->config->remoteBuildUrl) > 0;
     }
 
     /**
@@ -287,13 +287,12 @@ class DatabaseBuilder
         $this->shouldBuildRemotely()
             ? $this->buildDBRemotely()
             : $this->buildDBLocally();
-
-        $this->applyTransaction();
     }
 
     /**
      * Perform the process of building (or reuse an existing) database - locally.
      *
+     * @return void
      * @throws AdaptConfigException Thrown when building failed.
      */
     private function buildDBLocally(): void
@@ -317,6 +316,7 @@ class DatabaseBuilder
      * Initialise this object ready for running.
      *
      * @return void
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
      */
     private function initialise(): void
     {
@@ -365,6 +365,7 @@ class DatabaseBuilder
     /**
      * Use the desired database.
      *
+     * @param string $name The database to use.
      * @return void
      */
     private function useDatabase(string $name): void
@@ -376,6 +377,7 @@ class DatabaseBuilder
      * Build or reuse an existing database - locally.
      *
      * @return void
+     * @throws Throwable Thrown when the database couldn't be used.
      */
     private function buildOrReuseDBLocally(): void
     {
@@ -502,7 +504,7 @@ class DatabaseBuilder
             ? $this->config->migrations
             : (bool) $this->config->migrations;
 
-        if (!mb_strlen($migrationsPath)) {
+        if (!mb_strlen((string) $migrationsPath)) {
             return;
         }
 
@@ -517,7 +519,7 @@ class DatabaseBuilder
         $this->dbAdapter()->build->migrate($migrationsPath);
 
         if ($this->shouldTakeSnapshotAfterMigrations()) {
-            $seedersRun = []; // ie. no seeders
+            $seedersRun = []; // i.e. no seeders
             $this->takeDBSnapshot($seedersRun);
         }
     }
@@ -544,7 +546,7 @@ class DatabaseBuilder
         $this->dbAdapter()->build->seed($seeders);
 
         if ($this->shouldTakeSnapshotAfterSeeders()) {
-            $seedersRun = $this->config->pickSeedersToInclude(); // ie. all seeders
+            $seedersRun = $this->config->pickSeedersToInclude(); // i.e. all seeders
             $this->takeDBSnapshot($seedersRun);
         }
     }
@@ -599,7 +601,7 @@ class DatabaseBuilder
         foreach ($preMigrationDumps as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->info('Import of pre-migration dump SUCCESSFUL: "' . $path . '"', $logTimer);
+            $this->di->log->info('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -650,18 +652,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->info('Snapshot NOT FOUND: "' . $snapshotPath . '"', $logTimer);
+            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->info('Import of snapshot FAILED: "' . $snapshotPath . '"', $logTimer);
+            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // invalidation grace-period will start "now"
 
-        $this->di->log->info('Import of snapshot SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
+        $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
@@ -720,10 +722,11 @@ class DatabaseBuilder
      * Build the url to use when building the database remotely.
      *
      * @return string
+     * @throws AdaptBuildException Thrown when the url is invalid.
      */
     private function buildRemoteUrl(): string
     {
-        $remoteUrl = $this->config->remoteBuildUrl;
+        $remoteUrl = (string) $this->config->remoteBuildUrl;
         $pos = mb_strpos($remoteUrl, '?');
         if ($pos !== false) {
             $remoteUrl = mb_substr($remoteUrl, 0, $pos);
@@ -732,8 +735,13 @@ class DatabaseBuilder
         $remoteUrl = "$remoteUrl/" . Settings::REMOTE_BUILD_REQUEST_PATH;
 
         $parts = parse_url($remoteUrl);
-        $path = preg_replace('%//+%', '/', $parts['path']);
-        return str_replace($parts['path'], $path, $remoteUrl);
+        if (!is_array($parts)) {
+            throw AdaptBuildException::remoteBuildFailed($this->config->connection);
+        }
+
+        $origPath = $parts['path'] ?? '';
+        $path = (string) preg_replace('%//+%', '/', $origPath);
+        return str_replace($origPath, $path, $remoteUrl);
     }
 
 
@@ -796,8 +804,8 @@ class DatabaseBuilder
         $filename = mb_substr($filename, mb_strlen($prefix));
 
         $accessTS = fileatime($path);
-        $accessDT = new DateTime("@$accessTS") ?: null;
-        $accessDT ? $accessDT->setTimezone(new DateTimeZone('UTC')) : null;
+        $accessDT = new DateTime("@$accessTS");
+        $accessDT->setTimezone(new DateTimeZone('UTC'));
 
         $snapshotMetaInfo = new SnapshotMetaInfo(
             $path,
@@ -835,9 +843,9 @@ class DatabaseBuilder
     /**
      * Start the database transaction.
      *
-     * @throws AdaptConfigException
+     * @return void
      */
-    private function applyTransaction(): void
+    public function applyTransaction(): void
     {
         if (!$this->usingTransactions()) {
             return;
@@ -895,7 +903,9 @@ class DatabaseBuilder
         }
 
         $adapterClass = $this->availableDBAdapters[$framework][$driver];
-        $this->dbAdapter = new $adapterClass($this->di, $this->config, $this->hasher);
+        /** @var DBAdapter $dbAdapter */
+        $dbAdapter = new $adapterClass($this->di, $this->config, $this->hasher);
+        $this->dbAdapter = $dbAdapter;
 
         return $this->dbAdapter;
     }

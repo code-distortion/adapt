@@ -59,9 +59,9 @@ trait LaravelBuildTrait
             // the --realpath option isn't available in Laravel < 5.6 so
             // relative paths (relative to base_path()) have to be passed
             $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
-            $migrationsPath = ($useRealPath
+            $migrationsPath = $useRealPath
                 ? realpath($migrationsPath)
-                : $this->makeRealpathRelative((string) realpath($migrationsPath)));
+                : $this->makeRealpathRelative((string) realpath($migrationsPath));
         }
 
         $this->di->artisan->call(

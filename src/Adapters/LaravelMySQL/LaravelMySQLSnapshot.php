@@ -31,8 +31,8 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     public static function resetStaticProps(): void
     {
-        static::$mysqlClientExists = null;
-        static::$mysqldumpExists = null;
+        self::$mysqlClientExists = null;
+        self::$mysqldumpExists = null;
     }
 
 
@@ -47,7 +47,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
     }
 
     /**
-     * Determine if snapshot files are simply copied when importing (eg. for sqlite).
+     * Determine if snapshot files are simply copied when importing (e.g. for sqlite).
      *
      * @return boolean
      */
@@ -141,10 +141,10 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     private function ensureMysqlClientExists(): void
     {
-        static::$mysqlClientExists
+        self::$mysqlClientExists
             ??= $this->di->exec->commandRuns($this->config->mysqlExecutablePath . ' --version');
 
-        if (!static::$mysqlClientExists) {
+        if (!self::$mysqlClientExists) {
             throw AdaptSnapshotException::mysqlClientNotPresent($this->config->mysqlExecutablePath);
         }
     }
@@ -157,10 +157,10 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     private function ensureMysqlDumpExists(): void
     {
-        static::$mysqldumpExists
+        self::$mysqldumpExists
             ??= $this->di->exec->commandRuns($this->config->mysqldumpExecutablePath . ' --version');
 
-        if (!static::$mysqldumpExists) {
+        if (!self::$mysqldumpExists) {
             throw AdaptSnapshotException::mysqldumpNotPresent($this->config->mysqldumpExecutablePath);
         }
     }

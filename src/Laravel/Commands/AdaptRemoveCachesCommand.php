@@ -36,11 +36,14 @@ class AdaptRemoveCachesCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
-        $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
+        $envFile = !is_array($this->option('env-file'))
+            ? (string) $this->option('env-file')
+            : '';
+
         LaravelSupport::useTestingConfig($envFile);
 
         $cacheListDTO = $this->getCacheList();
