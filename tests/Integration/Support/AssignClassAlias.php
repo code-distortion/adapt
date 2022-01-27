@@ -26,10 +26,10 @@ class AssignClassAlias
             return;
         }
 
-        $sourceTrait = (static::setUpReturnsVoid()
+        $sourceTrait = static::setUpReturnsVoid()
             ? DatabaseBuilderSetUpVoidTrait::class
-            : DatabaseBuilderSetUpNoVoidTrait::class
-        );
+            : DatabaseBuilderSetUpNoVoidTrait::class;
+
         class_alias($sourceTrait, $destTrait);
     }
 

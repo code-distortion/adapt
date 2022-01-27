@@ -491,6 +491,19 @@ class MyFeatureTest extends TestCase
     protected bool $isBrowserTest = true;
 
     /**
+     * Adapt can be configured to use another installation of Adapt to
+     * build databases instead of doing it itself. This may be
+     * useful when sharing a database between projects.
+     *
+     * The other installation must be web-accessible to the first.
+     *
+     * e.g. 'https://other-site.local/'
+     *
+     * @var ?string
+     */
+    protected ?string $remoteBuildUrl = null;
+
+    /**
      * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:

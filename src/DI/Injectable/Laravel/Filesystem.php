@@ -114,7 +114,7 @@ class Filesystem implements FilesystemInterface
      *
      * @param string $path    The path of the file to write to.
      * @param string $mode    The write-mode.
-     * @param mixed  $content The content to write.
+     * @param string $content The content to write.
      * @return boolean
      */
     public function writeFile($path, $mode, $content): bool

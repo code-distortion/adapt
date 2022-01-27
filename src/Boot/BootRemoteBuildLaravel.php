@@ -20,9 +20,9 @@ use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Support\StorageDir;
 
 /**
- * Bootstrap Adapt for Laravel commands.
+ * Bootstrap Adapt to build a database remotely.
  */
-class BootCommandLaravel extends BootCommandAbstract
+class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
 {
     use CheckLaravelHashPathsTrait;
 
@@ -33,7 +33,7 @@ class BootCommandLaravel extends BootCommandAbstract
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists()
+    public function ensureStorageDirExists(): self
     {
         StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
         return $this;
@@ -43,13 +43,13 @@ class BootCommandLaravel extends BootCommandAbstract
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param string $connection The database connection to prepare.
+     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder($connection): DatabaseBuilder
+    public function makeNewBuilder($remoteConfig): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection, '');
-        $di = $this->defaultDI($connection);
+        $config = $this->newConfigDTO($remoteConfig);
+        $di = $this->defaultDI($remoteConfig->connection);
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
@@ -77,6 +77,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
+                return null;
             })
             ->log($this->newLog())
             ->exec(new Exec())
@@ -90,41 +91,45 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false);
+        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
+
+        // don't use stdout debugging, it will ruin the output being generated that the calling Adapt instance reads.
+        return new LaravelLog(false, $useLaravelLog);
     }
 
     /**
      * Create a new ConfigDTO object with default values.
      *
-     * @param string $connection The connection to use.
-     * @param string $testName   The current test's name.
+     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
      * @return ConfigDTO
      */
-    private function newConfigDTO(string $connection, string $testName): configDTO
+    private function newConfigDTO(ConfigDTO $remoteConfig): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
+        $connection = $remoteConfig->connection;
         return (new ConfigDTO())
-            ->projectName(config("$c.project_name"))
-            ->testName($testName)
+            ->projectName($remoteConfig->projectName)
+            ->testName($remoteConfig->testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->database(config("database.connections.$connection.database"))
+            ->databaseModifier($remoteConfig->databaseModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
             ->buildSettings(
-                config("$c.pre_migration_imports"),
-                config("$c.migrations"),
-                config("$c.seeders"),
-                config("$c.remote_build_url"),
-                false,
-                false
+                $remoteConfig->preMigrationImports,
+                $remoteConfig->migrations,
+                $remoteConfig->seeders,
+                null, // don't forward again
+                $remoteConfig->isBrowserTest,
+                true // yes, a remote database is being built here now, locally
             )
             ->cacheTools(
-                config("$c.reuse_test_dbs"),
-                config("$c.scenario_test_dbs")
-            )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
+                $remoteConfig->reuseTestDBs,
+                $remoteConfig->scenarioTestDBs
+            )->snapshots($remoteConfig->useSnapshotsWhenReusingDB, $remoteConfig->useSnapshotsWhenNotReusingDB)
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
                 config("$c.database.mysql.executables.mysqldump")
@@ -147,19 +152,5 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         return rtrim(config("$c.storage_dir"), '\\/');
-    }
-
-    /**
-     * Work out if invalid things are allowed to be purged.
-     *
-     * @return boolean
-     */
-    public function canPurgeInvalidThings(): bool
-    {
-        $c = Settings::LARAVEL_CONFIG_NAME;
-        if (config("$c.remote_build_url")) {
-            return false;
-        }
-        return (bool) config("$c.remove_invalid_things", true);
     }
 }

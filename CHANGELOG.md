@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.6.7] - 2022-01-28
+
+### Added
+- Added new remote-building functionality (needs documenting)
+- Added config settings: "remote_build_url" and "remove_invalid_things"
+- Added test property setting: "remoteBuildUrl"
+
+### Fixed
+- Fix when using `$this->newBuilder(…)` method inside a test's `->databaseInit(…)` method
+
+
+
 ## [0.6.6] - 2022-01-04
 
 ### Changed
@@ -123,7 +135,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Added the ability to turn database-building off (useful for Dusk browser tests with no database)
 - Allow Dusk tests to pass a config to the browser more than once
-- Added the ability to change the connection a DatabaseBuilder connects to (eg. to get the first Builder build for a non "default" connection)
+- Added the ability to change the connection a DatabaseBuilder connects to (e.g. to get the first Builder build for a non "default" connection)
 - Improved documentation
 
 
@@ -139,7 +151,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.3.0] - 2021-01-15
 
 ### Added
-- Added prefix "test_" to test databases eg. "test_your_database_name_17bd3c_d266ab43ac75"
+- Added prefix "test_" to test databases e.g. "test_your_database_name_17bd3c_d266ab43ac75"
 
 ### Changed (breaking)
 - Changed the name of the config file from code-distortion.adapt.php to code_distortion.adapt.php to be consistent with Laravel

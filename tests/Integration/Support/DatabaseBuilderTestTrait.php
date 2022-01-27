@@ -91,7 +91,9 @@ trait DatabaseBuilderTestTrait
     {
         return (new ConfigDTO())
             ->projectName('')
+            ->testName('A test')
             ->connection($connection)
+            ->connectionExists(true)
 //            ->database('test_db')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
@@ -106,6 +108,8 @@ trait DatabaseBuilderTestTrait
                 [],
                 $this->wsMigrationsDir,
                 [DatabaseSeeder::class],
+                null,
+                false,
                 false
             )
             ->cacheTools(true, true)
@@ -132,7 +136,6 @@ trait DatabaseBuilderTestTrait
 
         return new DatabaseBuilder(
             'laravel',
-            'A test',
             $di,
             $config,
             $this->newHasher($config, $di),

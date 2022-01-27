@@ -11,7 +11,6 @@ use Orchestra\Testbench\TestCase;
  */
 abstract class LaravelTestCase extends TestCase
 {
-
     /**
      * Get package providers.
      *

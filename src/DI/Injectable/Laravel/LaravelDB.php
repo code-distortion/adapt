@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -42,7 +43,7 @@ class LaravelDB
     /**
      * Create a new PDO object, connected to the database server, but without selecting a database.
      *
-     * @param string|null $database   The database to connect to (only when required by the driver - eg. sqlite).
+     * @param string|null $database   The database to connect to (only when required by the driver - e.g. sqlite).
      * @param string|null $connection The connection to use (defaults to the current one).
      * @return LaravelPDO
      * @throws AdaptConfigException Thrown when the driver isn't recognised.
@@ -51,12 +52,12 @@ class LaravelDB
     {
         $connection = $connection ?? $this->connection;
 
-        $host = config("database.connections.$connection.host");
-        $port = config("database.connections.$connection.port");
-        $username = config("database.connections.$connection.username");
-        $password = config("database.connections.$connection.password");
+        $host = LaravelSupport::configString("database.connections.$connection.host");
+        $port = LaravelSupport::configString("database.connections.$connection.port");
+        $username = LaravelSupport::configString("database.connections.$connection.username");
+        $password = LaravelSupport::configString("database.connections.$connection.password");
+        $driver = LaravelSupport::configString("database.connections.$connection.driver");
 
-        $driver = config("database.connections.$connection.driver");
         switch ($driver) {
             case 'mysql':
             case 'pgsql':
@@ -134,7 +135,7 @@ class LaravelDB
      */
     public function update($query, $bindings = []): bool
     {
-        return DB::connection($this->connection)->update($query, $bindings);
+        return (bool) DB::connection($this->connection)->update($query, $bindings);
     }
 
     /**

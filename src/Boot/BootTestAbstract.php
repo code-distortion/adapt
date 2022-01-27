@@ -32,7 +32,7 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private $builders = [];
 
-    /** @var DIContainer|null The DIContainer to be used. */
+//    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
 
@@ -135,6 +135,8 @@ abstract class BootTestAbstract implements BootTestInterface
 //        $this->resolveDI();
         $this->initBuilders();
         $this->executeBuilders();
+
+        $this->registerConnectionDBs();
     }
 
     /**
@@ -176,7 +178,7 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function newBuilder($connection): DatabaseBuilder;
 
     /**
-     * Execute the builders that this object created (ie. build their databases).
+     * Execute the builders that this object created (i.e. build their databases).
      *
      * Any that have already been executed will be skipped.
      *
@@ -184,12 +186,55 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function executeBuilders()
     {
-        foreach ($this->builders as $builder) {
-            if (!$builder->hasExecuted()) {
-                $builder->execute();
-            }
+        $builders = $this->pickBuildersToExecute();
+
+        foreach ($builders as $builder) {
+            $builder->execute();
+        }
+
+        // apply the transactions, AFTER all the databases have been built
+        foreach ($builders as $builder) {
+            $builder->applyTransaction();
         }
     }
+
+    /**
+     * Pick the list of Builders that haven't been executed yet.
+     *
+     * @return DatabaseBuilder[]
+     */
+    private function pickBuildersToExecute(): array
+    {
+        $builders = [];
+        foreach ($this->builders as $builder) {
+            if (!$builder->hasExecuted()) {
+                $builders[] = $builder;
+            }
+        }
+        return $builders;
+    }
+
+    /**
+     * Pick the connections' databases, and register them with the framework.
+     *
+     * @return void
+     */
+    private function registerConnectionDBs()
+    {
+        $connectionDatabases = [];
+        foreach ($this->builders as $builder) {
+            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
+        }
+        $this->registerConnectionDBsWithFramework($connectionDatabases);
+    }
+
+    /**
+     * Record the list of connections and their databases with the framework.
+     *
+     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @return void
+     */
+    abstract protected function registerConnectionDBsWithFramework($connectionDatabases);
 
     /**
      * Use the existing DIContainer, but build a default one if it hasn't been set.
@@ -219,7 +264,7 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function newLog(): LogInterface;
 
     /**
-     * Check to see if any of the transactions were committed, and generate a warning.
+     * Check to see if any of the transactions were committed, and generate an exception.
      *
      * @return void
      */
@@ -243,4 +288,11 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return void
      */
     abstract public function purgeInvalidThings();
+
+    /**
+     * Work out if invalid things are allowed to be purged.
+     *
+     * @return boolean
+     */
+    abstract protected function canPurgeInvalidThings(): bool;
 }

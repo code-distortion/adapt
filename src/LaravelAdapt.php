@@ -12,6 +12,8 @@ use CodeDistortion\Adapt\Initialise\InitialiseLaravelAdapt;
  * The properties below can be set in your test-class to alter how the
  * test-database is set up. Or alternatively, more customisation is possible
  * by adding the databaseInit(DatabaseBuilder $builder) method.
+ *
+ * @see InitialiseLaravelAdapt
  */
 trait LaravelAdapt
 {
@@ -98,7 +100,7 @@ trait LaravelAdapt
      * Overwrite the details of certain database connections with values from
      * others.
      *
-     * eg. overwrite the "mysql" connection with the "sqlite" connection's
+     * e.g. overwrite the "mysql" connection with the "sqlite" connection's
      * details so sqlite is used instead.
      *
      * @var string
@@ -125,6 +127,19 @@ trait LaravelAdapt
      * @var boolean
      */
 //    protected bool $isBrowserTest = true;
+
+    /**
+     * Adapt can be configured to use another installation of Adapt to
+     * build databases instead of doing it itself. This may be
+     * useful when sharing a database between projects.
+     *
+     * The other installation must be web-accessible to the first.
+     *
+     * e.g. 'https://other-site.local/'
+     *
+     * @var ?string
+     */
+//    protected ?string $remoteBuildUrl = null;
 
     /**
      * Set up the database/s programmatically.

@@ -8,6 +8,8 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
 use PDOException;
@@ -18,13 +20,13 @@ use PDOException;
 trait InitialiseLaravelAdapt
 {
     /** @var PropBagDTO The properties specified in the test-class. */
-    protected $propBag;
+    protected $adaptPropBag;
 
     /** @var boolean Whether this set-up object's initialisation has been run yet or not. */
-    private $initialised = false;
+    private $adaptInitialised = false;
 
     /** @var BootTestInterface The object used to boot Adapt. */
-    private $bootTestLaravel;
+    private $adaptBootTestLaravel;
 
 
 
@@ -42,7 +44,7 @@ trait InitialiseLaravelAdapt
 
             $this->beforeApplicationDestroyed(function () {
                 // to be run after the transaction was rolled back
-                $this->bootTestLaravel->checkForCommittedTransactions();
+                $this->adaptBootTestLaravel->checkForCommittedTransactions();
             });
         });
     }
@@ -55,7 +57,7 @@ trait InitialiseLaravelAdapt
      */
     protected function autoTriggerCleanUp()
     {
-        $this->bootTestLaravel->postTestCleanUp();
+        $this->adaptBootTestLaravel->postTestCleanUp();
     }
 
 
@@ -67,16 +69,16 @@ trait InitialiseLaravelAdapt
      */
     protected function initialiseAdapt()
     {
-        if ($this->initialised) {
+        if ($this->adaptInitialised) {
             return;
         }
-        $this->initialised = true;
+        $this->adaptInitialised = true;
 
         $this->buildPropBag();
         $this->prepareLaravelConfig();
 
-        $this->bootTestLaravel = $this->buildBootObject();
-        $this->bootTestLaravel->run();
+        $this->adaptBootTestLaravel = $this->buildBootObject();
+        $this->adaptBootTestLaravel->run();
     }
 
 
@@ -101,10 +103,10 @@ trait InitialiseLaravelAdapt
             'isBrowserTest',
         ];
 
-        $this->propBag = new LaravelPropBagDTO();
+        $this->adaptPropBag = new LaravelPropBagDTO();
         foreach ($propNames as $propName) {
             if (property_exists(static::class, $propName)) {
-                $this->propBag->addProp($propName, $this->$propName);
+                $this->adaptPropBag->addProp($propName, $this->$propName);
             }
         }
     }
@@ -128,11 +130,11 @@ trait InitialiseLaravelAdapt
      */
     private function initLaravelDefaultConnection()
     {
-        if (!$this->propBag->hasProp('defaultConnection')) {
+        if (!$this->adaptPropBag->hasProp('defaultConnection')) {
             return;
         }
 
-        $connection = $this->propBag->prop('defaultConnection');
+        $connection = $this->adaptPropBag->prop('defaultConnection');
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidDefaultConnection($connection);
         }
@@ -163,10 +165,10 @@ trait InitialiseLaravelAdapt
     private function parseRemapDBStrings(): array
     {
         return array_merge(
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
-            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
-            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
+            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), null, false),
+            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), true, false)
         );
     }
 
@@ -219,7 +221,7 @@ trait InitialiseLaravelAdapt
     }
 
     /**
-     * Build the test object and run it.
+     * Build the boot-test object.
      *
      * @return BootTestInterface
      */
@@ -227,7 +229,7 @@ trait InitialiseLaravelAdapt
     {
         return (new BootTestLaravel())
             ->testName(get_class($this) . '::' . $this->getName())
-            ->props($this->propBag)
+            ->props($this->adaptPropBag)
             ->browserTestDetected($this->detectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
             ->initCallback($this->adaptBuildInitCallback())
@@ -313,6 +315,20 @@ trait InitialiseLaravelAdapt
     }
 
     /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    protected function newBuilder($connection): DatabaseBuilder
+    {
+        return $this->adaptBootTestLaravel->newBuilder($connection);
+    }
+
+    /**
      * Have the Browsers pass the current (test) config to the server when they make requests.
      *
      * @deprecated
@@ -344,6 +360,58 @@ trait InitialiseLaravelAdapt
             );
         }
 
-        $this->bootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+        $this->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+    }
+
+
+
+    /**
+     * Fetch the http headers that lets Adapt share the connections it's built.
+     *
+     * @param boolean $includeKey Include the key in the value.
+     * @return array<string, string>
+     */
+    public static function getShareConnectionsHeaders($includeKey = false): array
+    {
+        $value = static::connectionsHeaderValue($includeKey);
+
+        return $value
+            ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]
+            : [];
+    }
+
+    /**
+     * Get the http-header value used to pass connection-database details to a remote installation of Adapt.
+     *
+     * @param boolean $includeKey Include the key in the value.
+     * @return string|null
+     */
+    private static function connectionsHeaderValue(bool $includeKey = false)
+    {
+        $connectionDatabases = static::getFrameworkConnectionDatabases();
+
+        if (is_null($connectionDatabases)) {
+            return null;
+        }
+
+        $value = serialize($connectionDatabases);
+
+        return $includeKey
+            ? Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME . ": $value"
+            : $value;
+    }
+
+    /**
+     * Fetch the connection-databases list from Laravel.
+     *
+     * @return array|null
+     */
+    private static function getFrameworkConnectionDatabases()
+    {
+        try {
+            return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+        } catch (BindingResolutionException $e) {
+            return null;
+        }
     }
 }

@@ -3,12 +3,13 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 /**
- * Bootstrap Adapt for commands.
+ * Bootstrap Adapt to build a database remotely.
  */
-interface BootCommandInterface
+interface BootRemoteBuildInterface
 {
     /**
      * Ensure the storage-directory exists.
@@ -16,20 +17,13 @@ interface BootCommandInterface
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists();
+    public function ensureStorageDirExists(): self;
 
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param string $connection The database connection to prepare.
+     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder($connection): DatabaseBuilder;
-
-    /**
-     * Work out if invalid things are allowed to be purged.
-     *
-     * @return boolean
-     */
-    public function canPurgeInvalidThings(): bool;
+    public function makeNewBuilder($remoteConfig): DatabaseBuilder;
 }

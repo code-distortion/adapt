@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Tests\Database\Seeders;
 
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
 /**

@@ -35,9 +35,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function databaseOwnedByAnotherProject($databaseName, $projectName): self
     {
-        return new self(
-            'Could not re-use database "' . $databaseName . '" as it is owned by project "' . $projectName . '"'
-        );
+        return new self("Could not re-use database \"$databaseName\" as it is owned by project \"$projectName\"");
     }
 
     /**
@@ -49,7 +47,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function seederFailed($seeder, $originalException): self
     {
-        return new self('Could not run seeder "' . $seeder . '"', 0, $originalException);
+        return new self("Could not run seeder \"$seeder\"", 0, $originalException);
     }
 
     /**
@@ -60,5 +58,19 @@ class AdaptBuildException extends AdaptException
     public static function databaseBuilderAlreadyExecuted(): self
     {
         return new self('This DatabaseBuilder has already been executed');
+    }
+
+    /**
+     * The request to build a database remotely failed.
+     *
+     * @param string|null    $connection        The connection the database was being built for.
+     * @param Throwable|null $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function remoteBuildFailed($connection, $originalException = null): self
+    {
+        return $originalException
+            ? new self("The remote database for connection \"$connection\" could not be built", 0, $originalException)
+            : new self("The remote database for connection \"$connection\" could not be built");
     }
 }

@@ -31,7 +31,7 @@ abstract class PropBagDTO
      * This will throw an exception if it doesn't exist and no default was passed.
      *
      * @param string|null $name    The name of the property.
-     * @param mixed       $default The default value to fall-back to.
+     * @param mixed       $default The default value to fall back to.
      * @return mixed
      * @throws AdaptPropBagDTOException Thrown when the property hasn't been set.
      */

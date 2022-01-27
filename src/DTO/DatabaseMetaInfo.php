@@ -30,7 +30,7 @@ class DatabaseMetaInfo
     /** @var integer|null The size of the database in bytes. */
     public $size;
 
-    /** @var callable The callback used to delete the database file. */
+    /** @var callable|null The callback used to delete the database file. */
     public $deleteCallback = null;
 
     /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */
@@ -158,17 +158,23 @@ class DatabaseMetaInfo
     /**
      * Generate a readable version of this snapshot.
      *
+     * @param boolean $canPurge Whether purging is allowed or not.
      * @return string
      */
-    public function readableWithPurgeInfo(): string
+    public function readableWithPurgeInfo($canPurge): string
     {
         $purgeMessage = '';
         $purgeAfter = $this->getPurgeAfter();
         if ($purgeAfter) {
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
-            $purgeMessage = $purgeAfter > $nowUTC
-                ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
-                : ' - Invalid (automatic removal: next test-run)';
+            if ($canPurge) {
+                $purgeMessage = $purgeAfter > $nowUTC
+//                    ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
+                    ? ' - Invalid (will be automatically removed in a while)'
+                    : ' - Invalid (will be automatically removed during the next test-run)';
+            } else {
+                $purgeMessage = ' - Invalid';
+            }
         }
 
         return $this->name

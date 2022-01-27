@@ -68,7 +68,7 @@ interface BootTestInterface
     public function run();
 
     /**
-     * Check to see if any of the transactions were committed, and generate a warning.
+     * Check to see if any of the transactions were committed, and generate an exception.
      *
      * @return void
      */

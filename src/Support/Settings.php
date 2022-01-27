@@ -16,13 +16,22 @@ class Settings
     const REUSE_TABLE = '____adapt____';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    const REUSE_TABLE_VERSION = '3';
+    const REUSE_TABLE_VERSION = '4';
 
     /** @var string The name of the cookie used to pass database connection details during browser tests. */
     const CONFIG_COOKIE = '____adapt____';
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
-    const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____';
+    const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____/cookie';
+
+    /** @var string The path used by Adapt when instructing another installation of Adapt to build a database. */
+    const REMOTE_BUILD_REQUEST_PATH = '/____adapt____/remote-build';
+
+    /** @var string The http-header used to pass database connection details to other Adapt installations. */
+    const SHARE_CONNECTIONS_HTTP_HEADER_NAME = 'adapt-connection-dbs';
+
+    /** @var string The name of the singleton that's registered with Laravel, containe the connection database list. */
+    const SHARE_CONNECTIONS_SINGLETON_NAME = 'adapt-connection-dbs';
 
     /** @var integer The number of seconds grace-period before invalid databases & snapshots are to be deleted. */
     const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours

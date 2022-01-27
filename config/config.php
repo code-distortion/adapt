@@ -58,7 +58,7 @@ return [
     | This config setting can be overridden by adding the $scenarioTestDBs
     | property to your test-class.
     |
-    | This is turned off automatically when browser testing (eg. Dusk).
+    | This is turned off automatically when browser testing (e.g. Dusk).
     |
     */
 
@@ -91,7 +91,7 @@ return [
     | migrations run, list them here. This config setting can be overridden
     | by adding the $preMigrationImports property to your test-class.
     |
-    | eg.
+    | e.g.
     | protected array $preMigrationImports = [
     |   'mysql' => [database_path('dumps/mysql/my-database.sql')],
     |   'sqlite' => [database_path('dumps/sqlite/my-database.sqlite')], // SQLite files are simply copied
@@ -120,7 +120,7 @@ return [
     |
     */
 
-    'migrations' => true, // eg. true, false, 'database/migrations',
+    'migrations' => true, // e.g. true, false, 'database/migrations',
 
     /*
     |--------------------------------------------------------------------------
@@ -135,7 +135,7 @@ return [
     |
     */
 
-    'seeders' => [], // eg. ['DatabaseSeeder'],
+    'seeders' => [], // e.g. ['DatabaseSeeder'],
 
     /*
     |--------------------------------------------------------------------------
@@ -168,6 +168,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Purging of Invalid Test-Databases And Snapshot Files
+    |--------------------------------------------------------------------------
+    |
+    | Test-databases and snapshot files become invalid when factories,
+    | migrations and seeders change. When turned on, invalid ones will
+    | be removed after a "while" (this allows for you to change code
+    | branches without them being removed straight away).
+    |
+    | NOTE: This setting is disabled automatically when using the
+    | "remote_build_url" config setting below.
+    |
+    */
+
+    'remove_invalid_things' => env('ADAPT_REMOVE_INVALID_THINGS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Remap Database Connections
     |--------------------------------------------------------------------------
     |
@@ -175,7 +192,7 @@ return [
     | others. This config setting can be overridden by adding the
     | $remapConnections property to your test-class.
     |
-    | eg.
+    | e.g.
     | // reassign the "mysql" and "mysql2" connections to use the "sqlite"
     | // and "sqlite2" details respectively.
     |
@@ -184,11 +201,31 @@ return [
     | You can make the settings here more important than your test-class
     | settings by adding "!".
     |
-    | eg.
-    | '!mysql < sqlite'
+    | e.g. '!mysql < sqlite'
+    |
     */
 
     'remap_connections' => env('ADAPT_REMAP_CONNECTIONS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remote Database Building
+    |--------------------------------------------------------------------------
+    |
+    | Adapt can be configured to use another installation of Adapt to
+    | build databases instead of doing it itself. This may be
+    | useful when sharing a database between projects.
+    |
+    | The other installation must be web-accessible to the first.
+    |
+    | This config setting can be overridden by adding the
+    | $remoteBuildUrl property to your test-class.
+    |
+    | e.g. 'https://other-site.local/'
+    |
+    */
+
+    'remote_build_url' => env('ADAPT_REMOTE_BUILD_URL', null),
 
     /*
      |--------------------------------------------------------------------------

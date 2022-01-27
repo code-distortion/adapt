@@ -2,7 +2,8 @@
 
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
-use Artisan;
+use Illuminate\Config\Repository;
+use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -22,7 +23,9 @@ class LaravelArtisan
     {
         // Laravel < 7 would update the config values
         // record the current values and replace afterwards
-        $configValues = config()->all();
+        /** @var Repository $config */
+        $config = config();
+        $configValues = $config->all();
 
         $return = Artisan::call($command, $parameters, $outputBuffer);
 

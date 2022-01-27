@@ -96,8 +96,8 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      *
      * @test
      * @dataProvider propBagDTODataProvider
-     * @param string[] $set   The values to set.
-     * @param mixed[]  $check Attempts to get values back out and check the result.
+     * @param string[]            $set   The values to set.
+     * @param array<string,mixed> $check Attempts to get values back out and check the result.
      * @return void
      * @throws Throwable Any exception that wasn't expected by the test.
      */
@@ -114,23 +114,27 @@ class LaravelPropBagDTOTest extends LaravelTestCase
 
         // retrieve some values and see what happens
         $callable = [$propBag, $check['method']];
-        if (is_callable($callable)) {
+        if (!is_callable($callable)) {
+            return;
+        }
 
-            if (is_string($check['exception'])) {
+        /** @var array<int|string, mixed> $params */
+        $params = $check['params'];
 
-                try {
-                    call_user_func_array($callable, $check['params']);
-                } catch (Throwable $e) {
-                    if (!$e instanceof $check['exception']) {
-                        throw $e;
-                    }
-                    $this->assertTrue(true);
+        if (is_string($check['exception'])) {
+
+            try {
+                call_user_func_array($callable, $params);
+            } catch (Throwable $e) {
+                if (!$e instanceof $check['exception']) {
+                    throw $e;
                 }
-
-            } else {
-                $value = call_user_func_array($callable, $check['params']);
-                $this->assertSame($check['expected'], $value);
+                $this->assertTrue(true);
             }
+
+        } else {
+            $value = call_user_func_array($callable, $params);
+            $this->assertSame($check['expected'], $value);
         }
     }
 

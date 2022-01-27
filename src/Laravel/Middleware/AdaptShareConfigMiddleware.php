@@ -6,9 +6,10 @@ use Closure;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Support\Settings;
-use Config;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Config;
 use Throwable;
 
 /**
@@ -16,7 +17,7 @@ use Throwable;
  *
  * Added to local and testing environments.
  */
-class AdaptMiddleware
+class AdaptShareConfigMiddleware
 {
     /**
      * Handle an incoming request.
@@ -29,7 +30,9 @@ class AdaptMiddleware
     {
         // the service-provider won't register this middleware when in production
         // this is an extra safety check - we definitely don't want this to run in production
-        if (!app()->environment('local', 'testing')) {
+        /** @var Application $app */
+        $app = app();
+        if (!$app->environment('local', 'testing')) {
             return $next($request);
         }
 

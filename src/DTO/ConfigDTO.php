@@ -10,9 +10,15 @@ class ConfigDTO
     /** @var string The name of the current project. */
     public $projectName;
 
+    /** @var string The name of the current test. */
+    public $testName;
+
 
     /** @var string The database connection to prepare. */
     public $connection;
+
+    /** @var boolean Whether the connection exists or not (it's ok to not exist locally when the building remotely). */
+    public $connectionExists;
 
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public $driver;
@@ -20,7 +26,7 @@ class ConfigDTO
     /** @var string|null The name of the database to use. */
     public $database;
 
-    /** @var string A database name modifier (eg. Paratest adds a TEST_TOKEN env value to make the db unique). */
+    /** @var string A database name modifier (e.g. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public $databaseModifier = '';
 
 
@@ -46,8 +52,14 @@ class ConfigDTO
     /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public $seeders;
 
+    /** @var string|null The remote Adapt installation to send "build" requests to. */
+    public $remoteBuildUrl;
+
     /** @var boolean Is a browser test being run?. When true, this will turn off $reuseTestDBs and $scenarioTestDBs. */
     public $isBrowserTest;
+
+    /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
+    public $isRemoteBuild;
 
 
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
@@ -81,7 +93,7 @@ class ConfigDTO
 
 
     /**
-     * Set the the project-name.
+     * Set the project-name.
      *
      * @param string $projectName The name of this project.
      * @return static
@@ -93,6 +105,19 @@ class ConfigDTO
     }
 
     /**
+     * Set the current test-name.
+     *
+     * @param string $testName The name of the current test.
+     * @return static
+     */
+    public function testName($testName): self
+    {
+        $this->testName = $testName;
+        return $this;
+    }
+
+
+    /**
      * Set the connection to prepare.
      *
      * @param string $connection The database connection to prepare.
@@ -101,6 +126,19 @@ class ConfigDTO
     public function connection($connection): self
     {
         $this->connection = $connection;
+        return $this;
+    }
+
+    /**
+     * Set the connectionExists value.
+     *
+     * @param boolean $connectionExists Whether the connection exists or not (it's ok to not exist locally when the
+     *                                  building remotely).
+     * @return static
+     */
+    public function connectionExists($connectionExists): self
+    {
+        $this->connectionExists = $connectionExists;
         return $this;
     }
 
@@ -119,7 +157,7 @@ class ConfigDTO
     /**
      * Set the database to use.
      *
-     * @param string $database The name of the database to use.
+     * @param string|null $database The name of the database to use.
      * @return static
      */
     public function database($database): self
@@ -129,7 +167,7 @@ class ConfigDTO
     }
 
     /**
-     * Set the database-modifier to use.
+     * Set the database-modifier to use (e.g. Paratest adds a TEST_TOKEN env value to make the db unique).
      *
      * @param string $databaseModifier The modifier to use.
      * @return static
@@ -177,7 +215,7 @@ class ConfigDTO
     }
 
     /**
-     * Set the the list of directories that can invalidate test-databases and snapshots.
+     * Set the list of directories that can invalidate test-databases and snapshots.
      *
      * @param string[] $hashPaths The files and directories to look through.
      * @return static
@@ -189,25 +227,31 @@ class ConfigDTO
     }
 
     /**
-     * Set the details that affect what is being built (ie. the database-scenario).
+     * Set the details that affect what is being built (i.e. the database-scenario).
      *
      * @param string[]|string[][] $preMigrationImports The files to import before the migrations are run.
      * @param boolean|string      $migrations          Should the migrations be run? / the path of the migrations to
      *                                                 run.
      * @param string[]            $seeders             The seeders to run after migrating.
+     * @param string|null         $remoteBuildUrl      The remote Adapt installation to send "build" requests to.
      * @param boolean             $isBrowserTest       Is a browser test running?.
+     * @param boolean             $isRemoteBuild       Is this process building a db for another Adapt installation?.
      * @return static
      */
     public function buildSettings(
         $preMigrationImports,
         $migrations,
         $seeders,
-        $isBrowserTest
+        $remoteBuildUrl,
+        $isBrowserTest,
+        $isRemoteBuild
     ): self {
         $this->preMigrationImports = $preMigrationImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
+        $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
+        $this->isRemoteBuild = $isRemoteBuild;
         return $this;
     }
 
@@ -251,6 +295,18 @@ class ConfigDTO
     }
 
     /**
+     * Specify the url to send "build" requests to.
+     *
+     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @return static
+     */
+    public function remoteBuildUrl($remoteBuildUrl): self
+    {
+        $this->remoteBuildUrl = $remoteBuildUrl;
+        return $this;
+    }
+
+    /**
      * Turn the is-browser-test setting on (or off).
      *
      * @param boolean $isBrowserTest Is this test a browser-test?.
@@ -259,6 +315,18 @@ class ConfigDTO
     public function isBrowserTest($isBrowserTest): self
     {
         $this->isBrowserTest = $isBrowserTest;
+        return $this;
+    }
+
+    /**
+     * Turn the is-remote-build setting on (or off).
+     *
+     * @param boolean $isRemoteBuild Is this process building a db for another Adapt installation?.
+     * @return static
+     */
+    public function isRemoteBuild($isRemoteBuild): self
+    {
+        $this->isRemoteBuild = $isRemoteBuild;
         return $this;
     }
 
@@ -303,7 +371,7 @@ class ConfigDTO
     }
 
     /**
-     * Set the the snapshot settings.
+     * Set the snapshot settings.
      *
      * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
      *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
@@ -374,6 +442,23 @@ class ConfigDTO
 
 
     /**
+     * Build a new ConfigDTO from the data given in a request to build the database remotely.
+     *
+     * @param mixed[] $data The raw ConfigDTO data from the request.
+     * @return self
+     */
+    public static function buildFromRemoteBuildRequest($data): self
+    {
+        $configDTO = new self();
+        foreach ($data as $name => $value) {
+            if (property_exists($configDTO, $name)) {
+                $configDTO->{$name} = $value;
+            }
+        }
+        return $configDTO;
+    }
+
+    /**
      * Determine the seeders that need to be used.
      *
      * @return string[]
@@ -397,7 +482,7 @@ class ConfigDTO
         if (isset($preMigrationImports[$driver])) {
 
             $paths = $preMigrationImports[$driver];
-            $paths = (is_string($paths) ? [$paths] : $paths);
+            $paths = is_string($paths) ? [$paths] : $paths;
 
             if (is_array($paths)) {
                 foreach ($paths as $path) {

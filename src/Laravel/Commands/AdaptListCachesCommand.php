@@ -2,9 +2,10 @@
 
 namespace CodeDistortion\Adapt\Laravel\Commands;
 
+use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Console\Command;
 
 /**
@@ -33,12 +34,15 @@ class AdaptListCachesCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
-        $envFile = (!is_array($this->option('env-file')) ? (string) $this->option('env-file') : '');
-        (new ReloadLaravelConfig())->reload(base_path() . '/' . $envFile);
+        $envFile = !is_array($this->option('env-file'))
+            ? (string) $this->option('env-file')
+            : '';
+
+        LaravelSupport::useTestingConfig($envFile);
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
@@ -65,11 +69,13 @@ class AdaptListCachesCommand extends Command
             return;
         }
 
+        $canPurge = (new BootCommandLaravel())->canPurgeInvalidThings();
+
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
             $this->info('- Connection "' . $connection . '":');
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
-                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo());
+                $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo($canPurge));
             }
         }
     }
