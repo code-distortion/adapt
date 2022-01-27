@@ -44,7 +44,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
                 ],
             ],
             [
@@ -61,7 +61,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
                 ],
             ],
             [
@@ -82,8 +82,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -104,8 +104,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-8bd51f9f0b21.sqlite',
                 ],
             ],
             [
@@ -128,9 +128,9 @@ class CommandsTest extends LaravelTestCase
                     . "- [file2]\n"
                     . "- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.cc61a5-a34cd538e35f.sqlite',
                 ],
             ],
         ];
@@ -198,7 +198,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
                 ],
             ],
             [
@@ -215,7 +215,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\":\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
                 ],
             ],
             [
@@ -236,8 +236,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-a34cd538e35f.sqlite',
                 ],
             ],
             [
@@ -258,8 +258,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-8bd51f9f0b21.sqlite',
                 ],
             ],
             [
@@ -282,9 +282,9 @@ class CommandsTest extends LaravelTestCase
                     . "- DELETED [file2]\n"
                     . "- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.338349-e2dee1963369.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.338349-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.338349-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.cc61a5-daf903e2a938.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.cc61a5-8bd51f9f0b21.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.cc61a5-a34cd538e35f.sqlite',
                 ],
             ],
         ];
