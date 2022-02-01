@@ -17,7 +17,7 @@ interface BootRemoteBuildInterface
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self;
+    public function ensureStorageDirExists();
 
     /**
      * Create a new DatabaseBuilder object and set its initial values.

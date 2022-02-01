@@ -9,9 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.6.7] - 2022-01-28
 
 ### Added
-- Added new remote-building functionality (needs documenting)
+- Added new remote-building functionality (needs documentation)
 - Added config settings: "remote_build_url" and "remove_invalid_things"
-- Added test property setting: "remoteBuildUrl"
+- Added test property: "$remoteBuildUrl"
 
 ### Fixed
 - Fix when using `$this->newBuilder(…)` method inside a test's `->databaseInit(…)` method

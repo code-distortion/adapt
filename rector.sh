@@ -1,12 +1,6 @@
 #!/bin/bash
 
-cd /var/www/html/code-distortion/adapt-php7 || exit
-rm -rf * .*
-cp -pr /var/www/html/code-distortion/adapt/. /var/www/html/code-distortion/adapt-php7
 rm -rf _config _src
-
-git add . --all
-git commit -m "WIP"
 
 cp -pr config _config
 cp -pr src _src
@@ -32,3 +26,6 @@ rm -rf config src
 
 mv _config config
 mv _src src
+
+#git add . --all
+#git commit -m "Merge branch 'latest'"

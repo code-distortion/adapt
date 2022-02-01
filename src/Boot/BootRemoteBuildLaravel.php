@@ -33,7 +33,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self
+    public function ensureStorageDirExists()
     {
         StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
         return $this;
