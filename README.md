@@ -17,7 +17,9 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 > The article [Adapt - A Database Preparation Tool](https://www.code-distortion.net/articles/adapt-a-database-preparation-tool/) provides further introduction to this package.
 
-> The online-book [Understanding Test-Databases](https://www.code-distortion.net/books/understanding-test-databases/) explains the concepts this package uses in detail.
+> The online-book [Fast Test-Databases](https://www.code-distortion.net/books/fast-test-databases/) explains the concepts this package uses in detail.
+
+> ***TIP:*** If you're using MySQL and Docker, I'd recommend [setting up a container for your tests where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
 
 
 
@@ -67,7 +69,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 ## Compatibility
 
-Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.0** on **Linux** and **macOS**.
+Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.1** on **Linux** and **macOS**.
 
 It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/8.x/dusk).
 
