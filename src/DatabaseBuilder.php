@@ -714,7 +714,11 @@ class DatabaseBuilder
             return $database;
 
         } catch (GuzzleException $e) {
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $e);
+            $remoteMessage = $e->getResponse()->getBody()->getContents();
+
+            $this->di->log->info("Failed to build database for connection \"{$this->config->connection}\" - Remote error message: \"$remoteMessage\"");
+
+            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $remoteMessage, $e);
         }
     }
 
@@ -726,7 +730,7 @@ class DatabaseBuilder
      */
     private function buildRemoteUrl(): string
     {
-        $remoteUrl = (string) $this->config->remoteBuildUrl;
+        $remoteUrl = $origUrl = (string) $this->config->remoteBuildUrl;
         $pos = mb_strpos($remoteUrl, '?');
         if ($pos !== false) {
             $remoteUrl = mb_substr($remoteUrl, 0, $pos);
@@ -736,7 +740,7 @@ class DatabaseBuilder
 
         $parts = parse_url($remoteUrl);
         if (!is_array($parts)) {
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection);
+            throw AdaptBuildException::remoteBuildUrlInvalid($origUrl);
         }
 
         $origPath = $parts['path'] ?? '';

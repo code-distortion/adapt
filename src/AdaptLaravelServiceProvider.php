@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConnectionMiddleware;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -149,7 +150,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // The path that browsers connect to initially (when browser testing) so that cookies can then be set
         // (the browser will reject new cookies before it's loaded a webpage)
         // this route bypasses all middleware
-        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH);
+        $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, fn() => new Response());
 
 //        $router->group(['middleware' => $this->getMiddlewareGroups()], function (Router $router) {
 
@@ -166,18 +167,18 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * Build a test-database for a remote installation of Adapt.
      *
      * @param Request $request The request object.
-     * @return void
+     * @return Response
      */
-    private function handleBuildRequest(Request $request): void
+    private function handleBuildRequest(Request $request): Response
     {
         LaravelSupport::runFromBasePathDir();
         LaravelSupport::useTestingConfig();
 
         try {
             $database = $this->executeBuilder($request->input('configDTO'));
-            print $database; // output for the remote Adapt installation to see
+            return response($database);
         } catch (Throwable $e) {
-            abort(500);
+            return response($e->getMessage(), 500);
         }
     }
 
