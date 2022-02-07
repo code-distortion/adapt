@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
+use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -27,6 +28,22 @@ trait InitialiseLaravelAdapt
 
 
     /**
+     * Helper method to make it easier to initialise Adapt.
+     *
+     * @param LaravelTestCase $test
+     * @return void
+     */
+    public static function initialiseAdaptIfNeeded(LaravelTestCase $test): void
+    {
+        if (!in_array(LaravelAdapt::class, class_uses_recursive(get_class($test)))) {
+            return;
+        }
+
+        /** @var InitialiseLaravelAdapt $test */
+        $test->initialiseAdapt();
+    }
+
+    /**
      * Initialise Adapt automatically.
      *
      * NOTE: This method contains code that would normally be refactored into other methods.
@@ -35,7 +52,7 @@ trait InitialiseLaravelAdapt
      * @before
      * @return void
      */
-    protected function initialiseAdapt(): void
+    public function initialiseAdapt(): void
     {
         // only initialise once
         if ($this->adaptPreBootTestLaravel) {
@@ -67,9 +84,8 @@ trait InitialiseLaravelAdapt
 
 
 
-        // start a database transaction on the given connection.
-        //
-        // (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction()).
+        // start a database transaction on the given connection
+        // (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction())
         $buildTransactionClosure = function (string $conn) {
 
             /** @var $this LaravelTestCase */
@@ -112,7 +128,8 @@ trait InitialiseLaravelAdapt
 
 
 
-        // allow for a custom build process. Build a closure to be called when initialising the DatabaseBuilder/s
+        // allow for a custom build process via databaseInit(…)
+        // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
         if (method_exists(static::class, Settings::CUSTOM_BUILD_METHOD)) {
             $buildInitCallback = function (DatabaseBuilder $builder) {
@@ -227,7 +244,9 @@ trait InitialiseLaravelAdapt
             $connectionDatabases = null;
         }
 
-        // get the http-header value used to pass connection-database details to a remote installation of Adapt.
+
+
+        // get the http-header value used to pass connection-database details to a remote installation of Adapt
         /** @var string|null $value */
         $value = null;
         if (!is_null($connectionDatabases)) {
@@ -236,6 +255,8 @@ trait InitialiseLaravelAdapt
                 ? Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME . ": $value"
                 : $value;
         }
+
+
 
         return $value
             ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]

@@ -19,7 +19,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 > The online-book [Fast Test-Databases](https://www.code-distortion.net/books/fast-test-databases/) explains the concepts this package uses in detail.
 
-> ***TIP:*** If you're using MySQL and Docker, I'd recommend [setting up a container for your tests where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
+> ***TIP:*** If you're using MySQL and Docker, I highly recommend [using a container where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
 
 
 
@@ -90,9 +90,11 @@ Adapt integrates with Laravel 5.5+ automatically.
 <details><summary>(Click here for Laravel <= 5.4)</summary>
 <p>
 
-If you're using an old version of Laravel, you'll need to register the service provider yourself.
+If you're using an old version of Laravel, you'll need to register the AdaptLaravelServiceProvider yourself.
 
-Add the following to `app/Providers/AppServiceProvider.php` to enable it:
+Don't add it to your `config/app.php` file. Adapt should only be registered in `local` and `testing` environments.
+
+Add the following to `app/Providers/AppServiceProvider.php` instead to enable it:
 
 ``` php
 <?php
@@ -206,45 +208,13 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // **** add this so LaravelAdapt is booted when the LaravelAdapt trait is specified ****
-        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
-            $this->initialiseAdapt();
-        }
+        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
+        LaravelAdapt::initialiseAdaptIfNeeded($this);
     }
 }
 ```
 </p>
 </details>
-
-### Adapt doesn't seem to run for my tests
-
-Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en/9.5/annotations.html#before) to trigger the database building process. If you find that Adapt doesn't build your databases when using older versions of PHPUnit, you can trigger the process yourself.
-
-``` php
-<?php
-// tests/TestCase.php
-
-namespace Tests;
-
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-
-abstract class TestCase extends BaseTestCase
-{
-    use CreatesApplication;
-
-    // **** add the setUp() method if needed ****
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // **** add this so LaravelAdapt is booted ****
-        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
-            $this->initialiseAdapt();
-        }
-    }
-}
-```
 
 
 
@@ -849,10 +819,8 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // **** add this so LaravelAdapt is booted when the LaravelAdapt trait is specified ****
-        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
-            $this->initialiseAdapt();
-        }
+        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
+        LaravelAdapt::initialiseAdaptIfNeeded($this);
     }
 }
 ```
