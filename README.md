@@ -116,6 +116,9 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 </p>
+
+If you find that Adapt doesn't build your databases when using older versions of PHPUnit, [you can trigger the process yourself in the test's setUp() method](#adapt-doesnt-seem-to-run-for-my-tests).
+
 </details>
 
 
@@ -789,6 +792,34 @@ Adapt detects when this happens and throws an `AdaptTransactionException` to let
 To stop the exception from occurring, turn the "reuse test dbs" option off for that test - by adding `protected bool $reuseTestDBs = false;` [to your test class](#customisation). (You can also turn it off for *all tests* by updating the `reuse_test_dbs` config setting).
 
 Turning this off will isolate the test from other tests that *can* reuse the database.
+
+
+
+### Adapt doesn't seem to run for my tests
+
+Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en/9.5/annotations.html#before) to trigger the database building process. If you find that Adapt doesn't build your databases when using older versions of PHPUnit, you can trigger the process yourself.
+
+``` php
+// tests/Feature/MyFeatureTest.php
+
+…
+class MyFeatureTest extends TestCase
+{
+    use LaravelAdapt;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        // **** add this ****
+        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
+            $this->initialiseAdapt();
+        }
+    }
+
+    …
+}
+```
 
 
 
