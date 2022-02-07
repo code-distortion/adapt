@@ -140,7 +140,7 @@ abstract class BootTestAbstract implements BootTestInterface
     }
 
     /**
-     * Initialise the builders, calling the custom databaseInit method if it has been defined.
+     * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
      *
      * @return void
      */

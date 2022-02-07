@@ -114,9 +114,10 @@ trait InitialiseLaravelAdapt
 
         // allow for a custom build process. Build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
-        if (method_exists(static::class, 'databaseInit')) {
+        if (method_exists(static::class, Settings::CUSTOM_BUILD_METHOD)) {
             $buildInitCallback = function (DatabaseBuilder $builder) {
-                $this->databaseInit($builder);
+                $initMethod = Settings::CUSTOM_BUILD_METHOD;
+                $this->$initMethod($builder);
             };
         }
 

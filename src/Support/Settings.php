@@ -12,6 +12,9 @@ class Settings
     /** @var string The name of the Adapt config file. */
     public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
+    /** @var string The test-class method that can be added to define a custom way of building the databases. */
+    public const CUSTOM_BUILD_METHOD = 'databaseInit';
+
     /** @var string The table that contains Adapt's re-use meta-information. */
     public const REUSE_TABLE = '____adapt____';
 
