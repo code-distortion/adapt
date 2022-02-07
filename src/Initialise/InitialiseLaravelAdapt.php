@@ -36,15 +36,18 @@ trait InitialiseLaravelAdapt
      * @before
      * @return void
      */
-    protected function autoTriggerInitialisation(): void
+    protected function initialiseAdapt(): void
     {
-        $this->afterApplicationCreated(function () {
+        if ($this->adaptInitialised) {
+            return;
+        }
+        $this->adaptInitialised = true;
 
-            $this->initialiseAdapt();
+        $this->afterApplicationCreated(function () {
+            $this->adaptSetUp();
 
             $this->beforeApplicationDestroyed(function () {
-                // to be run after the transaction was rolled back
-                $this->adaptBootTestLaravel->checkForCommittedTransactions();
+                $this->adaptTearDown();
             });
         });
     }
@@ -57,7 +60,7 @@ trait InitialiseLaravelAdapt
      */
     protected function autoTriggerCleanUp(): void
     {
-        $this->adaptBootTestLaravel->postTestCleanUp();
+
     }
 
 
@@ -67,27 +70,21 @@ trait InitialiseLaravelAdapt
      *
      * @return void
      */
-    protected function initialiseAdapt(): void
+    private function adaptSetUp(): void
     {
-        if ($this->adaptInitialised) {
-            return;
-        }
-        $this->adaptInitialised = true;
+        $this->adaptBuildPropBag();
+        $this->adaptPrepareLaravelConfig();
 
-        $this->buildPropBag();
-        $this->prepareLaravelConfig();
-
-        $this->adaptBootTestLaravel = $this->buildBootObject();
+        $this->adaptBootTestLaravel = $this->adaptBuildBootObject();
         $this->adaptBootTestLaravel->run();
     }
-
 
     /**
      * Build an array containing the relevant properties this class has.
      *
      * @return void
      */
-    private function buildPropBag(): void
+    private function adaptBuildPropBag(): void
     {
         $propNames = [
             'buildDatabases',
@@ -116,10 +113,10 @@ trait InitialiseLaravelAdapt
      *
      * @return void
      */
-    private function prepareLaravelConfig(): void
+    private function adaptPrepareLaravelConfig(): void
     {
-        $this->initLaravelDefaultConnection();
-        $this->remapLaravelDBConnections();
+        $this->adaptInitLaravelDefaultConnection();
+        $this->adaptRemapLaravelDBConnections();
     }
 
     /**
@@ -128,7 +125,7 @@ trait InitialiseLaravelAdapt
      * @return void
      * @throws AdaptConfigException Thrown when the desired default connection doesn't exist.
      */
-    private function initLaravelDefaultConnection(): void
+    private function adaptInitLaravelDefaultConnection(): void
     {
         if (!$this->adaptPropBag->hasProp('defaultConnection')) {
             return;
@@ -147,9 +144,9 @@ trait InitialiseLaravelAdapt
      *
      * @return void
      */
-    private function remapLaravelDBConnections(): void
+    private function adaptRemapLaravelDBConnections(): void
     {
-        foreach ($this->parseRemapDBStrings() as $dest => $src) {
+        foreach ($this->adaptParseRemapDBStrings() as $dest => $src) {
             $replacement = config("database.connections.$src");
             config(["database.connections.$dest" => $replacement]);
         }
@@ -162,13 +159,13 @@ trait InitialiseLaravelAdapt
      *
      * @return array
      */
-    private function parseRemapDBStrings(): array
+    private function adaptParseRemapDBStrings(): array
     {
         return array_merge(
-            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), null, true),
-            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), null, false),
-            $this->parseRemapDBString($this->adaptPropBag->config('remap_connections'), true, true),
-            $this->parseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), true, false)
+            $this->adaptParseRemapDBString($this->adaptPropBag->config('remap_connections'), null, true),
+            $this->adaptParseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), null, false),
+            $this->adaptParseRemapDBString($this->adaptPropBag->config('remap_connections'), true, true),
+            $this->adaptParseRemapDBString($this->adaptPropBag->prop('remapConnections', ''), true, false)
         );
     }
 
@@ -181,7 +178,7 @@ trait InitialiseLaravelAdapt
      * @return array
      * @throws AdaptConfigException Thrown when the string can't be interpreted.
      */
-    private function parseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
+    private function adaptParseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
     {
         if (is_null($remapString)) {
             return [];
@@ -225,12 +222,12 @@ trait InitialiseLaravelAdapt
      *
      * @return BootTestInterface
      */
-    private function buildBootObject(): BootTestInterface
+    private function adaptBuildBootObject(): BootTestInterface
     {
         return (new BootTestLaravel())
             ->testName(get_class($this) . '::' . $this->getName())
             ->props($this->adaptPropBag)
-            ->browserTestDetected($this->detectBrowserTest())
+            ->browserTestDetected($this->adaptDetectBrowserTest())
             ->transactionClosure($this->adaptBuildTransactionClosure())
             ->initCallback($this->adaptBuildInitCallback())
             ->ensureStorageDirExists();
@@ -244,7 +241,7 @@ trait InitialiseLaravelAdapt
      *
      * @return boolean
      */
-    private function detectBrowserTest(): bool
+    private function adaptDetectBrowserTest(): bool
     {
         return $this instanceof DuskTestCase;
     }
@@ -276,6 +273,7 @@ trait InitialiseLaravelAdapt
             }
 
             $this->beforeApplicationDestroyed(
+
                 function () use ($database, $conn, $useEventDispatcher) {
                     $connection = $database->connection($conn);
                     if ($useEventDispatcher) {
@@ -313,6 +311,24 @@ trait InitialiseLaravelAdapt
             $this->databaseInit($builder);
         };
     }
+
+
+
+    /**
+     * Perform any clean-up / checking once the test has finished.
+     *
+     * @return void
+     */
+    private function adaptTearDown(): void
+    {
+        try {
+            $this->adaptBootTestLaravel->checkForCommittedTransactions();
+        } finally {
+            $this->adaptBootTestLaravel->postTestCleanUp();
+        }
+    }
+
+
 
     /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.
@@ -373,7 +389,7 @@ trait InitialiseLaravelAdapt
      */
     public static function getShareConnectionsHeaders(bool $includeKey = false): array
     {
-        $value = static::connectionsHeaderValue($includeKey);
+        $value = static::adaptConnectionsHeaderValue($includeKey);
 
         return $value
             ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]
@@ -386,9 +402,9 @@ trait InitialiseLaravelAdapt
      * @param boolean $includeKey Include the key in the value.
      * @return string|null
      */
-    private static function connectionsHeaderValue(bool $includeKey = false): ?string
+    private static function adaptConnectionsHeaderValue(bool $includeKey = false): ?string
     {
-        $connectionDatabases = static::getFrameworkConnectionDatabases();
+        $connectionDatabases = static::adaptGetFrameworkConnectionDatabases();
 
         if (is_null($connectionDatabases)) {
             return null;
@@ -406,7 +422,7 @@ trait InitialiseLaravelAdapt
      *
      * @return array|null
      */
-    private static function getFrameworkConnectionDatabases(): ?array
+    private static function adaptGetFrameworkConnectionDatabases(): ?array
     {
         try {
             return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
