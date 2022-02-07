@@ -172,7 +172,7 @@ trait DatabaseBuilderTestTrait
 
 
     /**
-     * Prepare the workspace directory by emptying it and copying the contents of another in to it.
+     * Prepare the workspace directory by emptying it and copying the contents of another into it.
      *
      * @param string  $sourceDir             The directory to make a copy of.
      * @param string  $destDir               The directory to replace.

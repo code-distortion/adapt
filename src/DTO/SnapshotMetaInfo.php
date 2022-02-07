@@ -33,7 +33,7 @@ class SnapshotMetaInfo
     /** @var callable|null The callback used to delete the snapshot file. */
     public $deleteCallback = null;
 
-    /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */
+    /** @var integer The number of seconds grace-period before stale ones are to be deleted. */
     private int $graceSeconds;
 
 
@@ -44,7 +44,7 @@ class SnapshotMetaInfo
      * @param DateTime|null $accessDT        When the file was last accessed.
      * @param boolean       $isValid         Whether the snapshot is valid (current) on not.
      * @param callable      $getSizeCallback The callback to use to get the snapshot's size.
-     * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
+     * @param integer       $graceSeconds    The number of seconds grace-period before stale ones are to be deleted.
      */
     public function __construct(
         string $path,
@@ -152,7 +152,7 @@ class SnapshotMetaInfo
     {
         return $this->path
             . ' ' . Str::readableSize($this->getSize())
-            . ($this->getPurgeAfter() ? ' - Invalid' : '');
+            . ($this->getPurgeAfter() ? ' - Stale' : '');
     }
 
     /**
@@ -167,9 +167,9 @@ class SnapshotMetaInfo
         if ($purgeAfter) {
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             $purgeMessage = $purgeAfter > $nowUTC
-//                ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
-                ? ' - Invalid (will be automatically removed in a while)'
-                : ' - Invalid (will be automatically removed during the next test-run)';
+//                ? ' - Stale (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
+                ? ' - Stale (will be removed automatically in a while)'
+                : ' - Stale (will be removed automatically during the next test-run)';
         }
 
         return $this->path

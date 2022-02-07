@@ -244,7 +244,7 @@ class DatabaseBuilder
             return false;
         }
 
-        // take in to consideration when there are no seeders to run, but a snapshot should be taken after seeders
+        // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
         $setting = $this->usingReuseTestDBs()
             ? $this->config->useSnapshotsWhenReusingDB
             : $this->config->useSnapshotsWhenNotReusingDB;
@@ -661,7 +661,7 @@ class DatabaseBuilder
             return false;
         }
 
-        $this->di->filesystem->touch($snapshotPath); // invalidation grace-period will start "now"
+        $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
 
         $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
@@ -817,7 +817,7 @@ class DatabaseBuilder
             $accessDT,
             $this->hasher->filenameHasSourceFilesHash($filename),
             fn() => $this->di->filesystem->size($path),
-            $this->config->invalidationGraceSeconds
+            $this->config->staleGraceSeconds
         );
         $snapshotMetaInfo->setDeleteCallback(fn() => $this->removeSnapshotFile($snapshotMetaInfo));
         return $snapshotMetaInfo;

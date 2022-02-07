@@ -233,7 +233,7 @@ class LaravelMySQLReuse implements ReuseInterface
             DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used ?? null, new DateTimeZone('UTC')) ?: null,
             $isValid,
             fn() => $this->size($name),
-            $this->config->invalidationGraceSeconds
+            $this->config->staleGraceSeconds
         );
         $databaseMetaInfo->setDeleteCallback(fn() => $this->removeDatabase($databaseMetaInfo));
         return $databaseMetaInfo;

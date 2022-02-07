@@ -200,10 +200,10 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
             )
-            ->invalidationGraceSeconds($this->propBag->config(
-                'invalidation_grace_seconds',
+            ->staleGraceSeconds($this->propBag->config(
+                'stale_grace_seconds',
                 null,
-                Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+                Settings::DEFAULT_STALE_GRACE_SECONDS
             ));
     }
 
@@ -322,13 +322,13 @@ class BootTestLaravel extends BootTestAbstract
 
 
     /**
-     * Remove invalid databases, snapshots and orphaned config files.
+     * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function purgeInvalidThings(): void
+    public function purgeStaleThings(): void
     {
-        if (!$this->canPurgeInvalidThings()) {
+        if (!$this->canPurgeStaleThings()) {
             return;
         }
 
@@ -336,32 +336,32 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        $this->purgeInvalidDatabases();
-        $this->purgeInvalidSnapshots();
+        $this->purgeStaleDatabases();
+        $this->purgeStaleSnapshots();
         $this->removeOrphanedTempConfigFiles();
 
         $this->releaseMutexLock();
     }
 
     /**
-     * Work out if invalid things are allowed to be purged.
+     * Work out if stale things are allowed to be purged.
      *
      * @return boolean
      */
-    protected function canPurgeInvalidThings(): bool
+    protected function canPurgeStaleThings(): bool
     {
         if ($this->propBag->config('remote_build_url')) {
             return false;
         }
-        return (bool) $this->propBag->config('remove_invalid_things', null, true);
+        return (bool) $this->propBag->config('remove_stale_things', null, true);
     }
 
     /**
-     * Remove invalid databases.
+     * Remove stale databases.
      *
      * @return void
      */
-    private function purgeInvalidDatabases(): void
+    private function purgeStaleDatabases(): void
     {
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
@@ -380,11 +380,11 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Remove invalid snapshots.
+     * Remove stale snapshots.
      *
      * @return void
      */
-    private function purgeInvalidSnapshots(): void
+    private function purgeStaleSnapshots(): void
     {
         $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {

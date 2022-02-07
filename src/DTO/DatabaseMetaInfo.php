@@ -33,7 +33,7 @@ class DatabaseMetaInfo
     /** @var callable|null The callback used to delete the database file. */
     public $deleteCallback = null;
 
-    /** @var integer The number of seconds grace-period before invalid ones are to be deleted. */
+    /** @var integer The number of seconds grace-period before stale ones are to be deleted. */
     private int $graceSeconds;
 
 
@@ -44,7 +44,7 @@ class DatabaseMetaInfo
      * @param DateTime|null $accessDT        When the database was last accessed.
      * @param boolean       $isValid         Whether the database is valid (current) on not.
      * @param callable      $getSizeCallback The callback to use to calculate the database's size.
-     * @param integer       $graceSeconds    The number of seconds grace-period before invalid ones are to be deleted.
+     * @param integer       $graceSeconds    The number of seconds grace-period before stale ones are to be deleted.
      */
     public function __construct(
         string $connection,
@@ -152,7 +152,7 @@ class DatabaseMetaInfo
     {
         return $this->name
             . ' ' . Str::readableSize($this->getSize())
-            . ($this->getPurgeAfter() ? ' - Invalid' : '');
+            . ($this->getPurgeAfter() ? ' - Stale' : '');
     }
 
     /**
@@ -169,11 +169,11 @@ class DatabaseMetaInfo
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             if ($canPurge) {
                 $purgeMessage = $purgeAfter > $nowUTC
-//                    ? ' - Invalid (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
-                    ? ' - Invalid (will be automatically removed in a while)'
-                    : ' - Invalid (will be automatically removed during the next test-run)';
+//                    ? ' - Stale (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
+                    ? ' - Stale (will be removed automatically in a while)'
+                    : ' - Stale (will be removed automatically during the next test-run)';
             } else {
-                $purgeMessage = ' - Invalid';
+                $purgeMessage = ' - Stale';
             }
         }
 

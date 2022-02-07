@@ -69,7 +69,7 @@ class AdaptListCachesCommand extends Command
             return;
         }
 
-        $canPurge = (new BootCommandLaravel())->canPurgeInvalidThings();
+        $canPurge = (new BootCommandLaravel())->canPurgeStaleThings();
 
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {

@@ -117,7 +117,7 @@ class AppServiceProvider extends ServiceProvider
 ```
 </p>
 
-If you find that Adapt doesn't build your databases when using older versions of PHPUnit, [you can trigger the process yourself in the test's setUp() method](#adapt-doesnt-seem-to-run-for-my-tests).
+If you find that Adapt still doesn't build your databases when using older versions of PHPUnit, [you can trigger the process yourself in the test's setUp() method](#adapt-doesnt-seem-to-run-for-my-tests).
 
 </details>
 
@@ -180,13 +180,45 @@ class MyFeatureTest extends TestCase
 <details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
 <p>
 
-If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run in to problems because PHPUnit used to initialise things (like Adapt) [*after* the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
+If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run into problems because PHPUnit used to initialise things (like Adapt) [*after* the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
 
 - To solve this, either put the code to populate the database into a seeder and have Adapt run that.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*or*
 
-- Add this to your base TestCase `setUp()` method so Adapt is booted:
+- Trigger the process yourself by adding this to your base TestCase `setUp()` method:
+
+``` php
+<?php
+// tests/TestCase.php
+
+namespace Tests;
+
+use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+
+abstract class TestCase extends BaseTestCase
+{
+    use CreatesApplication;
+
+    // **** add the setUp() method if it doesn't exist ****
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // **** add this so LaravelAdapt is booted when the LaravelAdapt trait is specified ****
+        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
+            $this->initialiseAdapt();
+        }
+    }
+}
+```
+</p>
+</details>
+
+### Adapt doesn't seem to run for my tests
+
+Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en/9.5/annotations.html#before) to trigger the database building process. If you find that Adapt doesn't build your databases when using older versions of PHPUnit, you can trigger the process yourself.
 
 ``` php
 <?php
@@ -213,8 +245,6 @@ abstract class TestCase extends BaseTestCase
     }
 }
 ```
-</p>
-</details>
 
 
 
@@ -613,7 +643,7 @@ When a database is migrated and seeded by Adapt, a snapshot can be taken (.sql d
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed.
 
-Snapshot files are stored in the `database/adapt-test-storage` directory, and are automatically removed when they're not valid anymore.
+Snapshot files are stored in the `database/adapt-test-storage` directory, and are removed automatically when they become [stale](#cache-invalidation).
 
 > ***Snapshots*** are turned **OFF** by default, and turned **ON** when the `reuse_test_dbs` setting is off.
 
@@ -651,11 +681,11 @@ Old scenario databases are removed automatically when they aren't valid anymore.
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database, or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeders* are detected and will invalidate existing test-databases and snapshots.
+So that you don't run into problems when you update the structure of your database, or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeders* are detected and will invalidate existing test-databases and snapshots - making them *stale*.
 
-These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
+These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are also taken in to account).
+This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are included automatically).
 
 
 
@@ -678,6 +708,7 @@ You probably won't need to change any configuration settings.
 Adapt can build extra databases for you. So it knows what to build, [add the databaseInit() method](#phpunit-customisation) to your test-classes.
 
 ``` php
+<?php
 // tests/Feature/MyFeatureTest.php
 …
 class MyFeatureTest extends TestCase
@@ -737,6 +768,7 @@ Adapt can run seeders for you automatically. The result will be incorporated int
 If you'd like to specify seeders, or run different ones for different tests, see the `seeders` config option (or the `$seeders` test-class property).
 
 ``` php
+<?php
 // tests/Feature/MyFeatureTest.php
 …
 class MyFeatureTest extends TestCase
@@ -800,24 +832,28 @@ Turning this off will isolate the test from other tests that *can* reuse the dat
 Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en/9.5/annotations.html#before) to trigger the database building process. If you find that Adapt doesn't build your databases when using older versions of PHPUnit, you can trigger the process yourself.
 
 ``` php
-// tests/Feature/MyFeatureTest.php
+<?php
+// tests/TestCase.php
 
-…
-class MyFeatureTest extends TestCase
+namespace Tests;
+
+use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+
+abstract class TestCase extends BaseTestCase
 {
-    use LaravelAdapt;
+    use CreatesApplication;
 
-    public function setUp()
+    // **** add the setUp() method if it doesn't exist ****
+    protected function setUp(): void
     {
         parent::setUp();
 
-        // **** add this ****
+        // **** add this so LaravelAdapt is booted when the LaravelAdapt trait is specified ****
         if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
             $this->initialiseAdapt();
         }
     }
-
-    …
 }
 ```
 

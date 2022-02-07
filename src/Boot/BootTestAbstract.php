@@ -129,7 +129,7 @@ abstract class BootTestAbstract implements BootTestInterface
         if (Settings::$isFirstTest) {
             Settings::$isFirstTest = false;
             $this->newLog()->info('==== Adapt initialisation ================');
-            $this->purgeInvalidThings();
+            $this->purgeStaleThings();
         }
 
 //        $this->resolveDI();
@@ -285,16 +285,16 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract public function postTestCleanUp(): void;
 
     /**
-     * Remove invalid databases, snapshots and orphaned config files.
+     * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    abstract public function purgeInvalidThings(): void;
+    abstract public function purgeStaleThings(): void;
 
     /**
-     * Work out if invalid things are allowed to be purged.
+     * Work out if stale things are allowed to be purged.
      *
      * @return boolean
      */
-    abstract protected function canPurgeInvalidThings(): bool;
+    abstract protected function canPurgeStaleThings(): bool;
 }

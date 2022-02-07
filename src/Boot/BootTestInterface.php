@@ -92,9 +92,9 @@ interface BootTestInterface
     public function postTestCleanUp(): void;
 
     /**
-     * Remove invalid databases, snapshots and orphaned config files.
+     * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function purgeInvalidThings(): void;
+    public function purgeStaleThings(): void;
 }
