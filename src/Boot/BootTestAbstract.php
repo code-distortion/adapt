@@ -266,6 +266,8 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Check to see if any of the transactions were committed, and generate an exception.
      *
+     * To be run after the transaction was rolled back.
+     *
      * @return void
      */
     public function checkForCommittedTransactions(): void

@@ -297,7 +297,8 @@ class BootTestLaravel extends BootTestAbstract
         $path = "{$this->storageDir()}/$filename";
 
         $content = '<?php' . PHP_EOL
-            . 'return ' . var_export(Config::all(), true) . ';' . PHP_EOL;
+            . 'return ' . var_export(Config::all(), true) . ';'
+            . PHP_EOL;
 
         if (!(new Filesystem())->writeFile($path, 'w', $content)) {
             throw AdaptBrowserTestException::tempConfigFileNotSaved($path);

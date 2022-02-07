@@ -68,7 +68,17 @@ interface BootTestInterface
     public function run(): void;
 
     /**
+     * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
+     *
+     * @param Browser[] $browsers The browsers to update with the current config.
+     * @return void
+     */
+    public function getBrowsersToPassThroughCurrentConfig(array $browsers): void;
+
+    /**
      * Check to see if any of the transactions were committed, and generate an exception.
+     *
+     * To be run after the transaction was rolled back.
      *
      * @return void
      */
