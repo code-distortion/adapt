@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use Illuminate\Database\Seeder;
 use Illuminate\Foundation\Application;
 use Throwable;
 
@@ -119,20 +120,31 @@ trait LaravelBuildTrait
      */
     private function resolveSeeder(string $seeder): string
     {
-        if (class_exists($seeder)) {
+        if ($this->isSeeder($seeder)) {
             return $seeder;
         }
 
         // e.g. turn "DatabaseSeeder" in to "Database\Seeders\DatabaseSeeder"
         if (mb_strpos($seeder, '\\') === false) {
             $newSeeder = "Database\\Seeders\\$seeder";
-            return class_exists($newSeeder) ? $newSeeder : $seeder;
+            return $this->isSeeder($newSeeder) ? $newSeeder : $seeder;
         }
 
         // e.g. turn "Database\Seeders\DatabaseSeeder" in to "DatabaseSeeder"
         $temp = explode('\\', $seeder);
         $newSeeder = end($temp);
-        return class_exists($newSeeder) ? $newSeeder : $seeder;
+        return $this->isSeeder($newSeeder) ? $newSeeder : $seeder;
+    }
+
+    /**
+     * Check if the class exists and is a Seeder.
+     *
+     * @param string $class The class to check.
+     * @return boolean
+     */
+    private function isSeeder(string $class): bool
+    {
+        return is_a($class, Seeder::class, true);
     }
 
     /**
