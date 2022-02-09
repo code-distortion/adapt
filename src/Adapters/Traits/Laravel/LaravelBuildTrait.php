@@ -90,6 +90,8 @@ trait LaravelBuildTrait
 
             $logTimer = $this->di->log->newTimer();
 
+            $seeder = $this->resolveSeeder($seeder);
+
             try {
                 $this->di->artisan->call(
                     'db:seed',
@@ -97,7 +99,7 @@ trait LaravelBuildTrait
                         [
                             '--database' => $this->config->connection,
                             '--class' => $seeder,
-                            '--force' => true,
+                            '--no-interaction' => true,
                         ]
                     )
                 );
@@ -107,6 +109,30 @@ trait LaravelBuildTrait
 
             $this->di->log->info('Ran seeder "' . $seeder . '"', $logTimer);
         }
+    }
+
+    /**
+     * Account for the old, no-namespace version of the default DatabaseSeeder.
+     *
+     * @param string $seeder The seeder to be called.
+     * @return string
+     */
+    private function resolveSeeder(string $seeder): string
+    {
+        if (class_exists($seeder)) {
+            return $seeder;
+        }
+
+        // e.g. turn "DatabaseSeeder" in to "Database\Seeders\DatabaseSeeder"
+        if (mb_strpos($seeder, '\\') === false) {
+            $newSeeder = "Database\\Seeders\\$seeder";
+            return class_exists($newSeeder) ? $newSeeder : $seeder;
+        }
+
+        // e.g. turn "Database\Seeders\DatabaseSeeder" in to "DatabaseSeeder"
+        $temp = explode('\\', $seeder);
+        $newSeeder = end($temp);
+        return class_exists($newSeeder) ? $newSeeder : $seeder;
     }
 
     /**

@@ -459,7 +459,7 @@ class MyFeatureTest extends TestCase
      * Specify the seeders to run (they will only be run if migrations are
      * run).
      *
-     * @var string[]
+     * @var string|string[]
      */
     protected array $seeders = ['DatabaseSeeder'];
 

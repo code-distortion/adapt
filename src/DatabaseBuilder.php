@@ -441,7 +441,9 @@ class DatabaseBuilder
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
-            $this->writeReuseMetaData(false); // put the meta-table there straight away
+            // put the meta-table there straight away (even though it hasn't been built yet)
+            // so another instance will identify that this database is an Adapt one
+            $this->writeReuseMetaData(false);
         }
 
         if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {

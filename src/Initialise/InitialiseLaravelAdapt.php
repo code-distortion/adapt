@@ -71,6 +71,7 @@ trait InitialiseLaravelAdapt
             'preMigrationImports',
             'migrations',
             'seeders',
+            'seed',
             'remapConnections',
             'defaultConnection',
             'isBrowserTest',

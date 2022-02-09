@@ -179,7 +179,7 @@ class BootTestLaravel extends BootTestAbstract
             ->buildSettings(
                 $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->config('migrations', 'migrations'),
-                $this->propBag->config('seeders', 'seeders'),
+                $this->resolveSeeders(),
                 $this->propBag->config('remote_build_url', 'remoteBuildUrl'),
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
                 false
@@ -205,6 +205,21 @@ class BootTestLaravel extends BootTestAbstract
                 null,
                 Settings::DEFAULT_STALE_GRACE_SECONDS
             ));
+    }
+
+    /**
+     * Look at the seeder properties and config value, and determine what the seeders should be.
+     *
+     * @return string[]
+     */
+    private function resolveSeeders(): array {
+        return LaravelSupport::resolveSeeders(
+            $this->propBag->hasProp('seeders'),
+            $this->propBag->prop('seeders', null),
+            $this->propBag->hasProp('seed'),
+            $this->propBag->prop('seed', null),
+            config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
+        );
     }
 
     /**
