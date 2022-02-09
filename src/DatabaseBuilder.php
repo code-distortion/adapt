@@ -84,7 +84,7 @@ class DatabaseBuilder
 
 
     /**
-     * Set the this builder's database connection to be the "default" one.
+     * Set this builder's database connection to be the "default" one.
      *
      * @return static
      */
