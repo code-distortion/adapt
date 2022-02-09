@@ -6,15 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
-## [0.6.7] - 2022-01-28
+## [0.7.0] - 2022-02-10
 
 ### Added
+- Added support for Laravel 9
 - Added new remote-building functionality (needs documentation)
-- Added config settings: "remote_build_url" and "remove_invalid_things"
-- Added test property: "$remoteBuildUrl"
+  - Added config setting: `remove_stale_things` (so the remote Adapt installation has a setting and can be told *not* to remove)
+  - Added config setting: `remote_build_url`
+  - Added test property: `$remoteBuildUrl`
+- Added new helper method `initialiseAdaptIfNeeded($this)` for when Adapt needs to be initialised inside the `setUp()` method
+- Added support for Laravel's `$seed = true` property
+- Added support for Laravel's `$seeder = 'xyzSeeder'` property (as a string)
+
+### Changed
+- Renamed "invalid" databases + snapshot files to "stale"
+
+### Changed (breaking)
+- Removed deprecated method `$this->useCurrentConfig(…)`
 
 ### Fixed
 - Fix when using `$this->newBuilder(…)` method inside a test's `->databaseInit(…)` method
+
+
+
+## [0.6.7] - 2022-01-28
+
+Mis-tag - updates moved into 0.7.0
 
 
 
