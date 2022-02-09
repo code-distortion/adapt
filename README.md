@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.1-blue?style=flat-square)
-![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
+![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%20%26%209-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/branch-master-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
@@ -69,9 +69,9 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 ## Compatibility
 
-Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.1** on **Linux** and **macOS**.
+Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 9** and **PHP 7.0 - 8.1** on **Linux** and **macOS**.
 
-It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/8.x/dusk).
+It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/9.x/dusk).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -244,7 +244,7 @@ it('has users')->assertDatabaseHas('users', ['id' => 1]);
 
 ### Dusk Browser Test Usage
 
-Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run them alongside your non-browser tests, including when running them in parallel.
+Adapt can prepare databases for your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests. You can run them alongside your non-browser tests, including when running them in parallel.
 
 > ***Note:*** This implements a new technique to share your test's config settings with the process handling the browser requests. This allows page-loads to ***share the same config settings as your tests - including the database details***. This functionality is new and **experimental**.
 > 
@@ -763,7 +763,7 @@ Adapt detects when ParaTest used and creates a distinct database for each proces
 
 ### Dusk browser tests
 
-Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
+Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
 
 See the [dusk browser testing section](#dusk-browser-test-usage) for more details.
 
@@ -777,7 +777,7 @@ This might save time if you have lots of migrations to run, or be useful if you 
 
 > Any remaining migrations and seeding will run after these have been imported.
 
-> You might want to look at [Laravel's migration squashing](https://laravel.com/docs/8.x/migrations#squashing-migrations) feature to do this *within* Laravel's migration process.
+> You might want to look at [Laravel's migration squashing](https://laravel.com/docs/9.x/migrations#squashing-migrations) feature to do this *within* Laravel's migration process.
 
 > ***Note:*** SQLite database files aren't imported, they are simply copied.
 
