@@ -68,7 +68,17 @@ interface BootTestInterface
     public function run();
 
     /**
+     * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
+     *
+     * @param Browser[] $browsers The browsers to update with the current config.
+     * @return void
+     */
+    public function getBrowsersToPassThroughCurrentConfig($browsers);
+
+    /**
      * Check to see if any of the transactions were committed, and generate an exception.
+     *
+     * To be run after the transaction was rolled back.
      *
      * @return void
      */
@@ -82,9 +92,9 @@ interface BootTestInterface
     public function postTestCleanUp();
 
     /**
-     * Remove invalid databases, snapshots and orphaned config files.
+     * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function purgeInvalidThings();
+    public function purgeStaleThings();
 }

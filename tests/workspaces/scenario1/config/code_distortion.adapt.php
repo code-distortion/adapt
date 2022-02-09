@@ -168,20 +168,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Purging of Invalid Test-Databases And Snapshot Files
+    | Purging of Stale Test-Databases And Snapshot Files
     |--------------------------------------------------------------------------
     |
-    | Test-databases and snapshot files become invalid when factories,
-    | migrations and seeders change. When turned on, invalid ones will
-    | be removed after a "while" (this allows for you to change code
-    | branches without them being removed straight away).
+    | Test-databases and snapshot files become stale when factories,
+    | migrations and seeders change. When turned on, stale ones will
+    | be removed after a "while" (this lets you change code branches
+    | without them being removed straight away).
     |
     | NOTE: This setting is disabled automatically when using the
     | "remote_build_url" config setting below.
     |
     */
 
-    'remove_invalid_things' => env('ADAPT_REMOVE_INVALID_THINGS', true),
+    'remove_stale_things' => env('ADAPT_REMOVE_STALE_THINGS', true),
 
     /*
     |--------------------------------------------------------------------------

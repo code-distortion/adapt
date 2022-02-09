@@ -138,8 +138,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 config("$c.database.pgsql.executables.psql"),
                 config("$c.database.pgsql.executables.pg_dump")
             )
-            ->invalidationGraceSeconds(
-                config("$c.invalidation_grace_seconds", Settings::DEFAULT_INVALIDATION_GRACE_SECONDS)
+            ->staleGraceSeconds(
+                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
             );
     }
 

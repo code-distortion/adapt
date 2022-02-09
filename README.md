@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.1-blue?style=flat-square)
-![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%20%207%20%26%208-blue?style=flat-square)
+![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%20%26%209-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/code-distortion/adapt/branch-master-tests?label=tests&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.0%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
@@ -19,7 +19,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 > The online-book [Fast Test-Databases](https://www.code-distortion.net/books/fast-test-databases/) explains the concepts this package uses in detail.
 
-> ***TIP:*** If you're using MySQL and Docker, I'd recommend [setting up a container for your tests where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
+> ***TIP:*** If you're using MySQL and Docker, I highly recommend [using a container where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
 
 
 
@@ -69,9 +69,9 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 ## Compatibility
 
-Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 8** and **PHP 7.0 - 8.1** on **Linux** and **macOS**.
+Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit) and [PEST](https://pestphp.com/) tests in **Laravel 5.1 - 9** and **PHP 7.0 - 8.1** on **Linux** and **macOS**.
 
-It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/8.x/dusk).
+It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/9.x/dusk).
 
 The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
 
@@ -90,9 +90,11 @@ Adapt integrates with Laravel 5.5+ automatically.
 <details><summary>(Click here for Laravel <= 5.4)</summary>
 <p>
 
-If you're using an old version of Laravel, you'll need to register the service provider yourself.
+If you're using an old version of Laravel, you'll need to register the AdaptLaravelServiceProvider yourself.
 
-Add the following to `app/Providers/AppServiceProvider.php` to enable it:
+Don't add it to your `config/app.php` file. Adapt should only be registered in `local` and `testing` environments.
+
+Add the following to `app/Providers/AppServiceProvider.php` instead to enable it:
 
 ``` php
 <?php
@@ -116,6 +118,9 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 </p>
+
+If you find that Adapt still doesn't build your databases when using older versions of PHPUnit, [you can trigger the process yourself in the test's setUp() method](#adapt-doesnt-seem-to-run-for-my-tests).
+
 </details>
 
 
@@ -177,13 +182,13 @@ class MyFeatureTest extends TestCase
 <details><summary>(Click here if you're using an old version of PHPUnit (< ~v6) and are having problems)</summary>
 <p>
 
-If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run in to problems because PHPUnit used to initialise things (like Adapt) [*after* the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
+If you're using an old version of PHPUnit and want to populate database data in your setUp() method, you'll run into problems because PHPUnit used to initialise things (like Adapt) [*after* the setUp() method was called](https://github.com/sebastianbergmann/phpunit/issues/1616).
 
 - To solve this, either put the code to populate the database into a seeder and have Adapt run that.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*or*
 
-- Add this to your base TestCase `setUp()` method so Adapt is booted:
+- Trigger the process yourself by adding this to your base TestCase `setUp()` method:
 
 ``` php
 <?php
@@ -198,15 +203,13 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
 
-    // **** add the setUp() method if needed ****
+    // **** add the setUp() method if it doesn't exist ****
     protected function setUp(): void
     {
         parent::setUp();
 
-        // **** add this so LaravelAdapt is booted ****
-        if (in_array(LaravelAdapt::class, class_uses_recursive(static::class))) {
-            $this->initialiseAdapt();
-        }
+        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
+        LaravelAdapt::initialiseAdaptIfNeeded($this);
     }
 }
 ```
@@ -241,7 +244,7 @@ it('has users')->assertDatabaseHas('users', ['id' => 1]);
 
 ### Dusk Browser Test Usage
 
-Adapt can prepare databases for your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests. You can run them alongside your non-browser tests, including when running them in parallel.
+Adapt can prepare databases for your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests. You can run them alongside your non-browser tests, including when running them in parallel.
 
 > ***Note:*** This implements a new technique to share your test's config settings with the process handling the browser requests. This allows page-loads to ***share the same config settings as your tests - including the database details***. This functionality is new and **experimental**.
 > 
@@ -456,7 +459,7 @@ class MyFeatureTest extends TestCase
      * Specify the seeders to run (they will only be run if migrations are
      * run).
      *
-     * @var string[]
+     * @var string|string[]
      */
     protected array $seeders = ['DatabaseSeeder'];
 
@@ -610,7 +613,7 @@ When a database is migrated and seeded by Adapt, a snapshot can be taken (.sql d
 
 A snapshot can be taken right after the migrations have run (but before seeding), and another can be taken after seeding has completed.
 
-Snapshot files are stored in the `database/adapt-test-storage` directory, and are automatically removed when they're not valid anymore.
+Snapshot files are stored in the `database/adapt-test-storage` directory, and are removed automatically when they become [stale](#cache-invalidation).
 
 > ***Snapshots*** are turned **OFF** by default, and turned **ON** when the `reuse_test_dbs` setting is off.
 
@@ -648,11 +651,11 @@ Old scenario databases are removed automatically when they aren't valid anymore.
 
 ## Cache Invalidation
 
-So that you don't run in to problems when you update the structure of your database, or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeders* are detected and will invalidate existing test-databases and snapshots.
+So that you don't run into problems when you update the structure of your database, or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeders* are detected and will invalidate existing test-databases and snapshots - making them *stale*.
 
-These invalid test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
+These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are also taken in to account).
+This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are included automatically).
 
 
 
@@ -675,6 +678,7 @@ You probably won't need to change any configuration settings.
 Adapt can build extra databases for you. So it knows what to build, [add the databaseInit() method](#phpunit-customisation) to your test-classes.
 
 ``` php
+<?php
 // tests/Feature/MyFeatureTest.php
 …
 class MyFeatureTest extends TestCase
@@ -734,6 +738,7 @@ Adapt can run seeders for you automatically. The result will be incorporated int
 If you'd like to specify seeders, or run different ones for different tests, see the `seeders` config option (or the `$seeders` test-class property).
 
 ``` php
+<?php
 // tests/Feature/MyFeatureTest.php
 …
 class MyFeatureTest extends TestCase
@@ -758,7 +763,7 @@ Adapt detects when ParaTest used and creates a distinct database for each proces
 
 ### Dusk browser tests
 
-Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/8.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
+Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
 
 See the [dusk browser testing section](#dusk-browser-test-usage) for more details.
 
@@ -772,7 +777,7 @@ This might save time if you have lots of migrations to run, or be useful if you 
 
 > Any remaining migrations and seeding will run after these have been imported.
 
-> You might want to look at [Laravel's migration squashing](https://laravel.com/docs/8.x/migrations#squashing-migrations) feature to do this *within* Laravel's migration process.
+> You might want to look at [Laravel's migration squashing](https://laravel.com/docs/9.x/migrations#squashing-migrations) feature to do this *within* Laravel's migration process.
 
 > ***Note:*** SQLite database files aren't imported, they are simply copied.
 
@@ -789,6 +794,36 @@ Adapt detects when this happens and throws an `AdaptTransactionException` to let
 To stop the exception from occurring, turn the "reuse test dbs" option off for that test - by adding `protected bool $reuseTestDBs = false;` [to your test class](#customisation). (You can also turn it off for *all tests* by updating the `reuse_test_dbs` config setting).
 
 Turning this off will isolate the test from other tests that *can* reuse the database.
+
+
+
+### Adapt doesn't seem to run for my tests
+
+Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en/9.5/annotations.html#before) to trigger the database building process. If you find that Adapt doesn't build your databases when using older versions of PHPUnit, you can trigger the process yourself.
+
+``` php
+<?php
+// tests/TestCase.php
+
+namespace Tests;
+
+use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+
+abstract class TestCase extends BaseTestCase
+{
+    use CreatesApplication;
+
+    // **** add the setUp() method if it doesn't exist ****
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
+        LaravelAdapt::initialiseAdaptIfNeeded($this);
+    }
+}
+```
 
 
 

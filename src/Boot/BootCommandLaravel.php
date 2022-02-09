@@ -133,8 +133,8 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.database.pgsql.executables.psql"),
                 config("$c.database.pgsql.executables.pg_dump")
             )
-            ->invalidationGraceSeconds(
-                config("$c.invalidation_grace_seconds", Settings::DEFAULT_INVALIDATION_GRACE_SECONDS)
+            ->staleGraceSeconds(
+                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
             );
     }
 
@@ -150,16 +150,16 @@ class BootCommandLaravel extends BootCommandAbstract
     }
 
     /**
-     * Work out if invalid things are allowed to be purged.
+     * Work out if stale things are allowed to be purged.
      *
      * @return boolean
      */
-    public function canPurgeInvalidThings(): bool
+    public function canPurgeStaleThings(): bool
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         if (config("$c.remote_build_url")) {
             return false;
         }
-        return (bool) config("$c.remove_invalid_things", true);
+        return (bool) config("$c.remove_stale_things", true);
     }
 }

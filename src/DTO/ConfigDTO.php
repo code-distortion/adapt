@@ -88,8 +88,8 @@ class ConfigDTO
     public $pgDumpExecutablePath;
 
 
-    /** @var integer The number of seconds grace-period before invalid databases and snapshots are to be deleted. */
-    public $invalidationGraceSeconds = 0;
+    /** @var integer The number of seconds grace-period before stale databases and snapshots are to be deleted. */
+    public $staleGraceSeconds = 0;
 
 
     /**
@@ -423,14 +423,14 @@ class ConfigDTO
 
 
     /**
-     * Set the number of seconds grace-period before invalid databases and snapshots are to be deleted.
+     * Set the number of seconds grace-period before stale databases and snapshots are to be deleted.
      *
-     * @param integer $invalidationGraceSeconds The number of seconds.
+     * @param integer $staleGraceSeconds The number of seconds.
      * @return static
      */
-    public function invalidationGraceSeconds($invalidationGraceSeconds): self
+    public function staleGraceSeconds($staleGraceSeconds): self
     {
-        $this->invalidationGraceSeconds = $invalidationGraceSeconds;
+        $this->staleGraceSeconds = $staleGraceSeconds;
         return $this;
     }
 

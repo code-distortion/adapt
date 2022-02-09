@@ -84,7 +84,7 @@ class DatabaseBuilder
 
 
     /**
-     * Set the this builder's database connection to be the "default" one.
+     * Set this builder's database connection to be the "default" one.
      *
      * @return static
      */
@@ -244,7 +244,7 @@ class DatabaseBuilder
             return false;
         }
 
-        // take in to consideration when there are no seeders to run, but a snapshot should be taken after seeders
+        // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
         $setting = $this->usingReuseTestDBs()
             ? $this->config->useSnapshotsWhenReusingDB
             : $this->config->useSnapshotsWhenNotReusingDB;
@@ -441,7 +441,9 @@ class DatabaseBuilder
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
-            $this->writeReuseMetaData(false); // put the meta-table there straight away
+            // put the meta-table there straight away (even though it hasn't been built yet)
+            // so another instance will identify that this database is an Adapt one
+            $this->writeReuseMetaData(false);
         }
 
         if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
@@ -661,7 +663,7 @@ class DatabaseBuilder
             return false;
         }
 
-        $this->di->filesystem->touch($snapshotPath); // invalidation grace-period will start "now"
+        $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
 
         $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
@@ -714,7 +716,11 @@ class DatabaseBuilder
             return $database;
 
         } catch (GuzzleException $e) {
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $e);
+            $remoteMessage = $e->getResponse()->getBody()->getContents();
+
+            $this->di->log->info("Failed to build database for connection \"{$this->config->connection}\" - Remote error message: \"$remoteMessage\"");
+
+            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $remoteMessage, $e);
         }
     }
 
@@ -726,7 +732,7 @@ class DatabaseBuilder
      */
     private function buildRemoteUrl(): string
     {
-        $remoteUrl = (string) $this->config->remoteBuildUrl;
+        $remoteUrl = $origUrl = (string) $this->config->remoteBuildUrl;
         $pos = mb_strpos($remoteUrl, '?');
         if ($pos !== false) {
             $remoteUrl = mb_substr($remoteUrl, 0, $pos);
@@ -736,7 +742,7 @@ class DatabaseBuilder
 
         $parts = parse_url($remoteUrl);
         if (!is_array($parts)) {
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection);
+            throw AdaptBuildException::remoteBuildUrlInvalid($origUrl);
         }
 
         $origPath = $parts['path'] ?? '';
@@ -815,7 +821,7 @@ class DatabaseBuilder
             function () use ($path) {
                 return $this->di->filesystem->size($path);
             },
-            $this->config->invalidationGraceSeconds
+            $this->config->staleGraceSeconds
         );
         $snapshotMetaInfo->setDeleteCallback(function () use ($snapshotMetaInfo) {
             return $this->removeSnapshotFile($snapshotMetaInfo);

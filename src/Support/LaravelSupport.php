@@ -93,4 +93,37 @@ class LaravelSupport
         }
         return [];
     }
+
+    /**
+     * Look at the seeder properties and config value, and determine what the seeders should be.
+     *
+     * @param boolean $hasSeedersProp Whether the test has the $seeders property or not.
+     * @param mixed   $seedersProp    The $seeders property.
+     * @param boolean $hasSeedProp    Whether the test has the $seed property or not.
+     * @param mixed   $seedProp       The $seed property.
+     * @param mixed   $seedersConfig  The code_distortion.adapt.seeders Laravel config value.
+     * @return string[]
+     */
+    public static function resolveSeeders(
+        $hasSeedersProp,
+        $seedersProp,
+        $hasSeedProp,
+        $seedProp,
+        $seedersConfig
+    ): array {
+
+        // use the $seeders property first if it exists
+        if ($hasSeedersProp) {
+            $seeders = $seedersProp;
+        // use the default DatabaseSeeder when $seed is truthy
+        // or none if $seed exists and is falsey
+        } elseif ($hasSeedProp) {
+            $seeders = $seedProp ? 'Database\\Seeders\\DatabaseSeeder' : [];
+        // fall back to the seeders
+        } else {
+            $seeders = $seedersConfig;
+        }
+        $seeders = is_string($seeders) ? [$seeders] : $seeders;
+        return is_array($seeders) ? $seeders : [];
+    }
 }

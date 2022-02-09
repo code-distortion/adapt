@@ -12,6 +12,9 @@ class Settings
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
+    /** @var string The test-class method that can be added to define a custom way of building the databases. */
+    const CUSTOM_BUILD_METHOD = 'databaseInit';
+
     /** @var string The table that contains Adapt's re-use meta-information. */
     const REUSE_TABLE = '____adapt____';
 
@@ -30,11 +33,11 @@ class Settings
     /** @var string The http-header used to pass database connection details to other Adapt installations. */
     const SHARE_CONNECTIONS_HTTP_HEADER_NAME = 'adapt-connection-dbs';
 
-    /** @var string The name of the singleton that's registered with Laravel, containe the connection database list. */
+    /** @var string The name of the singleton that's registered with Laravel, contains the connection database list. */
     const SHARE_CONNECTIONS_SINGLETON_NAME = 'adapt-connection-dbs';
 
-    /** @var integer The number of seconds grace-period before invalid databases & snapshots are to be deleted. */
-    const DEFAULT_INVALIDATION_GRACE_SECONDS = 14400; // 4 hours
+    /** @var integer The number of seconds grace-period before stale databases & snapshots are to be deleted. */
+    const DEFAULT_STALE_GRACE_SECONDS = 14400; // 4 hours
 
     /**
      * A place for BootTestAbstract's first-test flag, which can't have its own

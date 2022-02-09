@@ -240,7 +240,7 @@ class LaravelSQLiteReuse implements ReuseInterface
             function () use ($name) {
                 return $this->size($name);
             },
-            $this->config->invalidationGraceSeconds
+            $this->config->staleGraceSeconds
         );
         $databaseMetaInfo->setDeleteCallback(function () use ($databaseMetaInfo) {
             return $this->removeDatabase($databaseMetaInfo);

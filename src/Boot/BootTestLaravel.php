@@ -179,7 +179,7 @@ class BootTestLaravel extends BootTestAbstract
             ->buildSettings(
                 $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->config('migrations', 'migrations'),
-                $this->propBag->config('seeders', 'seeders'),
+                $this->resolveSeeders(),
                 $this->propBag->config('remote_build_url', 'remoteBuildUrl'),
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
                 false
@@ -196,11 +196,27 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->config('database.pgsql.executables.psql'),
                 $this->propBag->config('database.pgsql.executables.pg_dump')
             )
-            ->invalidationGraceSeconds($this->propBag->config(
-                'invalidation_grace_seconds',
+            ->staleGraceSeconds($this->propBag->config(
+                'stale_grace_seconds',
                 null,
-                Settings::DEFAULT_INVALIDATION_GRACE_SECONDS
+                Settings::DEFAULT_STALE_GRACE_SECONDS
             ));
+    }
+
+    /**
+     * Look at the seeder properties and config value, and determine what the seeders should be.
+     *
+     * @return string[]
+     */
+    private function resolveSeeders(): array
+    {
+        return LaravelSupport::resolveSeeders(
+            $this->propBag->hasProp('seeders'),
+            $this->propBag->prop('seeders', null),
+            $this->propBag->hasProp('seed'),
+            $this->propBag->prop('seed', null),
+            config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
+        );
     }
 
     /**
@@ -295,7 +311,8 @@ class BootTestLaravel extends BootTestAbstract
         $path = "{$this->storageDir()}/$filename";
 
         $content = '<?php' . PHP_EOL
-            . 'return ' . var_export(Config::all(), true) . ';' . PHP_EOL;
+            . 'return ' . var_export(Config::all(), true) . ';'
+            . PHP_EOL;
 
         if (!(new Filesystem())->writeFile($path, 'w', $content)) {
             throw AdaptBrowserTestException::tempConfigFileNotSaved($path);
@@ -319,13 +336,13 @@ class BootTestLaravel extends BootTestAbstract
 
 
     /**
-     * Remove invalid databases, snapshots and orphaned config files.
+     * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function purgeInvalidThings()
+    public function purgeStaleThings()
     {
-        if (!$this->canPurgeInvalidThings()) {
+        if (!$this->canPurgeStaleThings()) {
             return;
         }
 
@@ -333,32 +350,32 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        $this->purgeInvalidDatabases();
-        $this->purgeInvalidSnapshots();
+        $this->purgeStaleDatabases();
+        $this->purgeStaleSnapshots();
         $this->removeOrphanedTempConfigFiles();
 
         $this->releaseMutexLock();
     }
 
     /**
-     * Work out if invalid things are allowed to be purged.
+     * Work out if stale things are allowed to be purged.
      *
      * @return boolean
      */
-    protected function canPurgeInvalidThings(): bool
+    protected function canPurgeStaleThings(): bool
     {
         if ($this->propBag->config('remote_build_url')) {
             return false;
         }
-        return (bool) $this->propBag->config('remove_invalid_things', null, true);
+        return (bool) $this->propBag->config('remove_stale_things', null, true);
     }
 
     /**
-     * Remove invalid databases.
+     * Remove stale databases.
      *
      * @return void
      */
-    private function purgeInvalidDatabases()
+    private function purgeStaleDatabases()
     {
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
@@ -377,11 +394,11 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Remove invalid snapshots.
+     * Remove stale snapshots.
      *
      * @return void
      */
-    private function purgeInvalidSnapshots()
+    private function purgeStaleSnapshots()
     {
         $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
