@@ -63,8 +63,8 @@ class LaravelSupportTest extends PHPUnitTestCase
         $seedProp,
         $seedersConfig,
         array $expectedOutcome
-    ): void
-    {
+    ): void {
+
         $seeders = LaravelSupport::resolveSeeders(
             $hasSeedersProp,
             $seedersProp,
