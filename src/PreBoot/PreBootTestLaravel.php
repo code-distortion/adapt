@@ -66,9 +66,9 @@ class PreBootTestLaravel
      */
     public function adaptSetUp(): void
     {
-        $this->adaptPrepareLaravelConfig();
+        $this->prepareLaravelConfig();
 
-        $this->adaptBootTestLaravel = $this->adaptBuildBootObject();
+        $this->adaptBootTestLaravel = $this->buildBootObject();
         $this->adaptBootTestLaravel->run();
     }
 
@@ -89,14 +89,14 @@ class PreBootTestLaravel
 
 
     /**
-     * Update the Laravel config ready for the tests to run.
+     * Update the Laravel's own config ready for the tests to run.
      *
      * @return void
      */
-    private function adaptPrepareLaravelConfig(): void
+    private function prepareLaravelConfig(): void
     {
-        $this->adaptInitLaravelDefaultConnection();
-        $this->adaptRemapLaravelDBConnections();
+        $this->initLaravelDefaultConnection();
+        $this->remapLaravelDBConnections();
     }
 
     /**
@@ -105,7 +105,7 @@ class PreBootTestLaravel
      * @return void
      * @throws AdaptConfigException Thrown when the desired default connection doesn't exist.
      */
-    private function adaptInitLaravelDefaultConnection(): void
+    private function initLaravelDefaultConnection(): void
     {
         if (!$this->propBag->hasProp('defaultConnection')) {
             return;
@@ -124,9 +124,9 @@ class PreBootTestLaravel
      *
      * @return void
      */
-    private function adaptRemapLaravelDBConnections(): void
+    private function remapLaravelDBConnections(): void
     {
-        foreach ($this->adaptParseRemapDBStrings() as $dest => $src) {
+        foreach ($this->parseRemapDBStrings() as $dest => $src) {
             $replacement = config("database.connections.$src");
             config(["database.connections.$dest" => $replacement]);
         }
@@ -139,13 +139,13 @@ class PreBootTestLaravel
      *
      * @return array
      */
-    private function adaptParseRemapDBStrings(): array
+    private function parseRemapDBStrings(): array
     {
         return array_merge(
-            $this->adaptParseRemapDBString($this->propBag->config('remap_connections'), null, true),
-            $this->adaptParseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
-            $this->adaptParseRemapDBString($this->propBag->config('remap_connections'), true, true),
-            $this->adaptParseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
+            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
+            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
         );
     }
 
@@ -158,7 +158,7 @@ class PreBootTestLaravel
      * @return array
      * @throws AdaptConfigException Thrown when the string can't be interpreted.
      */
-    private function adaptParseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
+    private function parseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
     {
         if (is_null($remapString)) {
             return [];
@@ -204,7 +204,7 @@ class PreBootTestLaravel
      *
      * @return BootTestInterface
      */
-    private function adaptBuildBootObject(): BootTestInterface
+    private function buildBootObject(): BootTestInterface
     {
         return (new BootTestLaravel())
             ->testName(get_class($this) . '::' . $this->testName)
