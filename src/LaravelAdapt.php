@@ -84,9 +84,9 @@ trait LaravelAdapt
      *
      * @var boolean|string
      */
-//    protected $migrations = true;
+//    protected bool $migrations = true;
 //    or
-//    protected $migrations = 'database/migrations';
+//    protected string $migrations = 'database/migrations';
 
     /**
      * Specify the seeders to run (they will only be run if migrations are
@@ -94,6 +94,8 @@ trait LaravelAdapt
      *
      * @var string|string[]
      */
+//    protected string $seeders = 'DatabaseSeeder';
+//    or
 //    protected array $seeders = ['DatabaseSeeder'];
 
     /**

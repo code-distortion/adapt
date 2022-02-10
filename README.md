@@ -451,9 +451,9 @@ class MyFeatureTest extends TestCase
      *
      * @var boolean|string
      */
-    protected $migrations = true;
+    protected bool $migrations = true;
 //    or
-//    protected $migrations = 'database/migrations';
+//    protected string $migrations = 'database/migrations';
 
     /**
      * Specify the seeders to run (they will only be run if migrations are
@@ -461,7 +461,9 @@ class MyFeatureTest extends TestCase
      *
      * @var string|string[]
      */
-    protected array $seeders = ['DatabaseSeeder'];
+    protected string $seeders = 'DatabaseSeeder';
+//    or
+//    protected array $seeders = ['DatabaseSeeder'];
 
     /**
      * Overwrite the details of certain database connections with values from
