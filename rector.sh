@@ -5,7 +5,7 @@ rm -rf _config _src
 cp -pr config _config
 cp -pr src _src
 
-./vendor/bin/rector process _src _config
+./vendor/bin/rector process --clear-cache _src _config
 ./vendor/bin/phpcbf _src _config
 sed -i 's/: self//' _src/Boot/BootCommandInterface.php
 sed -i 's/: self//' _src/Boot/BootCommandLaravel.php
