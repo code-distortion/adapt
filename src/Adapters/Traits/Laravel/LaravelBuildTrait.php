@@ -115,36 +115,37 @@ trait LaravelBuildTrait
     /**
      * Account for the old, no-namespace version of the default DatabaseSeeder.
      *
+     * When $seed = true, Adapt picks the Database\Seeders\DatabaseSeeder class.
+     * This won't exist for older versions of Laravel which didn't use a namespace
+     * for seeders. This will account for that.
+     *
      * @param string $seeder The seeder to be called.
      * @return string
      */
     private function resolveSeeder(string $seeder): string
     {
-        if ($this->isSeeder($seeder)) {
+        if (class_exists($seeder)) {
             return $seeder;
         }
 
+        $prefix = "\\Database\\Seeders\\";
+
         // e.g. turn "DatabaseSeeder" in to "Database\Seeders\DatabaseSeeder"
-        if (mb_strpos($seeder, '\\') === false) {
-            $newSeeder = "Database\\Seeders\\$seeder";
-            return $this->isSeeder($newSeeder) ? $newSeeder : $seeder;
+        $tempSeeder = ltrim($seeder, '\\');
+        if (mb_strpos($tempSeeder, '\\') === false) {
+            $newSeeder = $prefix . $tempSeeder;
+            return class_exists($newSeeder) ? $newSeeder : $seeder;
         }
 
         // e.g. turn "Database\Seeders\DatabaseSeeder" in to "DatabaseSeeder"
-        $temp = explode('\\', $seeder);
-        $newSeeder = end($temp);
-        return $this->isSeeder($newSeeder) ? $newSeeder : $seeder;
-    }
+        $tempSeeder = '\\' . ltrim($seeder, '\\');
+        if (mb_strpos($tempSeeder, $prefix) === 0) {
+            $newSeeder = mb_substr($tempSeeder, mb_strlen($prefix));
+            $newSeeder = '\\' . ltrim($newSeeder, '\\');
+            return class_exists($newSeeder) ? $newSeeder : $seeder;
+        }
 
-    /**
-     * Check if the class exists and is a Seeder.
-     *
-     * @param string $class The class to check.
-     * @return boolean
-     */
-    private function isSeeder(string $class): bool
-    {
-        return is_a($class, Seeder::class, true);
+        return $seeder;
     }
 
     /**
