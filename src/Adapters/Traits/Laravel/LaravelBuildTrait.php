@@ -41,7 +41,7 @@ trait LaravelBuildTrait
             $this->di->db->dropAllTables();
         }
 
-        $this->di->log->info('Wiped database', $logTimer);
+        $this->di->log->info('Wiped the database', $logTimer);
     }
 
     /**

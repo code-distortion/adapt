@@ -128,7 +128,6 @@ abstract class BootTestAbstract implements BootTestInterface
     {
         if (Settings::$isFirstTest) {
             Settings::$isFirstTest = false;
-            $this->newLog()->info('==== Adapt initialisation ================');
             $this->purgeStaleThings();
         }
 

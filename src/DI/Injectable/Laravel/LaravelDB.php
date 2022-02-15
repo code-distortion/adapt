@@ -38,6 +38,17 @@ class LaravelDB
         return $this->connection;
     }
 
+    /**
+     * Get the current connection's host (if relevant).
+     *
+     * @return ?string
+     */
+    public function getHost(): ?string
+    {
+        $connection ??= $this->connection;
+        return LaravelSupport::configString("database.connections.$connection.host");
+    }
+
 
 
     /**

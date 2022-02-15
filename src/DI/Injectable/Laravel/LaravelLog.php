@@ -57,6 +57,18 @@ class LaravelLog implements LogInterface
     }
 
     /**
+     * Display some debug output - ERROR level.
+     *
+     * @param string       $message  The message to show.
+     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @return void
+     */
+    public function error(string $message, int $timerRef = null): void
+    {
+        $this->output('error', $this->buildMessage($message, $timerRef));
+    }
+
+    /**
      * Actually log the message to the desired locations.
      *
      * @param string $logLevel The level to log the message at.

@@ -50,7 +50,7 @@ class LaravelMySQLBuild implements BuildInterface
             )
         );
 
-        $this->di->log->info('Created database', $logTimer);
+        $this->di->log->info('Created the database', $logTimer);
     }
 
     /**

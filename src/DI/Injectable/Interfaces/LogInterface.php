@@ -26,6 +26,15 @@ interface LogInterface
     public function warning(string $message, int $timerRef = null): void;
 
     /**
+     * Display some debug output - ERROR level.
+     *
+     * @param string       $message  The message to show.
+     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @return void
+     */
+    public function error(string $message, int $timerRef = null): void;
+
+    /**
      * Create a new timer and return a reference to it.
      *
      * @return integer

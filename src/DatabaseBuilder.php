@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
@@ -19,8 +20,11 @@ use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use PDOException;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -125,9 +129,35 @@ class DatabaseBuilder
      */
     public function execute(): self
     {
-        $this->onlyExecuteOnce();
-        $this->prepareDB();
-        return $this;
+        try {
+
+            $this->onlyExecuteOnce();
+            $this->prepareDB();
+            return $this;
+
+        } catch (Throwable $e) {
+
+            $exceptionClass = $this->resolveExceptionClass($e);
+            $this->di->log->error("$exceptionClass: {$e->getMessage()}");
+            throw $e;
+        }
+    }
+
+    /**
+     * Resolve a readable name for an exception.
+     *
+     * @param Throwable $e The exception that was thrown.
+     * @return string
+     */
+    private function resolveExceptionClass(Throwable $e): string
+    {
+        $exceptionClass = get_class($e);
+        if (!is_a($e, AdaptException::class)) {
+            return $exceptionClass;
+        }
+
+        $temp = explode('\\', $exceptionClass);
+        return array_pop($temp);
     }
 
     /**
@@ -282,11 +312,15 @@ class DatabaseBuilder
      */
     private function prepareDB(): void
     {
-        $this->di->log->info("---- Preparing a database for test: {$this->config->testName} ----------------");
+        $logTimer = $this->di->log->newTimer();
+        $this->logTitle();
 
         $this->shouldBuildRemotely()
             ? $this->buildDBRemotely()
             : $this->buildDBLocally();
+
+        $this->di->log->info('Total preparation time', $logTimer);
+        $this->di->log->info('');
     }
 
     /**
@@ -298,6 +332,7 @@ class DatabaseBuilder
     private function buildDBLocally(): void
     {
         $this->initialise();
+        $this->logSettingsUsed($this->pickDatabaseName());
         $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDBLocally();
     }
@@ -325,8 +360,6 @@ class DatabaseBuilder
         }
 
         $this->pickDriver();
-
-        $this->di->log->info("Using connection \"{$this->config->connection}\" (driver \"{$this->config->driver}\")");
     }
 
     /**
@@ -350,16 +383,17 @@ class DatabaseBuilder
      */
     private function pickDatabaseName(): string
     {
-        // generate a new name
-        if ($this->usingScenarioTestDBs()) {
-            $dbNameHash = $this->hasher->generateDBNameHash(
-                $this->config->pickSeedersToInclude(),
-                $this->config->databaseModifier
-            );
-            return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
+        // return the original name
+        if (!$this->usingScenarioTestDBs()) {
+            $this->origDBName();
         }
-        // or return the original name
-        return $this->origDBName();
+
+        // or generate a new name
+        $dbNameHash = $this->hasher->generateDBNameHash(
+            $this->config->pickSeedersToInclude(),
+            $this->config->databaseModifier
+        );
+        return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
     }
 
     /**
@@ -436,8 +470,7 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->di->log->info('Building database…');
-        $logTimer = $this->di->log->newTimer();
+        $this->di->log->info('Building the database…');
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
@@ -451,8 +484,6 @@ class DatabaseBuilder
         } else {
             $this->buildDBFromScratch();
         }
-
-        $this->di->log->info('Database total build time', $logTimer);
     }
 
     /**
@@ -577,7 +608,7 @@ class DatabaseBuilder
 
         $this->writeReuseMetaData($this->dbWillBeReusable()); // put the meta-table back
 
-        $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
+        $this->di->log->info('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
 
     /**
@@ -678,12 +709,12 @@ class DatabaseBuilder
      */
     private function buildDBRemotely(): void
     {
-        $this->di->log->info("Building a database for connection \"{$this->config->connection}\" remotely…");
+        $this->di->log->info("Building the database remotely…");
         $logTimer = $this->di->log->newTimer();
 
         $database = $this->sendBuildRemoteRequest();
 
-        $this->di->log->info("Database \"$database\" was built. Remote build time", $logTimer);
+        $this->di->log->info("Database \"$database\" was built or reused. Remote preparation time", $logTimer);
 
         if (!$this->shouldInitialise()) {
             $this->config->database($database);
@@ -692,6 +723,7 @@ class DatabaseBuilder
         }
 
         $this->initialise();
+        $this->logSettingsUsed($database);
         $this->useDatabase($database);
     }
 
@@ -703,25 +735,54 @@ class DatabaseBuilder
      */
     private function sendBuildRemoteRequest(): string
     {
-        try {
+        $url = $this->buildRemoteUrl();
+        $httpClient = new HttpClient(['timeout' => 60 * 10]);
+        $data = ['configDTO' => serialize(get_object_vars($this->config))];
 
-            $httpClient = new HttpClient(['timeout' => 60 * 10]);
-            $data = ['configDTO' => serialize(get_object_vars($this->config))];
+        try {
             $response = $httpClient->post(
                 $this->buildRemoteUrl(),
                 ['form_params' => $data]
             );
-
-            $database = (string) $response->getBody();
-            return $database;
-
         } catch (GuzzleException $e) {
-            $remoteMessage = $e->getResponse()->getBody()->getContents();
-
-            $this->di->log->info("Failed to build database for connection \"{$this->config->connection}\" - Remote error message: \"$remoteMessage\"");
-
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $remoteMessage, $e);
+            $extraDetails = $this->interpretSendRemoteException($url, $e);
+//            $this->di->log->info("Remote build failed - $extraDetails");
+            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $extraDetails, $e);
         }
+
+        $database = (string) $response->getBody();
+        return $database;
+    }
+
+    /**
+     * Generate a readable string of text based on a GuzzleException.
+     *
+     * @param string          $url The remote-build url.
+     * @param GuzzleException $e   The exception that occurred.
+     * @return string
+     */
+    private function interpretSendRemoteException(string $url, GuzzleException $e): string
+    {
+        $responseMessage = null;
+        if (method_exists($e, 'getResponse')) {
+            /** @var ResponseInterface $response */
+            $response = $e->getResponse();
+            $responseMessage = $response->getBody()->getContents();
+            $responseMessage = mb_strlen($responseMessage) > 200
+                ? mb_substr($responseMessage, 0, 200) . '…'
+                : $responseMessage;
+        }
+
+        if ($e instanceof ConnectException) {
+            return "Could not connect to $url";
+        } elseif ($e instanceof BadResponseException) {
+            return $responseMessage
+                ? "$url ({$e->getCode()}) - remote error message: \"{$responseMessage}\""
+                : "$url ({$e->getCode()})";
+        } elseif (!is_null($responseMessage)) {
+            return "Remote error message: \"{$responseMessage}\"";
+        }
+        return "Unknown error";
     }
 
     /**
@@ -955,5 +1016,107 @@ class DatabaseBuilder
             $previous = $previous->getPrevious();
         } while ($previous);
         return $e;
+    }
+
+
+
+
+
+    /**
+     * Log the details about the settings being used.
+     *
+     * @param string $database The database being used.
+     * @return void
+     */
+    private function logSettingsUsed(string $database): void
+    {
+        $host = $this->di->db->getHost();
+        $lines = array_filter([
+            'Project' => $this->config->projectName ? "\"{$this->config->projectName}\"": 'n/a',
+            'Connection' => "\"{$this->config->connection}\"",
+            'Driver' => "\"{$this->config->driver}\"",
+            'Host' => $host ? "\"{$host}\"" : null,
+            'Database' => "\"{$database}\"",
+        ]);
+        $lines = $this->padList($lines);
+
+        $this->di->log->info('Resolved Settings:');
+        foreach ($lines as $line) {
+            $this->di->log->info(" - $line");
+        }
+    }
+
+    /**
+     * Log the title line.
+     *
+     * @return void
+     */
+    private function logTitle(): void
+    {
+        if ($this->shouldBuildRemotely()) {
+            $prepLine = "Preparing the \"{$this->config->connection}\" database remotely";
+        } else if ($this->config->isRemoteBuild) {
+            $prepLine = "Preparing the \"{$this->config->connection}\" database locally, for another Adapt installation";
+        } else {
+            $prepLine = "Preparing the \"{$this->config->connection}\" database";
+        }
+
+        $this->logBox([
+            $prepLine,
+            "For test \"{$this->config->testName}\"",
+        ]);
+    }
+
+    /**
+     * Log some lines in a box
+     *
+     * @param string|string[] $lines The lines to log in a table.
+     * @param string|null     $title The title to add to the top line.
+     * @return void
+     */
+    private function logBox($lines, ?string $title = null): void
+    {
+        $lines = !is_array($lines) ? [$lines] : $lines;
+
+        if (!count(array_filter($lines))) {
+            return;
+        }
+
+        $title = mb_strlen($title) ? " $title " : '';
+
+        $maxLength = mb_strlen($title);
+        foreach ($lines as $line) {
+            $maxLength = max($maxLength, mb_strlen($line));
+        }
+
+        $this->di->log->info('┌──' . $title . str_repeat('─', $maxLength - mb_strlen($title)) . '┐');
+
+        foreach ($lines as $line) {
+            $line = str_pad($line, $maxLength, ' ', STR_PAD_RIGHT);
+            $this->di->log->info("│ $line │");
+        }
+
+        $this->di->log->info('└' . str_repeat('─', $maxLength + 2) . '┘');
+    }
+
+    /**
+     * Add the array keys to the values,  padded based on the length of the longest key.
+     *
+     * @param array<string, string> $lines The lines to process
+     * @return void
+     */
+    private function padList(array $lines): array
+    {
+        $maxLength = 0;
+        foreach (array_keys($lines) as $key) {
+            $maxLength = max($maxLength, mb_strlen($key));
+        }
+
+        $newLines = [];
+        foreach ($lines as $key => $line) {
+            $newLines[$key] = str_pad("$key:", $maxLength + 2, ' ', STR_PAD_RIGHT) . $line;
+        }
+
+        return $newLines;
     }
 }

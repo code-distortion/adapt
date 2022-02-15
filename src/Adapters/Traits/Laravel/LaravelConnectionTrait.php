@@ -27,8 +27,9 @@ trait LaravelConnectionTrait
      */
     protected function laravelUseDatabase(string $database): void
     {
-        $connection = $this->config->connection;
         $this->config->database($database);
+
+        $connection = $this->config->connection;
         if (config("database.connections.$connection.database") != $database) {
             config(["database.connections.$connection.database" => $database]);
             $this->di->log->info('Changed the database for connection "' . $connection . '" to "' . $database . '"');

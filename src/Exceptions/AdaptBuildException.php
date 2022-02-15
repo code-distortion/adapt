@@ -75,13 +75,13 @@ class AdaptBuildException extends AdaptException
      * The request to build a database remotely failed.
      *
      * @param string         $connection        The connection the database was being built for.
-     * @param string         $remoteMessage     The message given by the remote installation of Adapt.
+     * @param string         $extraDetails      The extra details or message about the exception.
      * @param Throwable|null $originalException The originally thrown exception.
      * @return self
      */
-    public static function remoteBuildFailed(string $connection, string $remoteMessage, ?Throwable $originalException = null): self
+    public static function remoteBuildFailed(string $connection, string $extraDetails, ?Throwable $originalException = null): self
     {
-        $message = "The remote database for connection \"$connection\" could not be built - Remote error message: \"$remoteMessage\"";
+        $message = "The remote database for connection \"$connection\" could not be built - $extraDetails";
         return $originalException
             ? new self($message, 0, $originalException)
             : new self($message);
