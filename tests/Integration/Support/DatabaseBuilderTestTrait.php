@@ -110,7 +110,7 @@ trait DatabaseBuilderTestTrait
                 [DatabaseSeeder::class],
                 null,
                 false,
-                false
+                false,
             )
             ->cacheTools(true, true)
             ->snapshots(false, 'afterMigrations')

@@ -182,11 +182,11 @@ class BootTestLaravel extends BootTestAbstract
                 $this->resolveSeeders(),
                 $this->propBag->config('remote_build_url', 'remoteBuildUrl'),
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
-                false
+                false,
             )
             ->cacheTools(
                 $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs')
+                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'),
             )
             ->snapshots(
                 $this->propBag->config('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
@@ -194,16 +194,16 @@ class BootTestLaravel extends BootTestAbstract
             )
             ->mysqlSettings(
                 $this->propBag->config('database.mysql.executables.mysql'),
-                $this->propBag->config('database.mysql.executables.mysqldump')
+                $this->propBag->config('database.mysql.executables.mysqldump'),
             )
             ->postgresSettings(
                 $this->propBag->config('database.pgsql.executables.psql'),
-                $this->propBag->config('database.pgsql.executables.pg_dump')
+                $this->propBag->config('database.pgsql.executables.pg_dump'),
             )
             ->staleGraceSeconds($this->propBag->config(
                 'stale_grace_seconds',
                 null,
-                Settings::DEFAULT_STALE_GRACE_SECONDS
+                Settings::DEFAULT_STALE_GRACE_SECONDS,
             ));
     }
 

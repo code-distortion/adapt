@@ -119,11 +119,11 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.seeders"),
                 config("$c.remote_build_url"),
                 false,
-                false
+                false,
             )
             ->cacheTools(
                 config("$c.reuse_test_dbs"),
-                config("$c.scenario_test_dbs")
+                config("$c.scenario_test_dbs"),
             )
             ->snapshots(
                 config("$c.use_snapshots_when_reusing_db"),
@@ -131,14 +131,14 @@ class BootCommandLaravel extends BootCommandAbstract
             )
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
-                config("$c.database.mysql.executables.mysqldump")
+                config("$c.database.mysql.executables.mysqldump"),
             )
             ->postgresSettings(
                 config("$c.database.pgsql.executables.psql"),
-                config("$c.database.pgsql.executables.pg_dump")
+                config("$c.database.pgsql.executables.pg_dump"),
             )
             ->staleGraceSeconds(
-                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
+                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS),
             );
     }
 

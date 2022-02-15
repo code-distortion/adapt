@@ -122,11 +122,11 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 $remoteConfig->seeders,
                 null, // don't forward again
                 $remoteConfig->isBrowserTest,
-                true // yes, a remote database is being built here now, locally
+                true, // yes, a remote database is being built here now, locally
             )
             ->cacheTools(
                 $remoteConfig->reuseTestDBs,
-                $remoteConfig->scenarioTestDBs
+                $remoteConfig->scenarioTestDBs,
             )
             ->snapshots(
                 $remoteConfig->useSnapshotsWhenReusingDB,
@@ -134,14 +134,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             )
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
-                config("$c.database.mysql.executables.mysqldump")
+                config("$c.database.mysql.executables.mysqldump"),
             )
             ->postgresSettings(
                 config("$c.database.pgsql.executables.psql"),
-                config("$c.database.pgsql.executables.pg_dump")
+                config("$c.database.pgsql.executables.pg_dump"),
             )
             ->staleGraceSeconds(
-                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
+                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS),
             );
     }
 
