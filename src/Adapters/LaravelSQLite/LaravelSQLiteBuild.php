@@ -65,7 +65,7 @@ class LaravelSQLiteBuild implements BuildInterface
         $this->di->filesystem->unlink((string) $this->config->database);
         $this->createDB();
 
-        $this->di->log->info('Wiped the database', $logTimer);
+        $this->di->log->debug('Wiped the database', $logTimer);
     }
 
     /**
@@ -83,7 +83,7 @@ class LaravelSQLiteBuild implements BuildInterface
 
         $this->di->filesystem->touch((string) $this->config->database);
 
-        $this->di->log->info('Created the database', $logTimer);
+        $this->di->log->debug('Created the database', $logTimer);
     }
 
     /**

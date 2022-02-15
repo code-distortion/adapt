@@ -319,8 +319,8 @@ class DatabaseBuilder
             ? $this->buildDBRemotely()
             : $this->buildDBLocally();
 
-        $this->di->log->info('Total preparation time', $logTimer);
-        $this->di->log->info('');
+        $this->di->log->debug('Total preparation time', $logTimer);
+        $this->di->log->debug('');
     }
 
     /**
@@ -419,7 +419,7 @@ class DatabaseBuilder
 
         try {
             if ($this->canReuseDB()) {
-                $this->di->log->info('Reusing the existing database', $logTimer);
+                $this->di->log->debug('Reusing the existing database', $logTimer);
             } else {
                 $this->buildDBFresh();
             }
@@ -470,7 +470,7 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->di->log->info('Building the database…');
+        $this->di->log->debug('Building the database…');
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
@@ -608,7 +608,7 @@ class DatabaseBuilder
 
         $this->writeReuseMetaData($this->dbWillBeReusable()); // put the meta-table back
 
-        $this->di->log->info('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
 
     /**
@@ -634,7 +634,7 @@ class DatabaseBuilder
         foreach ($preMigrationDumps as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->info('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
+            $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -685,18 +685,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - not found', $logTimer);
+            $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - FAILED', $logTimer);
+            $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
 
-        $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
@@ -709,16 +709,16 @@ class DatabaseBuilder
      */
     private function buildDBRemotely(): void
     {
-        $this->di->log->info("Building the database remotely…");
+        $this->di->log->debug("Building the database remotely…");
         $logTimer = $this->di->log->newTimer();
 
         $database = $this->sendBuildRemoteRequest();
 
-        $this->di->log->info("Database \"$database\" was built or reused. Remote preparation time", $logTimer);
+        $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer);
 
         if (!$this->shouldInitialise()) {
             $this->config->database($database);
-            $this->di->log->info("Not using connection \"{$this->config->connection}\" locally");
+            $this->di->log->debug("Not using connection \"{$this->config->connection}\" locally");
             return;
         }
 
@@ -897,7 +897,7 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-            $this->di->log->info(
+            $this->di->log->debug(
                 'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
                 $logTimer
             );
@@ -1040,9 +1040,9 @@ class DatabaseBuilder
         ]);
         $lines = $this->padList($lines);
 
-        $this->di->log->info('Resolved Settings:');
+        $this->di->log->debug('Resolved Settings:');
         foreach ($lines as $line) {
-            $this->di->log->info(" - $line");
+            $this->di->log->debug(" - $line");
         }
     }
 
@@ -1089,14 +1089,14 @@ class DatabaseBuilder
             $maxLength = max($maxLength, mb_strlen($line));
         }
 
-        $this->di->log->info('┌──' . $title . str_repeat('─', $maxLength - mb_strlen($title)) . '┐');
+        $this->di->log->debug('┌──' . $title . str_repeat('─', $maxLength - mb_strlen($title)) . '┐');
 
         foreach ($lines as $line) {
             $line = str_pad($line, $maxLength, ' ', STR_PAD_RIGHT);
-            $this->di->log->info("│ $line │");
+            $this->di->log->debug("│ $line │");
         }
 
-        $this->di->log->info('└' . str_repeat('─', $maxLength + 2) . '┘');
+        $this->di->log->debug('└' . str_repeat('─', $maxLength + 2) . '┘');
     }
 
     /**

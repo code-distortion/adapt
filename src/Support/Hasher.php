@@ -65,7 +65,7 @@ class Hasher
 
         $sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
 
-        $this->di->log->info('Generated a hash of the database-related files', $logTimer);
+        $this->di->log->debug('Generated a hash of the database-related files', $logTimer);
 
         return $sourceFilesHash;
     }

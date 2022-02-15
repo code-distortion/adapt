@@ -41,7 +41,7 @@ trait LaravelBuildTrait
             $this->di->db->dropAllTables();
         }
 
-        $this->di->log->info('Wiped the database', $logTimer);
+        $this->di->log->debug('Wiped the database', $logTimer);
     }
 
     /**
@@ -75,7 +75,7 @@ trait LaravelBuildTrait
             ])
         );
 
-        $this->di->log->info('Ran migrations', $logTimer);
+        $this->di->log->debug('Ran migrations', $logTimer);
     }
 
     /**
@@ -108,7 +108,7 @@ trait LaravelBuildTrait
                 throw AdaptBuildException::seederFailed($seeder, $e);
             }
 
-            $this->di->log->info('Ran seeder "' . $seeder . '"', $logTimer);
+            $this->di->log->debug('Ran seeder "' . $seeder . '"', $logTimer);
         }
     }
 

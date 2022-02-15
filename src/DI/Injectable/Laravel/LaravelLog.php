@@ -33,15 +33,15 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - INFO level.
+     * Display some debug output - DEBUG level.
      *
      * @param string       $message  The message to show.
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info(string $message, int $timerRef = null): void
+    public function debug(string $message, int $timerRef = null): void
     {
-        $this->output('info', $this->buildMessage($message, $timerRef));
+        $this->output('debug', $this->buildMessage($message, $timerRef));
     }
 
     /**

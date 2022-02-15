@@ -259,7 +259,7 @@ class LaravelSQLiteReuse implements ReuseInterface
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($databaseMetaInfo->name)) {
-            $this->di->log->info(
+            $this->di->log->debug(
                 'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
                 $logTimer
             );
