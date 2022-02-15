@@ -17,6 +17,9 @@ class PreBootTestLaravel
     /** @var BootTestInterface The object used to boot Adapt. */
     public BootTestInterface $adaptBootTestLaravel;
 
+    /** @var string The class the current test is in. */
+    private string $testClass;
+
     /** @var string The name of the current test. */
     private string $testName;
 
@@ -37,6 +40,7 @@ class PreBootTestLaravel
     /**
      * Constructor.
      *
+     * @param string        $testClass               The class the current test is in.
      * @param string        $testName                The name of the current test.
      * @param PropBagDTO    $propBag                 The properties specified in the test-class.
      * @param callable      $buildTransactionClosure The closure to call to set up the database transaction.
@@ -44,12 +48,14 @@ class PreBootTestLaravel
      * @param boolean       $isBrowserTest           Whether the current test is a browser test or not.
      */
     public function __construct(
+        string $testClass,
         string $testName,
         PropBagDTO $propBag,
         callable $buildTransactionClosure,
         ?callable $buildInitCallback,
         bool $isBrowserTest
     ) {
+        $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
         $this->buildTransactionClosure = $buildTransactionClosure;
@@ -207,7 +213,7 @@ class PreBootTestLaravel
     private function buildBootObject(): BootTestInterface
     {
         return (new BootTestLaravel())
-            ->testName(get_class($this) . '::' . $this->testName)
+            ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
             ->transactionClosure($this->buildTransactionClosure)

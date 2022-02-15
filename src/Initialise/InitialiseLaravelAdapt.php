@@ -144,6 +144,7 @@ trait InitialiseLaravelAdapt
         // create a new pre-boot object to perform the boot work
         // allowing this trait to not contain so many things
         $this->adaptPreBootTestLaravel = new PreBootTestLaravel(
+            get_class($this),
             $this->getName(),
             $propBag,
             $buildTransactionClosure,
