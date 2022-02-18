@@ -107,6 +107,7 @@ class PreBootTestLaravel
     private function prepareLaravelConfig(): void
     {
         $this->initLaravelDefaultConnection();
+        $this->undoSessionDriverOverride();
         $this->remapLaravelDBConnections();
     }
 
@@ -128,6 +129,25 @@ class PreBootTestLaravel
         }
 
         config(['database.default' => $connection]);
+    }
+
+    /**
+     * Laravel sets the session driver to "array" during tests, but it doesn't when "php artisan dusk". This way,
+     * "loginAs" works because the session data can persist in the database.
+     *
+     * This method "un-does" Laravel's override of the session driver when browser testing, so that loginAs works when
+     * running "php artisan test" or "./vendor/bin/phpunit", instead of having to run "php artisan dusk".
+     *
+     * @return void
+     */
+    private function undoSessionDriverOverride(): void
+    {
+        if (!$this->isBrowserTest) {
+            return;
+        }
+
+        $envFile = base_path(Settings::ENV_TESTING_FILE);
+        (new ReloadLaravelConfig())->reload($envFile, ['session']);
     }
 
     /**
