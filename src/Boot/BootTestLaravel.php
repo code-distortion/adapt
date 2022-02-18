@@ -17,15 +17,14 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Support\LaravelSupport;
-use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Support\Hasher;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
-use Illuminate\Support\Facades\Config;
+use CodeDistortion\Adapt\Support\StorageDir;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Config;
 use Laravel\Dusk\Browser;
 use PDOException;
 
@@ -242,11 +241,9 @@ class BootTestLaravel extends BootTestAbstract
      * @param array<string,string> $connectionDatabases The connections and the databases created for them.
      * @return void
      */
-    protected function registerConnectionDBsWithFramework(array $connectionDatabases): void
+    protected function registerPreparedConnectionDBsWithFramework(array $connectionDatabases): void
     {
-        /** @var Application $app */
-        $app = app();
-        $app->singleton(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
+        LaravelSupport::registerPreparedConnectionDBsWithFramework($connectionDatabases);
     }
 
 
@@ -254,10 +251,12 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
      *
-     * @param Browser[] $browsers The browsers to update with the current config.
+     * @param Browser[]             $browsers              The browsers to update with the current config.
+     * @param array<string, string> $preparedConnectionDBs The list of connections that have been prepared,
+     *                                                     and their corresponding databases from the framework.
      * @return void
      */
-    public function getBrowsersToPassThroughCurrentConfig(array $browsers): void
+    public function getBrowsersToPassThroughCurrentConfig(array $browsers, array $preparedConnectionDBs): void
     {
         if (!count($browsers)) {
             return;
@@ -276,8 +275,16 @@ class BootTestLaravel extends BootTestAbstract
             }
 
             $browser->addCookie(
-                Settings::CONFIG_COOKIE,
+                Settings::SHARE_CONFIG_KEY,
                 base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
+                null,
+                [],
+                false
+            );
+
+            $browser->addCookie(
+                Settings::SHARE_CONNECTION_DB_LIST_KEY,
+                base64_encode(serialize($preparedConnectionDBs)),
                 null,
                 [],
                 false

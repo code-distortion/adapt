@@ -8,8 +8,8 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
@@ -180,7 +180,7 @@ trait InitialiseLaravelAdapt
      */
     protected function newBuilder(string $connection): DatabaseBuilder
     {
-        return $this->adaptPreBootTestLaravel->adaptBootTestLaravel->newBuilder($connection);
+        return $this->adaptPreBootTestLaravel->newBuilder($connection);
     }
 
 
@@ -220,7 +220,10 @@ trait InitialiseLaravelAdapt
             );
         }
 
-        $this->adaptPreBootTestLaravel->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+        $this->adaptPreBootTestLaravel->getBrowsersToPassThroughCurrentConfig(
+            $allBrowsers,
+            $this->adaptPreBootTestLaravel->buildPreparedConnectionDBsList()
+        );
     }
 
 
@@ -239,12 +242,7 @@ trait InitialiseLaravelAdapt
     public static function getShareConnectionsHeaders(bool $includeKey = false): array
     {
         // fetch the connection-databases list from Laravel
-        /** @var array|null $connectionDatabases */
-        try {
-            $connectionDatabases = app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
-        } catch (BindingResolutionException $e) {
-            $connectionDatabases = null;
-        }
+        $connectionDatabases = LaravelSupport::readPreparedConnectionDBsFromFramework();
 
 
 
@@ -254,14 +252,14 @@ trait InitialiseLaravelAdapt
         if (!is_null($connectionDatabases)) {
             $value = serialize($connectionDatabases);
             $value = $includeKey
-                ? Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME . ": $value"
+                ? Settings::SHARE_CONNECTION_DB_LIST_KEY . ": $value"
                 : $value;
         }
 
 
 
         return $value
-            ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]
+            ? [Settings::SHARE_CONNECTION_DB_LIST_KEY => $value]
             : [];
     }
 }

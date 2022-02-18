@@ -6,15 +6,14 @@ use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConfigMiddleware;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConnectionMiddleware;
+use CodeDistortion\Adapt\Laravel\Middleware\ShareConfigMiddleware;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Throwable;
 
 /**
@@ -120,13 +119,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         }
 
         foreach ($this->getMiddlewareGroups() as $middlewareGroup) {
-
-            // look for the cookie that conveys the recorded config to use
-            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConfigMiddleware::class);
-
-            // look for the header that remote installations of Adapt can add to indicate that database connections use
-            // particular databases.
-            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConnectionMiddleware::class);
+            $router->prependMiddlewareToGroup($middlewareGroup, ShareConfigMiddleware::class);
         }
     }
 
@@ -152,13 +145,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // this route bypasses all middleware
         $router->get(Settings::INITIAL_BROWSER_COOKIE_REQUEST_PATH, fn() => new Response());
 
-//        $router->group(['middleware' => $this->getMiddlewareGroups()], function (Router $router) {
-
-            // Adapt sends "remote build" requests to this url
-            $callback = fn(Request $request) => $this->handleBuildRequest($request);
-            $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
-
-//        });
+        // Adapt sends "remote build" requests to this url
+        $callback = fn(Request $request) => $this->handleBuildRequest($request);
+        $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
     }
 
 

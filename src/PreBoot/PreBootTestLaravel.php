@@ -4,8 +4,13 @@ namespace CodeDistortion\Adapt\PreBoot;
 
 use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
+use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
+use CodeDistortion\Adapt\Support\Settings;
+use CodeDistortion\FluentDotEnv\FluentDotEnv;
+use Laravel\Dusk\Browser;
 
 /**
  * Pre-Bootstrap for Laravel tests.
@@ -15,7 +20,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 class PreBootTestLaravel
 {
     /** @var BootTestInterface The object used to boot Adapt. */
-    public BootTestInterface $adaptBootTestLaravel;
+    private BootTestInterface $adaptBootTestLaravel;
 
     /** @var string The class the current test is in. */
     private string $testClass;
@@ -219,5 +224,44 @@ class PreBootTestLaravel
             ->transactionClosure($this->buildTransactionClosure)
             ->initCallback($this->buildInitCallback)
             ->ensureStorageDirExists();
+    }
+
+
+
+    /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    public function newBuilder(string $connection): DatabaseBuilder
+    {
+        return $this->adaptBootTestLaravel->newBuilder($connection);
+    }
+
+    /**
+     * Build the list of connections that Adapt has prepared, and their corresponding databases.
+     *
+     * @return array
+     */
+    public function buildPreparedConnectionDBsList(): array
+    {
+        return $this->adaptBootTestLaravel->buildPreparedConnectionDBsList();
+    }
+
+    /**
+     * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
+     *
+     * @param Browser[]             $browsers              The browsers to update with the current config.
+     * @param array<string, string> $preparedConnectionDBs The list of connections that have been prepared,
+     *                                                     and their corresponding databases from the framework.
+     * @return void
+     */
+    public function getBrowsersToPassThroughCurrentConfig(array $browsers, array $preparedConnectionDBs): void
+    {
+        $this->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($browsers, $preparedConnectionDBs);
     }
 }

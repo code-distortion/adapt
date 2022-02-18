@@ -168,15 +168,6 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function newDefaultBuilder(): DatabaseBuilder;
 
     /**
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
-     *
-     * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
-     */
-    abstract protected function newBuilder(string $connection): DatabaseBuilder;
-
-    /**
      * Execute the builders that this object created (i.e. build their databases).
      *
      * Any that have already been executed will be skipped.
@@ -216,15 +207,13 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Pick the connections' databases, and register them with the framework.
      *
+     * This is done so that user-land code can get the list. e.g. to include in headers to the
+     *
      * @return void
      */
     private function registerConnectionDBs(): void
     {
-        $connectionDatabases = [];
-        foreach ($this->builders as $builder) {
-            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
-        }
-        $this->registerConnectionDBsWithFramework($connectionDatabases);
+        $this->registerPreparedConnectionDBsWithFramework($this->buildPreparedConnectionDBsList());
     }
 
     /**
@@ -233,7 +222,21 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param array<string,string> $connectionDatabases The connections and the databases created for them.
      * @return void
      */
-    abstract protected function registerConnectionDBsWithFramework(array $connectionDatabases): void;
+    abstract protected function registerPreparedConnectionDBsWithFramework(array $connectionDatabases): void;
+
+    /**
+     * Build the list of connections that Adapt has prepared, and their corresponding databases.
+     *
+     * @return array
+     */
+    public function buildPreparedConnectionDBsList(): array
+    {
+        $connectionDatabases = [];
+        foreach ($this->builders as $builder) {
+            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
+        }
+        return $connectionDatabases;
+    }
 
     /**
      * Use the existing DIContainer, but build a default one if it hasn't been set.
