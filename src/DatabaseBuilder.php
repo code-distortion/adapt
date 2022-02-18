@@ -685,18 +685,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - not found', $logTimer);
+            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - FAILED', $logTimer);
+            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
 
-        $this->di->log->debug('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
