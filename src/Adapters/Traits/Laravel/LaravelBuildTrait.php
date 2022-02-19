@@ -49,6 +49,7 @@ trait LaravelBuildTrait
      *
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
+     * @throws AdaptBuildException Thrown when the migrations couldn't be run.
      */
     protected function laravelMigrate(?string $migrationsPath): void
     {
@@ -65,15 +66,19 @@ trait LaravelBuildTrait
                 : $this->makeRealpathRelative((string) realpath($migrationsPath));
         }
 
-        $this->di->artisan->call(
-            'migrate',
-            array_filter([
-                '--database' => $this->config->connection,
-                '--force' => true,
-                '--path' => $migrationsPath,
-                '--realpath' => ($useRealPath ? true : null),
-            ])
-        );
+        try {
+            $this->di->artisan->call(
+                'migrate',
+                array_filter([
+                    '--database' => $this->config->connection,
+                    '--force' => true,
+                    '--path' => $migrationsPath,
+                    '--realpath' => ($useRealPath ? true : null),
+                ])
+            );
+        } catch (Throwable $e) {
+            throw AdaptBuildException::migrationsFailed($e);
+        }
 
         $this->di->log->debug('Ran migrations', $logTimer);
     }

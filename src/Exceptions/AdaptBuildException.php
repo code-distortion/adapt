@@ -39,6 +39,17 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
+     * Could not run the migrations.
+     *
+     * @param Throwable $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function migrationsFailed(Throwable $originalException): self
+    {
+        return new self("An error occurred when running the migrations: \"{$originalException->getMessage()}\"", 0, $originalException);
+    }
+
+    /**
      * Could not run a seeder.
      *
      * @param string    $seeder            The seeder that was run.

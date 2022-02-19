@@ -141,6 +141,9 @@ class DatabaseBuilder
             $exceptionClass = Exceptions::resolveExceptionClass($e);
             $this->di->log->error("$exceptionClass: {$e->getMessage()}");
             throw $e;
+
+        } finally {
+            $this->di->log->debug(''); // delimiter between each database being built
         }
     }
 
@@ -304,7 +307,6 @@ class DatabaseBuilder
             : $this->buildDBLocally();
 
         $this->di->log->debug('Total preparation time', $logTimer);
-        $this->di->log->debug('');
     }
 
     /**
@@ -730,7 +732,6 @@ class DatabaseBuilder
             );
         } catch (GuzzleException $e) {
             $extraDetails = $this->interpretSendRemoteException($url, $e);
-//            $this->di->log->info("Remote build failed - $extraDetails");
             throw AdaptBuildException::remoteBuildFailed($this->config->connection, $extraDetails, $e);
         }
 
