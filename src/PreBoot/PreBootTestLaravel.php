@@ -147,7 +147,11 @@ class PreBootTestLaravel
         }
 
         $envFile = base_path(Settings::ENV_TESTING_FILE);
-        (new ReloadLaravelConfig())->reload($envFile, ['session']);
+        ReloadLaravelConfig::reload(
+            $envFile,
+            ['session'],
+            ['APP_ENV' => 'testing']
+        );
     }
 
     /**

@@ -42,7 +42,7 @@ class AdaptRemoveCachesCommand extends Command
     {
         $envFile = !is_array($this->option('env-file'))
             ? (string) $this->option('env-file')
-            : '';
+            : null;
 
         LaravelSupport::useTestingConfig($envFile);
 
