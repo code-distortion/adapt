@@ -163,7 +163,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         // Adapt sends "remote build" requests to this url
         $callback = fn(Request $request) => $this->handleBuildRequest($request);
+
         $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
+        $router->post('/{catchall}' . Settings::REMOTE_BUILD_REQUEST_PATH, $callback)->where('catchall', '.*');
     }
 
 
