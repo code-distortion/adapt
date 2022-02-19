@@ -240,7 +240,7 @@ trait InitialiseLaravelAdapt
     public static function getShareConnectionsHeaders(bool $includeKey = false): array
     {
         // fetch the connection-databases list from Laravel
-        $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework();
+        $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework() ?? [];
 
         $remoteShareDTO = (new RemoteShareDTO())
             ->tempConfigFile(null)
