@@ -750,12 +750,17 @@ class DatabaseBuilder
     {
         $responseMessage = null;
         if (method_exists($e, 'getResponse')) {
+
             /** @var ResponseInterface $response */
             $response = $e->getResponse();
-            $responseMessage = $response->getBody()->getContents();
-            $responseMessage = mb_strlen($responseMessage) > 200
-                ? mb_substr($responseMessage, 0, 200) . '…'
-                : $responseMessage;
+
+            // don't bother with a message if it's a 404 - it's pretty self-explanatory
+            if ($response->getStatusCode() != 404) {
+                $responseMessage = $response->getBody()->getContents();
+                $responseMessage = mb_strlen($responseMessage) > 200
+                    ? mb_substr($responseMessage, 0, 200) . '…'
+                    : $responseMessage;
+            }
         }
 
         if ($e instanceof ConnectException) {
