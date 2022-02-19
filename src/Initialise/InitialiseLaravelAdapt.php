@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Initialise;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
+use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
@@ -47,7 +48,7 @@ trait InitialiseLaravelAdapt
      * Initialise Adapt automatically.
      *
      * NOTE: This method contains code that would normally be refactored into other methods.
-     *       This is so the namespace of the Test class isn't muddied up with more methods than necessary.
+     *       This is so the namespace of the user-land Test class isn't muddied up with more methods than necessary.
      *
      * @before
      * @return void
@@ -211,6 +212,7 @@ trait InitialiseLaravelAdapt
      */
     public function shareConfig(Browser $browser, Browser ...$browsers): void
     {
+        // normalise the list of browsers
         $allBrowsers = [];
         $browsers = array_merge([$browser], $browsers);
         foreach ($browsers as $browser) {
@@ -220,10 +222,9 @@ trait InitialiseLaravelAdapt
             );
         }
 
-        $this->adaptPreBootTestLaravel->getBrowsersToPassThroughCurrentConfig(
-            $allBrowsers,
-            $this->adaptPreBootTestLaravel->buildPreparedConnectionDBsList()
-        );
+        $connectionDBs = $this->adaptPreBootTestLaravel->buildConnectionDBsList();
+
+        $this->adaptPreBootTestLaravel->haveBrowsersShareConfig($allBrowsers, $connectionDBs);
     }
 
 
@@ -231,10 +232,7 @@ trait InitialiseLaravelAdapt
 
 
     /**
-     * Fetch the http headers that lets Adapt share the connections it's built.
-     *
-     * NOTE: This method contains code that would normally be refactored into other methods.
-     *       This is so the namespace of the Test class isn't muddied up with more methods than necessary.
+     * Fetch the http headers that lets Adapt share the connections it's prepared.
      *
      * @param boolean $includeKey Include the key in the value.
      * @return array<string, string>
@@ -242,24 +240,20 @@ trait InitialiseLaravelAdapt
     public static function getShareConnectionsHeaders(bool $includeKey = false): array
     {
         // fetch the connection-databases list from Laravel
-        $connectionDatabases = LaravelSupport::readPreparedConnectionDBsFromFramework();
+        $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework();
 
+        $remoteShareDTO = (new RemoteShareDTO())
+            ->tempConfigFile(null)
+            ->connectionDBs($connectionDBs);
 
-
-        // get the http-header value used to pass connection-database details to a remote installation of Adapt
-        /** @var string|null $value */
-        $value = null;
-        if (!is_null($connectionDatabases)) {
-            $value = serialize($connectionDatabases);
-            $value = $includeKey
-                ? Settings::SHARE_CONNECTION_DB_LIST_KEY . ": $value"
-                : $value;
+        if (!count($remoteShareDTO->connectionDBs)) {
+            return [];
         }
 
+        $value = $includeKey
+            ? Settings::REMOTE_SHARE_KEY . ": {$remoteShareDTO->buildPayload()}"
+            : $remoteShareDTO->buildPayload();
 
-
-        return $value
-            ? [Settings::SHARE_CONNECTION_DB_LIST_KEY => $value]
-            : [];
+        return [Settings::REMOTE_SHARE_KEY => $value];
     }
 }

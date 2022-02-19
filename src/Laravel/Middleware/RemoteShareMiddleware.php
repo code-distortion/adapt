@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Laravel\Middleware;
 
 use Closure;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
+use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -18,7 +19,7 @@ use Throwable;
  *
  * Is only added to local and testing environments.
  */
-class ShareConfigMiddleware
+class RemoteShareMiddleware
 {
     /**
      * Handle an incoming request.
@@ -37,28 +38,22 @@ class ShareConfigMiddleware
             return $next($request);
         }
 
-        $configHeaderValue = $this->readHeaderValue($request, Settings::SHARE_CONFIG_KEY);
-        $configCookieValue = $this->readCookieValue($request, Settings::SHARE_CONFIG_KEY);
-        $connectionDBsHeaderValue = $this->readHeaderValue($request, Settings::SHARE_CONNECTION_DB_LIST_KEY);
-        $connectionDBsCookieValue = $this->readCookieValue($request, Settings::SHARE_CONNECTION_DB_LIST_KEY);
+        $shareHeaderValue = $this->readHeaderValue($request, Settings::REMOTE_SHARE_KEY);
+        $shareCookieValue = $this->readCookieValue($request, Settings::REMOTE_SHARE_KEY);
 
-        $used = $this->useTemporaryConfig($configHeaderValue)
-            ?: $this->useTemporaryConfig($configCookieValue)
-            ?: $this->useConnectionDBs($connectionDBsHeaderValue)
-            ?: $this->useConnectionDBs($connectionDBsCookieValue);
+        $used = $this->useTemporaryConfig($shareHeaderValue)
+            ?: $this->useTemporaryConfig($shareCookieValue)
+            ?: $this->useConnectionDBs($shareHeaderValue)
+            ?: $this->useConnectionDBs($shareCookieValue);
 
-        // make it look like the cookies never existed
-        if ($used) {
-            $request->cookies->remove(Settings::SHARE_CONFIG_KEY);
-            $request->cookies->remove(Settings::SHARE_CONNECTION_DB_LIST_KEY);
-        }
+        // make it look like the cookie never existed
+        $request->cookies->remove(Settings::REMOTE_SHARE_KEY);
 
         $response = $next($request);
 
-        // put the cookies back again
+        // put the cookie back again
         if ($used) {
-            $this->reSetCookie($response, Settings::SHARE_CONFIG_KEY, $configCookieValue);
-            $this->reSetCookie($response, Settings::SHARE_CONNECTION_DB_LIST_KEY, $connectionDBsCookieValue);
+            $this->reSetCookie($response, Settings::REMOTE_SHARE_KEY, $shareCookieValue);
         }
 
         return $response;
@@ -91,81 +86,44 @@ class ShareConfigMiddleware
         return is_string($value) ? $value : '';
     }
 
-    /**
-     * Decode the cookie or header's value.
-     *
-     * @param string $cookieValue The cookie value.
-     * @return mixed
-     */
-    private function decode(string $cookieValue)
-    {
-        $cookieValue = base64_decode($cookieValue, true);
-        if (!is_string($cookieValue)) {
-            return null;
-        }
-
-        $cookieValue = @unserialize($cookieValue);
-        if ($cookieValue === false) {
-            return null;
-        }
-
-        return $cookieValue;
-    }
-
 
 
     /**
      * Load the temporary config file the cookie or header points to.
      *
-     * @param string $rawValue The cookie or header's raw value.
+     * @param string $rawValue The remote-share raw value passed in the request.
      * @return boolean
      * @throws AdaptBrowserTestException When there was a problem loading the temporary config.
      */
     private function useTemporaryConfig(string $rawValue): bool
     {
-        $tempCachePath = $this->getTempCachePath($rawValue);
-        if (!$tempCachePath) {
+        $remoteShareDTO = RemoteShareDTO::buildFromPayload($rawValue);
+        if (!$remoteShareDTO) {
             return false;
         }
 
-        if (!(new Filesystem())->fileExists($tempCachePath)) {
+        if (!$remoteShareDTO->tempConfigPath) {
+            return false;
+        }
+
+        if (!(new Filesystem())->fileExists($remoteShareDTO->tempConfigPath)) {
 //            throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
             return false;
         }
 
         try {
-            $configData = require $tempCachePath;
+            $configData = require $remoteShareDTO->tempConfigPath;
         } catch (Throwable $e) {
-            throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath, $e);
+            throw AdaptBrowserTestException::tempConfigFileNotLoaded($remoteShareDTO->tempConfigPath, $e);
         }
 
         if (!is_array($configData)) {
-            throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
+            throw AdaptBrowserTestException::tempConfigFileNotLoaded($remoteShareDTO->tempConfigPath);
         }
 
         $this->replaceWholeConfig($configData);
 
         return true;
-    }
-
-    /**
-     * Pick the temporary cache-path from the Adapt cookie.
-     *
-     * @param string $cookieValue The cookie value.
-     * @return string|null
-     */
-    private function getTempCachePath(string $cookieValue): ?string
-    {
-        $cookieValue = $this->decode($cookieValue);
-        if (!is_array($cookieValue)) {
-            return false;
-        }
-
-        if (!array_key_exists('tempConfigPath', $cookieValue)) {
-            return null;
-        }
-
-        return $cookieValue['tempConfigPath'];
     }
 
     /**
@@ -187,20 +145,20 @@ class ShareConfigMiddleware
     /**
      * Use the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * Load Laravel's testing config, and overwrite the connections' databases if present.
+     * Loads Laravel's testing config, and overwrites the connections' databases if present.
      *
-     * @param string $rawValue The cookie or header's raw value.
+     * @param string $rawValue The remote-share raw value passed in the request.
      * @return boolean
      */
     private function useConnectionDBs(string $rawValue): bool
     {
-        $connectionDatabases = $this->decode($rawValue);
-        if (!is_array($connectionDatabases)) {
+        $remoteShareDTO = RemoteShareDTO::buildFromPayload($rawValue);
+        if (!$remoteShareDTO) {
             return false;
         }
 
         LaravelSupport::useTestingConfig();
-        LaravelSupport::useConnectionDatabases($connectionDatabases);
+        LaravelSupport::useConnectionDatabases($remoteShareDTO->connectionDBs);
 
         return true;
     }

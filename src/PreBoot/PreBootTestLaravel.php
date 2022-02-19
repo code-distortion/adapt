@@ -276,21 +276,21 @@ class PreBootTestLaravel
      *
      * @return array
      */
-    public function buildPreparedConnectionDBsList(): array
+    public function buildConnectionDBsList(): array
     {
-        return $this->adaptBootTestLaravel->buildPreparedConnectionDBsList();
+        return $this->adaptBootTestLaravel->buildConnectionDBsList();
     }
 
     /**
      * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
      *
-     * @param Browser[]             $browsers              The browsers to update with the current config.
-     * @param array<string, string> $preparedConnectionDBs The list of connections that have been prepared,
-     *                                                     and their corresponding databases from the framework.
+     * @param Browser[]             $browsers      The browsers to update with the current config.
+     * @param array<string, string> $connectionDBs The list of connections that have been prepared,
+     *                                             and their corresponding databases from the framework.
      * @return void
      */
-    public function getBrowsersToPassThroughCurrentConfig(array $browsers, array $preparedConnectionDBs): void
+    public function haveBrowsersShareConfig(array $browsers, array $connectionDBs): void
     {
-        $this->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($browsers, $preparedConnectionDBs);
+        $this->adaptBootTestLaravel->haveBrowsersShareConfig($browsers, $connectionDBs);
     }
 }

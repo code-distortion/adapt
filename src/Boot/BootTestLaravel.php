@@ -14,6 +14,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
@@ -251,18 +252,22 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
      *
-     * @param Browser[]             $browsers              The browsers to update with the current config.
-     * @param array<string, string> $preparedConnectionDBs The list of connections that have been prepared,
-     *                                                     and their corresponding databases from the framework.
+     * @param Browser[]             $browsers      The browsers to update with the current config.
+     * @param array<string, string> $connectionDBs The list of connections that have been prepared, and their
+     *                                             corresponding databases from the framework.
      * @return void
      */
-    public function getBrowsersToPassThroughCurrentConfig(array $browsers, array $preparedConnectionDBs): void
+    public function haveBrowsersShareConfig(array $browsers, array $connectionDBs): void
     {
         if (!count($browsers)) {
             return;
         }
 
         $this->tempConfigPaths[] = $tempConfigPath = $this->storeTemporaryConfig();
+
+        $remoteShareDTO = (new RemoteShareDTO())
+            ->tempConfigFile($tempConfigPath)
+            ->connectionDBs($connectionDBs);
 
         foreach ($browsers as $browser) {
 
@@ -274,21 +279,7 @@ class BootTestLaravel extends BootTestAbstract
                 );
             }
 
-            $browser->addCookie(
-                Settings::SHARE_CONFIG_KEY,
-                base64_encode(serialize(['tempConfigPath' => $tempConfigPath])),
-                null,
-                [],
-                false
-            );
-
-            $browser->addCookie(
-                Settings::SHARE_CONNECTION_DB_LIST_KEY,
-                base64_encode(serialize($preparedConnectionDBs)),
-                null,
-                [],
-                false
-            );
+            $browser->addCookie(Settings::REMOTE_SHARE_KEY, $remoteShareDTO->buildPayload(), null, [], false);
         }
     }
 

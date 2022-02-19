@@ -2,11 +2,22 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
+use CodeDistortion\Adapt\Support\Settings;
+use Throwable;
+
 /**
  * Resolves default setting values when needed.
  */
 class ConfigDTO
 {
+    /**
+     * The ConfigDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
+     *
+     * @var integer
+     */
+    public int $version;
+
     /** @var string The name of the current project. */
     public string $projectName;
 
@@ -91,6 +102,29 @@ class ConfigDTO
     /** @var integer The number of seconds grace-period before stale databases and snapshots are to be deleted. */
     public int $staleGraceSeconds = 0;
 
+
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->version(Settings::CONFIG_DTO_VERSION);
+    }
+
+
+
+    /**
+     * Set the ConfigDTO version.
+     *
+     * @param integer $version The ConfigDTO version.
+     * @return static
+     */
+    public function version(int $version): self
+    {
+        $this->version = $version;
+        return $this;
+    }
 
     /**
      * Set the project-name.
@@ -444,19 +478,46 @@ class ConfigDTO
     /**
      * Build a new ConfigDTO from the data given in a request to build the database remotely.
      *
-     * @param mixed[] $data The raw ConfigDTO data from the request.
-     * @return self
+     * @param string $payload The raw ConfigDTO data from the request.
+     * @return self|null
+     * @throws AdaptRemoteShareException When the version doesn't match.
      */
-    public static function buildFromRemoteBuildRequest(array $data): self
+    public static function buildFromPayload(string $payload): ?self
     {
+        if (!mb_strlen($payload)) {
+            return null;
+        }
+
+        $values = json_decode($payload, true);
+        if (!is_array($values)) {
+            throw AdaptRemoteShareException::couldNotReadConfigDTO();
+        }
+
         $configDTO = new self();
-        foreach ($data as $name => $value) {
+        foreach ($values as $name => $value) {
             if (property_exists($configDTO, $name)) {
                 $configDTO->{$name} = $value;
             }
         }
+
+        if ($configDTO->version != Settings::CONFIG_DTO_VERSION) {
+            throw AdaptRemoteShareException::versionMismatch();
+        }
+
         return $configDTO;
     }
+
+    /**
+     * Build the value to send in requests.
+     *
+     * @return string
+     */
+    public function buildPayload(): string
+    {
+        return json_encode(get_object_vars($this));
+    }
+
+
 
     /**
      * Determine the seeders that need to be used.

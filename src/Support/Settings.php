@@ -21,11 +21,18 @@ class Settings
     /** @var string A version representing the way the reuse-table is structured and used. */
     public const REUSE_TABLE_VERSION = '4';
 
-    /** @var string The cookie/http-header used to pass the name of the temp configuration during browser tests. */
-    public const SHARE_CONFIG_KEY = '____adapt_config____';
+    /**
+     * Included when preparing a database remotely between Adapt installations. Mismatches cause an exception.
+     *
+     * @var string
+     */
+    public const CONFIG_DTO_VERSION = 1;
 
-    /** @var string The cookie/http-header used to pass the connection db list during browser tests or api requests. */
-    public const SHARE_CONNECTION_DB_LIST_KEY = '____adapt_con-dbs____';
+    /** @var string Included in the remote-share payload between Adapt installations. Mismatches cause an exception. */
+    public const REMOTE_SHARE_DTO_VERSION = 1;
+
+    /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
+    public const REMOTE_SHARE_KEY = '____adapt_remote_share____';
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
     public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____/cookie';

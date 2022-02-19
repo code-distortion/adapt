@@ -14,6 +14,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
@@ -137,27 +138,10 @@ class DatabaseBuilder
 
         } catch (Throwable $e) {
 
-            $exceptionClass = $this->resolveExceptionClass($e);
+            $exceptionClass = Exceptions::resolveExceptionClass($e);
             $this->di->log->error("$exceptionClass: {$e->getMessage()}");
             throw $e;
         }
-    }
-
-    /**
-     * Resolve a readable name for an exception.
-     *
-     * @param Throwable $e The exception that was thrown.
-     * @return string
-     */
-    private function resolveExceptionClass(Throwable $e): string
-    {
-        $exceptionClass = get_class($e);
-        if (!is_a($e, AdaptException::class)) {
-            return $exceptionClass;
-        }
-
-        $temp = explode('\\', $exceptionClass);
-        return array_pop($temp);
     }
 
     /**
@@ -737,7 +721,7 @@ class DatabaseBuilder
     {
         $url = $this->buildRemoteUrl();
         $httpClient = new HttpClient(['timeout' => 60 * 10]);
-        $data = ['configDTO' => serialize(get_object_vars($this->config))];
+        $data = ['configDTO' => $this->config->buildPayload()];
 
         try {
             $response = $httpClient->post(

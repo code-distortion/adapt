@@ -213,7 +213,7 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function registerConnectionDBs(): void
     {
-        $this->registerPreparedConnectionDBsWithFramework($this->buildPreparedConnectionDBsList());
+        $this->registerPreparedConnectionDBsWithFramework($this->buildConnectionDBsList());
     }
 
     /**
@@ -229,7 +229,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return array
      */
-    public function buildPreparedConnectionDBsList(): array
+    public function buildConnectionDBsList(): array
     {
         $connectionDatabases = [];
         foreach ($this->builders as $builder) {
