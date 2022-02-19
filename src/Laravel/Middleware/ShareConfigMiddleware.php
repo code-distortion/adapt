@@ -187,7 +187,7 @@ class ShareConfigMiddleware
     /**
      * Use the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * Overwrite the connections' databases if present.
+     * Load Laravel's testing config, and overwrite the connections' databases if present.
      *
      * @param string $rawValue The cookie or header's raw value.
      * @return boolean

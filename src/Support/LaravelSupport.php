@@ -4,10 +4,6 @@ namespace CodeDistortion\Adapt\Support;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Application;
-use Illuminate\Log\Writer;
-use Monolog\Logger;
-use ReflectionObject;
-use Throwable;
 
 /**
  * Provides extra miscellaneous Laravel related support functionality.
@@ -30,76 +26,20 @@ class LaravelSupport
         return false;
     }
 
-
-
     /**
-     * Re-load Laravel's config using the .env.testing file.
+     * Re-load Laravel's entire config using the .env.testing file.
      *
-     * @param string|null $envFile The env-file to use (default ".env.testing").
      * @return void
      */
-    public static function useTestingConfig(?string $envFile = null): void
+    public static function useTestingConfig(): void
     {
-        $envFile = is_string($envFile) ? $envFile : Settings::ENV_TESTING_FILE;
-        $envFile = base_path($envFile);
-
-        ReloadLaravelConfig::reload(
-            $envFile,
-            ['database', Settings::LARAVEL_CONFIG_NAME]
+        LaravelEnv::reloadEnv(
+            base_path(Settings::ENV_TESTING_FILE),
+            ['APP_ENV' => 'testing']
         );
 
-        static::detectNewEnvironment('testing');
+        LaravelConfig::reloadConfig();
     }
-
-    /**
-     * Get Laravel to pick up a new environment.
-     *
-     * @param string $environment The environment to use.
-     * @return void
-     */
-    private static function detectNewEnvironment(string $environment): void
-    {
-        /** @var Application $app */
-        $app = app();
-        $app->detectEnvironment(fn() => $environment);
-
-        // the monolog logger won't have picked up the change in environment
-        // this code cheats and updates it manually
-        // the only outcome from this is that logs will look like
-        // "testing.DEBUG: ADAPT:" instead of
-        // "local.DEBUG: ADAPT:"
-        /** @var Writer $logger */
-        $logger = $app->make('log');
-        /** @var Logger $monolog */
-        $monolog = $logger->getMonolog();
-        static::overwritePrivateProperty($monolog, 'name', $environment);
-    }
-
-    /**
-     * Overwrite an object's private property with a new value.
-     *
-     * @param object $object       The object to update.
-     * @param string $propertyName The property to update.
-     * @param mixed  $newValue     The value to set.
-     * @return void
-     */
-    private static function overwritePrivateProperty(object $object, string $propertyName, $newValue): void
-    {
-        try {
-            $reflection = new ReflectionObject($object);
-            if (!$reflection->hasProperty($propertyName)) {
-                return;
-            }
-
-            $prop = $reflection->getProperty($propertyName);
-            $prop->setAccessible(true);
-            $prop->setValue($object, $newValue);
-        }
-        catch (Throwable $e) {
-        }
-    }
-
-
 
     /**
      * Tell Laravel to use the desired databases for particular connections.

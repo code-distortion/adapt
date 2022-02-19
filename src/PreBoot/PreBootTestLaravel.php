@@ -7,9 +7,9 @@ use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Support\ReloadLaravelConfig;
+use CodeDistortion\Adapt\Support\LaravelConfig;
+use CodeDistortion\Adapt\Support\LaravelEnv;
 use CodeDistortion\Adapt\Support\Settings;
-use CodeDistortion\FluentDotEnv\FluentDotEnv;
 use Laravel\Dusk\Browser;
 
 /**
@@ -146,12 +146,17 @@ class PreBootTestLaravel
             return;
         }
 
-        $envFile = base_path(Settings::ENV_TESTING_FILE);
-        ReloadLaravelConfig::reload(
-            $envFile,
-            ['session'],
+        LaravelEnv::reloadEnv(
+            base_path(Settings::ENV_TESTING_FILE),
             ['APP_ENV' => 'testing']
         );
+
+        $sessionConfig = LaravelConfig::readConfigFile('session');
+        if (!$sessionConfig['driver']) {
+            return;
+        }
+
+        config(['session.driver' => $sessionConfig['driver']]);
     }
 
     /**

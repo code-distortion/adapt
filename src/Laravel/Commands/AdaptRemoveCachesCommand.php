@@ -40,11 +40,7 @@ class AdaptRemoveCachesCommand extends Command
      */
     public function handle(): void
     {
-        $envFile = !is_array($this->option('env-file'))
-            ? (string) $this->option('env-file')
-            : null;
-
-        LaravelSupport::useTestingConfig($envFile);
+        LaravelSupport::useTestingConfig();
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
