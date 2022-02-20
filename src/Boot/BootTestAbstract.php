@@ -148,7 +148,7 @@ abstract class BootTestAbstract implements BootTestInterface
         if (!$this->propBag) {
             return;
         }
-        if (!$this->propBag->config('build_databases', 'buildDatabases')) {
+        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
             return;
         }
 

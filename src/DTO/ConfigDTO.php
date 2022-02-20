@@ -74,11 +74,14 @@ class ConfigDTO
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
+    /** @var string The session driver being used - will throw and exception when the remote version is different. */
+    public string $sessionDriver;
+
 
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public bool $reuseTestDBs;
 
-    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
+    /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
     public bool $scenarioTestDBs;
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
@@ -272,6 +275,7 @@ class ConfigDTO
      * @param string|null         $remoteBuildUrl      The remote Adapt installation to send "build" requests to.
      * @param boolean             $isBrowserTest       Is a browser test running?.
      * @param boolean             $isRemoteBuild       Is this process building a db for another Adapt installation?.
+     * @param string              $sessionDriver       The session driver being used.
      * @return static
      */
     public function buildSettings(
@@ -280,14 +284,17 @@ class ConfigDTO
         array $seeders,
         ?string $remoteBuildUrl,
         bool $isBrowserTest,
-        bool $isRemoteBuild
+        bool $isRemoteBuild,
+        string $sessionDriver
     ): self {
+
         $this->preMigrationImports = $preMigrationImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
         $this->isRemoteBuild = $isRemoteBuild;
+        $this->sessionDriver = $sessionDriver;
         return $this;
     }
 
@@ -363,6 +370,18 @@ class ConfigDTO
     public function isRemoteBuild(bool $isRemoteBuild): self
     {
         $this->isRemoteBuild = $isRemoteBuild;
+        return $this;
+    }
+
+    /**
+     * Set the session-driver.
+     *
+     * @param string $sessionDriver The session driver being used.
+     * @return static
+     */
+    public function sessionDriver(string $sessionDriver): self
+    {
+        $this->sessionDriver = $sessionDriver;
         return $this;
     }
 

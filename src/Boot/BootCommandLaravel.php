@@ -120,6 +120,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.remote_build_url"),
                 false,
                 false,
+                config("session.driver"),
             )
             ->cacheTools(
                 config("$c.reuse_test_dbs"),

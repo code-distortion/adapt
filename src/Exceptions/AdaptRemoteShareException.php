@@ -18,6 +18,19 @@ class AdaptRemoteShareException extends AdaptException
     }
 
     /**
+     * Thrown when the local and remote Adapt installations use different session drivers.
+     *
+     * @return self
+     */
+    public static function sessionDriverMismatch(string $localSessionDriver, string $callerSessionDriver): self
+    {
+        return new self(
+            "The local session.driver \"$localSessionDriver\" doesn't match the caller's \"$callerSessionDriver\". "
+            . "These must match for browser tests"
+        );
+    }
+
+    /**
      * The ConfigDTO couldn't be built from the payload passed in the request.
      *
      * @return self

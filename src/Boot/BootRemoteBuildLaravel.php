@@ -14,6 +14,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -45,9 +46,16 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      *
      * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
      * @return DatabaseBuilder
+     * @throws AdaptRemoteShareException When the session drivers don't match during browser tests.
      */
     public function makeNewBuilder(ConfigDTO $remoteConfig): DatabaseBuilder
     {
+        $this->checkThatSessionDriversMatch(
+            $remoteConfig->isBrowserTest,
+            config("session.driver"),
+            $remoteConfig->sessionDriver
+        );
+
         $config = $this->newConfigDTO($remoteConfig);
         $di = $this->defaultDI($remoteConfig->connection);
         $pickDriverClosure = function (string $connection): string {
@@ -62,6 +70,31 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             new Hasher($di, $config),
             $pickDriverClosure
         );
+    }
+
+    /**
+     * Check that the session.driver matches during browser tests.
+     *
+     * @param boolean $isBrowserTest        Whether a browser test is being run or not.
+     * @param string  $localSessionDriver   The local session driver.
+     * @param string  $callersSessionDriver The caller's session driver.
+     * @throws AdaptRemoteShareException When the session drivers don't match during browser tests.
+     */
+    private function checkThatSessionDriversMatch(
+        bool $isBrowserTest,
+        string $localSessionDriver,
+        string $callersSessionDriver
+    ): void {
+
+        if (!$isBrowserTest) {
+            return;
+        }
+
+        if ($localSessionDriver == $callersSessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch($localSessionDriver, $callersSessionDriver);
     }
 
     /**
@@ -123,6 +156,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 null, // don't forward again
                 $remoteConfig->isBrowserTest,
                 true, // yes, a remote database is being built here now, locally
+                config("session.driver"),
             )
             ->cacheTools(
                 $remoteConfig->reuseTestDBs,
@@ -154,5 +188,31 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         return rtrim(config("$c.storage_dir"), '\\/');
+    }
+
+
+
+    /**
+     * Check that the session.driver matches during browser tests.
+     *
+     * @param ConfigDTO $remoteConfigDTO    The caller's ConfigDTO.
+     * @param string    $localSessionDriver The local session driver.
+     * @return void
+     * @throws AdaptRemoteShareException When the session.driver doesn't match during browser tests.
+     */
+    public function ensureSessionDriversMatchDuringBrowserTests(
+        ConfigDTO $remoteConfigDTO,
+        string $localSessionDriver
+    ): void {
+
+        if (!$remoteConfigDTO->isBrowserTest) {
+            return;
+        }
+
+        if ($localSessionDriver == $remoteConfigDTO->sessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch($localSessionDriver, $remoteConfigDTO->sessionDriver);
     }
 }

@@ -199,12 +199,17 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @param string $rawValue The raw configDTO data, from the request.
      * @return ResolvedSettingsDTO
+     * @throws AdaptRemoteShareException When the session.driver doesn't match during browser tests.
      */
     private function executeBuilder(string $rawValue): ResolvedSettingsDTO
     {
         $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
 
         $bootRemoteBuildLaravel = new BootRemoteBuildLaravel();
+        $bootRemoteBuildLaravel->ensureSessionDriversMatchDuringBrowserTests(
+            $remoteConfigDTO,
+            config('session.driver')
+        );
         $bootRemoteBuildLaravel->ensureStorageDirExists();
 
         $builder = $bootRemoteBuildLaravel->makeNewBuilder($remoteConfigDTO);

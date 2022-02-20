@@ -148,9 +148,9 @@ class LaravelPropBagDTOTest extends LaravelTestCase
     {
         config(['code_distortion.adapt.existing_value' => 'config value']);
         $propBag = (new LaravelPropBagDTO())->addProp('existingValue', 'prop value');
-        $this->assertSame(null, $propBag->config('missing_value', 'missingValue'));
-        $this->assertSame('prop value', $propBag->config('missing_value', 'existingValue'));
-        $this->assertSame('config value', $propBag->config('existing_value', 'missingValue'));
-        $this->assertSame('prop value', $propBag->config('existing_value', 'existingValue'));
+        $this->assertSame(null, $propBag->adaptConfig('missing_value', 'missingValue'));
+        $this->assertSame('prop value', $propBag->adaptConfig('missing_value', 'existingValue'));
+        $this->assertSame('config value', $propBag->adaptConfig('existing_value', 'missingValue'));
+        $this->assertSame('prop value', $propBag->adaptConfig('existing_value', 'existingValue'));
     }
 }

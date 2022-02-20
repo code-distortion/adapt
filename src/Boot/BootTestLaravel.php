@@ -90,8 +90,8 @@ class BootTestLaravel extends BootTestAbstract
         }
 
         return new LaravelLog(
-            (bool) $this->propBag->config('log.stdout'),
-            (bool) $this->propBag->config('log.laravel')
+            (bool) $this->propBag->adaptConfig('log.stdout'),
+            (bool) $this->propBag->adaptConfig('log.laravel')
         );
     }
 
@@ -166,7 +166,7 @@ class BootTestLaravel extends BootTestAbstract
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
 
         return (new ConfigDTO())
-            ->projectName($this->propBag->config('project_name'))
+            ->projectName($this->propBag->adaptConfig('project_name'))
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
@@ -175,32 +175,33 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->hashPaths($this->checkLaravelHashPaths($this->propBag->config('look_for_changes_in')))
+            ->hashPaths($this->checkLaravelHashPaths($this->propBag->adaptConfig('look_for_changes_in')))
             ->buildSettings(
-                $this->propBag->config('pre_migration_imports', 'preMigrationImports'),
-                $this->propBag->config('migrations', 'migrations'),
+                $this->propBag->adaptConfig('pre_migration_imports', 'preMigrationImports'),
+                $this->propBag->adaptConfig('migrations', 'migrations'),
                 $this->resolveSeeders(),
-                $this->propBag->config('remote_build_url', 'remoteBuildUrl'),
+                $this->propBag->adaptConfig('remote_build_url', 'remoteBuildUrl'),
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
                 false,
+                $this->propBag->config('session.driver'),
             )
             ->cacheTools(
-                $this->propBag->config('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->config('scenario_test_dbs', 'scenarioTestDBs'),
+                $this->propBag->adaptConfig('reuse_test_dbs', 'reuseTestDBs'),
+                $this->propBag->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'),
             )
             ->snapshots(
-                $this->propBag->config('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
-                $this->propBag->config('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
+                $this->propBag->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
+                $this->propBag->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
             )
             ->mysqlSettings(
-                $this->propBag->config('database.mysql.executables.mysql'),
-                $this->propBag->config('database.mysql.executables.mysqldump'),
+                $this->propBag->adaptConfig('database.mysql.executables.mysql'),
+                $this->propBag->adaptConfig('database.mysql.executables.mysqldump'),
             )
             ->postgresSettings(
-                $this->propBag->config('database.pgsql.executables.psql'),
-                $this->propBag->config('database.pgsql.executables.pg_dump'),
+                $this->propBag->adaptConfig('database.pgsql.executables.psql'),
+                $this->propBag->adaptConfig('database.pgsql.executables.pg_dump'),
             )
-            ->staleGraceSeconds($this->propBag->config(
+            ->staleGraceSeconds($this->propBag->adaptConfig(
                 'stale_grace_seconds',
                 null,
                 Settings::DEFAULT_STALE_GRACE_SECONDS,
@@ -230,7 +231,7 @@ class BootTestLaravel extends BootTestAbstract
     private function storageDir(): string
     {
         return $this->propBag
-            ? rtrim($this->propBag->config('storage_dir'), '\\/')
+            ? rtrim($this->propBag->adaptConfig('storage_dir'), '\\/')
             : '';
     }
 
@@ -363,10 +364,10 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function canPurgeStaleThings(): bool
     {
-        if ($this->propBag->config('remote_build_url')) {
+        if ($this->propBag->adaptConfig('remote_build_url')) {
             return false;
         }
-        return (bool) $this->propBag->config('remove_stale_things', null, true);
+        return (bool) $this->propBag->adaptConfig('remove_stale_things', null, true);
     }
 
     /**

@@ -182,9 +182,9 @@ class PreBootTestLaravel
     private function parseRemapDBStrings(): array
     {
         return array_merge(
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->propBag->adaptConfig('remap_connections'), null, true),
             $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->propBag->adaptConfig('remap_connections'), true, true),
             $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
         );
     }
