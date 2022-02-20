@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptException;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
@@ -183,8 +184,8 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         try {
 
-            $database = $this->executeBuilder($request->input('configDTO'));
-            return response($database);
+            $resolvedSettingsDTO = $this->executeBuilder($request->input('configDTO'));
+            return response($resolvedSettingsDTO->buildPayload());
 
         } catch (Throwable $e) {
 
@@ -197,9 +198,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * Take the config data (from the request), build the Builder based on it, and execute it.
      *
      * @param string $rawValue The raw configDTO data, from the request.
-     * @return string
+     * @return ResolvedSettingsDTO
      */
-    private function executeBuilder(string $rawValue): string
+    private function executeBuilder(string $rawValue): ResolvedSettingsDTO
     {
         $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
 
@@ -209,6 +210,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $builder = $bootRemoteBuildLaravel->makeNewBuilder($remoteConfigDTO);
         $builder->execute();
 
-        return $builder->getDatabase();
+        return $builder->getResolvedSettingsDTO();
     }
 }

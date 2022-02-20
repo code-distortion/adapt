@@ -64,7 +64,7 @@ class Hasher
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
-        $this->di->log->debug('Generated a build-hash - of the files that could be used to build the database', $logTimer);
+        $this->di->log->debug('Generated the build-hash - of the files that can be used to build the database', $logTimer);
 
         return $buildHash;
     }

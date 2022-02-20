@@ -233,7 +233,7 @@ abstract class BootTestAbstract implements BootTestInterface
     {
         $connectionDatabases = [];
         foreach ($this->builders as $builder) {
-            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
+            $connectionDatabases[$builder->getConnection()] = $builder->getResolvedDatabase();
         }
         return $connectionDatabases;
     }

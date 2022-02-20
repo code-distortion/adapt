@@ -2,21 +2,23 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
+use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Settings;
-use Throwable;
 
 /**
  * The details that get shared between installations to convey which databases / config settings to use.
  */
 class RemoteShareDTO
 {
+    use DTOBuildTrait;
+
     /**
      * The RemoteShareDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
      *
      * @var integer
      */
-    public int $version;
+    public int $dtoVersion;
 
     /** @var string|null The location of the temporary config file. */
     public ?string $tempConfigPath;
@@ -44,7 +46,7 @@ class RemoteShareDTO
      */
     public function version(int $version): self
     {
-        $this->version = $version;
+        $this->dtoVersion = $version;
         return $this;
     }
 
@@ -97,14 +99,9 @@ class RemoteShareDTO
             throw AdaptRemoteShareException::couldNotReadConfigDTO();
         }
 
-        $remoteShareDTO = new self();
-        foreach ($values as $name => $value) {
-            if (property_exists($remoteShareDTO, $name)) {
-                $remoteShareDTO->{$name} = $value;
-            }
-        }
+        $remoteShareDTO = static::buildFromArray($values);
 
-        if ($remoteShareDTO->version != Settings::REMOTE_SHARE_DTO_VERSION) {
+        if ($remoteShareDTO->dtoVersion != Settings::REMOTE_SHARE_DTO_VERSION) {
             throw AdaptRemoteShareException::versionMismatch();
         }
 

@@ -8,6 +8,7 @@ use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
@@ -62,6 +63,10 @@ class DatabaseBuilder
     /** @var DBAdapter|null The object that will do the database specific work. */
     private ?DBAdapter $dbAdapter = null;
 
+    /** @var ResolvedSettingsDTO|null The build-settings when they've been resolved. */
+    private ?ResolvedSettingsDTO $resolvedSettingsDTO = null;
+
+
 
     /**
      * Constructor.
@@ -103,7 +108,7 @@ class DatabaseBuilder
      *
      * @return string
      */
-    public function getDatabase(): string
+    public function getResolvedDatabase(): string
     {
         if (!$this->config->database) {
             $this->pickDatabaseNameAndUse();
@@ -126,6 +131,7 @@ class DatabaseBuilder
      * Build a database ready to test with - migrate and seed the database etc (only if it's not ready-to-go already).
      *
      * @return static
+     * @throws Throwable When something goes wrong.
      */
     public function execute(): self
     {
@@ -142,7 +148,7 @@ class DatabaseBuilder
             throw $e;
 
         } finally {
-            $this->di->log->debug(''); // delimiter between each database being built
+            $this->di->log->debug(''); // delimiter between each database being prepared
         }
     }
 
@@ -317,7 +323,10 @@ class DatabaseBuilder
     private function buildDBLocally(): void
     {
         $this->initialise();
-        $this->logSettingsUsed($this->pickDatabaseName());
+
+        $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
+        $this->logSettingsUsed();
+
         $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDBLocally();
     }
@@ -370,7 +379,7 @@ class DatabaseBuilder
     {
         // return the original name
         if (!$this->usingScenarioTestDBs()) {
-            $this->origDBName();
+            return $this->origDBName();
         }
 
         // or generate a new name
@@ -698,7 +707,10 @@ class DatabaseBuilder
         $this->di->log->debug("Building the database remotely…");
         $logTimer = $this->di->log->newTimer();
 
-        $database = $this->sendBuildRemoteRequest();
+        $this->resolvedSettingsDTO = $this->sendBuildRemoteRequest();
+
+        $connection = $this->resolvedSettingsDTO->connection;
+        $database = $this->resolvedSettingsDTO->database;
 
         $this->dbWillBeReusable()
             ? $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer)
@@ -706,22 +718,22 @@ class DatabaseBuilder
 
         if (!$this->shouldInitialise()) {
             $this->config->database($database);
-            $this->di->log->debug("Not using connection \"{$this->config->connection}\" locally");
+            $this->di->log->debug("Not using connection \"$connection\" locally");
             return;
         }
 
         $this->initialise();
-        $this->logSettingsUsed($database);
+        $this->logSettingsUsed();
         $this->useDatabase($database);
     }
 
     /**
      * Send the http request to build the database remotely.
      *
-     * @return string
+     * @return ResolvedSettingsDTO
      * @throws AdaptBuildException Thrown when the database couldn't be built.
      */
-    private function sendBuildRemoteRequest(): string
+    private function sendBuildRemoteRequest(): ResolvedSettingsDTO
     {
         $url = $this->buildRemoteUrl();
         $httpClient = new HttpClient(['timeout' => 60 * 10]);
@@ -732,13 +744,15 @@ class DatabaseBuilder
                 $this->buildRemoteUrl(),
                 ['form_params' => $data]
             );
+
+            $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
+            $resolvedSettingsDTO->builtRemotely(true, $url);
+            return $resolvedSettingsDTO;
+
         } catch (GuzzleException $e) {
             $extraDetails = $this->interpretSendRemoteException($url, $e);
             throw AdaptBuildException::remoteBuildFailed($this->config->connection, $extraDetails, $e);
         }
-
-        $database = (string) $response->getBody();
-        return $database;
     }
 
     /**
@@ -1015,107 +1029,69 @@ class DatabaseBuilder
 
 
     /**
+     * Build a ResolvedSettingsDTO from the current preparation.
+     *
+     * @param string $database The database used.
+     * @return ResolvedSettingsDTO
+     */
+    private function buildResolvedSettingsDTO(string $database): ResolvedSettingsDTO
+    {
+        $canHash = $this->usingScenarioTestDBs() && !$this->shouldBuildRemotely();
+
+        return (new ResolvedSettingsDTO())
+            ->projectName($this->config->projectName)
+            ->testName($this->config->testName)
+            ->connection($this->config->connection)
+            ->driver($this->config->driver)
+            ->host($this->di->db->getHost())
+            ->database($database)
+            ->storageDir($this->config->storageDir)
+            ->preMigrationImports($this->config->pickPreMigrationImports())
+            ->migrations($this->config->migrations)
+            ->seeders($this->seedingIsAllowed(), $this->config->seeders)
+            ->builtRemotely(
+                $this->shouldBuildRemotely(),
+                $this->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
+            )
+            ->snapshotsEnabled($this->snapshotsAreEnabled())
+            ->isBrowserTest($this->config->isBrowserTest)
+            ->databaseIsReusable($this->dbWillBeReusable())
+            ->scenarioTestDBs(
+                $this->usingScenarioTestDBs(),
+                $canHash ? $this->hasher->getBuildHash() : null,
+                $canHash ? $this->hasher->currentSnapshotHash() : null,
+                $canHash ? $this->hasher->currentScenarioHash() : null
+            );
+    }
+
+    /**
+     * Get the ResolvedSettingsDTO representing the settings that were used.
+     *
+     * @return ResolvedSettingsDTO
+     */
+    public function getResolvedSettingsDTO(): ResolvedSettingsDTO
+    {
+        return $this->resolvedSettingsDTO;
+    }
+
+
+
+
+
+    /**
      * Log the details about the settings being used.
      *
-     * @param string $database The database being used.
      * @return void
      */
-    private function logSettingsUsed(string $database): void
+    private function logSettingsUsed(): void
     {
-        $remoteExtra = ($this->shouldBuildRemotely() ? ' (remote)' : '');
-
-        $snapshotStorageDir = null;
-        if ($this->snapshotsAreEnabled()) {
-            $snapshotStorageDir = $this->shouldBuildRemotely()
-                ? '(Handled remotely)'
-                : "\"{$this->config->storageDir}\"";
-        }
-
-        $temp = $this->config->pickPreMigrationImports();
-        foreach ($temp as $index => $temp2) {
-            $temp[$index] = "\"$temp2\"" . $remoteExtra;
-        }
-        $preMigrationImports = count($temp)
-            ? implode(PHP_EOL, $temp)
-            : 'None';
-
-        $migrations = is_bool($this->config->migrations)
-            ? $this->config->migrations ? 'Yes' : 'No'
-            : "\"" . $this->config->migrations . "\"";
-        $migrations .= $remoteExtra;
-
-        if ($this->seedingIsAllowed()) {
-            $seeders = $this->config->seeders;
-            foreach ($seeders as $index => $seeder) {
-                $seeders[$index] = "\"$seeder\"" . $remoteExtra;
-            }
-            $seeders = count($seeders)
-                ? implode(PHP_EOL, $seeders)
-                : 'None';
-        } else {
-            $seeders = 'n/a';
-        }
-
-        $buildHash = null;
-        if ($this->usingScenarioTestDBs()) {
-            $buildHash = $this->shouldBuildRemotely()
-                ? '(Handled remotely)'
-                : "\"{$this->hasher->getBuildHash()}\"";
-        }
-
-        $scenarioHash = null;
-        if ($this->usingScenarioTestDBs()) {
-            $scenarioHash = $this->shouldBuildRemotely()
-                ? '(Handled remotely)'
-                : "\"{$this->hasher->currentSnapshotHash()}\"";
-        }
-
-        $extendedScenarioHash = null;
-        if ($this->usingScenarioTestDBs()) {
-            $extendedScenarioHash = $this->shouldBuildRemotely()
-                ? '(Handled remotely)'
-                : "\"{$this->hasher->currentScenarioHash()}\"";
-        }
-
-        $lines = array_filter([
-            'Project' => $this->config->projectName ? "\"{$this->config->projectName}\"": 'n/a',
-            'Remote-build url' => $this->shouldBuildRemotely() ? "\"{$this->buildRemoteUrl()}\"" : null,
-            'Snapshots enabled?' => $this->snapshotsAreEnabled() ? 'Yes' : 'No',
-            'Snapshot storage' => $snapshotStorageDir,
-            'Pre-migration import/s' => $preMigrationImports,
-            'Migrations' => $migrations,
-            'Seeder/s' => $seeders,
-            'Using scenarios?' => $this->usingScenarioTestDBs() ? 'Yes' : 'No',
-            '- Build-hash' => $buildHash,
-            '- Scenario-hash' => $extendedScenarioHash,
-            '- Snapshot-hash' => $scenarioHash,
-            'Is a browser test?' => $this->config->isBrowserTest ? 'Yes' : 'No',
-            'Is reusable?' => $this->dbWillBeReusable() ? 'Yes' : 'No - will be re-built each time',
-        ]);
-        $lines = $this->padList($lines);
-
+        $lines = $this->padList($this->resolvedSettingsDTO->renderBuildSettings());
         $this->logBox($lines, 'Build Settings');
 
-//        $this->di->log->debug('Build Settings:');
-//        foreach ($lines as $line) {
-//            $this->di->log->debug($line);
-//        }
-
-
-
-        $host = $this->di->db->getHost();
-
-        $lines = array_filter([
-            'Connection' => "\"{$this->config->connection}\"",
-            'Driver' => "\"{$this->config->driver}\"",
-            'Host' => $host ? "\"{$host}\"" : null,
-            'Database' => "\"{$database}\"",
-        ]);
-        $lines = $this->padList($lines);
-
+        $lines = $this->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
         $this->logBox($lines, 'Resolved Database');
 
-//        $this->di->log->debug('Resolved Database:');
+//        $this->di->log->debug('Build Settings:');
 //        foreach ($lines as $line) {
 //            $this->di->log->debug($line);
 //        }
@@ -1128,12 +1104,11 @@ class DatabaseBuilder
      */
     private function logTitle(): void
     {
+        $prepLine = "Preparing the \"{$this->config->connection}\" database";
         if ($this->shouldBuildRemotely()) {
-            $prepLine = "Preparing the \"{$this->config->connection}\" database remotely";
-        } else if ($this->config->isRemoteBuild) {
-            $prepLine = "Preparing the \"{$this->config->connection}\" database locally, for another Adapt installation";
-        } else {
-            $prepLine = "Preparing the \"{$this->config->connection}\" database";
+            $prepLine .= " remotely";
+        } elseif ($this->config->isRemoteBuild) {
+            $prepLine .= " locally, for another Adapt installation";
         }
 
         $this->logBox(
@@ -1193,8 +1168,8 @@ class DatabaseBuilder
             $partialLines = explode("\n", $line);
             $count = 0;
             foreach ($partialLines as $partialLine) {
-                $tempKey = $count++ == 0 ? "$key:" : '';
-                $newLines[] = str_pad($tempKey, $maxLength + 2, ' ', STR_PAD_RIGHT) . $partialLine;
+                $tempKey = $count++ == 0 ? $key : '';
+                $newLines[] = str_pad($tempKey, $maxLength + 1, ' ', STR_PAD_RIGHT) . $partialLine;
             }
         }
 

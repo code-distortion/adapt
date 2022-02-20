@@ -155,7 +155,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Changes to files in these directories will invalidate existing
-    | test-databases and snapshots (they'll be re-built).
+    | test-databases and snapshots (they'll be rebuilt).
     |
     */
 

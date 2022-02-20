@@ -36,4 +36,14 @@ class AdaptRemoteShareException extends AdaptException
     {
         return new self("The passed remote-sharing details could not be read");
     }
+
+    /**
+     * The ResolvedSettingsDTO couldn't be built from the payload passed in the response.
+     *
+     * @return self
+     */
+    public static function couldNotReadResolvedSettingsDTO(): self
+    {
+        return new self("The passed resolved-settings could not be read");
+    }
 }
