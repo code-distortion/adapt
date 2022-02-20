@@ -17,6 +17,15 @@ class LaravelMySQLBuild implements BuildInterface
     use LaravelBuildTrait;
     use LaravelHelperTrait;
 
+    /**
+     * Check if this database type can be built remotely.
+     *
+     * @return boolean
+     */
+    public function canBeBuiltRemotely(): bool
+    {
+        return true;
+    }
 
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.

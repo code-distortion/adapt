@@ -19,6 +19,15 @@ class LaravelSQLiteBuild implements BuildInterface
     use LaravelHelperTrait;
     use SQLiteHelperTrait;
 
+    /**
+     * Check if this database type can be built remotely.
+     *
+     * @return boolean
+     */
+    public function canBeBuiltRemotely(): bool
+    {
+        return false;
+    }
 
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.

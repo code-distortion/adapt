@@ -12,6 +12,7 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\Exceptions;
@@ -704,6 +705,10 @@ class DatabaseBuilder
      */
     private function buildDBRemotely(): void
     {
+        if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
+            throw AdaptBuildException::cannotBuildRemotely($this->config->driver);
+        }
+
         $this->di->log->debug("Building the database remotely…");
         $logTimer = $this->di->log->newTimer();
 
