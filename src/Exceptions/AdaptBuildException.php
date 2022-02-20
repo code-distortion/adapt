@@ -83,12 +83,22 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
+     * The database being used isn't compatible with browser testing.
+     *
+     * @return static
+     */
+    public static function databaseNotCompatibleWithBrowserTests(string $driver): self
+    {
+        return new self("$driver databases aren't compatible with browser tests");
+    }
+
+    /**
      * The request to build a database remotely failed.
      *
      * @param string $driver The driver that isn't allowed to be built remotely.
      * @return self
      */
-    public static function cannotBuildRemotely(string $driver): self
+    public static function databaseTypeCannotBeBuiltRemotely(string $driver): self
     {
         return new self("$driver databases cannot be built remotely");
     }

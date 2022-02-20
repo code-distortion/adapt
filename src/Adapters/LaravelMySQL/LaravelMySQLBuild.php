@@ -28,6 +28,16 @@ class LaravelMySQLBuild implements BuildInterface
     }
 
     /**
+     * Check if this database type can be used when browser testing.
+     *
+     * @return boolean
+     */
+    public function isCompatibleWithBrowserTests(): bool
+    {
+        return true;
+    }
+
+    /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.
      *
      * @return void

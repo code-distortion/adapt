@@ -76,6 +76,7 @@ trait InitialiseLaravelAdapt
             'remapConnections',
             'defaultConnection',
             'isBrowserTest',
+            'remoteBuildUrl',
         ];
         $propBag = new LaravelPropBagDTO();
         foreach ($propNames as $propName) {

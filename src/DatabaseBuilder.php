@@ -12,7 +12,6 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\Exceptions;
@@ -346,7 +345,8 @@ class DatabaseBuilder
      * Initialise this object ready for running.
      *
      * @return void
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBuildException When the database isn't compatible with browser tests.
      */
     private function initialise(): void
     {
@@ -355,6 +355,10 @@ class DatabaseBuilder
         }
 
         $this->pickDriver();
+
+        if (($this->config->isBrowserTest) && (!$this->dbAdapter()->build->isCompatibleWithBrowserTests())) {
+            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests($this->config->driver);
+        }
     }
 
     /**
@@ -702,11 +706,12 @@ class DatabaseBuilder
      * Perform the process of building (or reuse an existing) database - remotely.
      *
      * @return void
+     * @throws AdaptBuildException When the database type isn't allowed to be built remotely.
      */
     private function buildDBRemotely(): void
     {
         if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
-            throw AdaptBuildException::cannotBuildRemotely($this->config->driver);
+            throw AdaptBuildException::databaseTypeCannotBeBuiltRemotely($this->config->driver);
         }
 
         $this->di->log->debug("Building the database remotely…");
