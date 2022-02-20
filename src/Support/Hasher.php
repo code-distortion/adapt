@@ -15,8 +15,12 @@ class Hasher
     /** @var string|null The hash files that may affect the db - based on the files and dirs in hashPaths etc. */
     private static ?string $sourceFilesHash = null;
 
-    /** @var string|null The hash representing the way the database is built. */
+    /** @var string|null The scenario-hash representing the way the database is built. */
     private ?string $scenarioHash = null;
+
+    /** @var string|null The extended-scenario-hash representing the way the database is built. */
+    private ?string $extendedScenarioHash = null;
+
 
 
     /**
@@ -65,7 +69,7 @@ class Hasher
 
         $sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
 
-        $this->di->log->debug('Generated a hash of the database-related files', $logTimer);
+        $this->di->log->debug('Generated a build-hash - of the files that could be used to build the database', $logTimer);
 
         return $sourceFilesHash;
     }
@@ -95,7 +99,7 @@ class Hasher
     private function resolvePreMigrationPaths(): array
     {
         return $this->resolvePaths(
-            $this->config->pickPreMigrationDumps(),
+            $this->config->pickPreMigrationImports(),
             false,
             'preMigrationImportPathInvalid'
         );
@@ -181,6 +185,16 @@ class Hasher
     }
 
     /**
+     * Resolve the current extended-scenario-hash.
+     *
+     * @return string
+     */
+    public function currentExtendedScenarioHash(): string
+    {
+        return $this->extendedScenarioHash ??= $this->generateExtendedScenarioHash($this->config->pickSeedersToInclude());
+    }
+
+    /**
      * Generate the scenario-hash based on the way this DatabaseBuilder will build this database.
      *
      * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations and
@@ -198,20 +212,17 @@ class Hasher
         ]));
     }
 
-
     /**
-     * Generate a hash to use in the database name.
+     * Generate an extended scenario hash.
      *
-     * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations,
-     * seeder-settings, connection, transactions and isBrowserTest.
+     * Based on the scenario hash, project-name, original-database name, database re-usability, is-browser-test.
      *
-     * @param string[] $seeders          The seeders that will be run.
-     * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
+     * @param string[] $seeders The seeders that will be run.
      * @return string
      */
-    public function generateDBNameHash(array $seeders, string $databaseModifier): string
+    public function generateExtendedScenarioHash(array $seeders): string
     {
-        $databaseHash = md5(serialize([
+        return md5(serialize([
             'scenarioHash' => $this->generateScenarioHash($seeders),
             'projectName' => $this->config->projectName,
 //            'connection' => $this->config->connection,
@@ -219,10 +230,22 @@ class Hasher
             'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));
+    }
 
+    /**
+     * Generate a hash to use in the database name.
+     *
+     * Based on the source-files hash, extended-scenario hash.
+     *
+     * @param string[] $seeders          The seeders that will be run.
+     * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
+     * @return string
+     */
+    public function generateDBNameHashPart(array $seeders, string $databaseModifier): string
+    {
         return mb_substr($this->currentSourceFilesHash(), 0, 6)
             . '-'
-            . mb_substr($databaseHash, 0, 12)
+            . mb_substr($this->generateExtendedScenarioHash($seeders), 0, 12)
             . (mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
     }
 

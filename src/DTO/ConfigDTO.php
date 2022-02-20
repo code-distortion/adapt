@@ -472,6 +472,44 @@ class ConfigDTO
 
 
 
+    /**
+     * Determine the seeders that need to be used.
+     *
+     * @return string[]
+     */
+    public function pickSeedersToInclude(): array
+    {
+        return $this->migrations ? $this->seeders : [];
+    }
+
+    /**
+     * Pick the database dumps to import before the migrations run.
+     *
+     * @return string[]
+     */
+    public function pickPreMigrationImports(): array
+    {
+        $preMigrationImports = $this->preMigrationImports;
+        $driver = $this->driver;
+
+        $usePaths = [];
+        if (isset($preMigrationImports[$driver])) {
+
+            $paths = $preMigrationImports[$driver];
+            $paths = is_string($paths) ? [$paths] : $paths;
+
+            if (is_array($paths)) {
+                foreach ($paths as $path) {
+                    if (mb_strlen($path)) {
+                        $usePaths[] = $path;
+                    }
+                }
+            }
+        }
+        return $usePaths;
+    }
+
+
 
 
 
@@ -515,44 +553,5 @@ class ConfigDTO
     public function buildPayload(): string
     {
         return json_encode(get_object_vars($this));
-    }
-
-
-
-    /**
-     * Determine the seeders that need to be used.
-     *
-     * @return string[]
-     */
-    public function pickSeedersToInclude(): array
-    {
-        return $this->migrations ? $this->seeders : [];
-    }
-
-    /**
-     * Pick the database dumps to import before the migrations run.
-     *
-     * @return string[]
-     */
-    public function pickPreMigrationDumps(): array
-    {
-        $preMigrationImports = $this->preMigrationImports;
-        $driver = $this->driver;
-
-        $usePaths = [];
-        if (isset($preMigrationImports[$driver])) {
-
-            $paths = $preMigrationImports[$driver];
-            $paths = is_string($paths) ? [$paths] : $paths;
-
-            if (is_array($paths)) {
-                foreach ($paths as $path) {
-                    if (mb_strlen($path)) {
-                        $usePaths[] = $path;
-                    }
-                }
-            }
-        }
-        return $usePaths;
     }
 }

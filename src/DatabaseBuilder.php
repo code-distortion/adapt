@@ -11,7 +11,6 @@ use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Exceptions\AdaptException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\Exceptions;
@@ -375,7 +374,7 @@ class DatabaseBuilder
         }
 
         // or generate a new name
-        $dbNameHash = $this->hasher->generateDBNameHash(
+        $dbNameHash = $this->hasher->generateDBNameHashPart(
             $this->config->pickSeedersToInclude(),
             $this->config->databaseModifier
         );
@@ -506,7 +505,7 @@ class DatabaseBuilder
             $this->writeReuseMetaData(false); // put the meta-table there straight away
         }
 
-        $this->importPreMigrationDumps();
+        $this->importPreMigrationImports();
         $this->migrate();
         $this->seed();
     }
@@ -603,10 +602,10 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptSnapshotException When snapshots aren't allowed for this type of database.
      */
-    private function importPreMigrationDumps(): void
+    private function importPreMigrationImports(): void
     {
-        $preMigrationDumps = $this->config->pickPreMigrationDumps();
-        if (!count($preMigrationDumps)) {
+        $preMigrationImports = $this->config->pickPreMigrationImports();
+        if (!count($preMigrationImports)) {
             return;
         }
 
@@ -617,7 +616,7 @@ class DatabaseBuilder
             );
         }
 
-        foreach ($preMigrationDumps as $path) {
+        foreach ($preMigrationImports as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
@@ -700,7 +699,9 @@ class DatabaseBuilder
 
         $database = $this->sendBuildRemoteRequest();
 
-        $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer);
+        $this->dbWillBeReusable()
+            ? $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer)
+            : $this->di->log->debug("Database \"$database\" was built. Remote preparation time", $logTimer);
 
         if (!$this->shouldInitialise()) {
             $this->config->database($database);
@@ -1020,9 +1021,90 @@ class DatabaseBuilder
      */
     private function logSettingsUsed(string $database): void
     {
-        $host = $this->di->db->getHost();
+        $remoteExtra = ($this->shouldBuildRemotely() ? ' (remote)' : '');
+
+        $snapshotStorageDir = null;
+        if ($this->snapshotsAreEnabled()) {
+            $snapshotStorageDir = $this->shouldBuildRemotely()
+                ? '(Handled remotely)'
+                : "\"{$this->config->storageDir}\"";
+        }
+
+        $temp = $this->config->pickPreMigrationImports();
+        foreach ($temp as $index => $temp2) {
+            $temp[$index] = "\"$temp2\"" . $remoteExtra;
+        }
+        $preMigrationImports = count($temp)
+            ? implode(PHP_EOL, $temp)
+            : 'None';
+
+        $migrations = is_bool($this->config->migrations)
+            ? $this->config->migrations ? 'Yes' : 'No'
+            : "\"" . $this->config->migrations . "\"";
+        $migrations .= $remoteExtra;
+
+        if ($this->seedingIsAllowed()) {
+            $seeders = $this->config->seeders;
+            foreach ($seeders as $index => $seeder) {
+                $seeders[$index] = "\"$seeder\"" . $remoteExtra;
+            }
+            $seeders = count($seeders)
+                ? implode(PHP_EOL, $seeders)
+                : 'None';
+        } else {
+            $seeders = 'n/a';
+        }
+
+        $buildHash = null;
+        if ($this->usingScenarioTestDBs()) {
+            $buildHash = $this->shouldBuildRemotely()
+                ? '(Handled remotely)'
+                : "\"{$this->hasher->currentSourceFilesHash()}\"";
+        }
+
+        $scenarioHash = null;
+        if ($this->usingScenarioTestDBs()) {
+            $scenarioHash = $this->shouldBuildRemotely()
+                ? '(Handled remotely)'
+                : "\"{$this->hasher->currentScenarioHash()}\"";
+        }
+
+        $extendedScenarioHash = null;
+        if ($this->usingScenarioTestDBs()) {
+            $extendedScenarioHash = $this->shouldBuildRemotely()
+                ? '(Handled remotely)'
+                : "\"{$this->hasher->currentExtendedScenarioHash()}\"";
+        }
+
         $lines = array_filter([
             'Project' => $this->config->projectName ? "\"{$this->config->projectName}\"": 'n/a',
+            'Remote-build url' => $this->shouldBuildRemotely() ? "\"{$this->buildRemoteUrl()}\"" : null,
+            'Snapshots enabled?' => $this->snapshotsAreEnabled() ? 'Yes' : 'No',
+            'Snapshot storage' => $snapshotStorageDir,
+            'Pre-migration import/s' => $preMigrationImports,
+            'Migrations' => $migrations,
+            'Seeder/s' => $seeders,
+            'Using scenarios?' => $this->usingScenarioTestDBs() ? 'Yes' : 'No',
+            '- Build-hash' => $buildHash,
+            '- Scenario-hash' => $extendedScenarioHash,
+            '- Snapshot-hash' => $scenarioHash,
+            'Is a browser test?' => $this->config->isBrowserTest ? 'Yes' : 'No',
+            'Is reusable?' => $this->dbWillBeReusable() ? 'Yes' : 'No - will be re-built each time',
+        ]);
+        $lines = $this->padList($lines);
+
+        $this->logBox($lines, 'Build Settings');
+
+//        $this->di->log->debug('Build Settings:');
+//        foreach ($lines as $line) {
+//            $this->di->log->debug($line);
+//        }
+
+
+
+        $host = $this->di->db->getHost();
+
+        $lines = array_filter([
             'Connection' => "\"{$this->config->connection}\"",
             'Driver' => "\"{$this->config->driver}\"",
             'Host' => $host ? "\"{$host}\"" : null,
@@ -1030,10 +1112,12 @@ class DatabaseBuilder
         ]);
         $lines = $this->padList($lines);
 
-        $this->di->log->debug('Resolved Settings:');
-        foreach ($lines as $line) {
-            $this->di->log->debug(" - $line");
-        }
+        $this->logBox($lines, 'Resolved Database');
+
+//        $this->di->log->debug('Resolved Database:');
+//        foreach ($lines as $line) {
+//            $this->di->log->debug($line);
+//        }
     }
 
     /**
@@ -1051,10 +1135,10 @@ class DatabaseBuilder
             $prepLine = "Preparing the \"{$this->config->connection}\" database";
         }
 
-        $this->logBox([
-            $prepLine,
-            "For test \"{$this->config->testName}\"",
-        ]);
+        $this->logBox(
+            [$prepLine, "For test \"{$this->config->testName}\""],
+            'ADAPT - Preparing a Test-Database'
+        );
     }
 
     /**
@@ -1104,7 +1188,13 @@ class DatabaseBuilder
 
         $newLines = [];
         foreach ($lines as $key => $line) {
-            $newLines[$key] = str_pad("$key:", $maxLength + 2, ' ', STR_PAD_RIGHT) . $line;
+            $line = str_replace(["\r\n", "\r", "\n"], "\n", $line);
+            $partialLines = explode("\n", $line);
+            $count = 0;
+            foreach ($partialLines as $partialLine) {
+                $tempKey = $count++ == 0 ? "$key:" : '';
+                $newLines[] = str_pad($tempKey, $maxLength + 2, ' ', STR_PAD_RIGHT) . $partialLine;
+            }
         }
 
         return $newLines;

@@ -354,7 +354,7 @@ class ConfigDTOTest extends PHPUnitTestCase
     {
         $this->assertSame(
             $expected,
-            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationDumps()
+            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationImports()
         );
     }
 }

@@ -242,13 +242,13 @@ trait InitialiseLaravelAdapt
         // fetch the connection-databases list from Laravel
         $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework() ?? [];
 
+        if (!count($connectionDBs)) {
+            return [];
+        }
+
         $remoteShareDTO = (new RemoteShareDTO())
             ->tempConfigFile(null)
             ->connectionDBs($connectionDBs);
-
-        if (!count($remoteShareDTO->connectionDBs)) {
-            return [];
-        }
 
         $value = $includeKey
             ? Settings::REMOTE_SHARE_KEY . ": {$remoteShareDTO->buildPayload()}"
