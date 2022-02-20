@@ -152,8 +152,8 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig(?ConfigDTO $config = null, ?DIContainer $di = null): void
     {
-        // generate a source-files-hash based on the current look_for_changes_in etc dirs
-        $this->newHasher($config, $di)->currentSourceFilesHash();
+        // generate a build-hash based on the current look_for_changes_in etc. dirs
+        $this->newHasher($config, $di)->getBuildHash();
     }
 
     /**

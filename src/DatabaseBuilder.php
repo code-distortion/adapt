@@ -374,7 +374,7 @@ class DatabaseBuilder
         }
 
         // or generate a new name
-        $dbNameHash = $this->hasher->generateDBNameHashPart(
+        $dbNameHash = $this->hasher->generateDatabaseNameHashPart(
             $this->config->pickSeedersToInclude(),
             $this->config->databaseModifier
         );
@@ -425,7 +425,8 @@ class DatabaseBuilder
     {
         $this->dbAdapter()->reuse->writeReuseMetaData(
             $this->origDBName(),
-            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->getBuildHash(),
+            $this->hasher->currentSnapshotHash(),
             $this->hasher->currentScenarioHash(),
             $reusable
         );
@@ -443,7 +444,7 @@ class DatabaseBuilder
         }
 
         return $this->dbAdapter()->reuse->dbIsCleanForReuse(
-            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->getBuildHash(),
             $this->hasher->currentScenarioHash()
         );
     }
@@ -653,7 +654,7 @@ class DatabaseBuilder
     private function generateSnapshotPath(array $seeders): string
     {
         return $this->dbAdapter()->name->generateSnapshotPath(
-            $this->hasher->generateSnapshotHash($seeders)
+            $this->hasher->generateSnapshotFilenameHashPart($seeders)
         );
     }
 
@@ -813,7 +814,7 @@ class DatabaseBuilder
     {
         return $this->dbAdapter()->reuse->findDatabases(
             $this->origDBName(),
-            $this->hasher->currentSourceFilesHash()
+            $this->hasher->getBuildHash()
         );
     }
 
@@ -869,7 +870,7 @@ class DatabaseBuilder
             $path,
             $filename,
             $accessDT,
-            $this->hasher->filenameHasSourceFilesHash($filename),
+            $this->hasher->filenameHasBuildHash($filename),
             fn() => $this->di->filesystem->size($path),
             $this->config->staleGraceSeconds
         );
@@ -1059,21 +1060,21 @@ class DatabaseBuilder
         if ($this->usingScenarioTestDBs()) {
             $buildHash = $this->shouldBuildRemotely()
                 ? '(Handled remotely)'
-                : "\"{$this->hasher->currentSourceFilesHash()}\"";
+                : "\"{$this->hasher->getBuildHash()}\"";
         }
 
         $scenarioHash = null;
         if ($this->usingScenarioTestDBs()) {
             $scenarioHash = $this->shouldBuildRemotely()
                 ? '(Handled remotely)'
-                : "\"{$this->hasher->currentScenarioHash()}\"";
+                : "\"{$this->hasher->currentSnapshotHash()}\"";
         }
 
         $extendedScenarioHash = null;
         if ($this->usingScenarioTestDBs()) {
             $extendedScenarioHash = $this->shouldBuildRemotely()
                 ? '(Handled remotely)'
-                : "\"{$this->hasher->currentExtendedScenarioHash()}\"";
+                : "\"{$this->hasher->currentScenarioHash()}\"";
         }
 
         $lines = array_filter([

@@ -19,7 +19,7 @@ class Settings
     public const REUSE_TABLE = '____adapt____';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    public const REUSE_TABLE_VERSION = '4';
+    public const REUSE_TABLE_VERSION = '5';
 
     /**
      * Included when preparing a database remotely between Adapt installations. Mismatches cause an exception.
