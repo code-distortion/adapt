@@ -72,6 +72,9 @@ class ResolvedSettingsDTO
     /** @var boolean Is a browser test being run?. */
     public bool $isBrowserTest;
 
+    /** @var string|null The session-driver being used. */
+    public ?string $sessionDriver;
+
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public bool $databaseIsReusable;
 
@@ -238,6 +241,18 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Set the session-driver that's being used.
+     *
+     * @param string|null $sessionDriver The session-driver being used.
+     * @return static
+     */
+    public function sessionDriver(?string $sessionDriver): self
+    {
+        $this->sessionDriver = $sessionDriver;
+        return $this;
+    }
+
+    /**
      * Turn the reusable-database setting on (or off).
      *
      * @param boolean $databaseIsReusable Is the database reusable?.
@@ -335,6 +350,8 @@ class ResolvedSettingsDTO
 
         $seedersTitle = $this->isSeedingAllowed && count($this->seeders) == 1 ? 'Seeder:' : 'Seeders:';
 
+        $isBrowserTest = $this->renderBoolean($this->isBrowserTest, "Yes (session-driver: \"$this->sessionDriver\")");
+
         $isReusable = $this->renderBoolean(
             $this->databaseIsReusable,
             'Yes',
@@ -349,7 +366,7 @@ class ResolvedSettingsDTO
             $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
             'Migrations:' => $migrations,
             $seedersTitle => $seeders,
-            'Is a browser-test?' => $this->renderBoolean($this->isBrowserTest),
+            'Is a browser-test?' => $isBrowserTest,
             'Is reusable?' => ' ',
             '- Using transactions:' => $isReusable,
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
@@ -403,7 +420,7 @@ class ResolvedSettingsDTO
 
 
     /**
-     * Render a list of things,  or "None when empty".
+     * Render a list of things, or "None when empty".
      *
      * @param string[] $things      The things to render.
      * @param string   $remoteExtra The text to add when being handled remotely.

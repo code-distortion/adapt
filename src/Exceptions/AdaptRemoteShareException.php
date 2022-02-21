@@ -57,6 +57,6 @@ class AdaptRemoteShareException extends AdaptException
      */
     public static function couldNotReadResolvedSettingsDTO(): self
     {
-        return new self("The passed resolved-settings could not be read");
+        return new self("The resolved-settings could not be read");
     }
 }

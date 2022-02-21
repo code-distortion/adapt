@@ -1106,6 +1106,7 @@ class DatabaseBuilder
             )
             ->snapshotsEnabled($this->snapshotsAreEnabled())
             ->isBrowserTest($this->config->isBrowserTest)
+            ->sessionDriver($this->config->sessionDriver)
             ->databaseIsReusable($this->dbWillBeReusable())
             ->scenarioTestDBs(
                 $this->usingScenarioTestDBs(),
