@@ -12,6 +12,8 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteBuildException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\Exceptions;
@@ -21,8 +23,6 @@ use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
 use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use PDOException;
 use Psr\Http\Message\ResponseInterface;
@@ -138,18 +138,38 @@ class DatabaseBuilder
         try {
 
             $this->onlyExecuteOnce();
+            $this->logTitle();
+            $this->prePrepareChecks();
             $this->prepareDB();
             return $this;
 
         } catch (Throwable $e) {
 
-            $exceptionClass = Exceptions::resolveExceptionClass($e);
-            $this->di->log->error("$exceptionClass: {$e->getMessage()}");
+            $this->logException($e);
             throw $e;
 
         } finally {
-            $this->di->log->debug(''); // delimiter between each database being prepared
+            $this->di->log->debug(''); // add the delimiter between each database being prepared
         }
+    }
+
+    /**
+     * Generate and log the exception message.
+     *
+     * @param Throwable $e The exception to log.
+     * @return void
+     */
+    private function logException(Throwable $e): void
+    {
+        if (is_a($e, AdaptRemoteBuildException::class)) {
+            $lines = $e->generateLinesForLog();
+            $title = $e->generateTitleForLog();
+        } else {
+            $lines = array_filter([$e->getMessage()]);
+            $title = 'An Exception Occurred - ' . Exceptions::resolveExceptionClass($e);
+        }
+
+        $this->di->log->logBox($lines, $title, 'error');
     }
 
     /**
@@ -175,6 +195,42 @@ class DatabaseBuilder
             throw AdaptBuildException::databaseBuilderAlreadyExecuted();
         }
         $this->executed = true;
+    }
+
+    /**
+     * Perform any checks that that need to happen before building a database.
+     *
+     * @return void
+     */
+    private function prePrepareChecks(): void
+    {
+        $this->checkThatSessionDriversMatch();
+    }
+
+    /**
+     * When building remotely & running browser tests, make sure the remote session.driver matches the local one.
+     *
+     * @return void
+     * @throws AdaptRemoteShareException When building remotely, is a browser test, and session.drivers don't match.
+     */
+    private function checkThatSessionDriversMatch(): void
+    {
+        if (!$this->config->isRemoteBuild) {
+            return;
+        }
+
+        if (!$this->config->isBrowserTest) {
+            return;
+        }
+
+        if ($this->config->sessionDriver == $this->config->remoteCallerSessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch(
+            $this->config->sessionDriver,
+            (string) $this->config->remoteCallerSessionDriver
+        );
     }
 
     /**
@@ -305,7 +361,6 @@ class DatabaseBuilder
     private function prepareDB(): void
     {
         $logTimer = $this->di->log->newTimer();
-        $this->logTitle();
 
         $this->shouldBuildRemotely()
             ? $this->buildDBRemotely()
@@ -711,7 +766,7 @@ class DatabaseBuilder
     private function buildDBRemotely(): void
     {
         if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
-            throw AdaptBuildException::databaseTypeCannotBeBuiltRemotely($this->config->driver);
+            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely($this->config->driver);
         }
 
         $this->di->log->debug("Building the database remotely…");
@@ -741,7 +796,7 @@ class DatabaseBuilder
      * Send the http request to build the database remotely.
      *
      * @return ResolvedSettingsDTO
-     * @throws AdaptBuildException Thrown when the database couldn't be built.
+     * @throws AdaptRemoteBuildException Thrown when the database couldn't be built.
      */
     private function sendBuildRemoteRequest(): ResolvedSettingsDTO
     {
@@ -760,52 +815,35 @@ class DatabaseBuilder
             return $resolvedSettingsDTO;
 
         } catch (GuzzleException $e) {
-            $extraDetails = $this->interpretSendRemoteException($url, $e);
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $extraDetails, $e);
+            throw $this->buildAdaptRemoteBuildException($url, $e);
         }
     }
 
     /**
-     * Generate a readable string of text based on a GuzzleException.
+     * Build a AdaptRemoteBuildException.
      *
      * @param string          $url The remote-build url.
      * @param GuzzleException $e   The exception that occurred.
-     * @return string
+     * @return AdaptRemoteBuildException
      */
-    private function interpretSendRemoteException(string $url, GuzzleException $e): string
+    private function buildAdaptRemoteBuildException(string $url, GuzzleException $e): AdaptRemoteBuildException
     {
-        $responseMessage = null;
-        if (method_exists($e, 'getResponse')) {
+        /** @var ?ResponseInterface $response */
+        $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
 
-            /** @var ResponseInterface $response */
-            $response = $e->getResponse();
-
-            // don't bother with a message if it's a 404 - it's pretty self-explanatory
-            if ($response->getStatusCode() != 404) {
-                $responseMessage = $response->getBody()->getContents();
-                $responseMessage = mb_strlen($responseMessage) > 200
-                    ? mb_substr($responseMessage, 0, 200) . '…'
-                    : $responseMessage;
-            }
-        }
-
-        if ($e instanceof ConnectException) {
-            return "Could not connect to $url";
-        } elseif ($e instanceof BadResponseException) {
-            return $responseMessage
-                ? "$url ({$e->getCode()}) - remote error message: \"{$responseMessage}\""
-                : "$url ({$e->getCode()})";
-        } elseif (!is_null($responseMessage)) {
-            return "Remote error message: \"{$responseMessage}\"";
-        }
-        return "Unknown error";
+        return AdaptRemoteBuildException::remoteBuildFailed(
+            $this->config->connection,
+            $url,
+            $response,
+            $e
+        );
     }
 
     /**
      * Build the url to use when building the database remotely.
      *
      * @return string
-     * @throws AdaptBuildException Thrown when the url is invalid.
+     * @throws AdaptRemoteBuildException Thrown when the url is invalid.
      */
     private function buildRemoteUrl(): string
     {
@@ -819,7 +857,10 @@ class DatabaseBuilder
 
         $parts = parse_url($remoteUrl);
         if (!is_array($parts)) {
-            throw AdaptBuildException::remoteBuildUrlInvalid($origUrl);
+            throw AdaptRemoteBuildException::remoteBuildUrlInvalid($origUrl);
+        }
+        if ((!isset($parts['scheme'])) || (!isset($parts['host']))) {
+            throw AdaptRemoteBuildException::remoteBuildUrlInvalid($origUrl);
         }
 
         $origPath = $parts['path'] ?? '';
@@ -1095,11 +1136,11 @@ class DatabaseBuilder
      */
     private function logSettingsUsed(): void
     {
-        $lines = $this->padList($this->resolvedSettingsDTO->renderBuildSettings());
-        $this->logBox($lines, 'Build Settings');
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSettings());
+        $this->di->log->logBox($lines, 'Build Settings');
 
-        $lines = $this->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
-        $this->logBox($lines, 'Resolved Database');
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
+        $this->di->log->logBox($lines, 'Resolved Database');
 
 //        $this->di->log->debug('Build Settings:');
 //        foreach ($lines as $line) {
@@ -1121,68 +1162,9 @@ class DatabaseBuilder
             $prepLine .= " locally, for another Adapt installation";
         }
 
-        $this->logBox(
+        $this->di->log->logBox(
             [$prepLine, "For test \"{$this->config->testName}\""],
             'ADAPT - Preparing a Test-Database'
         );
-    }
-
-    /**
-     * Log some lines in a box
-     *
-     * @param string|string[] $lines The lines to log in a table.
-     * @param string|null     $title The title to add to the top line.
-     * @return void
-     */
-    private function logBox($lines, ?string $title = null): void
-    {
-        $lines = !is_array($lines) ? [$lines] : $lines;
-
-        if (!count(array_filter($lines))) {
-            return;
-        }
-
-        $title = mb_strlen($title) ? " $title " : '';
-
-        $maxLength = mb_strlen($title);
-        foreach ($lines as $line) {
-            $maxLength = max($maxLength, mb_strlen($line));
-        }
-
-        $this->di->log->debug('┌──' . $title . str_repeat('─', $maxLength - mb_strlen($title)) . '┐');
-
-        foreach ($lines as $line) {
-            $line = str_pad($line, $maxLength, ' ', STR_PAD_RIGHT);
-            $this->di->log->debug("│ $line │");
-        }
-
-        $this->di->log->debug('└' . str_repeat('─', $maxLength + 2) . '┘');
-    }
-
-    /**
-     * Add the array keys to the values,  padded based on the length of the longest key.
-     *
-     * @param array<string, string> $lines The lines to process
-     * @return void
-     */
-    private function padList(array $lines): array
-    {
-        $maxLength = 0;
-        foreach (array_keys($lines) as $key) {
-            $maxLength = max($maxLength, mb_strlen($key));
-        }
-
-        $newLines = [];
-        foreach ($lines as $key => $line) {
-            $line = str_replace(["\r\n", "\r", "\n"], "\n", $line);
-            $partialLines = explode("\n", $line);
-            $count = 0;
-            foreach ($partialLines as $partialLine) {
-                $tempKey = $count++ == 0 ? $key : '';
-                $newLines[] = str_pad($tempKey, $maxLength + 1, ' ', STR_PAD_RIGHT) . $partialLine;
-            }
-        }
-
-        return $newLines;
     }
 }

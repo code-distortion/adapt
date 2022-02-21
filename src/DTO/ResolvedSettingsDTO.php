@@ -321,7 +321,7 @@ class ResolvedSettingsDTO
             : null;
 
         $migrations = is_bool($this->migrations)
-            ? $this->migrations ? 'Yes' : 'No'
+            ? ($this->migrations ? 'Yes' : 'No')
             : "\"" . $this->migrations . "\"";
         $migrations .= $remoteExtra;
 
@@ -342,7 +342,7 @@ class ResolvedSettingsDTO
         );
 
         return array_filter([
-            'Project:' => $this->escapeString($this->projectName, 'n/a'),
+            'Project name:' => $this->escapeString($this->projectName, 'n/a'),
             'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
             'Snapshots enabled?' => $this->renderBoolean($this->snapshotsEnabled),
             'Snapshot storage dir:' => $storageDir,

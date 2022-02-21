@@ -48,4 +48,24 @@ interface LogInterface
      * @return float|null
      */
     public function getDuration(int $timerRef = null): ?float;
+
+
+
+    /**
+     * Add the array keys to the values, padded based on the length of the longest key.
+     *
+     * @param array<string, string> $lines The lines to process.
+     * @return void
+     */
+    public function padList(array $lines): array;
+
+    /**
+     * Log some lines in a box.
+     *
+     * @param string|string[] $lines The lines to log in a table.
+     * @param string|null     $title The title to add to the top line.
+     * @param string          $level The logging level to use.
+     * @return void
+     */
+    public function logBox($lines, ?string $title = null, string $level = 'debug'): void;
 }

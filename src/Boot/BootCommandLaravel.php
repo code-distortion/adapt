@@ -121,6 +121,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 false,
                 false,
                 config("session.driver"),
+                null,
             )
             ->cacheTools(
                 config("$c.reuse_test_dbs"),

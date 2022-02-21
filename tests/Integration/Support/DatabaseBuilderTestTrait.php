@@ -112,6 +112,7 @@ trait DatabaseBuilderTestTrait
                 false,
                 false,
                 'database',
+                null,
             )
             ->cacheTools(true, true)
             ->snapshots(false, 'afterMigrations')

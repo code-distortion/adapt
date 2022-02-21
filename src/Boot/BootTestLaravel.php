@@ -184,6 +184,7 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
                 false,
                 $this->propBag->config('session.driver'),
+                null,
             )
             ->cacheTools(
                 $this->propBag->adaptConfig('reuse_test_dbs', 'reuseTestDBs'),

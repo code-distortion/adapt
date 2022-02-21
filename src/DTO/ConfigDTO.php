@@ -74,8 +74,16 @@ class ConfigDTO
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
-    /** @var string The session driver being used - will throw and exception when the remote version is different. */
+    /**
+     * The session driver being used - will throw and exception when the remote version is different to
+     * $remoteCallerSessionDriver.
+     *
+     * @var string
+     */
     public string $sessionDriver;
+
+    /** @var string|null The session driver being used in the caller Adapt installation. */
+    public ?string $remoteCallerSessionDriver;
 
 
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
@@ -268,14 +276,17 @@ class ConfigDTO
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).
      *
-     * @param string[]|string[][] $preMigrationImports The files to import before the migrations are run.
-     * @param boolean|string      $migrations          Should the migrations be run? / the path of the migrations to
-     *                                                 run.
-     * @param string[]            $seeders             The seeders to run after migrating.
-     * @param string|null         $remoteBuildUrl      The remote Adapt installation to send "build" requests to.
-     * @param boolean             $isBrowserTest       Is a browser test running?.
-     * @param boolean             $isRemoteBuild       Is this process building a db for another Adapt installation?.
-     * @param string              $sessionDriver       The session driver being used.
+     * @param string[]|string[][] $preMigrationImports       The files to import before the migrations are run.
+     * @param boolean|string      $migrations                Should the migrations be run? / the path of the migrations
+     *                                                       to run.
+     * @param string[]            $seeders                   The seeders to run after migrating.
+     * @param string|null         $remoteBuildUrl            The remote Adapt installation to send "build" requests to.
+     * @param boolean             $isBrowserTest             Is a browser test running?.
+     * @param boolean             $isRemoteBuild             Is this process building a db for another Adapt
+     *                                                       installation?.
+     * @param string              $sessionDriver             The session driver being used.
+     * @param string|null         $remoteCallerSessionDriver The session driver being used in the caller Adapt
+     *                                                       installation.
      * @return static
      */
     public function buildSettings(
@@ -285,7 +296,8 @@ class ConfigDTO
         ?string $remoteBuildUrl,
         bool $isBrowserTest,
         bool $isRemoteBuild,
-        string $sessionDriver
+        string $sessionDriver,
+        ?string $remoteCallerSessionDriver
     ): self {
 
         $this->preMigrationImports = $preMigrationImports;
@@ -295,6 +307,7 @@ class ConfigDTO
         $this->isBrowserTest = $isBrowserTest;
         $this->isRemoteBuild = $isRemoteBuild;
         $this->sessionDriver = $sessionDriver;
+        $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
         return $this;
     }
 
@@ -382,6 +395,18 @@ class ConfigDTO
     public function sessionDriver(string $sessionDriver): self
     {
         $this->sessionDriver = $sessionDriver;
+        return $this;
+    }
+
+    /**
+     * Set the caller Adapt session-driver.
+     *
+     * @param string|null $remoteCallerSessionDriver The session driver being used.
+     * @return static
+     */
+    public function remoteCallerSessionDriver(?string $remoteCallerSessionDriver): self
+    {
+        $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
         return $this;
     }
 

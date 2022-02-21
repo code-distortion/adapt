@@ -4,9 +4,6 @@ namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
-use CodeDistortion\Adapt\Exceptions\AdaptException;
-use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -184,7 +181,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         try {
 
-            $resolvedSettingsDTO = $this->executeBuilder($request->input('configDTO'));
+            $builder = $this->makeNewBuilder($request->input('configDTO'));
+            $builder->execute();
+            $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
+
             return response($resolvedSettingsDTO->buildPayload());
 
         } catch (Throwable $e) {
@@ -198,23 +198,14 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * Take the config data (from the request), build the Builder based on it, and execute it.
      *
      * @param string $rawValue The raw configDTO data, from the request.
-     * @return ResolvedSettingsDTO
-     * @throws AdaptRemoteShareException When the session.driver doesn't match during browser tests.
+     * @return DatabaseBuilder
      */
-    private function executeBuilder(string $rawValue): ResolvedSettingsDTO
+    private function makeNewBuilder(string $rawValue): DatabaseBuilder
     {
         $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
 
-        $bootRemoteBuildLaravel = new BootRemoteBuildLaravel();
-        $bootRemoteBuildLaravel->ensureSessionDriversMatchDuringBrowserTests(
-            $remoteConfigDTO,
-            config('session.driver')
-        );
-        $bootRemoteBuildLaravel->ensureStorageDirExists();
-
-        $builder = $bootRemoteBuildLaravel->makeNewBuilder($remoteConfigDTO);
-        $builder->execute();
-
-        return $builder->getResolvedSettingsDTO();
+        return (new BootRemoteBuildLaravel())
+            ->ensureStorageDirExists()
+            ->makeNewBuilder($remoteConfigDTO);
     }
 }

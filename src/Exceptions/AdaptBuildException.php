@@ -58,7 +58,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function seederFailed(string $seeder, Throwable $originalException): self
     {
-        return new self("Could not run seeder \"$seeder\"", 0, $originalException);
+        return new self("Could not run the seeder \"$seeder\"", 0, $originalException);
     }
 
     /**
@@ -72,17 +72,6 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
-     * The request to build a database remotely failed.
-     *
-     * @param string $remoteBuildUrl The "remote-build" url.
-     * @return self
-     */
-    public static function remoteBuildUrlInvalid(string $remoteBuildUrl): self
-    {
-        return new self("The remote build url \"$remoteBuildUrl\" is invalid");
-    }
-
-    /**
      * The database being used isn't compatible with browser testing.
      *
      * @return static
@@ -90,36 +79,5 @@ class AdaptBuildException extends AdaptException
     public static function databaseNotCompatibleWithBrowserTests(string $driver): self
     {
         return new self("$driver databases aren't compatible with browser tests");
-    }
-
-    /**
-     * The request to build a database remotely failed.
-     *
-     * @param string $driver The driver that isn't allowed to be built remotely.
-     * @return self
-     */
-    public static function databaseTypeCannotBeBuiltRemotely(string $driver): self
-    {
-        return new self("$driver databases cannot be built remotely");
-    }
-
-    /**
-     * The request to build a database remotely failed.
-     *
-     * @param string         $connection        The connection the database was being built for.
-     * @param string         $extraDetails      The extra details or message about the exception.
-     * @param Throwable|null $originalException The originally thrown exception.
-     * @return self
-     */
-    public static function remoteBuildFailed(
-        string $connection,
-        string $extraDetails,
-        ?Throwable $originalException = null
-    ): self {
-
-        $message = "The remote database for connection \"$connection\" could not be built - $extraDetails";
-        return $originalException
-            ? new self($message, 0, $originalException)
-            : new self($message);
     }
 }
