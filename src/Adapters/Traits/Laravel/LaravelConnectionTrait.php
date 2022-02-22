@@ -16,7 +16,7 @@ trait LaravelConnectionTrait
     {
         config(['database.default' => $this->config->connection]);
 
-        $this->di->log->info('Changed the default connection to: "' . $this->config->connection . '"');
+        $this->di->log->debug('Changed the default connection to: "' . $this->config->connection . '"');
     }
 
     /**
@@ -27,13 +27,14 @@ trait LaravelConnectionTrait
      */
     protected function laravelUseDatabase($database)
     {
-        $connection = $this->config->connection;
         $this->config->database($database);
+
+        $connection = $this->config->connection;
         if (config("database.connections.$connection.database") != $database) {
             config(["database.connections.$connection.database" => $database]);
-            $this->di->log->info('Changed the database for connection "' . $connection . '" to "' . $database . '"');
+            $this->di->log->debug('Changed the database for connection "' . $connection . '" to "' . $database . '"');
         } else {
-            $this->di->log->info('Using connection "' . $connection . '"\'s original database "' . $database . '"');
+            $this->di->log->debug('Using connection "' . $connection . '"\'s original database "' . $database . '"');
         }
     }
 }

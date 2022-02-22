@@ -39,6 +39,17 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
+     * Could not run the migrations.
+     *
+     * @param Throwable $originalException The originally thrown exception.
+     * @return self
+     */
+    public static function migrationsFailed($originalException): self
+    {
+        return new self("An error occurred when running the migrations: \"{$originalException->getMessage()}\"", 0, $originalException);
+    }
+
+    /**
      * Could not run a seeder.
      *
      * @param string    $seeder            The seeder that was run.
@@ -47,7 +58,7 @@ class AdaptBuildException extends AdaptException
      */
     public static function seederFailed($seeder, $originalException): self
     {
-        return new self("Could not run seeder \"$seeder\"", 0, $originalException);
+        return new self("Could not run the seeder \"$seeder\"", 0, $originalException);
     }
 
     /**
@@ -61,29 +72,13 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
-     * The request to build a database remotely failed.
+     * The database being used isn't compatible with browser testing.
      *
-     * @param string $remoteBuildUrl The "remote-build" url.
-     * @return self
+     * @return static
+     * @param string $driver
      */
-    public static function remoteBuildUrlInvalid($remoteBuildUrl): self
+    public static function databaseNotCompatibleWithBrowserTests($driver): self
     {
-        return new self("The remote build url \"$remoteBuildUrl\" is invalid");
-    }
-
-    /**
-     * The request to build a database remotely failed.
-     *
-     * @param string         $connection        The connection the database was being built for.
-     * @param string         $remoteMessage     The message given by the remote installation of Adapt.
-     * @param Throwable|null $originalException The originally thrown exception.
-     * @return self
-     */
-    public static function remoteBuildFailed($connection, $remoteMessage, $originalException = null): self
-    {
-        $message = "The remote database for connection \"$connection\" could not be built - Remote error message: \"$remoteMessage\"";
-        return $originalException
-            ? new self($message, 0, $originalException)
-            : new self($message);
+        return new self("$driver databases aren't compatible with browser tests");
     }
 }

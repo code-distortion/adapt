@@ -10,6 +10,16 @@ use Throwable;
 class AdaptConfigException extends AdaptException
 {
     /**
+     * The .env.testing file could not be loaded.
+     *
+     * @return self
+     */
+    public static function cannotLoadEnvTestingFile(): self
+    {
+        return new self("The .env.testing file could not be loaded");
+    }
+
+    /**
      * The storage directory is a file.
      *
      * @param string $storageDir The storage directory.

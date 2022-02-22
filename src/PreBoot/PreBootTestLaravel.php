@@ -4,8 +4,13 @@ namespace CodeDistortion\Adapt\PreBoot;
 
 use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
+use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\LaravelConfig;
+use CodeDistortion\Adapt\Support\LaravelEnv;
+use CodeDistortion\Adapt\Support\Settings;
+use Laravel\Dusk\Browser;
 
 /**
  * Pre-Bootstrap for Laravel tests.
@@ -15,7 +20,10 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 class PreBootTestLaravel
 {
     /** @var BootTestInterface The object used to boot Adapt. */
-    public $adaptBootTestLaravel;
+    private $adaptBootTestLaravel;
+
+    /** @var string The class the current test is in. */
+    private $testClass;
 
     /** @var string The name of the current test. */
     private $testName;
@@ -37,6 +45,7 @@ class PreBootTestLaravel
     /**
      * Constructor.
      *
+     * @param string        $testClass               The class the current test is in.
      * @param string        $testName                The name of the current test.
      * @param PropBagDTO    $propBag                 The properties specified in the test-class.
      * @param callable      $buildTransactionClosure The closure to call to set up the database transaction.
@@ -44,12 +53,14 @@ class PreBootTestLaravel
      * @param boolean       $isBrowserTest           Whether the current test is a browser test or not.
      */
     public function __construct(
+        string $testClass,
         string $testName,
         PropBagDTO $propBag,
         callable $buildTransactionClosure,
         $buildInitCallback,
         bool $isBrowserTest
     ) {
+        $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
         $this->buildTransactionClosure = $buildTransactionClosure;
@@ -96,6 +107,7 @@ class PreBootTestLaravel
     private function prepareLaravelConfig()
     {
         $this->initLaravelDefaultConnection();
+        $this->undoSessionDriverOverride();
         $this->remapLaravelDBConnections();
     }
 
@@ -117,6 +129,34 @@ class PreBootTestLaravel
         }
 
         config(['database.default' => $connection]);
+    }
+
+    /**
+     * Laravel sets the session driver to "array" during tests, but it doesn't when "php artisan dusk". This way,
+     * "loginAs" works because the session data can persist in the database.
+     *
+     * This method "un-does" Laravel's override of the session driver when browser testing, so that loginAs works when
+     * running "php artisan test" or "./vendor/bin/phpunit", instead of having to run "php artisan dusk".
+     *
+     * @return void
+     */
+    private function undoSessionDriverOverride()
+    {
+        if (!$this->isBrowserTest) {
+            return;
+        }
+
+        LaravelEnv::reloadEnv(
+            base_path(Settings::ENV_TESTING_FILE),
+            ['APP_ENV' => 'testing']
+        );
+
+        $sessionConfig = LaravelConfig::readConfigFile('session');
+        if (!$sessionConfig['driver']) {
+            return;
+        }
+
+        config(['session.driver' => $sessionConfig['driver']]);
     }
 
     /**
@@ -142,9 +182,9 @@ class PreBootTestLaravel
     private function parseRemapDBStrings(): array
     {
         return array_merge(
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), null, true),
+            $this->parseRemapDBString($this->propBag->adaptConfig('remap_connections'), null, true),
             $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), null, false),
-            $this->parseRemapDBString($this->propBag->config('remap_connections'), true, true),
+            $this->parseRemapDBString($this->propBag->adaptConfig('remap_connections'), true, true),
             $this->parseRemapDBString($this->propBag->prop('remapConnections', ''), true, false)
         );
     }
@@ -207,11 +247,50 @@ class PreBootTestLaravel
     private function buildBootObject(): BootTestInterface
     {
         return (new BootTestLaravel())
-            ->testName(get_class($this) . '::' . $this->testName)
+            ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
             ->transactionClosure($this->buildTransactionClosure)
             ->initCallback($this->buildInitCallback)
             ->ensureStorageDirExists();
+    }
+
+
+
+    /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    public function newBuilder($connection): DatabaseBuilder
+    {
+        return $this->adaptBootTestLaravel->newBuilder($connection);
+    }
+
+    /**
+     * Build the list of connections that Adapt has prepared, and their corresponding databases.
+     *
+     * @return array
+     */
+    public function buildConnectionDBsList(): array
+    {
+        return $this->adaptBootTestLaravel->buildConnectionDBsList();
+    }
+
+    /**
+     * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
+     *
+     * @param Browser[]             $browsers      The browsers to update with the current config.
+     * @param array<string, string> $connectionDBs The list of connections that have been prepared,
+     *                                             and their corresponding databases from the framework.
+     * @return void
+     */
+    public function haveBrowsersShareConfig($browsers, $connectionDBs)
+    {
+        $this->adaptBootTestLaravel->haveBrowsersShareConfig($browsers, $connectionDBs);
     }
 }

@@ -18,6 +18,19 @@ interface BuildInterface
      */
     public function __construct(DIContainer $di, ConfigDTO $config);
 
+    /**
+     * Check if this database type can be built remotely.
+     *
+     * @return boolean
+     */
+    public function canBeBuiltRemotely(): bool;
+
+    /**
+     * Check if this database type can be used when browser testing.
+     *
+     * @return boolean
+     */
+    public function isCompatibleWithBrowserTests(): bool;
 
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.

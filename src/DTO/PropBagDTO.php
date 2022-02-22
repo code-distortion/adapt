@@ -59,6 +59,16 @@ abstract class PropBagDTO
     }
 
     /**
+     * Get a property from $this - but fall back to adapt config values when not present.
+     *
+     * @param string      $configKey The key to this setting in the config.
+     * @param string|null $propName  The setting to retrieve.
+     * @param mixed       $default   The default value.
+     * @return mixed
+     */
+    abstract public function adaptConfig($configKey, $propName = null, $default = null);
+
+    /**
      * Get a property from $this - but fall back to config values when not present.
      *
      * @param string      $configKey The key to this setting in the config.

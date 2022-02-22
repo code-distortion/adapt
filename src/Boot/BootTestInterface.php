@@ -2,8 +2,10 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
+use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use Laravel\Dusk\Browser;
 
 /**
  * Bootstrap Adapt for tests.
@@ -68,12 +70,32 @@ interface BootTestInterface
     public function run();
 
     /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     */
+    public function newBuilder($connection): DatabaseBuilder;
+
+    /**
+     * Build the list of connections that Adapt has prepared, and their corresponding databases.
+     *
+     * @return array
+     */
+    public function buildConnectionDBsList(): array;
+
+    /**
      * Store the current config in the filesystem temporarily, and get the browsers refer to it in a cookie.
      *
-     * @param Browser[] $browsers The browsers to update with the current config.
+     * @param Browser[]             $browsers      The browsers to update with the current config.
+     * @param array<string, string> $connectionDBs The list of connections that have been prepared,
+     *                                             and their corresponding databases from the framework.
      * @return void
      */
-    public function getBrowsersToPassThroughCurrentConfig($browsers);
+    public function haveBrowsersShareConfig($browsers, $connectionDBs);
 
     /**
      * Check to see if any of the transactions were committed, and generate an exception.

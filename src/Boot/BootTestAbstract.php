@@ -128,7 +128,6 @@ abstract class BootTestAbstract implements BootTestInterface
     {
         if (Settings::$isFirstTest) {
             Settings::$isFirstTest = false;
-            $this->newLog()->info('==== Adapt initialisation ================');
             $this->purgeStaleThings();
         }
 
@@ -149,7 +148,7 @@ abstract class BootTestAbstract implements BootTestInterface
         if (!$this->propBag) {
             return;
         }
-        if (!$this->propBag->config('build_databases', 'buildDatabases')) {
+        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
             return;
         }
 
@@ -167,15 +166,6 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      */
     abstract protected function newDefaultBuilder(): DatabaseBuilder;
-
-    /**
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
-     *
-     * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
-     */
-    abstract protected function newBuilder($connection): DatabaseBuilder;
 
     /**
      * Execute the builders that this object created (i.e. build their databases).
@@ -217,15 +207,13 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Pick the connections' databases, and register them with the framework.
      *
+     * This is done so that user-land code can get the list. e.g. to include in headers to the
+     *
      * @return void
      */
     private function registerConnectionDBs()
     {
-        $connectionDatabases = [];
-        foreach ($this->builders as $builder) {
-            $connectionDatabases[$builder->getConnection()] = $builder->getDatabase();
-        }
-        $this->registerConnectionDBsWithFramework($connectionDatabases);
+        $this->registerPreparedConnectionDBsWithFramework($this->buildConnectionDBsList());
     }
 
     /**
@@ -234,7 +222,21 @@ abstract class BootTestAbstract implements BootTestInterface
      * @param array<string,string> $connectionDatabases The connections and the databases created for them.
      * @return void
      */
-    abstract protected function registerConnectionDBsWithFramework($connectionDatabases);
+    abstract protected function registerPreparedConnectionDBsWithFramework($connectionDatabases);
+
+    /**
+     * Build the list of connections that Adapt has prepared, and their corresponding databases.
+     *
+     * @return array
+     */
+    public function buildConnectionDBsList(): array
+    {
+        $connectionDatabases = [];
+        foreach ($this->builders as $builder) {
+            $connectionDatabases[$builder->getConnection()] = $builder->getResolvedDatabase();
+        }
+        return $connectionDatabases;
+    }
 
     /**
      * Use the existing DIContainer, but build a default one if it hasn't been set.

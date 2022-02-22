@@ -17,8 +17,7 @@ class AdaptRemoveCachesCommand extends Command
 
     /** @var string The name and signature of the console command. */
     protected $signature = 'adapt:remove-db-caches '
-                            . '{--F|force} '
-                            . '{--env-file=.env.testing : The .env file to load from}';
+                            . '{--F|force} ';
 
     /** @var string The console command description. */
     protected $description = 'Remove Adapt\'s test-databases and snapshot files';
@@ -40,11 +39,9 @@ class AdaptRemoveCachesCommand extends Command
      */
     public function handle()
     {
-        $envFile = !is_array($this->option('env-file'))
-            ? (string) $this->option('env-file')
-            : '';
-
-        LaravelSupport::useTestingConfig($envFile);
+        if (!app()->environment('testing')) {
+            LaravelSupport::useTestingConfig();
+        }
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {

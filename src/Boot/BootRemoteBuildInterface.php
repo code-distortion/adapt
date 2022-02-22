@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 
 /**
  * Bootstrap Adapt to build a database remotely.

@@ -112,30 +112,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->buildSettings(
-                config("$c.pre_migration_imports"),
-                config("$c.migrations"),
-                config("$c.seeders"),
-                config("$c.remote_build_url"),
-                false,
-                false
-            )
-            ->cacheTools(
-                config("$c.reuse_test_dbs"),
-                config("$c.scenario_test_dbs")
-            )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
-            ->mysqlSettings(
-                config("$c.database.mysql.executables.mysql"),
-                config("$c.database.mysql.executables.mysqldump")
-            )
-            ->postgresSettings(
-                config("$c.database.pgsql.executables.psql"),
-                config("$c.database.pgsql.executables.pg_dump")
-            )
-            ->staleGraceSeconds(
-                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
-            );
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))->buildSettings(config("$c.pre_migration_imports"), config("$c.migrations"), config("$c.seeders"), config("$c.remote_build_url"), false, false, config("session.driver"), null)->cacheTools(config("$c.reuse_test_dbs"), config("$c.scenario_test_dbs"))->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 
     /**

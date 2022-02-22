@@ -8,13 +8,13 @@ namespace CodeDistortion\Adapt\DI\Injectable\Interfaces;
 interface LogInterface
 {
     /**
-     * Display some debug output - INFO level.
+     * Display some debug output - DEBUG level.
      *
      * @param string       $message  The message to show.
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info($message, $timerRef = null);
+    public function debug($message, $timerRef = null);
 
     /**
      * Display some debug output - WARNING level.
@@ -24,6 +24,15 @@ interface LogInterface
      * @return void
      */
     public function warning($message, $timerRef = null);
+
+    /**
+     * Display some debug output - ERROR level.
+     *
+     * @param string       $message  The message to show.
+     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @return void
+     */
+    public function error($message, $timerRef = null);
 
     /**
      * Create a new timer and return a reference to it.
@@ -39,4 +48,24 @@ interface LogInterface
      * @return float|null
      */
     public function getDuration($timerRef = null);
+
+
+
+    /**
+     * Add the array keys to the values, padded based on the length of the longest key.
+     *
+     * @param array<string, string> $lines The lines to process.
+     * @return void
+     */
+    public function padList($lines): array;
+
+    /**
+     * Log some lines in a box.
+     *
+     * @param string|string[] $lines The lines to log in a table.
+     * @param string|null     $title The title to add to the top line.
+     * @param string          $level The logging level to use.
+     * @return void
+     */
+    public function logBox($lines, $title = null, $level = 'debug');
 }

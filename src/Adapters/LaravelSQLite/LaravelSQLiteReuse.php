@@ -20,20 +20,21 @@ class LaravelSQLiteReuse implements ReuseInterface
     use InjectInclHasherTrait;
 
 
+
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string  $origDBName      The database that this test-database is for name.
-     * @param string  $sourceFilesHash The current source-files-hash based on the database-building file content and
-     *                                 database-name-prefix.
-     * @param string  $scenarioHash    The current scenario-hash based on the pre-migration-imports, migrations and
-     *                                 seeder-settings.
-     * @param boolean $reusable        Whether this database can be reused or not.
+     * @param string  $origDBName   The name of the database that this test-database is for.
+     * @param string  $buildHash    The current build-hash.
+     * @param string  $snapshotHash The current snapshot-hash.
+     * @param string  $scenarioHash The current scenario-hash.
+     * @param boolean $reusable     Whether this database can be reused or not.
      * @return void
      */
     public function writeReuseMetaData(
         $origDBName,
-        $sourceFilesHash,
+        $buildHash,
+        $snapshotHash,
         $scenarioHash,
         $reusable
     ) {
@@ -45,8 +46,9 @@ class LaravelSQLiteReuse implements ReuseInterface
             . "`project_name` varchar(255), "
             . "`reuse_table_version` varchar(16), "
             . "`orig_db_name` varchar(255) NOT NULL, "
-            . "`source_files_hash` varchar(255) NOT NULL, "
-            . "`scenario_hash` varchar(255) NOT NULL, "
+            . "`build_hash` varchar(32) NOT NULL, "
+            . "`snapshot_hash` varchar(32) NOT NULL, "
+            . "`scenario_hash` varchar(32) NOT NULL, "
             . "`reusable` tinyint unsigned, "
             . "`inside_transaction` tinyint unsigned, "
             . "`last_used` timestamp"
@@ -57,7 +59,8 @@ class LaravelSQLiteReuse implements ReuseInterface
                 . "`project_name`, "
                 . "`reuse_table_version`, "
                 . "`orig_db_name`, "
-                . "`source_files_hash`, "
+                . "`build_hash`, "
+                . "`snapshot_hash`, "
                 . "`scenario_hash`, "
                 . "`reusable`, "
                 . "`inside_transaction`, "
@@ -67,7 +70,8 @@ class LaravelSQLiteReuse implements ReuseInterface
                 . ":projectName, "
                 . ":reuseTableVersion, "
                 . ":origDBName, "
-                . ":sourceFilesHash, "
+                . ":buildHash, "
+                . ":snapshotHash, "
                 . ":scenarioHash, "
                 . ":reusable, "
                 . ":insideTransaction, "
@@ -77,7 +81,8 @@ class LaravelSQLiteReuse implements ReuseInterface
                 'projectName' => $this->config->projectName,
                 'reuseTableVersion' => Settings::REUSE_TABLE_VERSION,
                 'origDBName' => $origDBName,
-                'sourceFilesHash' => $sourceFilesHash,
+                'buildHash' => $buildHash,
+                'snapshotHash' => $snapshotHash,
                 'scenarioHash' => $scenarioHash,
                 'reusable' => (int) $reusable,
                 'insideTransaction' => 0,
@@ -99,14 +104,12 @@ class LaravelSQLiteReuse implements ReuseInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string $sourceFilesHash The current source-files-hash based on the database-building file content and
-     *                                database-name-prefix.
-     * @param string $scenarioHash    The scenario-hash based on the pre-migration-imports, migrations and
-     *                                seeder-settings.
+     * @param string $buildHash    The current build-hash.
+     * @param string $scenarioHash The current scenario-hash.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
-    public function dbIsCleanForReuse($sourceFilesHash, $scenarioHash): bool
+    public function dbIsCleanForReuse($buildHash, $scenarioHash): bool
     {
         try {
             $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
@@ -131,7 +134,7 @@ class LaravelSQLiteReuse implements ReuseInterface
             return false;
         }
 
-        if ($reuseInfo->source_files_hash != $sourceFilesHash) {
+        if ($reuseInfo->build_hash != $buildHash) {
             return false;
         }
 
@@ -178,13 +181,12 @@ class LaravelSQLiteReuse implements ReuseInterface
      *
      * Only pick databases that have "reuse" meta-info stored.
      *
-     * @param string|null $origDBName      The original database that this instance is for - will be ignored when null.
-     * @param string      $sourceFilesHash The current files-hash based on the database-building file content.
+     * @param string|null $origDBName The original database that this instance is for - will be ignored when null.
+     * @param string      $buildHash  The current build-hash.
      * @return DatabaseMetaInfo[]
      */
-    public function findDatabases($origDBName, $sourceFilesHash): array
+    public function findDatabases($origDBName, $buildHash): array
     {
-
         if (!$this->di->filesystem->dirExists($this->config->storageDir)) {
             return [];
         }
@@ -197,7 +199,7 @@ class LaravelSQLiteReuse implements ReuseInterface
                 $this->di->db->getConnection(),
                 $name,
                 $pdo->fetchReuseTableInfo("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
-                $sourceFilesHash
+                $buildHash
             );
         }
         return array_values(array_filter($databaseMetaInfos));
@@ -206,17 +208,17 @@ class LaravelSQLiteReuse implements ReuseInterface
     /**
      * Build DatabaseMetaInfo objects for a database.
      *
-     * @param string        $connection      The connection the database is within.
-     * @param string        $name            The database's name.
-     * @param stdClass|null $reuseInfo       The reuse info from the database.
-     * @param string        $sourceFilesHash The current files-hash based on the database-building file content.
+     * @param string        $connection The connection the database is within.
+     * @param string        $name       The database's name.
+     * @param stdClass|null $reuseInfo  The reuse info from the database.
+     * @param string        $buildHash  The current files-hash based on the database-building file content.
      * @return DatabaseMetaInfo|null
      */
     private function buildDatabaseMetaInfo(
         string $connection,
         string $name,
         $reuseInfo,
-        string $sourceFilesHash
+        string $buildHash
     ) {
 
         if (!$reuseInfo) {
@@ -229,7 +231,7 @@ class LaravelSQLiteReuse implements ReuseInterface
 
         $isValid = (
             $reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION
-            && $reuseInfo->source_files_hash == $sourceFilesHash
+            && $reuseInfo->build_hash == $buildHash
         );
 
         $databaseMetaInfo = new DatabaseMetaInfo(
@@ -263,7 +265,7 @@ class LaravelSQLiteReuse implements ReuseInterface
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($databaseMetaInfo->name)) {
-            $this->di->log->info(
+            $this->di->log->debug(
                 'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
                 $logTimer
             );

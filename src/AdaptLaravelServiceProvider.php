@@ -6,15 +6,15 @@ use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConfigMiddleware;
-use CodeDistortion\Adapt\Laravel\Middleware\AdaptShareConnectionMiddleware;
+use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Throwable;
 
 /**
@@ -120,14 +120,21 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         }
 
         foreach ($this->getMiddlewareGroups() as $middlewareGroup) {
-
-            // look for the cookie that conveys the recorded config to use
-            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConfigMiddleware::class);
-
-            // look for the header that remote installations of Adapt can add to indicate that database connections use
-            // particular databases.
-            $router->prependMiddlewareToGroup($middlewareGroup, AdaptShareConnectionMiddleware::class);
+            $router->prependMiddlewareToGroup($middlewareGroup, RemoteShareMiddleware::class);
         }
+    }
+
+    /**
+     * Generate the list of Laravel's middleware groups.
+     *
+     * @return string[]
+     */
+    private function getMiddlewareGroups(): array
+    {
+        $httpKernel = $this->app->make(HttpKernel::class);
+        return method_exists($httpKernel, 'getMiddlewareGroups')
+            ? array_keys($httpKernel->getMiddlewareGroups())
+            : ['web', 'api'];
     }
 
 
@@ -154,15 +161,13 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return new Response();
         });
 
-//        $router->group(['middleware' => $this->getMiddlewareGroups()], function (Router $router) {
+        // Adapt sends "remote build" requests to this url
+        $callback = function (Request $request) {
+            return $this->handleBuildRequest($request);
+        };
 
-            // Adapt sends "remote build" requests to this url
-            $callback = function (Request $request) {
-                return $this->handleBuildRequest($request);
-            };
-            $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
-
-//        });
+        $router->post(Settings::REMOTE_BUILD_REQUEST_PATH, $callback);
+        $router->post('/{catchall}' . Settings::REMOTE_BUILD_REQUEST_PATH, $callback)->where('catchall', '.*');
     }
 
 
@@ -179,43 +184,32 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         LaravelSupport::useTestingConfig();
 
         try {
-            $database = $this->executeBuilder($request->input('configDTO'));
-            return response($database);
+
+            $builder = $this->makeNewBuilder($request->input('configDTO'));
+            $builder->execute();
+            $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
+
+            return response($resolvedSettingsDTO->buildPayload());
+
         } catch (Throwable $e) {
-            return response($e->getMessage(), 500);
+
+            $exceptionClass = Exceptions::resolveExceptionClass($e);
+            return response("$exceptionClass: {$e->getMessage()}", 500);
         }
     }
 
     /**
      * Take the config data (from the request), build the Builder based on it, and execute it.
      *
-     * @param string $serialisedConfigData The serialised configDTO data, from the request.
-     * @return string
+     * @param string $rawValue The raw configDTO data, from the request.
+     * @return DatabaseBuilder
      */
-    private function executeBuilder(string $serialisedConfigData): string
+    private function makeNewBuilder(string $rawValue): DatabaseBuilder
     {
-        $configData = unserialize($serialisedConfigData);
-        $remoteConfig = ConfigDTO::buildFromRemoteBuildRequest($configData);
+        $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
 
-        $bootRemoteBuildLaravel = new BootRemoteBuildLaravel();
-        $bootRemoteBuildLaravel->ensureStorageDirExists();
-
-        $builder = $bootRemoteBuildLaravel->makeNewBuilder($remoteConfig);
-        $builder->execute();
-
-        return $builder->getDatabase();
-    }
-
-    /**
-     * Generate the list of Laravel's middleware groups.
-     *
-     * @return string[]
-     */
-    private function getMiddlewareGroups(): array
-    {
-        $httpKernel = $this->app->make(HttpKernel::class);
-        return method_exists($httpKernel, 'getMiddlewareGroups')
-            ? array_keys($httpKernel->getMiddlewareGroups())
-            : ['web', 'api'];
+        return (new BootRemoteBuildLaravel())
+            ->ensureStorageDirExists()
+            ->makeNewBuilder($remoteConfigDTO);
     }
 }

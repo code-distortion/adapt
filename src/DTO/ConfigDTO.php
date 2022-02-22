@@ -2,11 +2,24 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
+use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
+use CodeDistortion\Adapt\Support\Settings;
+
 /**
  * Resolves default setting values when needed.
  */
 class ConfigDTO
 {
+    use DTOBuildTrait;
+
+    /**
+     * The ConfigDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
+     *
+     * @var integer
+     */
+    public $dtoVersion;
+
     /** @var string The name of the current project. */
     public $projectName;
 
@@ -61,11 +74,22 @@ class ConfigDTO
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public $isRemoteBuild;
 
+    /**
+     * The session driver being used - will throw and exception when the remote version is different to
+     * $remoteCallerSessionDriver.
+     *
+     * @var string
+     */
+    public $sessionDriver;
+
+    /** @var string|null The session driver being used in the caller Adapt installation. */
+    public $remoteCallerSessionDriver;
+
 
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public $reuseTestDBs;
 
-    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
+    /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
     public $scenarioTestDBs;
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
@@ -91,6 +115,29 @@ class ConfigDTO
     /** @var integer The number of seconds grace-period before stale databases and snapshots are to be deleted. */
     public $staleGraceSeconds = 0;
 
+
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->version(Settings::CONFIG_DTO_VERSION);
+    }
+
+
+
+    /**
+     * Set the ConfigDTO version.
+     *
+     * @param integer $version The ConfigDTO version.
+     * @return static
+     */
+    public function version($version): self
+    {
+        $this->dtoVersion = $version;
+        return $this;
+    }
 
     /**
      * Set the project-name.
@@ -229,13 +276,17 @@ class ConfigDTO
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).
      *
-     * @param string[]|string[][] $preMigrationImports The files to import before the migrations are run.
-     * @param boolean|string      $migrations          Should the migrations be run? / the path of the migrations to
-     *                                                 run.
-     * @param string[]            $seeders             The seeders to run after migrating.
-     * @param string|null         $remoteBuildUrl      The remote Adapt installation to send "build" requests to.
-     * @param boolean             $isBrowserTest       Is a browser test running?.
-     * @param boolean             $isRemoteBuild       Is this process building a db for another Adapt installation?.
+     * @param string[]|string[][] $preMigrationImports       The files to import before the migrations are run.
+     * @param boolean|string      $migrations                Should the migrations be run? / the path of the migrations
+     *                                                       to run.
+     * @param string[]            $seeders                   The seeders to run after migrating.
+     * @param string|null         $remoteBuildUrl            The remote Adapt installation to send "build" requests to.
+     * @param boolean             $isBrowserTest             Is a browser test running?.
+     * @param boolean             $isRemoteBuild             Is this process building a db for another Adapt
+     *                                                       installation?.
+     * @param string              $sessionDriver             The session driver being used.
+     * @param string|null         $remoteCallerSessionDriver The session driver being used in the caller Adapt
+     *                                                       installation.
      * @return static
      */
     public function buildSettings(
@@ -244,14 +295,19 @@ class ConfigDTO
         $seeders,
         $remoteBuildUrl,
         $isBrowserTest,
-        $isRemoteBuild
+        $isRemoteBuild,
+        $sessionDriver,
+        $remoteCallerSessionDriver
     ): self {
+
         $this->preMigrationImports = $preMigrationImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
         $this->isRemoteBuild = $isRemoteBuild;
+        $this->sessionDriver = $sessionDriver;
+        $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
         return $this;
     }
 
@@ -327,6 +383,30 @@ class ConfigDTO
     public function isRemoteBuild($isRemoteBuild): self
     {
         $this->isRemoteBuild = $isRemoteBuild;
+        return $this;
+    }
+
+    /**
+     * Set the session-driver.
+     *
+     * @param string $sessionDriver The session driver being used.
+     * @return static
+     */
+    public function sessionDriver($sessionDriver): self
+    {
+        $this->sessionDriver = $sessionDriver;
+        return $this;
+    }
+
+    /**
+     * Set the caller Adapt session-driver.
+     *
+     * @param string|null $remoteCallerSessionDriver The session driver being used.
+     * @return static
+     */
+    public function remoteCallerSessionDriver($remoteCallerSessionDriver): self
+    {
+        $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
         return $this;
     }
 
@@ -438,26 +518,6 @@ class ConfigDTO
 
 
 
-
-
-
-    /**
-     * Build a new ConfigDTO from the data given in a request to build the database remotely.
-     *
-     * @param mixed[] $data The raw ConfigDTO data from the request.
-     * @return self
-     */
-    public static function buildFromRemoteBuildRequest($data): self
-    {
-        $configDTO = new self();
-        foreach ($data as $name => $value) {
-            if (property_exists($configDTO, $name)) {
-                $configDTO->{$name} = $value;
-            }
-        }
-        return $configDTO;
-    }
-
     /**
      * Determine the seeders that need to be used.
      *
@@ -473,7 +533,7 @@ class ConfigDTO
      *
      * @return string[]
      */
-    public function pickPreMigrationDumps(): array
+    public function pickPreMigrationImports(): array
     {
         $preMigrationImports = $this->preMigrationImports;
         $driver = $this->driver;
@@ -493,5 +553,46 @@ class ConfigDTO
             }
         }
         return $usePaths;
+    }
+
+
+
+
+
+    /**
+     * Build a new ConfigDTO from the data given in a request to build the database remotely.
+     *
+     * @param string $payload The raw ConfigDTO data from the request.
+     * @return $this|null
+     * @throws AdaptRemoteShareException When the version doesn't match.
+     */
+    public static function buildFromPayload($payload)
+    {
+        if (!mb_strlen($payload)) {
+            return null;
+        }
+
+        $values = json_decode($payload, true);
+        if (!is_array($values)) {
+            throw AdaptRemoteShareException::couldNotReadConfigDTO();
+        }
+
+        $configDTO = static::buildFromArray($values);
+
+        if ($configDTO->dtoVersion != Settings::CONFIG_DTO_VERSION) {
+            throw AdaptRemoteShareException::versionMismatch();
+        }
+
+        return $configDTO;
+    }
+
+    /**
+     * Build the value to send in requests.
+     *
+     * @return string
+     */
+    public function buildPayload(): string
+    {
+        return json_encode(get_object_vars($this));
     }
 }

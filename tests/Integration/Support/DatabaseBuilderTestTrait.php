@@ -110,7 +110,9 @@ trait DatabaseBuilderTestTrait
                 [DatabaseSeeder::class],
                 null,
                 false,
-                false
+                false,
+                'database',
+                null
             )
             ->cacheTools(true, true)
             ->snapshots(false, 'afterMigrations')
@@ -152,8 +154,8 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig($config = null, $di = null)
     {
-        // generate a source-files-hash based on the current look_for_changes_in etc dirs
-        $this->newHasher($config, $di)->currentSourceFilesHash();
+        // generate a build-hash based on the current look_for_changes_in etc. dirs
+        $this->newHasher($config, $di)->getBuildHash();
     }
 
     /**

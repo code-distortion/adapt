@@ -4,12 +4,13 @@ namespace CodeDistortion\Adapt\Initialise;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
+use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
@@ -47,7 +48,7 @@ trait InitialiseLaravelAdapt
      * Initialise Adapt automatically.
      *
      * NOTE: This method contains code that would normally be refactored into other methods.
-     *       This is so the namespace of the Test class isn't muddied up with more methods than necessary.
+     *       This is so the namespace of the user-land Test class isn't muddied up with more methods than necessary.
      *
      * @before
      * @return void
@@ -75,6 +76,7 @@ trait InitialiseLaravelAdapt
             'remapConnections',
             'defaultConnection',
             'isBrowserTest',
+            'remoteBuildUrl',
         ];
         $propBag = new LaravelPropBagDTO();
         foreach ($propNames as $propName) {
@@ -143,6 +145,7 @@ trait InitialiseLaravelAdapt
         // create a new pre-boot object to perform the boot work
         // allowing this trait to not contain so many things
         $this->adaptPreBootTestLaravel = new PreBootTestLaravel(
+            get_class($this),
             $this->getName(),
             $propBag,
             $buildTransactionClosure,
@@ -178,7 +181,7 @@ trait InitialiseLaravelAdapt
      */
     protected function newBuilder($connection): DatabaseBuilder
     {
-        return $this->adaptPreBootTestLaravel->adaptBootTestLaravel->newBuilder($connection);
+        return $this->adaptPreBootTestLaravel->newBuilder($connection);
     }
 
 
@@ -209,6 +212,7 @@ trait InitialiseLaravelAdapt
      */
     public function shareConfig($browser, ...$browsers)
     {
+        // normalise the list of browsers
         $allBrowsers = [];
         $browsers = array_merge([$browser], $browsers);
         foreach ($browsers as $browser) {
@@ -218,7 +222,9 @@ trait InitialiseLaravelAdapt
             );
         }
 
-        $this->adaptPreBootTestLaravel->adaptBootTestLaravel->getBrowsersToPassThroughCurrentConfig($allBrowsers);
+        $connectionDBs = $this->adaptPreBootTestLaravel->buildConnectionDBsList();
+
+        $this->adaptPreBootTestLaravel->haveBrowsersShareConfig($allBrowsers, $connectionDBs);
     }
 
 
@@ -226,10 +232,7 @@ trait InitialiseLaravelAdapt
 
 
     /**
-     * Fetch the http headers that lets Adapt share the connections it's built.
-     *
-     * NOTE: This method contains code that would normally be refactored into other methods.
-     *       This is so the namespace of the Test class isn't muddied up with more methods than necessary.
+     * Fetch the http headers that lets Adapt share the connections it's prepared.
      *
      * @param boolean $includeKey Include the key in the value.
      * @return array<string, string>
@@ -237,29 +240,20 @@ trait InitialiseLaravelAdapt
     public static function getShareConnectionsHeaders($includeKey = false): array
     {
         // fetch the connection-databases list from Laravel
-        /** @var array|null $connectionDatabases */
-        try {
-            $connectionDatabases = app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
-        } catch (BindingResolutionException $e) {
-            $connectionDatabases = null;
+        $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework() ?? [];
+
+        if (!count($connectionDBs)) {
+            return [];
         }
 
+        $remoteShareDTO = (new RemoteShareDTO())
+            ->tempConfigFile(null)
+            ->connectionDBs($connectionDBs);
 
+        $value = $includeKey
+            ? Settings::REMOTE_SHARE_KEY . ": {$remoteShareDTO->buildPayload()}"
+            : $remoteShareDTO->buildPayload();
 
-        // get the http-header value used to pass connection-database details to a remote installation of Adapt
-        /** @var string|null $value */
-        $value = null;
-        if (!is_null($connectionDatabases)) {
-            $value = serialize($connectionDatabases);
-            $value = $includeKey
-                ? Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME . ": $value"
-                : $value;
-        }
-
-
-
-        return $value
-            ? [Settings::SHARE_CONNECTIONS_HTTP_HEADER_NAME => $value]
-            : [];
+        return [Settings::REMOTE_SHARE_KEY => $value];
     }
 }

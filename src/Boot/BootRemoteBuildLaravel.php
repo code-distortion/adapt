@@ -14,6 +14,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -45,6 +46,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      *
      * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
      * @return DatabaseBuilder
+     * @throws AdaptRemoteShareException When the session drivers don't match during browser tests.
      */
     public function makeNewBuilder($remoteConfig): DatabaseBuilder
     {
@@ -53,7 +55,6 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
-        StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
 
         return new DatabaseBuilder(
             'laravel',
@@ -93,7 +94,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     {
         $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
 
-        // don't use stdout debugging, it will ruin the output being generated that the calling Adapt instance reads.
+        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
         return new LaravelLog(false, $useLaravelLog);
     }
 
@@ -117,30 +118,18 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->buildSettings(
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))->buildSettings(
                 $remoteConfig->preMigrationImports,
                 $remoteConfig->migrations,
                 $remoteConfig->seeders,
-                null, // don't forward again
+                null,
+                // don't forward again
                 $remoteConfig->isBrowserTest,
-                true // yes, a remote database is being built here now, locally
-            )
-            ->cacheTools(
-                $remoteConfig->reuseTestDBs,
-                $remoteConfig->scenarioTestDBs
-            )->snapshots($remoteConfig->useSnapshotsWhenReusingDB, $remoteConfig->useSnapshotsWhenNotReusingDB)
-            ->mysqlSettings(
-                config("$c.database.mysql.executables.mysql"),
-                config("$c.database.mysql.executables.mysqldump")
-            )
-            ->postgresSettings(
-                config("$c.database.pgsql.executables.psql"),
-                config("$c.database.pgsql.executables.pg_dump")
-            )
-            ->staleGraceSeconds(
-                config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS)
-            );
+                true,
+                // yes, a remote database is being built here now, locally
+                config("session.driver"),
+                $remoteConfig->sessionDriver
+            )->cacheTools($remoteConfig->reuseTestDBs, $remoteConfig->scenarioTestDBs)->snapshots($remoteConfig->useSnapshotsWhenReusingDB, $remoteConfig->useSnapshotsWhenNotReusingDB)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 
     /**

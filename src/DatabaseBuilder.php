@@ -8,11 +8,15 @@ use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteBuildException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
@@ -21,6 +25,7 @@ use DateTimeZone;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
 use PDOException;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -57,6 +62,10 @@ class DatabaseBuilder
 
     /** @var DBAdapter|null The object that will do the database specific work. */
     private $dbAdapter;
+
+    /** @var ResolvedSettingsDTO|null The build-settings when they've been resolved. */
+    private $resolvedSettingsDTO;
+
 
 
     /**
@@ -99,7 +108,7 @@ class DatabaseBuilder
      *
      * @return string
      */
-    public function getDatabase(): string
+    public function getResolvedDatabase(): string
     {
         if (!$this->config->database) {
             $this->pickDatabaseNameAndUse();
@@ -122,12 +131,45 @@ class DatabaseBuilder
      * Build a database ready to test with - migrate and seed the database etc (only if it's not ready-to-go already).
      *
      * @return static
+     * @throws Throwable When something goes wrong.
      */
     public function execute(): self
     {
-        $this->onlyExecuteOnce();
-        $this->prepareDB();
-        return $this;
+        try {
+
+            $this->onlyExecuteOnce();
+            $this->logTitle();
+            $this->prePrepareChecks();
+            $this->prepareDB();
+            return $this;
+
+        } catch (Throwable $e) {
+
+            $this->logException($e);
+            throw $e;
+
+        } finally {
+            $this->di->log->debug(''); // add the delimiter between each database being prepared
+        }
+    }
+
+    /**
+     * Generate and log the exception message.
+     *
+     * @param Throwable $e The exception to log.
+     * @return void
+     */
+    private function logException(Throwable $e)
+    {
+        if (is_a($e, AdaptRemoteBuildException::class)) {
+            $lines = $e->generateLinesForLog();
+            $title = $e->generateTitleForLog();
+        } else {
+            $lines = array_filter([$e->getMessage()]);
+            $title = 'An Exception Occurred - ' . Exceptions::resolveExceptionClass($e);
+        }
+
+        $this->di->log->logBox($lines, $title, 'error');
     }
 
     /**
@@ -153,6 +195,42 @@ class DatabaseBuilder
             throw AdaptBuildException::databaseBuilderAlreadyExecuted();
         }
         $this->executed = true;
+    }
+
+    /**
+     * Perform any checks that that need to happen before building a database.
+     *
+     * @return void
+     */
+    private function prePrepareChecks()
+    {
+        $this->checkThatSessionDriversMatch();
+    }
+
+    /**
+     * When building remotely & running browser tests, make sure the remote session.driver matches the local one.
+     *
+     * @return void
+     * @throws AdaptRemoteShareException When building remotely, is a browser test, and session.drivers don't match.
+     */
+    private function checkThatSessionDriversMatch()
+    {
+        if (!$this->config->isRemoteBuild) {
+            return;
+        }
+
+        if (!$this->config->isBrowserTest) {
+            return;
+        }
+
+        if ($this->config->sessionDriver == $this->config->remoteCallerSessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch(
+            $this->config->sessionDriver,
+            (string) $this->config->remoteCallerSessionDriver
+        );
     }
 
     /**
@@ -282,11 +360,13 @@ class DatabaseBuilder
      */
     private function prepareDB()
     {
-        $this->di->log->info("---- Preparing a database for test: {$this->config->testName} ----------------");
+        $logTimer = $this->di->log->newTimer();
 
         $this->shouldBuildRemotely()
             ? $this->buildDBRemotely()
             : $this->buildDBLocally();
+
+        $this->di->log->debug('Total preparation time', $logTimer);
     }
 
     /**
@@ -298,6 +378,10 @@ class DatabaseBuilder
     private function buildDBLocally()
     {
         $this->initialise();
+
+        $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
+        $this->logSettingsUsed();
+
         $this->pickDatabaseNameAndUse();
         $this->buildOrReuseDBLocally();
     }
@@ -316,7 +400,8 @@ class DatabaseBuilder
      * Initialise this object ready for running.
      *
      * @return void
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBuildException When the database isn't compatible with browser tests.
      */
     private function initialise()
     {
@@ -326,7 +411,9 @@ class DatabaseBuilder
 
         $this->pickDriver();
 
-        $this->di->log->info("Using connection \"{$this->config->connection}\" (driver \"{$this->config->driver}\")");
+        if (($this->config->isBrowserTest) && (!$this->dbAdapter()->build->isCompatibleWithBrowserTests())) {
+            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests($this->config->driver);
+        }
     }
 
     /**
@@ -350,16 +437,17 @@ class DatabaseBuilder
      */
     private function pickDatabaseName(): string
     {
-        // generate a new name
-        if ($this->usingScenarioTestDBs()) {
-            $dbNameHash = $this->hasher->generateDBNameHash(
-                $this->config->pickSeedersToInclude(),
-                $this->config->databaseModifier
-            );
-            return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
+        // return the original name
+        if (!$this->usingScenarioTestDBs()) {
+            return $this->origDBName();
         }
-        // or return the original name
-        return $this->origDBName();
+
+        // or generate a new name
+        $dbNameHash = $this->hasher->generateDatabaseNameHashPart(
+            $this->config->pickSeedersToInclude(),
+            $this->config->databaseModifier
+        );
+        return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
     }
 
     /**
@@ -385,7 +473,7 @@ class DatabaseBuilder
 
         try {
             if ($this->canReuseDB()) {
-                $this->di->log->info('Reusing the existing database', $logTimer);
+                $this->di->log->debug('Reusing the existing database', $logTimer);
             } else {
                 $this->buildDBFresh();
             }
@@ -406,7 +494,8 @@ class DatabaseBuilder
     {
         $this->dbAdapter()->reuse->writeReuseMetaData(
             $this->origDBName(),
-            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->getBuildHash(),
+            $this->hasher->currentSnapshotHash(),
             $this->hasher->currentScenarioHash(),
             $reusable
         );
@@ -424,7 +513,7 @@ class DatabaseBuilder
         }
 
         return $this->dbAdapter()->reuse->dbIsCleanForReuse(
-            $this->hasher->currentSourceFilesHash(),
+            $this->hasher->getBuildHash(),
             $this->hasher->currentScenarioHash()
         );
     }
@@ -436,8 +525,7 @@ class DatabaseBuilder
      */
     private function buildDBFresh()
     {
-        $this->di->log->info('Building database…');
-        $logTimer = $this->di->log->newTimer();
+        $this->di->log->debug('Building the database…');
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
@@ -451,8 +539,6 @@ class DatabaseBuilder
         } else {
             $this->buildDBFromScratch();
         }
-
-        $this->di->log->info('Database total build time', $logTimer);
     }
 
     /**
@@ -489,7 +575,7 @@ class DatabaseBuilder
             $this->writeReuseMetaData(false); // put the meta-table there straight away
         }
 
-        $this->importPreMigrationDumps();
+        $this->importPreMigrationImports();
         $this->migrate();
         $this->seed();
     }
@@ -577,7 +663,7 @@ class DatabaseBuilder
 
         $this->writeReuseMetaData($this->dbWillBeReusable()); // put the meta-table back
 
-        $this->di->log->info('Snapshot save SUCCESSFUL: "' . $snapshotPath . '"', $logTimer);
+        $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
 
     /**
@@ -586,10 +672,10 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptSnapshotException When snapshots aren't allowed for this type of database.
      */
-    private function importPreMigrationDumps()
+    private function importPreMigrationImports()
     {
-        $preMigrationDumps = $this->config->pickPreMigrationDumps();
-        if (!count($preMigrationDumps)) {
+        $preMigrationImports = $this->config->pickPreMigrationImports();
+        if (!count($preMigrationImports)) {
             return;
         }
 
@@ -600,10 +686,10 @@ class DatabaseBuilder
             );
         }
 
-        foreach ($preMigrationDumps as $path) {
+        foreach ($preMigrationImports as $path) {
             $logTimer = $this->di->log->newTimer();
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->info('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
+            $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -637,7 +723,7 @@ class DatabaseBuilder
     private function generateSnapshotPath(array $seeders): string
     {
         return $this->dbAdapter()->name->generateSnapshotPath(
-            $this->hasher->generateSnapshotHash($seeders)
+            $this->hasher->generateSnapshotFilenameHashPart($seeders)
         );
     }
 
@@ -654,18 +740,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - not found', $logTimer);
+            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - FAILED', $logTimer);
+            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
 
-        $this->di->log->info('Import of snapshot: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
@@ -675,60 +761,89 @@ class DatabaseBuilder
      * Perform the process of building (or reuse an existing) database - remotely.
      *
      * @return void
+     * @throws AdaptBuildException When the database type isn't allowed to be built remotely.
      */
     private function buildDBRemotely()
     {
-        $this->di->log->info("Building a database for connection \"{$this->config->connection}\" remotely…");
+        if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
+            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely($this->config->driver);
+        }
+
+        $this->di->log->debug("Building the database remotely…");
         $logTimer = $this->di->log->newTimer();
 
-        $database = $this->sendBuildRemoteRequest();
+        $this->resolvedSettingsDTO = $this->sendBuildRemoteRequest();
 
-        $this->di->log->info("Database \"$database\" was built. Remote build time", $logTimer);
+        $connection = $this->resolvedSettingsDTO->connection;
+        $database = $this->resolvedSettingsDTO->database;
+
+        $this->dbWillBeReusable()
+            ? $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer)
+            : $this->di->log->debug("Database \"$database\" was built. Remote preparation time", $logTimer);
 
         if (!$this->shouldInitialise()) {
             $this->config->database($database);
-            $this->di->log->info("Not using connection \"{$this->config->connection}\" locally");
+            $this->di->log->debug("Not using connection \"$connection\" locally");
             return;
         }
 
         $this->initialise();
+        $this->logSettingsUsed();
         $this->useDatabase($database);
     }
 
     /**
      * Send the http request to build the database remotely.
      *
-     * @return string
-     * @throws AdaptBuildException Thrown when the database couldn't be built.
+     * @return ResolvedSettingsDTO
+     * @throws AdaptRemoteBuildException Thrown when the database couldn't be built.
      */
-    private function sendBuildRemoteRequest(): string
+    private function sendBuildRemoteRequest(): ResolvedSettingsDTO
     {
-        try {
+        $url = $this->buildRemoteUrl();
+        $httpClient = new HttpClient(['timeout' => 60 * 10]);
+        $data = ['configDTO' => $this->config->buildPayload()];
 
-            $httpClient = new HttpClient(['timeout' => 60 * 10]);
-            $data = ['configDTO' => serialize(get_object_vars($this->config))];
+        try {
             $response = $httpClient->post(
                 $this->buildRemoteUrl(),
                 ['form_params' => $data]
             );
 
-            $database = (string) $response->getBody();
-            return $database;
+            $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
+            $resolvedSettingsDTO->builtRemotely(true, $url);
+            return $resolvedSettingsDTO;
 
         } catch (GuzzleException $e) {
-            $remoteMessage = $e->getResponse()->getBody()->getContents();
-
-            $this->di->log->info("Failed to build database for connection \"{$this->config->connection}\" - Remote error message: \"$remoteMessage\"");
-
-            throw AdaptBuildException::remoteBuildFailed($this->config->connection, $remoteMessage, $e);
+            throw $this->buildAdaptRemoteBuildException($url, $e);
         }
+    }
+
+    /**
+     * Build a AdaptRemoteBuildException.
+     *
+     * @param string          $url The remote-build url.
+     * @param GuzzleException $e   The exception that occurred.
+     * @return AdaptRemoteBuildException
+     */
+    private function buildAdaptRemoteBuildException(string $url, GuzzleException $e): AdaptRemoteBuildException
+    {
+        /** @var ?ResponseInterface $response */
+        $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
+
+        return AdaptRemoteBuildException::remoteBuildFailed(
+            $this->config->connection,
+            $url,
+            $response,
+            $e
+        );
     }
 
     /**
      * Build the url to use when building the database remotely.
      *
      * @return string
-     * @throws AdaptBuildException Thrown when the url is invalid.
+     * @throws AdaptRemoteBuildException Thrown when the url is invalid.
      */
     private function buildRemoteUrl(): string
     {
@@ -742,7 +857,10 @@ class DatabaseBuilder
 
         $parts = parse_url($remoteUrl);
         if (!is_array($parts)) {
-            throw AdaptBuildException::remoteBuildUrlInvalid($origUrl);
+            throw AdaptRemoteBuildException::remoteBuildUrlInvalid($origUrl);
+        }
+        if ((!isset($parts['scheme'])) || (!isset($parts['host']))) {
+            throw AdaptRemoteBuildException::remoteBuildUrlInvalid($origUrl);
         }
 
         $origPath = $parts['path'] ?? '';
@@ -761,7 +879,7 @@ class DatabaseBuilder
     {
         return $this->dbAdapter()->reuse->findDatabases(
             $this->origDBName(),
-            $this->hasher->currentSourceFilesHash()
+            $this->hasher->getBuildHash()
         );
     }
 
@@ -817,7 +935,7 @@ class DatabaseBuilder
             $path,
             $filename,
             $accessDT,
-            $this->hasher->filenameHasSourceFilesHash($filename),
+            $this->hasher->filenameHasBuildHash($filename),
             function () use ($path) {
                 return $this->di->filesystem->size($path);
             },
@@ -840,7 +958,7 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-            $this->di->log->info(
+            $this->di->log->debug(
                 'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
                 $logTimer
             );
@@ -959,5 +1077,99 @@ class DatabaseBuilder
             $previous = $previous->getPrevious();
         } while ($previous);
         return $e;
+    }
+
+
+
+
+
+    /**
+     * Build a ResolvedSettingsDTO from the current preparation.
+     *
+     * @param string $database The database used.
+     * @return ResolvedSettingsDTO
+     */
+    private function buildResolvedSettingsDTO(string $database): ResolvedSettingsDTO
+    {
+        $canHash = $this->usingScenarioTestDBs() && !$this->shouldBuildRemotely();
+
+        return (new ResolvedSettingsDTO())
+            ->projectName($this->config->projectName)
+            ->testName($this->config->testName)
+            ->connection($this->config->connection)
+            ->driver($this->config->driver)
+            ->host($this->di->db->getHost())
+            ->database($database)
+            ->storageDir($this->config->storageDir)
+            ->preMigrationImports($this->config->pickPreMigrationImports())
+            ->migrations($this->config->migrations)
+            ->seeders($this->seedingIsAllowed(), $this->config->seeders)
+            ->builtRemotely(
+                $this->shouldBuildRemotely(),
+                $this->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
+            )
+            ->snapshotsEnabled($this->snapshotsAreEnabled())
+            ->isBrowserTest($this->config->isBrowserTest)
+            ->sessionDriver($this->config->sessionDriver)
+            ->databaseIsReusable($this->dbWillBeReusable())
+            ->scenarioTestDBs(
+                $this->usingScenarioTestDBs(),
+                $canHash ? $this->hasher->getBuildHash() : null,
+                $canHash ? $this->hasher->currentSnapshotHash() : null,
+                $canHash ? $this->hasher->currentScenarioHash() : null
+            );
+    }
+
+    /**
+     * Get the ResolvedSettingsDTO representing the settings that were used.
+     *
+     * @return ResolvedSettingsDTO
+     */
+    public function getResolvedSettingsDTO(): ResolvedSettingsDTO
+    {
+        return $this->resolvedSettingsDTO;
+    }
+
+
+
+
+
+    /**
+     * Log the details about the settings being used.
+     *
+     * @return void
+     */
+    private function logSettingsUsed()
+    {
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSettings());
+        $this->di->log->logBox($lines, 'Build Settings');
+
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
+        $this->di->log->logBox($lines, 'Resolved Database');
+
+//        $this->di->log->debug('Build Settings:');
+//        foreach ($lines as $line) {
+//            $this->di->log->debug($line);
+//        }
+    }
+
+    /**
+     * Log the title line.
+     *
+     * @return void
+     */
+    private function logTitle()
+    {
+        $prepLine = "Preparing the \"{$this->config->connection}\" database";
+        if ($this->shouldBuildRemotely()) {
+            $prepLine .= " remotely";
+        } elseif ($this->config->isRemoteBuild) {
+            $prepLine .= " locally, for another Adapt installation";
+        }
+
+        $this->di->log->logBox(
+            [$prepLine, "For test \"{$this->config->testName}\""],
+            'ADAPT - Preparing a Test-Database'
+        );
     }
 }

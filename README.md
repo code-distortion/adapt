@@ -55,6 +55,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
     * [Dusk browser tests](#dusk-browser-tests)
     * [Importing custom database dump files](#importing-custom-database-dump-files)
     * [Testing code that uses transactions](#testing-code-that-uses-transactions)
+    * [Adapt doesn't seem to run for my tests](#adapt-doesnt-seem-to-run-for-my-tests)
 * [Testing](#testing)
 * [Changelog](#changelog)
     * [SemVer](#semver)
@@ -451,9 +452,9 @@ class MyFeatureTest extends TestCase
      *
      * @var boolean|string
      */
-    protected $migrations = true;
+    protected bool $migrations = true;
 //    or
-//    protected $migrations = 'database/migrations';
+//    protected string $migrations = 'database/migrations';
 
     /**
      * Specify the seeders to run (they will only be run if migrations are
@@ -461,7 +462,9 @@ class MyFeatureTest extends TestCase
      *
      * @var string|string[]
      */
-    protected array $seeders = ['DatabaseSeeder'];
+    protected string $seeders = 'DatabaseSeeder';
+//    or
+//    protected array $seeders = ['DatabaseSeeder'];
 
     /**
      * Overwrite the details of certain database connections with values from
@@ -727,7 +730,7 @@ DB_CONNECTION=sqlite
 
 > ***Note:*** SQLite isn't fully compatible with other databases. To be safe, you ***should*** consider running your tests with the **same type of database that you use in production**. Your confidence in the tests is very important.
 
-> ***Note:*** **SQLite :memory:** databases automatically disappear between tests, and need to be re-built each time. Because of this, you might not get the speed-boost you're hoping for, particularly if you have lots of small tests.
+> ***Note:*** **SQLite :memory:** databases automatically disappear between tests, and need to be rebuilt each time. Because of this, you might not get the speed-boost you're hoping for, particularly if you have lots of small tests.
 
 
 

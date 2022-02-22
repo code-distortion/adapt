@@ -19,6 +19,25 @@ class LaravelSQLiteBuild implements BuildInterface
     use LaravelHelperTrait;
     use SQLiteHelperTrait;
 
+    /**
+     * Check if this database type can be built remotely.
+     *
+     * @return boolean
+     */
+    public function canBeBuiltRemotely(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Check if this database type can be used when browser testing.
+     *
+     * @return boolean
+     */
+    public function isCompatibleWithBrowserTests(): bool
+    {
+        return !$this->isMemoryDatabase();
+    }
 
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.
@@ -65,7 +84,7 @@ class LaravelSQLiteBuild implements BuildInterface
         $this->di->filesystem->unlink((string) $this->config->database);
         $this->createDB();
 
-        $this->di->log->info('Wiped database', $logTimer);
+        $this->di->log->debug('Wiped the database', $logTimer);
     }
 
     /**
@@ -83,7 +102,7 @@ class LaravelSQLiteBuild implements BuildInterface
 
         $this->di->filesystem->touch((string) $this->config->database);
 
-        $this->di->log->info('Created database', $logTimer);
+        $this->di->log->debug('Created the database', $logTimer);
     }
 
     /**

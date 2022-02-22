@@ -71,6 +71,8 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'remoteBuildUrl' => 'https://something',
                     'isBrowserTest' => true,
                     'isRemoteBuild' => false,
+                    'sessionDriver' => 'database',
+                    'remoteCallerSessionDriver' => null,
                 ],
             ],
             'buildSettings 2' => [
@@ -82,6 +84,8 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
                     'isRemoteBuild' => false,
+                    'sessionDriver' => 'file',
+                    'remoteCallerSessionDriver' => 'database',
                 ],
             ],
             'buildSettings 3' => [
@@ -93,6 +97,8 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => false,
                     'isRemoteBuild' => true,
+                    'sessionDriver' => 'database',
+                    'remoteCallerSessionDriver' => null,
                 ],
             ],
             'buildSettings 4' => [
@@ -104,6 +110,8 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
                     'isRemoteBuild' => false,
+                    'sessionDriver' => 'database',
+                    'remoteCallerSessionDriver' => null,
                 ],
             ],
             'preMigrationImports' => [
@@ -149,6 +157,22 @@ class ConfigDTOTest extends PHPUnitTestCase
             'isRemoteBuild 2' => [
                 'method' => 'isRemoteBuild',
                 'params' => ['isRemoteBuild' => false],
+            ],
+            'sessionDriver 1' => [
+                'method' => 'sessionDriver',
+                'params' => ['sessionDriver' => 'database'],
+            ],
+            'sessionDriver 2' => [
+                'method' => 'sessionDriver',
+                'params' => ['sessionDriver' => 'file'],
+            ],
+            'remoteCallerSessionDriver 1' => [
+                'method' => 'remoteCallerSessionDriver',
+                'params' => ['remoteCallerSessionDriver' => null],
+            ],
+            'remoteCallerSessionDriver 2' => [
+                'method' => 'remoteCallerSessionDriver',
+                'params' => ['remoteCallerSessionDriver' => 'database'],
             ],
 
             'cacheTools 1' => [
@@ -354,7 +378,7 @@ class ConfigDTOTest extends PHPUnitTestCase
     {
         $this->assertSame(
             $expected,
-            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationDumps()
+            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationImports()
         );
     }
 }

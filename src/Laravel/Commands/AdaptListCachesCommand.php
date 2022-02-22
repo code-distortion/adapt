@@ -16,7 +16,7 @@ class AdaptListCachesCommand extends Command
     use CommandFunctionalityTrait;
 
     /** @var string The name and signature of the console command. */
-    protected $signature = 'adapt:list-db-caches { --env-file=.env.testing : The .env file to load from }';
+    protected $signature = 'adapt:list-db-caches';
 
     /** @var string The console command description. */
     protected $description = 'List Adapt\'s test-databases and snapshot files';
@@ -38,11 +38,9 @@ class AdaptListCachesCommand extends Command
      */
     public function handle()
     {
-        $envFile = !is_array($this->option('env-file'))
-            ? (string) $this->option('env-file')
-            : '';
-
-        LaravelSupport::useTestingConfig($envFile);
+        if (!app()->environment('testing')) {
+            LaravelSupport::useTestingConfig();
+        }
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {

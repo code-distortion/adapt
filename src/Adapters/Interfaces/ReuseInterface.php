@@ -26,17 +26,17 @@ interface ReuseInterface
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string  $origDBName      The database that this test-database is for name.
-     * @param string  $sourceFilesHash The current source-files-hash based on the database-building file content and
-     *                                 database-name-prefix.
-     * @param string  $scenarioHash    The current scenario-hash based on the pre-migration-imports, migrations and
-     *                                 seeder-settings.
-     * @param boolean $reusable        Whether this database can be reused or not.
+     * @param string  $origDBName   The name of the database that this test-database is for.
+     * @param string  $buildHash    The current build-hash.
+     * @param string  $snapshotHash The current snapshot-hash.
+     * @param string  $scenarioHash The current scenario-hash.
+     * @param boolean $reusable     Whether this database can be reused or not.
      * @return void
      */
     public function writeReuseMetaData(
         $origDBName,
-        $sourceFilesHash,
+        $buildHash,
+        $snapshotHash,
         $scenarioHash,
         $reusable
     );
@@ -51,14 +51,12 @@ interface ReuseInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string $sourceFilesHash The current source-files-hash based on the database-building file content and
-     *                                database-name-prefix.
-     * @param string $scenarioHash    The scenario-hash based on the pre-migration-imports, migrations and
-     *                                seeder-settings.
+     * @param string $buildHash    The current build-hash.
+     * @param string $scenarioHash The current scenario-hash.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
-    public function dbIsCleanForReuse($sourceFilesHash, $scenarioHash): bool;
+    public function dbIsCleanForReuse($buildHash, $scenarioHash): bool;
 
     /**
      * Check if the transaction was committed.
@@ -72,9 +70,9 @@ interface ReuseInterface
      *
      * Only pick databases that have "reuse" meta-info stored.
      *
-     * @param string|null $origDBName      The original database that this instance is for - will be ignored when null.
-     * @param string      $sourceFilesHash The current files-hash based on the database-building file content.
+     * @param string|null $origDBName The original database that this instance is for - will be ignored when null.
+     * @param string      $buildHash  The current build-hash.
      * @return DatabaseMetaInfo[]
      */
-    public function findDatabases($origDBName, $sourceFilesHash): array;
+    public function findDatabases($origDBName, $buildHash): array;
 }

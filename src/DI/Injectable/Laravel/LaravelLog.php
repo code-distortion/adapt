@@ -33,15 +33,15 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - INFO level.
+     * Display some debug output - DEBUG level.
      *
      * @param string       $message  The message to show.
      * @param integer|null $timerRef Show the time taken for the given timer.
      * @return void
      */
-    public function info($message, $timerRef = null)
+    public function debug($message, $timerRef = null)
     {
-        $this->output('info', $this->buildMessage($message, $timerRef));
+        $this->output('debug', $this->buildMessage($message, $timerRef));
     }
 
     /**
@@ -54,6 +54,18 @@ class LaravelLog implements LogInterface
     public function warning($message, $timerRef = null)
     {
         $this->output('warning', $this->buildMessage($message, $timerRef));
+    }
+
+    /**
+     * Display some debug output - ERROR level.
+     *
+     * @param string       $message  The message to show.
+     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @return void
+     */
+    public function error($message, $timerRef = null)
+    {
+        $this->output('error', $this->buildMessage($message, $timerRef));
     }
 
     /**
@@ -125,5 +137,67 @@ class LaravelLog implements LogInterface
 //        $temp = explode('\\', $caller['class']);
 //        $class = array_pop($temp);
 //        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
+    }
+
+
+
+    /**
+     * Add the array keys to the values, padded based on the length of the longest key.
+     *
+     * @param array<string, string> $lines The lines to process.
+     * @return void
+     */
+    public function padList($lines): array
+    {
+        $maxLength = 0;
+        foreach (array_keys($lines) as $key) {
+            $maxLength = max($maxLength, mb_strlen($key));
+        }
+
+        $newLines = [];
+        foreach ($lines as $key => $line) {
+            $line = str_replace(["\r\n", "\r", "\n"], "\n", $line);
+            $partialLines = explode("\n", $line);
+            $count = 0;
+            foreach ($partialLines as $partialLine) {
+                $tempKey = $count++ == 0 ? $key : '';
+                $newLines[] = str_pad($tempKey, $maxLength + 1, ' ', STR_PAD_RIGHT) . $partialLine;
+            }
+        }
+
+        return $newLines;
+    }
+
+    /**
+     * Log some lines in a box.
+     *
+     * @param string|string[] $lines The lines to log in a table.
+     * @param string|null     $title The title to add to the top line.
+     * @param string          $level The logging level to use.
+     * @return void
+     */
+    public function logBox($lines, $title = null, $level = 'debug')
+    {
+        $lines = !is_array($lines) ? [$lines] : $lines;
+
+        if (!count(array_filter($lines))) {
+            return;
+        }
+
+        $title = mb_strlen($title) ? " $title " : '';
+
+        $maxLength = mb_strlen($title);
+        foreach ($lines as $line) {
+            $maxLength = max($maxLength, mb_strlen($line));
+        }
+
+        $this->{$level}('┌──' . $title . str_repeat('─', $maxLength - mb_strlen($title)) . '┐');
+
+        foreach ($lines as $line) {
+            $line = str_pad($line, $maxLength, ' ', STR_PAD_RIGHT);
+            $this->{$level}("│ $line │");
+        }
+
+        $this->{$level}('└' . str_repeat('─', $maxLength + 2) . '┘');
     }
 }

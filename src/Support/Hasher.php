@@ -12,11 +12,15 @@ class Hasher
 {
     use InjectTrait;
 
-    /** @var string|null The hash files that may affect the db - based on the files and dirs in hashPaths etc. */
-    private static $sourceFilesHash;
+    /** @var string|null Hash of all files that CAN be used to build databases - which may affect the db when changed. */
+    private static $buildHash;
 
-    /** @var string|null The hash representing the way the database is built. */
-    private $scenarioHash;
+    /** @var string|null The scenario-hash representing the way the database is to be built. */
+    private $currentScenarioHash;
+
+    /** @var string|null The snapshot scenario-hash representing the way the database is to be built. */
+    private $currentSnapshotHash;
+
 
 
     /**
@@ -26,19 +30,19 @@ class Hasher
      */
     public static function resetStaticProps()
     {
-        self::$sourceFilesHash = null;
+        self::$buildHash = null;
     }
 
 
     /**
-     * Resolve the current source files hash.
+     * Resolve the current build-hash.
      *
      * @return string
      * @throws AdaptConfigException Thrown when a directory or file could not be opened.
      */
-    public function currentSourceFilesHash(): string
+    public function getBuildHash(): string
     {
-        return self::$sourceFilesHash = self::$sourceFilesHash ?? $this->generateSourceFilesHash();
+        return self::$buildHash = self::$buildHash ?? $this->generateBuildHash();
     }
 
     /**
@@ -47,29 +51,40 @@ class Hasher
      * @return string
      * @throws AdaptConfigException Thrown when a directory or file could not be opened.
      */
-    private function generateSourceFilesHash(): string
+    private function generateBuildHash(): string
     {
         $logTimer = $this->di->log->newTimer();
 
+        $paths = $this->buildListOfBuildFiles();
+        $hashes = $this->hashFiles($paths);
+
+        $buildHash = md5(serialize([
+            'fileHashes' => $hashes,
+            'databasePrefix' => $this->config->databasePrefix,
+            'version' => Settings::REUSE_TABLE_VERSION,
+        ]));
+
+        $this->di->log->debug('Generated the build-hash - of the files that can be used to build the database', $logTimer);
+
+        return $buildHash;
+    }
+
+    /**
+     * Generate a combined and sorted list of the "build" files.
+     *
+     * @return array
+     * @throws AdaptConfigException
+     */
+    private function buildListOfBuildFiles(): array
+    {
         $paths = array_unique(array_filter(array_merge(
             $this->resolveHashFilePaths(),
             $this->resolvePreMigrationPaths(),
             $this->resolveMigrationPaths()
         )));
         sort($paths);
-
-        $hashes = [];
-        foreach ($paths as $path) {
-            $hashes[$path] = $this->di->filesystem->md5File($path);
-        }
-
-        $sourceFilesHash = md5(serialize($hashes) . $this->config->databasePrefix);
-
-        $this->di->log->info('Generated a hash of the database-related files', $logTimer);
-
-        return $sourceFilesHash;
+        return $paths;
     }
-
 
     /**
      * Look for paths to hash from the hash-paths list.
@@ -95,7 +110,7 @@ class Hasher
     private function resolvePreMigrationPaths(): array
     {
         return $this->resolvePaths(
-            $this->config->pickPreMigrationDumps(),
+            $this->config->pickPreMigrationImports(),
             false,
             'preMigrationImportPathInvalid'
         );
@@ -170,26 +185,44 @@ class Hasher
     }
 
 
+
     /**
-     * Resolve the current scenario-hash.
+     * Take the list of files and generate a hash for each.
+     *
+     * @param string[] $paths The files to hash.
+     * @return array<string, string>
+     */
+    private function hashFiles(array $paths): array
+    {
+        $hashes = [];
+        foreach ($paths as $path) {
+            $hashes[$path] = $this->di->filesystem->md5File($path);
+        }
+        return $hashes;
+    }
+
+
+
+    /**
+     * Resolve the current snapshot scenario-hash.
      *
      * @return string
      */
-    public function currentScenarioHash(): string
+    public function currentSnapshotHash(): string
     {
-        return $this->scenarioHash = $this->scenarioHash ?? $this->generateScenarioHash($this->config->pickSeedersToInclude());
+        return $this->currentSnapshotHash = $this->currentSnapshotHash ?? $this->generateSnapshotHash($this->config->pickSeedersToInclude());
     }
 
     /**
-     * Generate the scenario-hash based on the way this DatabaseBuilder will build this database.
+     * Generate the snapshot scenario-hash, based on the way this DatabaseBuilder will build this database.
      *
-     * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations and
-     * seeder-settings.
+     * It's based on the database-building file content: the current pre-migration-imports, current migrations and
+     * current seeders.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string
      */
-    private function generateScenarioHash(array $seeders): string
+    private function generateSnapshotHash(array $seeders): string
     {
         return md5(serialize([
             'preMigrationImports' => $this->config->preMigrationImports,
@@ -199,33 +232,55 @@ class Hasher
     }
 
 
+
     /**
-     * Generate a hash to use in the database name.
+     * Resolve the current scenario-hash.
      *
-     * Based on the database-building file content, database-name-prefix, pre-migration-imports, migrations,
-     * seeder-settings, connection, transactions and isBrowserTest.
-     *
-     * @param string[] $seeders          The seeders that will be run.
-     * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
      * @return string
      */
-    public function generateDBNameHash($seeders, $databaseModifier): string
+    public function currentScenarioHash(): string
     {
-        $databaseHash = md5(serialize([
-            'scenarioHash' => $this->generateScenarioHash($seeders),
+        return $this->currentScenarioHash = $this->currentScenarioHash ?? $this->generateScenarioHash($this->config->pickSeedersToInclude());
+    }
+
+    /**
+     * Generate an extended scenario hash.
+     *
+     * It's based on the snapshot hash, project-name, original-database name, database re-usability, and
+     * is-browser-test setting.
+     *
+     * @param string[] $seeders The seeders that will be run.
+     * @return string
+     */
+    private function generateScenarioHash(array $seeders): string
+    {
+        return md5(serialize([
+            'snapshotHash' => $this->generateSnapshotHash($seeders),
             'projectName' => $this->config->projectName,
 //            'connection' => $this->config->connection,
             'database' => $this->config->database,
             'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));
-
-        return mb_substr($this->currentSourceFilesHash(), 0, 6)
-            . '-'
-            . mb_substr($databaseHash, 0, 12)
-            . (mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
     }
 
+
+
+    /**
+     * Check to see if the current build-hash is present in the filename
+     *
+     * @param string $filename The prefix that needs to be found.
+     * @return boolean
+     */
+    public function filenameHasBuildHash($filename): bool
+    {
+        $buildHashPart = mb_substr($this->getBuildHash(), 0, 6);
+        return (bool) preg_match(
+            '/^.+\.' . preg_quote($buildHashPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
+            $filename,
+            $matches
+        );
+    }
 
     /**
      * Generate a hash to use in a snapshot filename.
@@ -233,29 +288,27 @@ class Hasher
      * @param string[] $seeders The seeders that are included in the snapshot.
      * @return string
      */
-    public function generateSnapshotHash($seeders): string
+    public function generateSnapshotFilenameHashPart($seeders): string
     {
-        $sourceFilesHash = $this->currentSourceFilesHash();
-        $scenarioHash = $this->generateScenarioHash($seeders);
-
-        return mb_substr($sourceFilesHash, 0, 6)
+        return mb_substr($this->getBuildHash(), 0, 6)
             . '-'
-            . mb_substr($scenarioHash, 0, 12);
+            . mb_substr($this->generateSnapshotHash($seeders), 0, 12);
     }
 
     /**
-     * Check to see if the current source-files-hash is present in the filename
+     * Generate a hash to use in the database name.
      *
-     * @param string $filename The prefix that needs to be found.
-     * @return boolean
+     * Based on the source-files hash, extended-scenario hash.
+     *
+     * @param string[] $seeders          The seeders that will be run.
+     * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
+     * @return string
      */
-    public function filenameHasSourceFilesHash($filename): bool
+    public function generateDatabaseNameHashPart($seeders, $databaseModifier): string
     {
-        $sourceFilesHash = mb_substr($this->currentSourceFilesHash(), 0, 6);
-        return (bool) preg_match(
-            '/^.+\.' . preg_quote($sourceFilesHash) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
-            $filename,
-            $matches
-        );
+        return mb_substr($this->getBuildHash(), 0, 6)
+            . '-'
+            . mb_substr($this->generateScenarioHash($seeders), 0, 12)
+            . (mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
     }
 }

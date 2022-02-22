@@ -19,10 +19,20 @@ class Settings
     const REUSE_TABLE = '____adapt____';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    const REUSE_TABLE_VERSION = '4';
+    const REUSE_TABLE_VERSION = '5';
 
-    /** @var string The name of the cookie used to pass database connection details during browser tests. */
-    const CONFIG_COOKIE = '____adapt____';
+    /**
+     * Included when preparing a database remotely between Adapt installations. Mismatches cause an exception.
+     *
+     * @var string
+     */
+    const CONFIG_DTO_VERSION = 1;
+
+    /** @var string Included in the remote-share payload between Adapt installations. Mismatches cause an exception. */
+    const REMOTE_SHARE_DTO_VERSION = 1;
+
+    /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
+    const REMOTE_SHARE_KEY = '____adapt_remote_share____';
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
     const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____/cookie';
@@ -30,14 +40,14 @@ class Settings
     /** @var string The path used by Adapt when instructing another installation of Adapt to build a database. */
     const REMOTE_BUILD_REQUEST_PATH = '/____adapt____/remote-build';
 
-    /** @var string The http-header used to pass database connection details to other Adapt installations. */
-    const SHARE_CONNECTIONS_HTTP_HEADER_NAME = 'adapt-connection-dbs';
-
     /** @var string The name of the singleton that's registered with Laravel, contains the connection database list. */
     const SHARE_CONNECTIONS_SINGLETON_NAME = 'adapt-connection-dbs';
 
     /** @var integer The number of seconds grace-period before stale databases & snapshots are to be deleted. */
     const DEFAULT_STALE_GRACE_SECONDS = 14400; // 4 hours
+
+    /** @var string The .env.testing file to use. */
+    const ENV_TESTING_FILE = '.env.testing';
 
     /**
      * A place for BootTestAbstract's first-test flag, which can't have its own

@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use Illuminate\Database\Seeder;
 use Illuminate\Foundation\Application;
 use Throwable;
 
@@ -40,7 +41,7 @@ trait LaravelBuildTrait
             $this->di->db->dropAllTables();
         }
 
-        $this->di->log->info('Wiped database', $logTimer);
+        $this->di->log->debug('Wiped the database', $logTimer);
     }
 
     /**
@@ -48,6 +49,7 @@ trait LaravelBuildTrait
      *
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
+     * @throws AdaptBuildException Thrown when the migrations couldn't be run.
      */
     protected function laravelMigrate($migrationsPath)
     {
@@ -64,17 +66,21 @@ trait LaravelBuildTrait
                 : $this->makeRealpathRelative((string) realpath($migrationsPath));
         }
 
-        $this->di->artisan->call(
-            'migrate',
-            array_filter([
-                '--database' => $this->config->connection,
-                '--force' => true,
-                '--path' => $migrationsPath,
-                '--realpath' => ($useRealPath ? true : null),
-            ])
-        );
+        try {
+            $this->di->artisan->call(
+                'migrate',
+                array_filter([
+                    '--database' => $this->config->connection,
+                    '--force' => true,
+                    '--path' => $migrationsPath,
+                    '--realpath' => ($useRealPath ? true : null),
+                ])
+            );
+        } catch (Throwable $e) {
+            throw AdaptBuildException::migrationsFailed($e);
+        }
 
-        $this->di->log->info('Ran migrations', $logTimer);
+        $this->di->log->debug('Ran migrations', $logTimer);
     }
 
     /**
@@ -107,12 +113,16 @@ trait LaravelBuildTrait
                 throw AdaptBuildException::seederFailed($seeder, $e);
             }
 
-            $this->di->log->info('Ran seeder "' . $seeder . '"', $logTimer);
+            $this->di->log->debug('Ran seeder "' . $seeder . '"', $logTimer);
         }
     }
 
     /**
      * Account for the old, no-namespace version of the default DatabaseSeeder.
+     *
+     * When $seed = true, Adapt picks the Database\Seeders\DatabaseSeeder class.
+     * This won't exist for older versions of Laravel which didn't use a namespace
+     * for seeders. This will account for that.
      *
      * @param string $seeder The seeder to be called.
      * @return string
@@ -123,16 +133,24 @@ trait LaravelBuildTrait
             return $seeder;
         }
 
+        $prefix = "\\Database\\Seeders\\";
+
         // e.g. turn "DatabaseSeeder" in to "Database\Seeders\DatabaseSeeder"
-        if (mb_strpos($seeder, '\\') === false) {
-            $newSeeder = "Database\\Seeders\\$seeder";
+        $tempSeeder = ltrim($seeder, '\\');
+        if (mb_strpos($tempSeeder, '\\') === false) {
+            $newSeeder = $prefix . $tempSeeder;
             return class_exists($newSeeder) ? $newSeeder : $seeder;
         }
 
         // e.g. turn "Database\Seeders\DatabaseSeeder" in to "DatabaseSeeder"
-        $temp = explode('\\', $seeder);
-        $newSeeder = end($temp);
-        return class_exists($newSeeder) ? $newSeeder : $seeder;
+        $tempSeeder = '\\' . ltrim($seeder, '\\');
+        if (mb_strpos($tempSeeder, $prefix) === 0) {
+            $newSeeder = mb_substr($tempSeeder, mb_strlen($prefix));
+            $newSeeder = '\\' . ltrim($newSeeder, '\\');
+            return class_exists($newSeeder) ? $newSeeder : $seeder;
+        }
+
+        return $seeder;
     }
 
     /**

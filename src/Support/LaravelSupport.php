@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Application;
 
 /**
@@ -26,19 +27,36 @@ class LaravelSupport
     }
 
     /**
-     * Re-load Laravel's config using the .env.testing file.
+     * Re-load Laravel's entire config using the .env.testing file.
      *
-     * @param string $envFile The env-file to use.
      * @return void
      */
-    public static function useTestingConfig($envFile = '.env.testing')
+    public static function useTestingConfig()
     {
-        (new ReloadLaravelConfig())->reload(base_path($envFile));
-        /** @var Application $app */
-        $app = app();
-        $app->detectEnvironment(function () {
-            return 'testing';
-        });
+        LaravelEnv::reloadEnv(
+            base_path(Settings::ENV_TESTING_FILE),
+            ['APP_ENV' => 'testing']
+        );
+
+        LaravelConfig::reloadConfig();
+    }
+
+    /**
+     * Tell Laravel to use the desired databases for particular connections.
+     *
+     * Override the connection's existing databases.
+     *
+     * @param array<string,string> $connectionDatabases The connections' databases.
+     * @retun void
+     * @return void
+     */
+    public static function useConnectionDatabases($connectionDatabases)
+    {
+        foreach ($connectionDatabases as $connection => $database) {
+            if (!is_null(config("database.connections.$connection.database"))) {
+                config(["database.connections.$connection.database" => $database]);
+            }
+        }
     }
 
     /**
@@ -125,5 +143,41 @@ class LaravelSupport
         }
         $seeders = is_string($seeders) ? [$seeders] : $seeders;
         return is_array($seeders) ? $seeders : [];
+    }
+
+    /**
+     * Record the list of connections that have been prepared, and their corresponding databases with the framework.
+     *
+     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @return void
+     */
+    public static function registerPreparedConnectionDBsWithFramework($connectionDatabases)
+    {
+        /** @var Application $app */
+        $app = app();
+        if (method_exists($app, 'scoped')) {
+            $app->scoped(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
+                return $connectionDatabases;
+            });
+        } else {
+            $app->singleton(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
+                return $connectionDatabases;
+            });
+        }
+    }
+
+    /**
+     * Read the list of connections that have been prepared, and their corresponding databases from the framework.
+     *
+     * @return array|null
+     */
+    public static function readPreparedConnectionDBsFromFramework()
+    {
+        /** @var array|null $connectionDatabases */
+        try {
+            return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+        } catch (BindingResolutionException $e) {
+            return null;
+        }
     }
 }
