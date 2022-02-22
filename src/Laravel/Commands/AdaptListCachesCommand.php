@@ -38,7 +38,9 @@ class AdaptListCachesCommand extends Command
      */
     public function handle(): void
     {
-        LaravelSupport::useTestingConfig();
+        if (!app()->environment('testing')) {
+            LaravelSupport::useTestingConfig();
+        }
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
