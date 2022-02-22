@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.8.0] - 2022-02-23
+
+### Added
+- Added an exception when the migrations fail
+- Added a check to make sure the local and remote Adapt installations have the same session.driver during browser tests. Otherwise, logins won't be respected by the remote codebase
+- Added a check to make sure SQLite databases aren't built remotely - as it doesn't really make sense to do that
+- Added a check to make sure SQLite :memory: databases aren't used when browser testing - as this won't work
+
+### Changed
+- Made improvements to the logging output
+- Added extra checking around the remote-build http request process
+- Improvements to the data passed between Adapt installations and processes that handle them
+- Now uses Laravel's process to reload Laravel's config (e.g. when switching to the testing environment)
+- Improvements when acting as a remote and switching to the testing environment
+
+### Changed (breaking)
+- Removed the `--env-file` option from the Adapt console commands
+- Changed the normal logging level from "info" to "debug"
+
+### Fixed
+- Laravel normally forces `session.driver` to be "array" for tests, but not for `php artisan dusk` tests. To match this functionality, the `session.driver` from the `.env.testing` environment is picked for *browser* tests (even when not explicitly running `php artisan dusk`)
+- Fixed the test-class name that's shown in the logs
+- Fixed the code that imported new `.env` values, to now properly populate the `env(…)` helper with the new data
+- Updated the remote-build code to pick up any url, as long as it ends in the normal remote-build path
+
+
+
 ## [0.7.0] - 2022-02-10
 
 ### Added
