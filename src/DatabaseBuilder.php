@@ -514,6 +514,9 @@ class DatabaseBuilder
         if (!$this->usingReuseTestDBs()) {
             return false;
         }
+        if ($this->config->forceRebuild) {
+            return false;
+        }
 
         return $this->dbAdapter()->reuse->dbIsCleanForReuse(
             $this->hasher->getBuildHash(),
@@ -1129,6 +1132,7 @@ class DatabaseBuilder
             ->isBrowserTest($this->config->isBrowserTest)
             ->sessionDriver($this->config->sessionDriver)
             ->databaseIsReusable($this->dbWillBeReusable())
+            ->forceRebuild($this->config->forceRebuild)
             ->scenarioTestDBs(
                 $this->usingScenarioTestDBs(),
                 $canHash ? $this->hasher->getBuildHash() : null,

@@ -78,6 +78,9 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
     public bool $databaseIsReusable;
 
+    /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
+    public bool $forceRebuild;
+
 
 
     /**
@@ -265,6 +268,18 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Turn the reusable-database setting on (or off).
+     *
+     * @param boolean $forceRebuild Was the database forced to be rebuilt?.
+     * @return static
+     */
+    public function forceRebuild(bool $forceRebuild): self
+    {
+        $this->forceRebuild = $forceRebuild;
+        return $this;
+    }
+
+    /**
      * Turn the scenario-test-dbs setting on (or off).
      *
      * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
@@ -286,6 +301,8 @@ class ResolvedSettingsDTO
         $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
         return $this;
     }
+
+
 
 
 
@@ -369,6 +386,7 @@ class ResolvedSettingsDTO
             'Is a browser-test?' => $isBrowserTest,
             'Is reusable?' => ' ',
             '- Using transactions:' => $isReusable,
+            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
             '- Build-hash:' => $this->escapeString($this->buildHash),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),

@@ -252,6 +252,18 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'useSnapshotsWhenNotReusingDB' => 'both',
                 ],
             ],
+            'forceRebuild 1' => [
+                'method' => 'forceRebuild',
+                'params' => [
+                    'forceRebuild' => false,
+                ],
+            ],
+            'forceRebuild 2' => [
+                'method' => 'forceRebuild',
+                'params' => [
+                    'forceRebuild' => true,
+                ],
+            ],
 
             'mysqlSettings' => [
                 'method' => 'mysqlSettings',

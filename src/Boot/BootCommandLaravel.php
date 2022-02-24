@@ -132,6 +132,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.use_snapshots_when_reusing_db"),
                 config("$c.use_snapshots_when_not_reusing_db"),
             )
+            ->forceRebuild(false)
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
                 config("$c.database.mysql.executables.mysqldump"),

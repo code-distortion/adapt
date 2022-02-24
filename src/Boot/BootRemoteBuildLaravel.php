@@ -136,6 +136,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 $remoteConfig->useSnapshotsWhenReusingDB,
                 $remoteConfig->useSnapshotsWhenNotReusingDB,
             )
+            ->forceRebuild($remoteConfig->forceRebuild)
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
                 config("$c.database.mysql.executables.mysqldump"),

@@ -26,6 +26,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\ParallelTesting;
 use Laravel\Dusk\Browser;
 use PDOException;
 
@@ -195,6 +196,7 @@ class BootTestLaravel extends BootTestAbstract
                 $this->propBag->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
                 $this->propBag->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
             )
+            ->forceRebuild($this->parallelTestingSaysRebuildDBs())
             ->mysqlSettings(
                 $this->propBag->adaptConfig('database.mysql.executables.mysql'),
                 $this->propBag->adaptConfig('database.mysql.executables.mysqldump'),
@@ -211,11 +213,24 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
+     * Get the storage directory.
+     *
+     * @return string
+     */
+    private function storageDir(): string
+    {
+        return $this->propBag
+            ? rtrim($this->propBag->adaptConfig('storage_dir'), '\\/')
+            : '';
+    }
+
+    /**
      * Look at the seeder properties and config value, and determine what the seeders should be.
      *
      * @return string[]
      */
-    private function resolveSeeders(): array {
+    private function resolveSeeders(): array
+    {
         return LaravelSupport::resolveSeeders(
             $this->propBag->hasProp('seeders'),
             $this->propBag->prop('seeders', null),
@@ -226,15 +241,30 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Get the storage directory.
+     * Determine if the database should be reused or not.
      *
-     * @return string
+     * @return boolean
      */
-    private function storageDir(): string
+    private function shouldReuseTestDB(): bool
     {
-        return $this->propBag
-            ? rtrim($this->propBag->adaptConfig('storage_dir'), '\\/')
-            : '';
+        if ($this->parallelTestingSaysRebuildDBs()) {
+            return false;
+        }
+        return $this->propBag->adaptConfig('reuse_test_dbs', 'reuseTestDBs');
+    }
+
+    /**
+     * Check to see if the --recreate-databases option was added when parallel testing.
+     *
+     * @return boolean
+     */
+    private function parallelTestingSaysRebuildDBs(): bool
+    {
+        if (!class_exists(ParallelTesting::class)) {
+            return false;
+        }
+
+        return (bool) ParallelTesting::option('recreate_databases');
     }
 
 

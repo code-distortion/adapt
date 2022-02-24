@@ -101,6 +101,11 @@ class ConfigDTO
     /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
     public $useSnapshotsWhenNotReusingDB;
 
+    /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
+    public bool $forceRebuild;
+
+
+
 
     /** @var string The path to the "mysql" executable. */
     public string $mysqlExecutablePath;
@@ -482,6 +487,18 @@ class ConfigDTO
     ): self {
         $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
         $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting on (or off).
+     *
+     * @param boolean $forceRebuild Force the database to be rebuilt (or not).
+     * @return static
+     */
+    public function forceRebuild(bool $forceRebuild = true): self
+    {
+        $this->forceRebuild = $forceRebuild;
         return $this;
     }
 
