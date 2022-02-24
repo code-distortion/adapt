@@ -113,6 +113,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildHash(null)
             ->buildSettings(
                 config("$c.pre_migration_imports"),
                 config("$c.migrations"),

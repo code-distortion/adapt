@@ -55,6 +55,9 @@ class ConfigDTO
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public array $hashPaths;
 
+    /** @var string|null The build-hash if it has already been calculated - passed to remote Adapt installations. */
+    public ?string $preCalculatedBuildHash;
+
 
     /** @var string[]|string[][] The files to import before the migrations are run. */
     public array $preMigrationImports;
@@ -272,6 +275,20 @@ class ConfigDTO
         $this->hashPaths = $hashPaths;
         return $this;
     }
+
+    /**
+     * Set the pre-calculated build-hash - passed to remote Adapt installations.
+     *
+     * @param string|null $preCalculatedBuildHash The pre-calculated build-hash.
+     * @return static
+     */
+    public function preCalculatedBuildHash(?string $preCalculatedBuildHash): self
+    {
+        $this->preCalculatedBuildHash = $preCalculatedBuildHash;
+        return $this;
+    }
+
+
 
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).

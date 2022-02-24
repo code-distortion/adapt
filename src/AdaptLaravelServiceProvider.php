@@ -176,13 +176,19 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function handleBuildRequest(Request $request): Response
     {
-        LaravelSupport::runFromBasePathDir();
-        LaravelSupport::useTestingConfig();
-
         try {
 
-            $builder = $this->makeNewBuilder($request->input('configDTO'));
+            LaravelSupport::runFromBasePathDir();
+            LaravelSupport::useTestingConfig();
+
+            $remoteConfigDTO = ConfigDTO::buildFromPayload($request->input('configDTO'));
+
+            $builder = (new BootRemoteBuildLaravel())
+                ->ensureStorageDirExists()
+                ->makeNewBuilder($remoteConfigDTO);
+
             $builder->execute();
+
             $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
 
             return response($resolvedSettingsDTO->buildPayload());
@@ -192,20 +198,5 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             $exceptionClass = Exceptions::resolveExceptionClass($e);
             return response("$exceptionClass: {$e->getMessage()}", 500);
         }
-    }
-
-    /**
-     * Take the config data (from the request), build the Builder based on it, and execute it.
-     *
-     * @param string $rawValue The raw configDTO data, from the request.
-     * @return DatabaseBuilder
-     */
-    private function makeNewBuilder(string $rawValue): DatabaseBuilder
-    {
-        $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
-
-        return (new BootRemoteBuildLaravel())
-            ->ensureStorageDirExists()
-            ->makeNewBuilder($remoteConfigDTO);
     }
 }

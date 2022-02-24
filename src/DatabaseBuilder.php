@@ -379,10 +379,13 @@ class DatabaseBuilder
     {
         $this->initialise();
 
+        $this->hasher->buildHashWasPreCalculated($this->config->preCalculatedBuildHash);
+
         $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
         $this->logSettingsUsed();
 
         $this->pickDatabaseNameAndUse();
+
         $this->buildOrReuseDBLocally();
     }
 
@@ -800,9 +803,9 @@ class DatabaseBuilder
      */
     private function sendBuildRemoteRequest(): ResolvedSettingsDTO
     {
-        $url = $this->buildRemoteUrl();
         $httpClient = new HttpClient(['timeout' => 60 * 10]);
-        $data = ['configDTO' => $this->config->buildPayload()];
+        $url = $this->buildRemoteUrl();
+        $data = ['configDTO' => $this->prepareConfigForRemoteRequest($url)->buildPayload()];
 
         try {
             $response = $httpClient->post(
@@ -812,11 +815,29 @@ class DatabaseBuilder
 
             $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
             $resolvedSettingsDTO->builtRemotely(true, $url);
+
+            Hasher::rememberRemoteBuildHash($url, $resolvedSettingsDTO->buildHash);
+
             return $resolvedSettingsDTO;
 
         } catch (GuzzleException $e) {
             throw $this->buildAdaptRemoteBuildException($url, $e);
         }
+    }
+
+    /**
+     * Build a ConfigDTO ready to send in the remote-build request.
+     *
+     * @param string $remoteBuildUrl The remote-build url
+     * @return ConfigDTO
+     */
+    private function prepareConfigForRemoteRequest(string $remoteBuildUrl): ConfigDTO
+    {
+        $config = clone $this->config;
+
+        // save time by telling the remote Adapt installation what the build-hash was from last time.
+        $config->preCalculatedBuildHash(Hasher::getRemoteBuildHash($remoteBuildUrl));
+        return $config;
     }
 
     /**

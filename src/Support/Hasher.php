@@ -15,6 +15,9 @@ class Hasher
     /** @var string|null Hash of all files that CAN be used to build databases - which may affect the db when changed. */
     private static ?string $buildHash = null;
 
+    /** @var string[] Build-hashes of remote Adapt installations. */
+    private static array $remoteBuildHashes = [];
+
     /** @var string|null The scenario-hash representing the way the database is to be built. */
     private ?string $currentScenarioHash = null;
 
@@ -31,7 +34,48 @@ class Hasher
     public static function resetStaticProps(): void
     {
         self::$buildHash = null;
+        self::$remoteBuildHashes = [];
     }
+
+
+
+    /**
+     * Allow the pre-calculated build-hash to be passed in (if it has in fact been pre-calculated).
+     *
+     * @return void
+     */
+    public static function buildHashWasPreCalculated(?string $buildHash): void
+    {
+        if (!$buildHash) {
+            return;
+        }
+        self::$buildHash = $buildHash;
+    }
+
+
+
+    /**
+     * A remote Adapt installation generated a build-hash. Remember it for subsequent requests (to save on build-time).
+     *
+     * @param string $remoteBuildUrl The remote-build url.
+     * @param string $buildHash      The build-hash that the remote Adapt installation calculated.
+     */
+    public static function rememberRemoteBuildHash(string $remoteBuildUrl, string $buildHash): void
+    {
+        static::$remoteBuildHashes[$remoteBuildUrl] = $buildHash;
+    }
+
+    /**
+     * Retrieve the cached remote-build hash value (if it's been set).
+     *
+     * @param string $remoteBuildUrl The remote-build url.
+     * @return string|null
+     */
+    public static function getRemoteBuildHash(string $remoteBuildUrl): ?string
+    {
+        return static::$remoteBuildHashes[$remoteBuildUrl] ?? null;
+    }
+
 
 
     /**

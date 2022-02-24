@@ -117,6 +117,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildHash($remoteConfig->preCalculatedBuildHash)
             ->buildSettings(
                 $remoteConfig->preMigrationImports,
                 $remoteConfig->migrations,

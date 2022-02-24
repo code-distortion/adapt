@@ -104,6 +104,7 @@ trait DatabaseBuilderTestTrait
                 $this->wsPreMigrationsDir,
                 $this->wsSeedsDir,
             ])
+            ->preCalculatedBuildHash(null)
             ->buildSettings(
                 [],
                 $this->wsMigrationsDir,

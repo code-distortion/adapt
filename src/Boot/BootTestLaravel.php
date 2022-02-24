@@ -176,6 +176,7 @@ class BootTestLaravel extends BootTestAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->hashPaths($this->checkLaravelHashPaths($this->propBag->adaptConfig('look_for_changes_in')))
+            ->preCalculatedBuildHash(null)
             ->buildSettings(
                 $this->propBag->adaptConfig('pre_migration_imports', 'preMigrationImports'),
                 $this->propBag->adaptConfig('migrations', 'migrations'),
