@@ -46,7 +46,7 @@ class AdaptRemoveCachesCommand extends Command
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
-            $this->info('There are no caches to remove.');
+            $this->info('There are no databases or snapshot files to remove.');
             $this->info('');
             return;
         }
@@ -74,7 +74,7 @@ class AdaptRemoveCachesCommand extends Command
 
         $this->listDatabases($cacheListDTO);
         $this->listSnapshotPaths($cacheListDTO);
-        return $this->confirm('Do you wish to proceed?');
+        return $this->confirm('Do you wish to proceed? (use --force to skip)');
     }
 
     /**

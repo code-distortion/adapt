@@ -160,7 +160,7 @@ class CommandsTest extends LaravelTestCase
 
         Settings::resetStaticProps();
         $this->useConfig($config);
-        $this->expectCommandOutput('adapt:list-db-caches', [], 'There are no caches.');
+        $this->expectCommandOutput('adapt:list-db-caches', [], 'There are no databases or snapshot files.');
 
         Settings::resetStaticProps();
         $this->useConfig($config);
@@ -314,7 +314,11 @@ class CommandsTest extends LaravelTestCase
 
         Settings::resetStaticProps();
         $this->useConfig($config);
-        $this->expectCommandOutput('adapt:remove-db-caches', ['--force' => true], 'There are no caches to remove.');
+        $this->expectCommandOutput(
+            'adapt:remove-db-caches',
+            ['--force' => true],
+            'There are no databases or snapshot files to remove.'
+        );
 
         Settings::resetStaticProps();
         $this->useConfig($config);

@@ -45,7 +45,7 @@ class AdaptListCachesCommand extends Command
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
-            $this->info('There are no caches.');
+            $this->info('There are no databases or snapshot files.');
             $this->info('');
             return;
         }
