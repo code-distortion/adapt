@@ -149,7 +149,7 @@ class DatabaseBuilder
             throw $e;
 
         } finally {
-            $this->di->log->debug(''); // add the delimiter between each database being prepared
+            $this->di->log->debug(PHP_EOL); // add the delimiter between each database being prepared
         }
     }
 
