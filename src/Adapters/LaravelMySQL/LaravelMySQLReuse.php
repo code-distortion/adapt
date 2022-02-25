@@ -253,14 +253,15 @@ class LaravelMySQLReuse implements ReuseInterface
         $logTimer = $this->di->log->newTimer();
 
         $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
-        if ($pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`")) {
-            $this->di->log->debug(
-                'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
-                $logTimer
-            );
+        if (!$pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`")) {
             return true;
         }
-        return false;
+
+        $this->di->log->debug(
+            'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
+            $logTimer
+        );
+        return true;
     }
 
     /**

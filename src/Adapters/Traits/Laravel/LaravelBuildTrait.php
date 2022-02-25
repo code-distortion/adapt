@@ -13,35 +13,51 @@ use Throwable;
  */
 trait LaravelBuildTrait
 {
+//    /**
+//     * Wipe the database.
+//     *
+//     * @return void
+//     */
+//    protected function wipeDB(): void
+//    {
+//        $logTimer = $this->di->log->newTimer();
+//
+//        $artisan = $this->di->artisan;
+//        if ($artisan->commandExists('db:wipe')) {
+//
+//            $this->di->artisan->call(
+//                'db:wipe',
+//                array_filter(
+//                    [
+//                        '--database' => $this->config->connection,
+//                        '--drop-views' => true,
+//                        '--drop-types' => ($this->config->driver == 'pgsql'),
+//                        '--force' => true,
+//                    ]
+//                )
+//            );
+//        } else {
+//            // @todo test dropAllTables when views exist, and Postgres Types exist
+//            $this->di->db->dropAllTables();
+//        }
+//
+//        $this->di->log->debug('Wiped the database', $logTimer);
+//    }
+
     /**
-     * Wipe the database.
+     * Drop the database.
      *
      * @return void
      */
-    protected function wipeDB(): void
+    protected function dropDB(): void
     {
         $logTimer = $this->di->log->newTimer();
 
-        $artisan = $this->di->artisan;
-        if ($artisan->commandExists('db:wipe')) {
-
-            $this->di->artisan->call(
-                'db:wipe',
-                array_filter(
-                    [
-                        '--database' => $this->config->connection,
-                        '--drop-views' => true,
-                        '--drop-types' => ($this->config->driver == 'pgsql'),
-                        '--force' => true,
-                    ]
-                )
-            );
-        } else {
-            // @todo test dropAllTables when views exist, and Postgres Types exist
-            $this->di->db->dropAllTables();
+        if (!$this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS `{$this->config->database}`")) {
+            return;
         }
 
-        $this->di->log->debug('Wiped the database', $logTimer);
+        $this->di->log->debug('Dropped the existing database', $logTimer);
     }
 
     /**

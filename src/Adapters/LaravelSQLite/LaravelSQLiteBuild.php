@@ -47,10 +47,10 @@ class LaravelSQLiteBuild implements BuildInterface
     public function resetDB(): void
     {
         if ($this->databaseExists()) {
-            $this->wipeDBSQLite();
-        } else {
-            $this->createDB();
+            $this->dropDBSQLite();
         }
+
+        $this->createDB();
     }
 
     /**
@@ -65,12 +65,34 @@ class LaravelSQLiteBuild implements BuildInterface
             : $this->di->filesystem->fileExists((string) $this->config->database));
     }
 
+//    /**
+//     * Wipe the database.
+//     *
+//     * @return void
+//     */
+//    private function wipeDBSQLite(): void
+//    {
+//        if ($this->isMemoryDatabase()) {
+//            return;
+//        }
+//
+//        $logTimer = $this->di->log->newTimer();
+//
+//        // make sure we've disconnected from the database first
+//        $this->di->db->purge();
+//
+//        $this->di->filesystem->unlink((string) $this->config->database);
+//        $this->createDB();
+//
+//        $this->di->log->debug('Wiped the database', $logTimer);
+//    }
+
     /**
      * Wipe the database.
      *
      * @return void
      */
-    private function wipeDBSQLite(): void
+    private function dropDBSQLite(): void
     {
         if ($this->isMemoryDatabase()) {
             return;
@@ -82,9 +104,8 @@ class LaravelSQLiteBuild implements BuildInterface
         $this->di->db->purge();
 
         $this->di->filesystem->unlink((string) $this->config->database);
-        $this->createDB();
 
-        $this->di->log->debug('Wiped the database', $logTimer);
+        $this->di->log->debug('Removed the existing database', $logTimer);
     }
 
     /**

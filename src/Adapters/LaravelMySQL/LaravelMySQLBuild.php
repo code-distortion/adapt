@@ -45,10 +45,10 @@ class LaravelMySQLBuild implements BuildInterface
     public function resetDB(): void
     {
         if ($this->di->db->currentDatabaseExists()) {
-            $this->wipeDB();
-        } else {
-            $this->createDB();
+            $this->dropDB();
         }
+
+        $this->createDB();
     }
 
     /**
