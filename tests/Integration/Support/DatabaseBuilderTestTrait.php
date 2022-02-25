@@ -98,6 +98,7 @@ trait DatabaseBuilderTestTrait
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
+            ->checkForSourceChanges(true)
             ->hashPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,

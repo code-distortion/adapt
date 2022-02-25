@@ -151,6 +151,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Check for source file changes
+    |--------------------------------------------------------------------------
+    |
+    | Adapt detects when changes are made to the files that build your
+    | databases. These include pre-migration imports, migrations,
+    | seeders and factories.
+    |
+    | When turned off, the "look for changes in" setting below will be ignored.
+    | Then it's your responsibility to remove old databases when they change.
+    |
+    | You can remove old databases by running:
+    | > php artisan adapt:remove
+    |
+    */
+
+    'check_for_source_changes' => env('ADAPT_CHECK_FOR_SOURCE_CHANGES', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Files That Alter Test-Databases Building
     |--------------------------------------------------------------------------
     |

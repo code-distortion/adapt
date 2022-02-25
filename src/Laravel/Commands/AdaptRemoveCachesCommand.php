@@ -74,7 +74,7 @@ class AdaptRemoveCachesCommand extends Command
 
         $this->listDatabases($cacheListDTO);
         $this->listSnapshotPaths($cacheListDTO);
-        return $this->confirm('Do you wish to proceed? (use --force to skip)');
+        return $this->confirm('Do you wish to proceed? (use the --force option to skip)');
     }
 
     /**

@@ -388,7 +388,7 @@ class ResolvedSettingsDTO
             '- Using transactions:' => $isReusable,
             '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            '- Build-hash:' => $this->escapeString($this->buildHash),
+            '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),
             '- Scenario-hash:' => $this->escapeString($this->scenarioHash),
         ]);

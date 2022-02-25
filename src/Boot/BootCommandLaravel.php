@@ -112,6 +112,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
+            ->checkForSourceChanges(config("$c.check_for_source_changes"))
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildHash(null)
             ->buildSettings(

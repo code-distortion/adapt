@@ -176,6 +176,7 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
+            ->checkForSourceChanges($this->propBag->adaptConfig('check_for_source_changes'))
             ->hashPaths($this->checkLaravelHashPaths($this->propBag->adaptConfig('look_for_changes_in')))
             ->preCalculatedBuildHash(null)
             ->buildSettings(

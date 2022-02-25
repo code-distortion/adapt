@@ -90,6 +90,17 @@ class Hasher
     }
 
     /**
+     * Generate the build-hash part for snapshot filenames.
+     *
+     * @return string
+     */
+    public function getBuildHashFilenamePart(): string
+    {
+        $buildHash = $this->getBuildHash() ?: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+        return mb_substr($buildHash, 0, 6);
+    }
+
+    /**
      * Build a hash based on the source files (and the database name prefix).
      *
      * @return string
@@ -97,6 +108,10 @@ class Hasher
      */
     private function generateBuildHash(): string
     {
+        if (!$this->config->checkForSourceChanges) {
+            return '';
+        }
+
         $logTimer = $this->di->log->newTimer();
 
         $paths = $this->buildListOfBuildFiles();
@@ -318,11 +333,10 @@ class Hasher
      */
     public function filenameHasBuildHash(string $filename): bool
     {
-        $buildHashPart = mb_substr($this->getBuildHash(), 0, 6);
+        $buildHashPart = $this->getBuildHashFilenamePart();
         return (bool) preg_match(
             '/^.+\.' . preg_quote($buildHashPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
-            $filename,
-            $matches
+            $filename
         );
     }
 
@@ -334,9 +348,10 @@ class Hasher
      */
     public function generateSnapshotFilenameHashPart(array $seeders): string
     {
-        return mb_substr($this->getBuildHash(), 0, 6)
-            . '-'
-            . mb_substr($this->generateSnapshotHash($seeders), 0, 12);
+        return $this->joinNameParts([
+            $this->getBuildHashFilenamePart(),
+            mb_substr($this->generateSnapshotHash($seeders), 0, 12),
+        ]);
     }
 
     /**
@@ -350,9 +365,22 @@ class Hasher
      */
     public function generateDatabaseNameHashPart(array $seeders, string $databaseModifier): string
     {
-        return mb_substr($this->getBuildHash(), 0, 6)
-            . '-'
-            . mb_substr($this->generateScenarioHash($seeders), 0, 12)
-            . (mb_strlen($databaseModifier) ? "-$databaseModifier" : '');
+        return $this->joinNameParts([
+            $this->getBuildHashFilenamePart(),
+            mb_substr($this->generateScenarioHash($seeders), 0, 12),
+            $databaseModifier,
+        ]);
+    }
+
+    /**
+     * Take the parts of a name and stick them together.
+     *
+     * @param string[] $parts The parts of the name.
+     * @return string
+     */
+    private function joinNameParts(array $parts): string
+    {
+        $parts = array_filter($parts, fn($value) => mb_strlen($value) > 0);
+        return implode('-', $parts);
     }
 }

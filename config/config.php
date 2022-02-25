@@ -151,6 +151,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Check for source file changes
+    |--------------------------------------------------------------------------
+    |
+    | Adapt detects when changes are made to the files that build your
+    | databases. These include pre-migration imports, migrations,
+    | seeders and factories.
+    |
+    | When turned off, the "look for changes in" setting below will be ignored.
+    | Then it's your responsibility to remove old databases when they change.
+    |
+    | You can remove old databases by running:
+    | > php artisan adapt:remove
+    |
+    */
+
+    'check_for_source_changes' => env('ADAPT_CHECK_FOR_SOURCE_CHANGES', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Files That Alter Test-Databases Building
     |--------------------------------------------------------------------------
     |
@@ -171,10 +190,10 @@ return [
     | Purging of Stale Test-Databases And Snapshot Files
     |--------------------------------------------------------------------------
     |
-    | Test-databases and snapshot files become stale when factories,
-    | migrations and seeders change. When turned on, stale ones will
-    | be removed after a "while" (this lets you change code branches
-    | without them being removed straight away).
+    | Test-databases and snapshot files become stale when their source files
+    | change. When this setting is turned on, these will be removed after a
+    | "while" (this gives you a chance to change code branches without
+    | them being removed straight away).
     |
     | NOTE: This setting is disabled automatically when using the
     | "remote_build_url" config setting below.

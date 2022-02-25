@@ -52,6 +52,9 @@ class ConfigDTO
     /** @var string The prefix to add to database names. */
     public string $databasePrefix;
 
+    /** @var boolean Turn the usage of build-hashes on or off. */
+    public bool $checkForSourceChanges;
+
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public array $hashPaths;
 
@@ -266,6 +269,18 @@ class ConfigDTO
     public function databasePrefix(string $databasePrefix): self
     {
         $this->databasePrefix = $databasePrefix;
+        return $this;
+    }
+
+    /**
+     * Turn the usage of build-hashes on or off.
+     *
+     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @return static
+     */
+    public function checkForSourceChanges(bool $checkForSourceChanges): self
+    {
+        $this->checkForSourceChanges = $checkForSourceChanges;
         return $this;
     }
 
