@@ -39,8 +39,14 @@ class ResolvedSettingsDTO
     /** @var string|null The remote Adapt installation to send "build" requests to. */
     public ?string $remoteBuildUrl;
 
-    /** @var boolean Whether snapshots are turned on or not. */
-    public bool $snapshotsEnabled;
+    /** @var string|null The type of snapshots being used, depending on whether the database is reused or not. */
+    public ?string $resolvedSnapshotType;
+
+    /** @var string|null The type of snapshots being used, when reusing the database. */
+    public ?string $reuseDBSnapshotType;
+
+    /** @var string|null The type of snapshots being used, when NOT reusing the database. */
+    public ?string $notReuseDBSnapshotType;
 
     /** @var string The directory to store database snapshots in. */
     public string $storageDir;
@@ -220,14 +226,22 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Turn the snapshots-enabled setting on (or off).
+     * Set the type of snapshots being used.
      *
-     * @param boolean $snapshotsEnabled Whether snapshots are enabled or not.
+     * @param string|null $resolvedSnapshotType  The type of snapshots being used, depending on whether the database is
+     *                                           reused or not.
+     * @param string|null $reuseSnapshotType     The type of snapshots being used, when reusing the database.
+     * @param string|null $dontReuseSnapshotType The type of snapshots being used, when NOT reusing the database.
      * @return static
      */
-    public function snapshotsEnabled(bool $snapshotsEnabled): self
-    {
-        $this->snapshotsEnabled = $snapshotsEnabled;
+    public function snapshotType(
+        ?string $resolvedSnapshotType,
+        ?string $reuseSnapshotType,
+        ?string $dontReuseSnapshotType
+    ): self {
+        $this->resolvedSnapshotType = $resolvedSnapshotType;
+        $this->reuseDBSnapshotType = $reuseSnapshotType;
+        $this->notReuseDBSnapshotType = $dontReuseSnapshotType;
         return $this;
     }
 
@@ -348,7 +362,13 @@ class ResolvedSettingsDTO
     {
         $remoteExtra = $this->builtRemotely ? ' (remote)' : '';
 
-        $storageDir = $this->snapshotsEnabled
+        $snapshotsEnabled =
+            $this->renderBoolean((bool) $this->resolvedSnapshotType)
+            . ($this->resolvedSnapshotType
+                ? ' - ' . $this->escapeString($this->resolvedSnapshotType)
+                : '');
+
+        $storageDir = $this->resolvedSnapshotType
             ? $this->escapeString($this->storageDir) . $remoteExtra
             : null;
 
@@ -378,14 +398,16 @@ class ResolvedSettingsDTO
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName, 'n/a'),
             'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
-            'Snapshots enabled?' => $this->renderBoolean($this->snapshotsEnabled),
+            'Snapshots enabled?' => $snapshotsEnabled,
+            '- When reusing db?' => $this->escapeString($this->reuseDBSnapshotType, 'No'),
+            '- When not reusing db?' => $this->escapeString($this->notReuseDBSnapshotType, 'No'),
             'Snapshot storage dir:' => $storageDir,
             $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
             'Migrations:' => $migrations,
             $seedersTitle => $seeders,
             'Is a browser-test?' => $isBrowserTest,
-            'Is reusable?' => ' ',
-            '- Using transactions:' => $isReusable,
+            'Is reusable?' =>  $this->renderBoolean($this->databaseIsReusable),
+            '- Using transactions?' => $isReusable,
             '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
             '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
@@ -436,9 +458,8 @@ class ResolvedSettingsDTO
         return $value ? $trueValue : $falseValue;
     }
 
-
     /**
-     * Render a list of things, or "None when empty".
+     * Render a list of things, or "None" when empty.
      *
      * @param string[] $things      The things to render.
      * @param string   $remoteExtra The text to add when being handled remotely.

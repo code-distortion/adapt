@@ -306,9 +306,23 @@ class DatabaseBuilder
      */
     private function snapshotsAreEnabled(): bool
     {
-        return $this->usingReuseTestDBs()
-            ? in_array($this->config->useSnapshotsWhenReusingDB, ['afterMigrations', 'afterSeeders', 'both'], true)
-            : in_array($this->config->useSnapshotsWhenNotReusingDB, ['afterMigrations', 'afterSeeders', 'both'], true);
+        return !is_null($this->snapshotType());
+    }
+
+    /**
+     * Check which type of snapshots are bing used.
+     *
+     * @return string|null
+     */
+    private function snapshotType(): ?string
+    {
+        $snapshotType = $this->usingReuseTestDBs()
+            ? $this->config->useSnapshotsWhenReusingDB
+            : $this->config->useSnapshotsWhenNotReusingDB;
+
+        return in_array($snapshotType, ['afterMigrations', 'afterSeeders', 'both'], true)
+            ? $snapshotType
+            : null;
     }
 
     /**
@@ -323,13 +337,9 @@ class DatabaseBuilder
         }
 
         // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
-        $setting = $this->usingReuseTestDBs()
-            ? $this->config->useSnapshotsWhenReusingDB
-            : $this->config->useSnapshotsWhenNotReusingDB;
-
         return count($this->config->pickSeedersToInclude())
-            ? in_array($setting, ['afterMigrations', 'both'], true)
-            : in_array($setting, ['afterMigrations', 'afterSeeders', 'both'], true);
+            ? in_array($this->snapshotType(), ['afterMigrations', 'both'], true)
+            : in_array($this->snapshotType(), ['afterMigrations', 'afterSeeders', 'both'], true);
     }
 
     /**
@@ -342,15 +352,14 @@ class DatabaseBuilder
         if (!$this->snapshotsAreEnabled()) {
             return false;
         }
+
+        // if there are no seeders, the snapshot will be the same as after migrations
+        // so this situation is included in shouldTakeSnapshotAfterMigrations(..) above
         if (!count($this->config->pickSeedersToInclude())) {
             return false;
         }
 
-        $setting = $this->usingReuseTestDBs()
-            ? $this->config->useSnapshotsWhenReusingDB
-            : $this->config->useSnapshotsWhenNotReusingDB;
-
-        return in_array($setting, ['afterSeeders', 'both'], true);
+        return in_array($this->snapshotType(), ['afterSeeders', 'both'], true);
     }
 
     /**
@@ -540,11 +549,9 @@ class DatabaseBuilder
             $this->writeReuseMetaData(false);
         }
 
-        if (($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())) {
-            $this->buildDBFromSnapshot();
-        } else {
-            $this->buildDBFromScratch();
-        }
+        ($this->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())
+            ? $this->buildDBFromSnapshot()
+            : $this->buildDBFromScratch();
     }
 
     /**
@@ -1128,7 +1135,11 @@ class DatabaseBuilder
                 $this->shouldBuildRemotely(),
                 $this->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
             )
-            ->snapshotsEnabled($this->snapshotsAreEnabled())
+            ->snapshotType(
+                $this->snapshotType(),
+                $this->config->useSnapshotsWhenReusingDB,
+                $this->config->useSnapshotsWhenNotReusingDB,
+            )
             ->isBrowserTest($this->config->isBrowserTest)
             ->sessionDriver($this->config->sessionDriver)
             ->databaseIsReusable($this->dbWillBeReusable())
