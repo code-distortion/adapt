@@ -835,7 +835,8 @@ class DatabaseBuilder
             $this->config->connection,
             $url,
             $response,
-            $e
+            $e,
+            $this->di->log->someLoggingIsOn()
         );
     }
 

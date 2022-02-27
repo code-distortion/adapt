@@ -142,6 +142,18 @@ class LaravelLog implements LogInterface
 
 
     /**
+     * Check to see if some logging is on.
+     *
+     * @return boolean
+     */
+    public function someLoggingIsOn(): bool
+    {
+        return $this->stdout || $this->laravel;
+    }
+
+
+
+    /**
      * Add the array keys to the values, padded based on the length of the longest key.
      *
      * @param array<string, string> $lines The lines to process.
