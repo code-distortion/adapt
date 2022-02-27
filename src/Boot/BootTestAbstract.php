@@ -6,9 +6,7 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
-use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\Settings;
-use Throwable;
 
 /**
  * Bootstrap Adapt for tests.

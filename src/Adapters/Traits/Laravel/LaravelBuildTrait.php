@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Database\Seeder;
 use Illuminate\Foundation\Application;
 use Throwable;
 
