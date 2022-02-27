@@ -32,7 +32,7 @@ class Settings
     public const REMOTE_SHARE_DTO_VERSION = 2;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
-    public const REMOTE_SHARE_KEY = '____adapt_remote_share____';
+    public const REMOTE_SHARE_KEY = 'adapt-remote-share';
 
     /** @var string The path that browsers connect to initially (when browser testing) so cookies can then be set. */
     public const INITIAL_BROWSER_COOKIE_REQUEST_PATH = '/____adapt____/cookie';
