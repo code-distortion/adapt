@@ -400,7 +400,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the is-browser-test setting on (or off).
+     * Turn the is-browser-test setting on or off.
      *
      * @param boolean $isBrowserTest Is this test a browser-test?.
      * @return static
@@ -412,7 +412,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the is-remote-build setting on (or off).
+     * Turn the is-remote-build setting on or off.
      *
      * @param boolean $isRemoteBuild Is this process building a db for another Adapt installation?.
      * @return static
@@ -464,7 +464,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the reuse-test-dbs setting on (or off).
+     * Turn the reuse-test-dbs setting on or off.
      *
      * @param boolean $reuseTestDBs Reuse existing databases?.
      * @return static
@@ -476,7 +476,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the scenario-test-dbs setting on (or off).
+     * Turn the scenario-test-dbs setting on or off.
      *
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
@@ -506,12 +506,12 @@ class ConfigDTO
     }
 
     /**
-     * Turn the force-rebuild setting on (or off).
+     * Turn the force-rebuild setting on or off.
      *
      * @param boolean $forceRebuild Force the database to be rebuilt (or not).
      * @return static
      */
-    public function forceRebuild(bool $forceRebuild = true): self
+    public function forceRebuild(bool $forceRebuild): self
     {
         $this->forceRebuild = $forceRebuild;
         return $this;

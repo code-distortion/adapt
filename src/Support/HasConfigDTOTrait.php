@@ -48,6 +48,29 @@ trait HasConfigDTOTrait
     }
 
     /**
+     * Turn the usage of build-hashes on (or off).
+     *
+     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @return static
+     */
+    public function checkForSourceChanges(bool $checkForSourceChanges = true): self
+    {
+        $this->config->checkForSourceChanges = $checkForSourceChanges;
+        return $this;
+    }
+
+    /**
+     * Turn the usage of build-hashes off.
+     *
+     * @return static
+     */
+    public function dontCheckForSourceChanges(): self
+    {
+        $this->config->checkForSourceChanges = false;
+        return $this;
+    }
+
+    /**
      * Specify the database dump files to import before migrations run.
      *
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
@@ -221,6 +244,29 @@ trait HasConfigDTOTrait
     public function noSnapshots(): self
     {
         $this->config->snapshots(false, false);
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting on (or off).
+     *
+     * @param boolean $forceRebuild Force the database to be rebuilt (or not).
+     * @return static
+     */
+    public function forceRebuild(bool $forceRebuild = true): self
+    {
+        $this->config->forceRebuild = $forceRebuild;
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting off.
+     *
+     * @return static
+     */
+    public function dontForceRebuild(): self
+    {
+        $this->config->forceRebuild = false;
         return $this;
     }
 
