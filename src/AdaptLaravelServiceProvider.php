@@ -6,7 +6,6 @@ use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -26,7 +25,7 @@ use Throwable;
 class AdaptLaravelServiceProvider extends ServiceProvider
 {
     /** @var string The path to the config file in the filesystem. */
-    private $configPath = __DIR__ . '/../config/config.php';
+    private string $configPath = __DIR__ . '/../config/config.php';
 
 
 
