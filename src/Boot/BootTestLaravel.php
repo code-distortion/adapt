@@ -50,6 +50,7 @@ class BootTestLaravel extends BootTestAbstract
     public function isAllowedToRun(): void
     {
         $this->ensureEnvTestingFileExists();
+        $this->ensureReCreateDatabasesIsntSet();
     }
 
     /**
@@ -66,6 +67,27 @@ class BootTestLaravel extends BootTestAbstract
 
         throw AdaptConfigException::cannotLoadEnvTestingFile();
     }
+
+    /**
+     * Check that the --recreate-databases option hasn't been added when --parallel testing.
+     *
+     * Because Adapt dynamically decides which database/s to use based on the settings for each test, it's not
+     * practical to pre-determine which ones to rebuild. And because of the nature of parallel testing, it's also not
+     * possible to simply remove oll of the databases before running the tests.
+     *
+     * @return void
+     * @throws AdaptBootException When the --recreate-databases option has been used when parallel testing.
+     */
+    public function ensureReCreateDatabasesIsntSet(): void
+    {
+        if (!$this->parallelTestingSaysRebuildDBs()) {
+            return;
+        }
+
+        throw AdaptBootException::parallelTestingSaysRebuildDBs();
+    }
+
+
 
 
 
