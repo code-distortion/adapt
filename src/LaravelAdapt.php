@@ -71,7 +71,7 @@ trait LaravelAdapt
      * NOTE: pre_migration_imports aren't available for sqlite :memory:
      * databases.
      *
-     * @var string[]|string[][]
+     * @var array<string, string>|array<string, string[]>
      */
 //    protected array $preMigrationImports = [
 //        'mysql' => ['database/dumps/mysql/my-database.sql'],
