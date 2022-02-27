@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Laravel\Dusk\Browser;
@@ -12,6 +13,14 @@ use Laravel\Dusk\Browser;
  */
 interface BootTestInterface
 {
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log(LogInterface $log): self;
+
     /**
      * Set the name of the test being run.
      *
@@ -68,6 +77,14 @@ interface BootTestInterface
      * @return void
      */
     public function run(): void;
+
+    /**
+     * Check that it's safe to run.
+     *
+     * @return void
+     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
+     */
+    public function isAllowedToRun(): void;
 
     /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.

@@ -135,41 +135,11 @@ class DatabaseBuilder
      */
     public function execute(): self
     {
-        try {
-
-            $this->onlyExecuteOnce();
-            $this->logTitle();
-            $this->prePrepareChecks();
-            $this->prepareDB();
-            return $this;
-
-        } catch (Throwable $e) {
-
-            $this->logException($e);
-            throw $e;
-
-        } finally {
-            $this->di->log->debug(PHP_EOL); // add the delimiter between each database being prepared
-        }
-    }
-
-    /**
-     * Generate and log the exception message.
-     *
-     * @param Throwable $e The exception to log.
-     * @return void
-     */
-    private function logException(Throwable $e): void
-    {
-        if (is_a($e, AdaptRemoteBuildException::class)) {
-            $lines = $e->generateLinesForLog();
-            $title = $e->generateTitleForLog();
-        } else {
-            $lines = array_filter([$e->getMessage()]);
-            $title = 'An Exception Occurred - ' . Exceptions::resolveExceptionClass($e);
-        }
-
-        $this->di->log->logBox($lines, $title, 'error');
+        $this->onlyExecuteOnce();
+        $this->logTitle();
+        $this->prePrepareChecks();
+        $this->prepareDB();
+        return $this;
     }
 
     /**

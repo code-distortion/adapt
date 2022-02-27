@@ -64,7 +64,7 @@ class LaravelSupport
      * e.g. /var/www/html instead of /var/www/html/public
      *
      * This ensures that the paths of hash files (migrations, seeders etc) are resolved identically, compared to when
-     * Adapt is running in non-web situations tests (e.g. tests).
+     * Adapt is running in non-web situations tests (i.e. tests).
      *
      * @return void
      */

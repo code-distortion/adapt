@@ -5,12 +5,16 @@ namespace CodeDistortion\Adapt\PreBoot;
 use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelConfig;
 use CodeDistortion\Adapt\Support\LaravelEnv;
 use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
+use Throwable;
 
 /**
  * Pre-Bootstrap for Laravel tests.
@@ -77,10 +81,22 @@ class PreBootTestLaravel
      */
     public function adaptSetUp(): void
     {
-        $this->prepareLaravelConfig();
+        $log = $this->newLog();
+        try {
 
-        $this->adaptBootTestLaravel = $this->buildBootObject();
-        $this->adaptBootTestLaravel->run();
+            $this->prepareLaravelConfig();
+
+            $this->adaptBootTestLaravel = $this->buildBootObject($log);
+            $this->adaptBootTestLaravel->run();
+
+        } catch (Throwable $e) {
+
+            Exceptions::logException($log, $e);
+            throw $e;
+
+        } finally {
+            $log->debug(PHP_EOL); // add the delimiter between each database being prepared
+        }
     }
 
     /**
@@ -95,6 +111,21 @@ class PreBootTestLaravel
         } finally {
             $this->adaptBootTestLaravel->postTestCleanUp();
         }
+    }
+
+
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        return new LaravelLog(
+            (bool) $this->propBag->adaptConfig('log.stdout'),
+            (bool) $this->propBag->adaptConfig('log.laravel')
+        );
     }
 
 
@@ -242,11 +273,13 @@ class PreBootTestLaravel
     /**
      * Build the boot-test object.
      *
+     * @param LogInterface $log The logger to use.
      * @return BootTestInterface
      */
-    private function buildBootObject(): BootTestInterface
+    private function buildBootObject(LogInterface $log): BootTestInterface
     {
         return (new BootTestLaravel())
+            ->log($log)
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)

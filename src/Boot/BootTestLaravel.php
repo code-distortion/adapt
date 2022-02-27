@@ -6,13 +6,11 @@ use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
@@ -42,6 +40,35 @@ class BootTestLaravel extends BootTestAbstract
     private array $tempConfigPaths = [];
 
 
+
+    /**
+     * Check that it's safe to run.
+     *
+     * @return void
+     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
+     */
+    public function isAllowedToRun(): void
+    {
+        $this->ensureEnvTestingFileExists();
+    }
+
+    /**
+     * Check that the .env.testing file exists.
+     *
+     * @return void
+     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
+     */
+    private function ensureEnvTestingFileExists(): void
+    {
+        if ((new Filesystem())->fileExists('.env.testing')) {
+            return;
+        }
+
+        throw AdaptConfigException::cannotLoadEnvTestingFile();
+    }
+
+
+
     /**
      * Ensure the storage-directory exists.
      *
@@ -50,7 +77,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function ensureStorageDirExists(): self
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -73,27 +100,9 @@ class BootTestLaravel extends BootTestAbstract
             ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure($this->transactionClosure)
-            ->log($this->newLog())
+            ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     * @throws AdaptBootException Thrown when the propBag hasn't been set.
-     */
-    protected function newLog(): LogInterface
-    {
-        if (!$this->propBag) {
-            throw AdaptBootException::propBagNotSet();
-        }
-
-        return new LaravelLog(
-            (bool) $this->propBag->adaptConfig('log.stdout'),
-            (bool) $this->propBag->adaptConfig('log.laravel')
-        );
     }
 
     /**

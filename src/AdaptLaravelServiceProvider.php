@@ -3,7 +3,10 @@
 namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -168,6 +171,8 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
 
 
+
+
     /**
      * Build a test-database for a remote installation of Adapt.
      *
@@ -176,27 +181,98 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function handleBuildRequest(Request $request): Response
     {
+        $log = null;
         try {
 
             LaravelSupport::runFromBasePathDir();
             LaravelSupport::useTestingConfig();
+            $log = $this->newLog();
 
-            $remoteConfigDTO = ConfigDTO::buildFromPayload($request->input('configDTO'));
-
-            $builder = (new BootRemoteBuildLaravel())
-                ->ensureStorageDirExists()
-                ->makeNewBuilder($remoteConfigDTO);
-
-            $builder->execute();
-
-            $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
-
-            return response($resolvedSettingsDTO->buildPayload());
+            return $this->executeBuilder($request, $log);
 
         } catch (Throwable $e) {
-
-            $exceptionClass = Exceptions::resolveExceptionClass($e);
-            return response("$exceptionClass: {$e->getMessage()}", 500);
+            return $this->handleException($e, $log);
+        } finally {
+            if ($log) {
+                $log->debug(PHP_EOL); // add the delimiter between each database being prepared
+            }
         }
+    }
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
+
+        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
+        return new LaravelLog(false, $useLaravelLog);
+    }
+
+    /**
+     * Create a DatabaseBuilder, execute it, and build the response to return.
+     *
+     * @param Request      $request The request object.
+     * @param LogInterface $log     The logger to use.
+     * @return Response
+     */
+    private function executeBuilder(Request $request, LogInterface $log): Response
+    {
+        $builder = $this->makeBuilder(
+            $this->buildConfigDTO($request->input('configDTO')),
+            $log
+        );
+
+        $builder->execute();
+
+        return response(
+            $builder->getResolvedSettingsDTO()->buildPayload()
+        );
+    }
+
+    /**
+     * Build the ConfigDTO to use based on the payload passed by the caller.
+     *
+     * @param string $payload The raw ConfigDTO data from the request.
+     * @return ConfigDTO
+     */
+    private function buildConfigDTO(string $payload): ConfigDTO
+    {
+        return ConfigDTO::buildFromPayload($payload);
+    }
+
+    /**
+     * Create a new build to use.
+     *
+     * @param ConfigDTO    $configDTO The ConfigDTO passed by the caller.
+     * @param LogInterface $log       The logger to use.
+     * @return DatabaseBuilder
+     */
+    private function makeBuilder(ConfigDTO $configDTO, LogInterface $log): DatabaseBuilder
+    {
+        return (new BootRemoteBuildLaravel())
+            ->log($log)
+            ->ensureStorageDirExists()
+            ->makeNewBuilder($configDTO);
+    }
+
+    /**
+     * Handle an exception.
+     *
+     * @param Throwable         $e   The exception that occurred.
+     * @param LogInterface|null $log The logger to use.
+     * @return Response
+     */
+    private function handleException(Throwable $e, ?LogInterface $log): Response
+    {
+        if ($log) {
+            Exceptions::logException($log, $e);
+        }
+
+        $exceptionClass = Exceptions::resolveExceptionClass($e);
+        return response("$exceptionClass: {$e->getMessage()}", 500);
     }
 }

@@ -6,14 +6,18 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
-use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\Settings;
+use Throwable;
 
 /**
  * Bootstrap Adapt for tests.
  */
 abstract class BootTestAbstract implements BootTestInterface
 {
+    /** @var LogInterface|null The LogInterface to use. */
+    protected ?LogInterface $log = null;
+
     /** @var string|null The name of the test being run. */
     protected ?string $testName = null;
 
@@ -35,6 +39,19 @@ abstract class BootTestAbstract implements BootTestInterface
 //    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
+
+
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log(LogInterface $log): self
+    {
+        $this->log = $log;
+        return $this;
+    }
 
     /**
      * Set the name of the test being run.
@@ -126,6 +143,8 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     public function run(): void
     {
+        $this->isAllowedToRun();
+
         if (Settings::$isFirstTest) {
             Settings::$isFirstTest = false;
             $this->purgeStaleThings();
@@ -257,13 +276,6 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DIContainer
      */
     abstract protected function defaultDI(string $connection): DIContainer;
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    abstract protected function newLog(): LogInterface;
 
     /**
      * Check to see if any of the transactions were committed, and generate an exception.

@@ -36,7 +36,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      */
     public function ensureStorageDirExists(): self
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -78,22 +78,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(fn() => null)
-            ->log($this->newLog())
+            ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
-
-        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
-        return new LaravelLog(false, $useLaravelLog);
     }
 
     /**
