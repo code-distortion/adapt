@@ -29,6 +29,7 @@ trait LaravelBuildTrait
 //                'db:wipe',
 //                array_filter(
 //                    [
+//                        '--env' =>  'testing',
 //                        '--database' => $this->config->connection,
 //                        '--drop-views' => true,
 //                        '--drop-types' => ($this->config->driver == 'pgsql'),
@@ -86,6 +87,7 @@ trait LaravelBuildTrait
             $this->di->artisan->call(
                 'migrate',
                 array_filter([
+                    '--env' => 'testing',
                     '--database' => $this->config->connection,
                     '--force' => true,
                     '--path' => $migrationsPath,
@@ -119,6 +121,7 @@ trait LaravelBuildTrait
                     'db:seed',
                     array_filter(
                         [
+                            '--env' => 'testing',
                             '--database' => $this->config->connection,
                             '--class' => $seeder,
                             '--no-interaction' => true,
