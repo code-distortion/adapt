@@ -8,7 +8,7 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 trait LaravelConnectionTrait
 {
     /**
-     * Set the this builder's database connection as the default one.
+     * Set this builder's database connection as the default one.
      *
      * @return void
      */
@@ -16,25 +16,43 @@ trait LaravelConnectionTrait
     {
         config(['database.default' => $this->config->connection]);
 
-        $this->di->log->debug('Changed the default connection to: "' . $this->config->connection . '"');
+        $this->di->log->debug("Changed the default connection to: \"{$this->config->connection}\"");
     }
 
     /**
      * Tell the adapter to use the given database name (the connection stays the same).
      *
-     * @param string $database The name of the database to use.
+     * @param string  $database     The name of the database to use.
+     * @param boolean $applyLogging Enable or disable logging.
      * @return void
      */
-    protected function laravelUseDatabase(string $database): void
+    protected function laravelUseDatabase(string $database, bool $applyLogging): void
     {
         $this->config->database($database);
 
         $connection = $this->config->connection;
-        if (config("database.connections.$connection.database") != $database) {
-            config(["database.connections.$connection.database" => $database]);
-            $this->di->log->debug('Changed the database for connection "' . $connection . '" to "' . $database . '"');
-        } else {
-            $this->di->log->debug('Using connection "' . $connection . '"\'s original database "' . $database . '"');
+
+        if ($applyLogging) {
+
+            $message = config("database.connections.$connection.database") == $database
+                ? "Using connection \"$connection\"'s original database \"$database\""
+                : "Changed the database for connection \"$connection\" to \"$database\"";
+
+            $this->di->log->debug($message);
         }
+
+        config(["database.connections.$connection.database" => $database]);
+    }
+
+    /**
+     * Get the database currently being used.
+     *
+     * @return string|null
+     */
+    protected function laravelGetCurrentDatabase(): ?string
+    {
+        $connection = $this->config->connection;
+
+        return config("database.connections.$connection.database");
     }
 }

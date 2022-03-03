@@ -9,7 +9,6 @@ use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
@@ -119,7 +118,6 @@ class BootTestLaravel extends BootTestAbstract
 
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure($this->transactionClosure)
             ->log($this->log)
@@ -202,6 +200,7 @@ class BootTestLaravel extends BootTestAbstract
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
+            ->origDatabase(config("database.connections.$connection.database"))
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
@@ -414,9 +413,17 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        $this->purgeStaleDatabases();
-        $this->purgeStaleSnapshots();
-        $this->removeOrphanedTempConfigFiles();
+        $logTimer = $this->log->newTimer();
+        $this->log->debug('Looking for stale things to remove');
+
+        $removedCount = $this->purgeStaleDatabases();
+        $removedCount += $this->purgeStaleSnapshots();
+        $removedCount += $this->removeOrphanedTempConfigFiles();
+
+        $message = $removedCount
+            ? 'Time taken'
+            : 'Nothing found to remove';
+        $this->log->debug($message, $logTimer, true);
 
         $this->releaseMutexLock();
     }
@@ -437,16 +444,23 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Remove stale databases.
      *
-     * @return void
+     * @return integer
      */
-    private function purgeStaleDatabases(): void
+    private function purgeStaleDatabases(): int
     {
+        $removedCount = 0;
+
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
             try {
                 $builder = $this->createBuilder((string) $connection);
                 foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
-                    $databaseMetaInfo->purgeIfNeeded();
+
+                    if ($databaseMetaInfo->shouldPurgeNow()) {
+                        $databaseMetaInfo->delete();
+                        $this->log->debug("Removed database \"$databaseMetaInfo->name\"");
+                        $removedCount++;
+                    }
                 }
             } catch (AdaptConfigException $e) {
                 // ignore exceptions caused because the database can't be connected to
@@ -455,28 +469,39 @@ class BootTestLaravel extends BootTestAbstract
                 // same as above
             }
         }
+        return $removedCount;
     }
 
     /**
      * Remove stale snapshots.
      *
-     * @return void
+     * @return integer
      */
-    private function purgeStaleSnapshots(): void
+    private function purgeStaleSnapshots(): int
     {
+        $removedCount = 0;
+
         $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
-            $snapshotMetaInfo->purgeIfNeeded();
+
+            if ($snapshotMetaInfo->shouldPurgeNow()) {
+                $snapshotMetaInfo->delete();
+                $this->log->debug("Removed snapshot \"$snapshotMetaInfo->filename\"");
+                $removedCount++;
+            }
         }
+        return $removedCount;
     }
 
     /**
      * Remove old (i.e. orphaned) temporary config files.
      *
-     * @return void
+     * @return integer
      */
-    private function removeOrphanedTempConfigFiles(): void
+    private function removeOrphanedTempConfigFiles(): int
     {
+        $removedCount = 0;
+
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
         $paths = (new Filesystem())->filesInDir($this->storageDir());
         foreach ($paths as $path) {
@@ -492,8 +517,12 @@ class BootTestLaravel extends BootTestAbstract
             $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
             if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
+                $this->log->debug("Removed orphaned temporary config file \"$filename\"");
+                $removedCount++;
             }
         }
+
+        return $removedCount;
     }
 
     /**

@@ -246,7 +246,7 @@ class Hasher
 
 
     /**
-     * Take the list of files and generate a hash for each.
+     * Take the list of files and generate a hash for the contents of each.
      *
      * @param string[] $paths The files to hash.
      * @return array<string, string>
@@ -317,7 +317,7 @@ class Hasher
             'snapshotHash' => $this->generateSnapshotHash($seeders),
             'projectName' => $this->config->projectName,
 //            'connection' => $this->config->connection,
-            'database' => $this->config->database,
+            'origDatabase' => $this->config->origDatabase,
             'reuseTestDBs' => $this->config->reuseTestDBs,
             'browserTest' => $this->config->isBrowserTest,
         ]));

@@ -10,29 +10,32 @@ interface LogInterface
     /**
      * Display some debug output - DEBUG level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function debug(string $message, int $timerRef = null): void;
+    public function debug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
      * Display some debug output - WARNING level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function warning(string $message, int $timerRef = null): void;
+    public function warning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
      * Display some debug output - ERROR level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function error(string $message, int $timerRef = null): void;
+    public function error(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
      * Create a new timer and return a reference to it.
@@ -71,10 +74,11 @@ interface LogInterface
     /**
      * Log some lines in a box.
      *
-     * @param string|string[] $lines The lines to log in a table.
-     * @param string|null     $title The title to add to the top line.
-     * @param string          $level The logging level to use.
+     * @param string|string[] $lines        The lines to log in a table.
+     * @param string|null     $title        The title to add to the top line.
+     * @param string          $level        The logging level to use.
+     * @param boolean         $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function logBox($lines, ?string $title = null, string $level = 'debug'): void;
+    public function logBox($lines, ?string $title = null, string $level = 'debug', bool $newLineAfter = false): void;
 }

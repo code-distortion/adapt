@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Support;
 
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
+use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 
 /**
  * Common Adapt settings.
@@ -57,6 +58,11 @@ class Settings
      */
     public static bool $isFirstTest = true;
 
+    /** @var ResolvedSettingsDTO[] The ResolvedSettingsDTOs from recently built databases. */
+    public static array $resolvedSettingsDTOs = [];
+
+
+
     /**
      * Reset anything that should be reset between internal tests of the Adapt package.
      *
@@ -65,7 +71,33 @@ class Settings
     public static function resetStaticProps(): void
     {
         static::$isFirstTest = true;
+        Settings::$resolvedSettingsDTOs = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
+    }
+
+
+
+    /**
+     * Get a recently resolved ResolvedSettingsDTO.
+     *
+     * @param string $currentScenarioHash The scenario-hash to return for.
+     * @return ResolvedSettingsDTO|null
+     */
+    public static function getResolvedSettingsDTO(string $currentScenarioHash): ?ResolvedSettingsDTO
+    {
+        return Settings::$resolvedSettingsDTOs[$currentScenarioHash] ?? null;
+    }
+
+    /**
+     * Store recently resolved ResolvedSettingsDTO for reference later.
+     *
+     * @param string              $currentScenarioHash The scenario-hash to store this against.
+     * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
+     * @return void
+     */
+    public static function storeResolvedSettingsDTO(string $currentScenarioHash, ResolvedSettingsDTO $resolvedSettingsDTO): void
+    {
+        Settings::$resolvedSettingsDTOs[$currentScenarioHash] = $resolvedSettingsDTO;
     }
 }

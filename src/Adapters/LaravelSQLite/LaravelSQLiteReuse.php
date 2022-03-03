@@ -106,11 +106,18 @@ class LaravelSQLiteReuse implements ReuseInterface
      *
      * @param string $buildHash    The current build-hash.
      * @param string $scenarioHash The current scenario-hash.
+     * @param string $projectName  The project-name.
+     * @param string $database     The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
-    public function dbIsCleanForReuse(string $buildHash, string $scenarioHash): bool
-    {
+    public function dbIsCleanForReuse(
+        string $buildHash,
+        string $scenarioHash,
+        string $projectName,
+        string $database
+    ): bool {
+
         try {
             $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
             /** @var stdClass|null $reuseInfo */
@@ -123,11 +130,8 @@ class LaravelSQLiteReuse implements ReuseInterface
             return false;
         }
 
-        if ($reuseInfo->project_name != $this->config->projectName) {
-            throw AdaptBuildException::databaseOwnedByAnotherProject(
-                (string) $this->config->database,
-                $reuseInfo->project_name
-            );
+        if ($reuseInfo->project_name != $projectName) {
+            throw AdaptBuildException::databaseOwnedByAnotherProject($database, $reuseInfo->project_name);
         }
 
         if ($reuseInfo->reuse_table_version != Settings::REUSE_TABLE_VERSION) {
@@ -148,7 +152,7 @@ class LaravelSQLiteReuse implements ReuseInterface
 
         if ($reuseInfo->inside_transaction) {
 //            $this->di->log->warning(
-//                'The previous transaction for database "' . $this->config->database . '" '
+//                'The previous transaction for database "' . $database . '" '
 //                . 'was committed instead of being rolled-back'
 //            );
             return false;

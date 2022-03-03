@@ -35,37 +35,40 @@ class LaravelLog implements LogInterface
     /**
      * Display some debug output - DEBUG level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function debug(string $message, int $timerRef = null): void
+    public function debug(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('debug', $this->buildMessage($message, $timerRef));
+        $this->output('debug', $this->buildMessage($message, $timerRef, $newLineAfter));
     }
 
     /**
      * Display some debug output - WARNING level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function warning(string $message, int $timerRef = null): void
+    public function warning(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('warning', $this->buildMessage($message, $timerRef));
+        $this->output('warning', $this->buildMessage($message, $timerRef, $newLineAfter));
     }
 
     /**
      * Display some debug output - ERROR level.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function error(string $message, int $timerRef = null): void
+    public function error(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('error', $this->buildMessage($message, $timerRef));
+        $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter));
     }
 
     /**
@@ -125,13 +128,14 @@ class LaravelLog implements LogInterface
     /**
      * Format the message ready for outputting.
      *
-     * @param string       $message  The message to show.
-     * @param integer|null $timerRef Show the time taken for the given timer.
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return string
      */
-    private function buildMessage(string $message, int $timerRef = null): string
+    private function buildMessage(string $message, int $timerRef = null, bool $newLineAfter = false): string
     {
-        return $message . $this->formatTime($timerRef);
+        return $message . $this->formatTime($timerRef) . ($newLineAfter ? PHP_EOL : '');
 
 //        $caller = debug_backtrace()[2];
 //        $temp = explode('\\', $caller['class']);
@@ -183,12 +187,13 @@ class LaravelLog implements LogInterface
     /**
      * Log some lines in a box.
      *
-     * @param string|string[] $lines The lines to log in a table.
-     * @param string|null     $title The title to add to the top line.
-     * @param string          $level The logging level to use.
+     * @param string|string[] $lines        The lines to log in a table.
+     * @param string|null     $title        The title to add to the top line.
+     * @param string          $level        The logging level to use.
+     * @param boolean         $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public function logBox($lines, ?string $title = null, string $level = 'debug'): void
+    public function logBox($lines, ?string $title = null, string $level = 'debug', bool $newLineAfter = false): void
     {
         $lines = !is_array($lines) ? [$lines] : $lines;
 
@@ -210,6 +215,6 @@ class LaravelLog implements LogInterface
             $this->{$level}("│ $line │");
         }
 
-        $this->{$level}('└' . str_repeat('─', $maxLength + 2) . '┘');
+        $this->{$level}('└' . str_repeat('─', $maxLength + 2) . '┘' . ($newLineAfter ? PHP_EOL : ''));
     }
 }

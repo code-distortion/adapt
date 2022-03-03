@@ -91,11 +91,8 @@ class PreBootTestLaravel
 
         } catch (Throwable $e) {
 
-            Exceptions::logException($log, $e);
+            Exceptions::logException($log, $e, true);
             throw $e;
-
-        } finally {
-            $log->debug(PHP_EOL); // add the delimiter between each database being prepared
         }
     }
 

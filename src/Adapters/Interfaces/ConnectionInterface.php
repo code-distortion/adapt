@@ -20,7 +20,7 @@ interface ConnectionInterface
 
 
     /**
-     * Set the this builder's database connection as the default one.
+     * Set this builder's database connection as the default one.
      *
      * @return void
      */
@@ -29,8 +29,16 @@ interface ConnectionInterface
     /**
      * Tell the adapter to use the given database name.
      *
-     * @param string $database The name of the database to use.
+     * @param string  $database     The name of the database to use.
+     * @param boolean $applyLogging Enable or disable logging.
      * @return void
      */
-    public function useDatabase(string $database): void;
+    public function useDatabase(string $database, bool $applyLogging = true): void;
+
+    /**
+     * Get the database currently being used.
+     *
+     * @return string|null
+     */
+    public function getDatabase(): ?string;
 }

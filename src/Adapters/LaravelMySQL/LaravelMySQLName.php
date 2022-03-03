@@ -28,7 +28,7 @@ class LaravelMySQLName implements NameInterface
     public function generateScenarioDBName(string $dbNameHash): string
     {
         $dbNameHash = str_replace('-', '_', $dbNameHash);
-        $database = $this->config->databasePrefix . $this->origDBName() . '_' . $dbNameHash;
+        $database = $this->config->databasePrefix . $this->config->origDatabase . '_' . $dbNameHash;
         $this->validateDBName($database);
         return $database;
     }
@@ -42,7 +42,7 @@ class LaravelMySQLName implements NameInterface
      */
     public function generateSnapshotPath(string $snapshotHash): string
     {
-        $filename = $this->config->snapshotPrefix . $this->origDBName() . '.' . $snapshotHash . '.mysql';
+        $filename = $this->config->snapshotPrefix . $this->config->origDatabase . '.' . $snapshotHash . '.mysql';
         $filename = str_replace('_', '-', $filename);
         return $this->config->storageDir . '/' . $filename;
     }

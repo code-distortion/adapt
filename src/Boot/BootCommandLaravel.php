@@ -9,7 +9,6 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -74,7 +73,6 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
@@ -108,6 +106,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
+            ->origDatabase(config("database.connections.$connection.database"))
             ->database(config("database.connections.$connection.database"))
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')

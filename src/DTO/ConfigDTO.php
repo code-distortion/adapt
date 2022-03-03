@@ -36,6 +36,9 @@ class ConfigDTO
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public ?string $driver = null;
 
+    /** @var string|null The name of the database before being altered. */
+    public ?string $origDatabase = null;
+
     /** @var string|null The name of the database to use. */
     public ?string $database = null;
 
@@ -209,6 +212,18 @@ class ConfigDTO
     public function driver(string $driver): self
     {
         $this->driver = $driver;
+        return $this;
+    }
+
+    /**
+     * Set the name of the database before being altered.
+     *
+     * @param string|null $origDatabase The name of the original database.
+     * @return static
+     */
+    public function origDatabase(?string $origDatabase): self
+    {
+        $this->origDatabase = $origDatabase;
         return $this;
     }
 
@@ -643,5 +658,176 @@ class ConfigDTO
     public function buildPayload(): string
     {
         return json_encode(get_object_vars($this));
+    }
+
+
+
+
+
+
+
+    /**
+     * Check if initialisation is possible.
+     *
+     * @return boolean
+     */
+    public function shouldInitialise(): bool
+    {
+        return $this->connectionExists;
+    }
+
+    /**
+     * When building remotely & running browser tests, make sure the remote session.driver matches the local one.
+     *
+     * @return void
+     * @throws AdaptRemoteShareException When building remotely, is a browser test, and session.drivers don't match.
+     */
+    public function checkThatSessionDriversMatch(): void
+    {
+        if (!$this->isRemoteBuild) {
+            return;
+        }
+
+        if (!$this->isBrowserTest) {
+            return;
+        }
+
+        if ($this->sessionDriver == $this->remoteCallerSessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch(
+            $this->sessionDriver,
+            (string) $this->remoteCallerSessionDriver
+        );
+    }
+
+    /**
+     * Resolve whether reuseTestDBs is to be used.
+     *
+     * @return boolean
+     */
+    public function usingReuseTestDBs(): bool
+    {
+        return (($this->reuseTestDBs) && (!$this->isBrowserTest));
+    }
+
+    /**
+     * Resolve whether the database being created can be reused later.
+     *
+     * @return boolean
+     */
+    public function dbWillBeReusable(): bool
+    {
+        return $this->usingReuseTestDBs();
+    }
+
+    /**
+     * Resolve whether transactions are to be used.
+     *
+     * @return boolean
+     */
+    public function usingTransactions(): bool
+    {
+        if ($this->isRemoteBuild) {
+            return false;
+        }
+        if (!$this->connectionExists) {
+            return false;
+        }
+        return $this->usingReuseTestDBs();
+    }
+
+    /**
+     * Resolve whether scenarioTestDBs is to be used.
+     *
+     * @return boolean
+     */
+    public function usingScenarioTestDBs(): bool
+    {
+        return $this->scenarioTestDBs;
+    }
+
+    /**
+     * Check if the database should be built remotely (instead of locally).
+     *
+     * @return boolean
+     */
+    public function shouldBuildRemotely(): bool
+    {
+        return mb_strlen((string) $this->remoteBuildUrl) > 0;
+    }
+
+    /**
+     * Resolve whether seeding is allowed.
+     *
+     * @return boolean
+     */
+    public function seedingIsAllowed(): bool
+    {
+        return $this->migrations !== false;
+    }
+
+    /**
+     * Resolve whether snapshots are enabled or not.
+     *
+     * @return boolean
+     */
+    public function snapshotsAreEnabled(): bool
+    {
+        return !is_null($this->snapshotType());
+    }
+
+    /**
+     * Check which type of snapshots are bing used.
+     *
+     * @return string|null
+     */
+    public function snapshotType(): ?string
+    {
+        $snapshotType = $this->usingReuseTestDBs()
+            ? $this->useSnapshotsWhenReusingDB
+            : $this->useSnapshotsWhenNotReusingDB;
+
+        return in_array($snapshotType, ['afterMigrations', 'afterSeeders', 'both'], true)
+            ? $snapshotType
+            : null;
+    }
+
+    /**
+     * Derive if a snapshot should be taken after the migrations have been run.
+     *
+     * @return boolean
+     */
+    public function shouldTakeSnapshotAfterMigrations(): bool
+    {
+        if (!$this->snapshotsAreEnabled()) {
+            return false;
+        }
+
+        // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
+        return count($this->pickSeedersToInclude())
+            ? in_array($this->snapshotType(), ['afterMigrations', 'both'], true)
+            : in_array($this->snapshotType(), ['afterMigrations', 'afterSeeders', 'both'], true);
+    }
+
+    /**
+     * Derive if a snapshot should be taken after the seeders have been run.
+     *
+     * @return boolean
+     */
+    public function shouldTakeSnapshotAfterSeeders(): bool
+    {
+        if (!$this->snapshotsAreEnabled()) {
+            return false;
+        }
+
+        // if there are no seeders, the snapshot will be the same as after migrations
+        // so this situation is included in shouldTakeSnapshotAfterMigrations(..) above
+        if (!count($this->pickSeedersToInclude())) {
+            return false;
+        }
+
+        return in_array($this->snapshotType(), ['afterSeeders', 'both'], true);
     }
 }

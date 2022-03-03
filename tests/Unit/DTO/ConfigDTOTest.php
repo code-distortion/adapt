@@ -36,9 +36,13 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'method' => 'driver',
                 'params' => ['driver' => 'mysql'],
             ],
+            'origDatabase' => [
+                'method' => 'origDatabase',
+                'params' => ['origDatabase' => 'orig_database'],
+            ],
             'database' => [
                 'method' => 'database',
-                'params' => ['database' => 'my_database'],
+                'params' => ['database' => 'new_database'],
             ],
             'databaseModifier' => [
                 'method' => 'databaseModifier',

@@ -268,7 +268,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
     private function handleException(Throwable $e, ?LogInterface $log): Response
     {
         if ($log) {
-            Exceptions::logException($log, $e);
+            Exceptions::logException($log, $e, true);
         }
 
         $exceptionClass = Exceptions::resolveExceptionClass($e);

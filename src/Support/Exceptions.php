@@ -15,10 +15,11 @@ class Exceptions
     /**
      * Generate and log the exception message.
      *
-     * @param Throwable $e The exception to log.
+     * @param Throwable $e            The exception to log.
+     * @param boolean   $newLineAfter Add a new line afterwards?.
      * @return void
      */
-    public static function logException(LogInterface $log, Throwable $e): void
+    public static function logException(LogInterface $log, Throwable $e, bool $newLineAfter = false): void
     {
         if (is_a($e, AdaptRemoteBuildException::class)) {
             $lines = $e->generateLinesForLog();
@@ -28,7 +29,7 @@ class Exceptions
             $title = 'An Exception Occurred - ' . Exceptions::resolveExceptionClass($e);
         }
 
-        $log->logBox($lines, $title, 'error');
+        $log->logBox($lines, $title, 'error', $newLineAfter);
     }
 
     /**

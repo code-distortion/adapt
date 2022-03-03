@@ -28,10 +28,10 @@ class LaravelSQLiteName implements NameInterface
     public function generateScenarioDBName(string $dbNameHash): string
     {
         if ($this->isMemoryDatabase()) {
-            return $this->origDBName(); // ":memory:"
+            return $this->config->origDatabase; // ":memory:"
         }
         $dbNameHash = str_replace('_', '-', $dbNameHash);
-        $filename = $this->pickBaseFilename($this->origDBName());
+        $filename = $this->pickBaseFilename($this->config->origDatabase);
         $filename = $this->config->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
         return $this->config->storageDir . '/' . $filename;
     }
@@ -45,7 +45,7 @@ class LaravelSQLiteName implements NameInterface
      */
     public function generateSnapshotPath(string $snapshotHash): string
     {
-        $filename = $this->pickBaseFilename($this->origDBName());
+        $filename = $this->pickBaseFilename($this->config->origDatabase);
         $filename = $this->config->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';
         $filename = str_replace('_', '-', $filename);
         return $this->config->storageDir . '/' . $filename;

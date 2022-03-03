@@ -8,7 +8,6 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -62,7 +61,6 @@ trait DatabaseBuilderTestTrait
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
@@ -94,6 +92,7 @@ trait DatabaseBuilderTestTrait
             ->testName('A test')
             ->connection($connection)
             ->connectionExists(true)
+            ->origDatabase('database')
 //            ->database('test_db')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')

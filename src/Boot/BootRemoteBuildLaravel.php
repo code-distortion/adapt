@@ -8,7 +8,6 @@ use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
@@ -73,7 +72,6 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(fn() => null)
             ->log($this->log)
@@ -96,6 +94,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->testName($remoteConfig->testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
+            ->origDatabase(config("database.connections.$connection.database"))
             ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfig->databaseModifier)
             ->storageDir($this->storageDir())

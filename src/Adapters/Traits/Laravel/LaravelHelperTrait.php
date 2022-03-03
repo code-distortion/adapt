@@ -18,14 +18,4 @@ trait LaravelHelperTrait
     {
         return config("database.connections.{$this->config->connection}.$var", $default);
     }
-
-    /**
-     * Retrieve the current connection's database's original name.
-     *
-     * @return string
-     */
-    protected function origDBName(): string
-    {
-        return $this->di->config->origDBName($this->config->connection);
-    }
 }
