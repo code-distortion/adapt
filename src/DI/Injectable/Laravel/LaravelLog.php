@@ -101,19 +101,6 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Return the duration of a timer.
-     *
-     * @param integer|null $timerRef The timer to get the time taken from.
-     * @return float|null
-     */
-    public function getDuration(int $timerRef = null): ?float
-    {
-        return isset($this->timers[$timerRef])
-            ? microtime(true) - $this->timers[$timerRef]
-            : null;
-    }
-
-    /**
      * Take the time and render it as a string.
      *
      * @param integer|null $timerRef The timer to get the time taken from.
@@ -122,7 +109,29 @@ class LaravelLog implements LogInterface
     private function formatTime(int $timerRef = null): string
     {
         $timeTaken = $this->getDuration($timerRef);
-        return (!is_null($timeTaken) ? ' (' . round($timeTaken * 1000) . 'ms)' : '');
+        return !is_null($timeTaken) ? " ($timeTaken)" : '';
+    }
+
+    /**
+     * Return the duration of a timer.
+     *
+     * @param integer|null $timerRef The timer to get the time taken from.
+     * @return string|null
+     */
+    private function getDuration(int $timerRef = null): ?string
+    {
+        if (!isset($this->timers[$timerRef])) {
+            return null;
+        }
+
+        $duration = microtime(true) - $this->timers[$timerRef];
+
+        if ($duration >= 60) {
+            return round($duration / 60, 2) . 'm';
+        } elseif ($duration >= 1) {
+            return round($duration, 2) . 's';
+        }
+        return round($duration * 1000) . 'ms';
     }
 
     /**
@@ -161,7 +170,7 @@ class LaravelLog implements LogInterface
      * Add the array keys to the values, padded based on the length of the longest key.
      *
      * @param array<string, string> $lines The lines to process.
-     * @return void
+     * @return string[]
      */
     public function padList(array $lines): array
     {

@@ -44,14 +44,6 @@ interface LogInterface
      */
     public function newTimer(): int;
 
-    /**
-     * Return the duration of a timer.
-     *
-     * @param integer|null $timerRef The timer to get the time taken from.
-     * @return float|null
-     */
-    public function getDuration(int $timerRef = null): ?float;
-
 
 
     /**
