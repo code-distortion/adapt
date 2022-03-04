@@ -143,13 +143,9 @@ abstract class BootTestAbstract implements BootTestInterface
     {
         $this->isAllowedToRun();
 
-        if (Settings::$isFirstTest) {
-            Settings::$isFirstTest = false;
-            $this->purgeStaleThings();
-        }
-
 //        $this->resolveDI();
         $this->initBuilders();
+        $this->purgeStaleThings();
         $this->executeBuilders();
 
         $this->registerConnectionDBs();
@@ -219,6 +215,22 @@ abstract class BootTestAbstract implements BootTestInterface
             }
         }
         return $builders;
+    }
+
+    /**
+     * Check to see if any builders will build locally.
+     *
+     * @return boolean
+     */
+    private function hasBuildersThatWillBuildLocally(): bool
+    {
+        $builders = $this->pickBuildersToExecute();
+        foreach ($builders as $builder) {
+            if (!$builder->shouldBuildRemotely()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -297,11 +309,30 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract public function postTestCleanUp(): void;
 
     /**
+     * Handle the process to remove stale databases, snapshots and orphaned config files.
+     *
+     * @return void
+     */
+    private function purgeStaleThings(): void
+    {
+        if (!Settings::$isFirstTest) {
+            return;
+        }
+        Settings::$isFirstTest = false;
+
+        if (!$this->hasBuildersThatWillBuildLocally()) {
+            return;
+        }
+
+        $this->performPurgeStaleThings();
+    }
+
+    /**
      * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    abstract public function purgeStaleThings(): void;
+    abstract protected function performPurgeStaleThings(): void;
 
     /**
      * Work out if stale things are allowed to be purged.

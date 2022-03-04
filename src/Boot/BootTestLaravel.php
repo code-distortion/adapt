@@ -46,7 +46,7 @@ class BootTestLaravel extends BootTestAbstract
      * @return void
      * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
      */
-    public function isAllowedToRun(): void
+    protected function isAllowedToRun(): void
     {
         $this->ensureEnvTestingFileExists();
         $this->ensureReCreateDatabasesIsntSet();
@@ -403,7 +403,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @return void
      */
-    public function purgeStaleThings(): void
+    public function performPurgeStaleThings(): void
     {
         if (!$this->canPurgeStaleThings()) {
             return;
@@ -421,7 +421,7 @@ class BootTestLaravel extends BootTestAbstract
         $removedCount += $this->removeOrphanedTempConfigFiles();
 
         $message = $removedCount
-            ? 'Time taken'
+            ? 'Time taken for removal'
             : 'Nothing found to remove';
         $this->log->debug($message, $logTimer, true);
 

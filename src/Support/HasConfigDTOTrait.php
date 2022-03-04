@@ -312,4 +312,16 @@ trait HasConfigDTOTrait
     {
         return $this->config->database;
     }
+
+
+
+    /**
+     * Check if this builder will build remotely.
+     *
+     * @return boolean
+     */
+    public function shouldBuildRemotely(): bool
+    {
+        return $this->config->shouldBuildRemotely();
+    }
 }

@@ -79,14 +79,6 @@ interface BootTestInterface
     public function run(): void;
 
     /**
-     * Check that it's safe to run.
-     *
-     * @return void
-     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
-     */
-    public function isAllowedToRun(): void;
-
-    /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.
      *
      * Create a new DatabaseBuilder object, and add it to the list to execute later.
@@ -129,11 +121,4 @@ interface BootTestInterface
      * @return void
      */
     public function postTestCleanUp(): void;
-
-    /**
-     * Remove stale databases, snapshots and orphaned config files.
-     *
-     * @return void
-     */
-    public function purgeStaleThings(): void;
 }
