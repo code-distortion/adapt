@@ -191,10 +191,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         } catch (Throwable $e) {
             return $this->handleException($e, $log);
-        } finally {
-            if ($log) {
-                $log->debug(PHP_EOL); // add the delimiter between each database being prepared
-            }
         }
     }
 

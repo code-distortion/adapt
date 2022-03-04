@@ -19,6 +19,7 @@ class LaravelEnv
      * @param string   $envPath   The .env file to load.
      * @param string[] $overrides Values to override.
      * @return void
+     * @throws AdaptConfigException When the .env file can't be read.
      */
     public static function reloadEnv(string $envPath, array $overrides = []): void
     {

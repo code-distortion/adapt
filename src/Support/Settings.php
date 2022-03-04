@@ -96,8 +96,10 @@ class Settings
      * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
      * @return void
      */
-    public static function storeResolvedSettingsDTO(string $currentScenarioHash, ResolvedSettingsDTO $resolvedSettingsDTO): void
-    {
+    public static function storeResolvedSettingsDTO(
+        string $currentScenarioHash,
+        ResolvedSettingsDTO $resolvedSettingsDTO
+    ): void {
         Settings::$resolvedSettingsDTOs[$currentScenarioHash] = $resolvedSettingsDTO;
     }
 }

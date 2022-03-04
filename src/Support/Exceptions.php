@@ -15,8 +15,9 @@ class Exceptions
     /**
      * Generate and log the exception message.
      *
-     * @param Throwable $e            The exception to log.
-     * @param boolean   $newLineAfter Add a new line afterwards?.
+     * @param LogInterface $log          The log object to log with.
+     * @param Throwable    $e            The exception to log.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return void
      */
     public static function logException(LogInterface $log, Throwable $e, bool $newLineAfter = false): void

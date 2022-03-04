@@ -78,6 +78,7 @@ class PreBootTestLaravel
      * Prepare and boot Adapt.
      *
      * @return void
+     * @throws Throwable When something goes wrong.
      */
     public function adaptSetUp(): void
     {

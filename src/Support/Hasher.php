@@ -42,6 +42,7 @@ class Hasher
     /**
      * Allow the pre-calculated build-hash to be passed in (if it has in fact been pre-calculated).
      *
+     * @param string|null $buildHash The pre-calculated build-hash (or null).
      * @return void
      */
     public static function buildHashWasPreCalculated(?string $buildHash): void
@@ -59,6 +60,7 @@ class Hasher
      *
      * @param string $remoteBuildUrl The remote-build url.
      * @param string $buildHash      The build-hash that the remote Adapt installation calculated.
+     * @return void
      */
     public static function rememberRemoteBuildHash(string $remoteBuildUrl, string $buildHash): void
     {
@@ -123,7 +125,10 @@ class Hasher
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
-        $this->di->log->debug('Generated the build-hash - of the files that can be used to build the database', $logTimer);
+        $this->di->log->debug(
+            'Generated the build-hash - of the files that can be used to build the database',
+            $logTimer
+        );
 
         return $buildHash;
     }
@@ -132,7 +137,6 @@ class Hasher
      * Generate a combined and sorted list of the "build" files.
      *
      * @return array
-     * @throws AdaptConfigException
      */
     private function buildListOfBuildFiles(): array
     {

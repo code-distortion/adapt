@@ -20,6 +20,8 @@ class AdaptRemoteShareException extends AdaptException
     /**
      * Thrown when the local and remote Adapt installations use different session drivers.
      *
+     * @param string $localSessionDriver  The local session-driver.
+     * @param string $callerSessionDriver The caller's session-driver.
      * @return self
      */
     public static function sessionDriverMismatch(string $localSessionDriver, string $callerSessionDriver): self

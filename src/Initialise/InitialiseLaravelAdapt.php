@@ -31,7 +31,7 @@ trait InitialiseLaravelAdapt
     /**
      * Helper method to make it easier to initialise Adapt.
      *
-     * @param LaravelTestCase $test
+     * @param LaravelTestCase $test The current test.
      * @return void
      */
     public static function initialiseAdaptIfNeeded(LaravelTestCase $test): void

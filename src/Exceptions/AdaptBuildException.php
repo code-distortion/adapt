@@ -46,7 +46,11 @@ class AdaptBuildException extends AdaptException
      */
     public static function migrationsFailed(Throwable $originalException): self
     {
-        return new self("An error occurred when running the migrations: \"{$originalException->getMessage()}\"", 0, $originalException);
+        return new self(
+            "An error occurred when running the migrations: \"{$originalException->getMessage()}\"",
+            0,
+            $originalException
+        );
     }
 
     /**
@@ -74,6 +78,7 @@ class AdaptBuildException extends AdaptException
     /**
      * The database being used isn't compatible with browser testing.
      *
+     * @param string $driver The driver being used.
      * @return static
      */
     public static function databaseNotCompatibleWithBrowserTests(string $driver): self

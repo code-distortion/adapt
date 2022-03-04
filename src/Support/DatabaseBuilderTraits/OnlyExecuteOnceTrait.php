@@ -34,5 +34,4 @@ trait OnlyExecuteOnceTrait
     {
         return $this->executed;
     }
-
 }

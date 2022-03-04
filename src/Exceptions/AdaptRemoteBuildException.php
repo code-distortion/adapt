@@ -79,7 +79,7 @@ class AdaptRemoteBuildException extends AdaptException
 
         $message =
             "The remote database for connection \"$connection\" could not be built $loggingExtra"
-            ."- $renderedResponseMessage";
+            . "- $renderedResponseMessage";
 
         $exception = new self($message, 0, $originalException);
         $exception->remoteBuildUrl = $remoteBuildUrl;

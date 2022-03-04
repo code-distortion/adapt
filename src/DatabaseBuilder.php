@@ -122,7 +122,6 @@ class DatabaseBuilder
      * Pre-generate the build-hash, so the "Generated the build-hash" log line appears before the rest of the logs.
      *
      * @return void
-     * @throws AdaptConfigException
      */
     private function primeTheBuildHash(): void
     {
@@ -178,7 +177,6 @@ class DatabaseBuilder
      * If the database has been resolved before (within the same test-run).
      *
      * @return boolean|null
-     * @throws Throwable
      */
     private function reuseLocallyIfPossible(): ?bool
     {
@@ -195,6 +193,7 @@ class DatabaseBuilder
      * Check if the current database can be re-used.
      *
      * @return boolean|null
+     * @throws Throwable When something goes wrong.
      */
     private function checkLocallyIfCanReuseDB(): ?bool
     {
@@ -245,6 +244,7 @@ class DatabaseBuilder
      * Reuse the datbase.
      *
      * @return void
+     * @throws Throwable When something goes wrong.
      */
     private function locallyReuseDB(): void
     {
@@ -362,6 +362,9 @@ class DatabaseBuilder
     /**
      * Check if the current database can be re-used.
      *
+     * @param string $buildHash    The current build-hash.
+     * @param string $scenarioHash The current scenario-hash.
+     * @param string $database     The current database to check.
      * @return boolean
      */
     private function canReuseDB(
@@ -389,7 +392,8 @@ class DatabaseBuilder
     /**
      * Create the re-use meta-data table.
      *
-     * @param boolean $reusable Whether this database can be reused or not.
+     * @param string  $scenarioHash The current scenario hash.
+     * @param boolean $reusable     Whether this database can be reused or not.
      * @return void
      */
     private function writeReuseMetaData(string $scenarioHash, bool $reusable)
@@ -454,8 +458,11 @@ class DatabaseBuilder
         // the db may have been reset above in buildDBFresh(),
         // if it wasn't, do it now to make sure it exists and is empty
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+
             $this->dbAdapter()->build->resetDB();
-            $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false); // put the meta-table there straight away
+
+            // put the meta-table there straight away
+            $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false);
         }
 
         $this->importPreMigrationImports();
@@ -655,7 +662,7 @@ class DatabaseBuilder
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
      * @param integer $logTimer     The timer, started a little earlier.
      * @return void
-     * @throws AdaptBuildException When the database type isn't allowed to be built remotely.
+     * @throws AdaptRemoteBuildException When the database type isn't allowed to be built remotely.
      */
     private function buildDBRemotely(bool $forceRebuild, int $logTimer): void
     {
@@ -725,7 +732,8 @@ class DatabaseBuilder
     /**
      * Build a ConfigDTO ready to send in the remote-build request.
      *
-     * @param string $remoteBuildUrl The remote-build url
+     * @param string  $remoteBuildUrl The remote-build url.
+     * @param boolean $forceRebuild   Force the database to be rebuilt.
      * @return ConfigDTO
      */
     private function prepareConfigForRemoteRequest(string $remoteBuildUrl, bool $forceRebuild): ConfigDTO

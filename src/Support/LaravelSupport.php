@@ -47,7 +47,7 @@ class LaravelSupport
      * Override the connection's existing databases.
      *
      * @param array<string,string> $connectionDatabases The connections' databases.
-     * @retun void
+     * @return void
      */
     public static function useConnectionDatabases(array $connectionDatabases): void
     {

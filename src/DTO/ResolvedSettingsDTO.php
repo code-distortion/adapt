@@ -5,6 +5,9 @@ namespace CodeDistortion\Adapt\DTO;
 use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 
+/**
+ * A DTO to record the various inputs and settings used by Adapt when building a database.
+ */
 class ResolvedSettingsDTO
 {
     use DTOBuildTrait;
