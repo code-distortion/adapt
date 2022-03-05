@@ -136,7 +136,7 @@ class ConfigDTO
      */
     public function __construct()
     {
-        $this->version(Settings::CONFIG_DTO_VERSION);
+        $this->dtoVersion(Settings::CONFIG_DTO_VERSION);
     }
 
 
@@ -144,12 +144,12 @@ class ConfigDTO
     /**
      * Set the ConfigDTO version.
      *
-     * @param integer $version The ConfigDTO version.
+     * @param integer $dtoVersion The ConfigDTO version.
      * @return static
      */
-    public function version(int $version): self
+    public function dtoVersion(int $dtoVersion): self
     {
-        $this->dtoVersion = $version;
+        $this->dtoVersion = $dtoVersion;
         return $this;
     }
 
@@ -624,49 +624,6 @@ class ConfigDTO
 
 
     /**
-     * Build a new ConfigDTO from the data given in a request to build the database remotely.
-     *
-     * @param string $payload The raw ConfigDTO data from the request.
-     * @return self|null
-     * @throws AdaptRemoteShareException When the version doesn't match.
-     */
-    public static function buildFromPayload(string $payload): ?self
-    {
-        if (!mb_strlen($payload)) {
-            return null;
-        }
-
-        $values = json_decode($payload, true);
-        if (!is_array($values)) {
-            throw AdaptRemoteShareException::couldNotReadConfigDTO();
-        }
-
-        $configDTO = static::buildFromArray($values);
-
-        if ($configDTO->dtoVersion != Settings::CONFIG_DTO_VERSION) {
-            throw AdaptRemoteShareException::versionMismatch();
-        }
-
-        return $configDTO;
-    }
-
-    /**
-     * Build the value to send in requests.
-     *
-     * @return string
-     */
-    public function buildPayload(): string
-    {
-        return json_encode(get_object_vars($this));
-    }
-
-
-
-
-
-
-
-    /**
      * Check if initialisation is possible.
      *
      * @return boolean
@@ -805,6 +762,10 @@ class ConfigDTO
             return false;
         }
 
+        if ($this->migrations === false) {
+            return false;
+        }
+
         // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
         return count($this->pickSeedersToInclude())
             ? in_array($this->snapshotType(), ['afterMigrations', 'both'], true)
@@ -822,6 +783,10 @@ class ConfigDTO
             return false;
         }
 
+        if ($this->migrations === false) {
+            return false;
+        }
+
         // if there are no seeders, the snapshot will be the same as after migrations
         // so this situation is included in shouldTakeSnapshotAfterMigrations(..) above
         if (!count($this->pickSeedersToInclude())) {
@@ -829,5 +794,46 @@ class ConfigDTO
         }
 
         return in_array($this->snapshotType(), ['afterSeeders', 'both'], true);
+    }
+
+
+
+
+
+    /**
+     * Build a new ConfigDTO from the data given in a request to build the database remotely.
+     *
+     * @param string $payload The raw ConfigDTO data from the request.
+     * @return self|null
+     * @throws AdaptRemoteShareException When the version doesn't match.
+     */
+    public static function buildFromPayload(string $payload): ?self
+    {
+        if (!mb_strlen($payload)) {
+            return null;
+        }
+
+        $values = json_decode($payload, true);
+        if (!is_array($values)) {
+            throw AdaptRemoteShareException::couldNotReadConfigDTO();
+        }
+
+        $configDTO = static::buildFromArray($values);
+
+        if ($configDTO->dtoVersion != Settings::CONFIG_DTO_VERSION) {
+            throw AdaptRemoteShareException::versionMismatch();
+        }
+
+        return $configDTO;
+    }
+
+    /**
+     * Build the value to send in requests.
+     *
+     * @return string
+     */
+    public function buildPayload(): string
+    {
+        return json_encode(get_object_vars($this));
     }
 }

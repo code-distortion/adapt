@@ -25,8 +25,8 @@ class ResolvedSettingsDTO
     /** @var string The database connection used. */
     public string $connection;
 
-    /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
-    public ?string $driver;
+    /** @var string The database driver to use when building the database ("mysql", "sqlite" etc). */
+    public string $driver;
 
     /** @var string|null The database host (if relevant). */
     public ?string $host;
@@ -66,7 +66,7 @@ class ResolvedSettingsDTO
     /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public array $seeders;
 
-    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
+    /** @var boolean When turned on, databases are created for each scenario (based on migrations and seeders etc). */
     public bool $usingScenarios;
 
     /** @var string|null The calculated build-hash. */
@@ -165,6 +165,40 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Specify the url to send "build" requests to.
+     *
+     * @param boolean     $builtRemotely  Whether the database was built remotely or not.
+     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @return static
+     */
+    public function builtRemotely(bool $builtRemotely, ?string $remoteBuildUrl = null): self
+    {
+        $this->builtRemotely = $builtRemotely;
+        $this->remoteBuildUrl = $builtRemotely ? $remoteBuildUrl : null;
+        return $this;
+    }
+
+    /**
+     * Set the type of snapshots being used.
+     *
+     * @param string|null $resolvedSnapshotType   The type of snapshots being used, depending on whether the database is
+     *                                            reused or not.
+     * @param string|null $reuseDBSnapshotType    The type of snapshots being used, when reusing the database.
+     * @param string|null $notReuseDBSnapshotType The type of snapshots being used, when NOT reusing the database.
+     * @return static
+     */
+    public function snapshotType(
+        ?string $resolvedSnapshotType,
+        ?string $reuseDBSnapshotType,
+        ?string $notReuseDBSnapshotType
+    ): self {
+        $this->resolvedSnapshotType = $resolvedSnapshotType;
+        $this->reuseDBSnapshotType = $reuseDBSnapshotType;
+        $this->notReuseDBSnapshotType = $notReuseDBSnapshotType;
+        return $this;
+    }
+
+    /**
      * Set the directory to store database snapshots in.
      *
      * @param string $storageDir The storage directory to use.
@@ -215,36 +249,25 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Specify the url to send "build" requests to.
+     * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean     $builtRemotely  Whether the database was built remotely or not.
-     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
+     * @param string|null $buildHash      The calculated build-hash.
+     * @param string|null $snapshotHash   The calculated snapshot-hash.
+     * @param string|null $scenarioHash   The calculated scenario-hash.
      * @return static
      */
-    public function builtRemotely(bool $builtRemotely, ?string $remoteBuildUrl = null): self
-    {
-        $this->builtRemotely = $builtRemotely;
-        $this->remoteBuildUrl = $remoteBuildUrl;
-        return $this;
-    }
-
-    /**
-     * Set the type of snapshots being used.
-     *
-     * @param string|null $resolvedSnapshotType  The type of snapshots being used, depending on whether the database is
-     *                                           reused or not.
-     * @param string|null $reuseSnapshotType     The type of snapshots being used, when reusing the database.
-     * @param string|null $dontReuseSnapshotType The type of snapshots being used, when NOT reusing the database.
-     * @return static
-     */
-    public function snapshotType(
-        ?string $resolvedSnapshotType,
-        ?string $reuseSnapshotType,
-        ?string $dontReuseSnapshotType
+    public function scenarioTestDBs(
+        bool $usingScenarios,
+        ?string $buildHash,
+        ?string $snapshotHash,
+        ?string $scenarioHash
     ): self {
-        $this->resolvedSnapshotType = $resolvedSnapshotType;
-        $this->reuseDBSnapshotType = $reuseSnapshotType;
-        $this->notReuseDBSnapshotType = $dontReuseSnapshotType;
+
+        $this->usingScenarios = $usingScenarios;
+        $this->buildHash = $this->usingScenarios ? $buildHash : null;
+        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
+        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
         return $this;
     }
 
@@ -293,29 +316,6 @@ class ResolvedSettingsDTO
     public function forceRebuild(bool $forceRebuild): self
     {
         $this->forceRebuild = $forceRebuild;
-        return $this;
-    }
-
-    /**
-     * Turn the scenario-test-dbs setting on (or off).
-     *
-     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
-     * @param string|null $buildHash      The calculated build-hash.
-     * @param string|null $snapshotHash   The calculated snapshot-hash.
-     * @param string|null $scenarioHash   The calculated scenario-hash.
-     * @return static
-     */
-    public function scenarioTestDBs(
-        bool $usingScenarios,
-        ?string $buildHash,
-        ?string $snapshotHash,
-        ?string $scenarioHash
-    ): self {
-
-        $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $this->usingScenarios ? $buildHash : null;
-        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
-        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
         return $this;
     }
 
