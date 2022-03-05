@@ -36,8 +36,8 @@ class ConfigDTO
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public ?string $driver = null;
 
-    /** @var string|null The name of the database before being altered. */
-    public ?string $origDatabase = null;
+    /** @var string The name of the database before being altered. */
+    public string $origDatabase;
 
     /** @var string|null The name of the database to use. */
     public ?string $database = null;
@@ -218,10 +218,10 @@ class ConfigDTO
     /**
      * Set the name of the database before being altered.
      *
-     * @param string|null $origDatabase The name of the original database.
+     * @param string $origDatabase The name of the original database.
      * @return static
      */
-    public function origDatabase(?string $origDatabase): self
+    public function origDatabase(string $origDatabase): self
     {
         $this->origDatabase = $origDatabase;
         return $this;
@@ -834,6 +834,6 @@ class ConfigDTO
      */
     public function buildPayload(): string
     {
-        return json_encode(get_object_vars($this));
+        return (string) json_encode(get_object_vars($this));
     }
 }

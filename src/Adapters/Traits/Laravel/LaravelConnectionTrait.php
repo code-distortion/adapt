@@ -52,7 +52,7 @@ trait LaravelConnectionTrait
     protected function laravelGetCurrentDatabase(): ?string
     {
         $connection = $this->config->connection;
-
-        return config("database.connections.$connection.database");
+        $return = config("database.connections.$connection.database");
+        return is_string($return) ? $return : '';
     }
 }

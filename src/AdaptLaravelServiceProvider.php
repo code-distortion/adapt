@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -13,6 +14,7 @@ use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
@@ -212,19 +214,22 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @param Request      $request The request object.
      * @param LogInterface $log     The logger to use.
-     * @return Response
+     * @return ResponseFactory|Response
+     * @throws AdaptBootException When the ConfigDTO can't be built from its payload.
      */
-    private function executeBuilder(Request $request, LogInterface $log): Response
+    private function executeBuilder(Request $request, LogInterface $log)
     {
-        $builder = $this->makeBuilder(
-            $this->buildConfigDTO($request->input('configDTO')),
-            $log
-        );
+        $configDTO = $this->buildConfigDTO($request->input('configDTO'));
+        if (!$configDTO) {
+            throw AdaptBootException::couldNotReadRemoteConfiguration();
+        }
 
+        $builder = $this->makeBuilder($configDTO, $log);
         $builder->execute();
 
+        $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
         return response(
-            $builder->getResolvedSettingsDTO()->buildPayload()
+            $resolvedSettingsDTO ? $resolvedSettingsDTO->buildPayload() : null
         );
     }
 
@@ -232,9 +237,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * Build the ConfigDTO to use based on the payload passed by the caller.
      *
      * @param string $payload The raw ConfigDTO data from the request.
-     * @return ConfigDTO
+     * @return ConfigDTO|null
      */
-    private function buildConfigDTO(string $payload): ConfigDTO
+    private function buildConfigDTO(string $payload): ?ConfigDTO
     {
         return ConfigDTO::buildFromPayload($payload);
     }
@@ -259,9 +264,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @param Throwable         $e   The exception that occurred.
      * @param LogInterface|null $log The logger to use.
-     * @return Response
+     * @return ResponseFactory|Response
      */
-    private function handleException(Throwable $e, ?LogInterface $log): Response
+    private function handleException(Throwable $e, ?LogInterface $log)
     {
         if ($log) {
             Exceptions::logException($log, $e, true);

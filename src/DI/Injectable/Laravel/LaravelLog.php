@@ -204,6 +204,7 @@ class LaravelLog implements LogInterface
      */
     public function logBox($lines, ?string $title = null, string $level = 'debug', bool $newLineAfter = false): void
     {
+        $title = (string) $title;
         $lines = !is_array($lines) ? [$lines] : $lines;
 
         if (!count(array_filter($lines))) {

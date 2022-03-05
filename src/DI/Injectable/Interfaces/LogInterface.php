@@ -59,7 +59,7 @@ interface LogInterface
      * Add the array keys to the values, padded based on the length of the longest key.
      *
      * @param array<string, string> $lines The lines to process.
-     * @return void
+     * @return string[]
      */
     public function padList(array $lines): array;
 

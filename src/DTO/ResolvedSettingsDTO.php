@@ -351,7 +351,7 @@ class ResolvedSettingsDTO
      */
     public function buildPayload(): string
     {
-        return json_encode(get_object_vars($this));
+        return (string) json_encode(get_object_vars($this));
     }
 
 
@@ -444,7 +444,7 @@ class ResolvedSettingsDTO
      */
     private function escapeString(?string $value, ?string $default = null): ?string
     {
-        return mb_strlen($value)
+        return mb_strlen((string) $value)
             ? "\"$value\""
             : $default;
     }

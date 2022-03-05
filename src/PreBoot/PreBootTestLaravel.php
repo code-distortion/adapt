@@ -38,7 +38,7 @@ class PreBootTestLaravel
     /** @var callable The framework specific callback to set up the database transaction. */
     private $buildTransactionClosure;
 
-    /** @var callable The callback that uses databaseInit(), to let the Test customise the database build process. */
+    /** @var callable|null The callback that uses databaseInit(), to let the Test customise the database build process. */
     private $buildInitCallback;
 
     /** @var boolean Whether the current test is a browser test or not. */
@@ -153,6 +153,7 @@ class PreBootTestLaravel
         }
 
         $connection = $this->propBag->prop('defaultConnection');
+        $connection = is_string($connection) ? $connection : ''; // phpstan
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidDefaultConnection($connection);
         }
@@ -206,7 +207,7 @@ class PreBootTestLaravel
      *
      * Gives priority the ones specified as props, but higher than that it gives priority to ones that start with "!".
      *
-     * @return array
+     * @return array<string, string>
      */
     private function parseRemapDBStrings(): array
     {
@@ -224,7 +225,7 @@ class PreBootTestLaravel
      * @param string|null  $remapString  The string to use.
      * @param boolean|null $getImportant Return "important" or "unimportant" ones? null for any.
      * @param boolean      $isConfig     Is this string from a config setting? (otherwise it's a test-class prop).
-     * @return array
+     * @return array<string, string>
      * @throws AdaptConfigException Thrown when the string can't be interpreted.
      */
     private function parseRemapDBString(?string $remapString, ?bool $getImportant, bool $isConfig): array
@@ -247,8 +248,8 @@ class PreBootTestLaravel
                 $isImportant = (bool) $matches[1];
                 if ((is_null($getImportant)) || ($getImportant === $isImportant)) {
 
-                    $dest = $matches[2];
-                    $src = $matches[3];
+                    $dest = (string) $matches[2];
+                    $src = (string) $matches[3];
 
                     if (!config("database.connections.$dest")) {
                         throw AdaptConfigException::missingDestRemapConnection($dest, $isConfig);
@@ -305,7 +306,7 @@ class PreBootTestLaravel
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array
     {

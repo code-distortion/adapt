@@ -107,7 +107,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase(config("database.connections.$connection.database"))
-            ->database(config("database.connections.$connection.database"))
+//            ->database(config("database.connections.$connection.database"))
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
@@ -154,7 +154,9 @@ class BootCommandLaravel extends BootCommandAbstract
     private function storageDir(): string
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return rtrim(config("$c.storage_dir"), '\\/');
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
     }
 
     /**

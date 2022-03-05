@@ -52,11 +52,11 @@ class AdaptRemoteBuildException extends AdaptException
      * The request to build a database remotely failed.
      *
      * @param string                 $connection        The connection the database was being built for.
-     * @param string|null            $remoteBuildUrl    The url used to build a database remotely.
+     * @param string                 $remoteBuildUrl    The url used to build a database remotely.
      * @param ResponseInterface|null $response          The response to the build http request.
      * @param Throwable              $originalException The originally thrown exception.
      * @param boolean                $someLoggingIsOn   Whether some logging (stdout or laravel) is on or not.
-     * @return static
+     * @return self
      */
     public static function remoteBuildFailed(
         string $connection,
@@ -66,7 +66,7 @@ class AdaptRemoteBuildException extends AdaptException
         bool $someLoggingIsOn
     ): self {
 
-        $renderedResponseMessage = static::buildResponseMessage(
+        $renderedResponseMessage = self::buildResponseMessage(
             $remoteBuildUrl,
             $originalException,
             $response
@@ -108,7 +108,7 @@ class AdaptRemoteBuildException extends AdaptException
         ?ResponseInterface $response
     ): ?string {
 
-        $responseMessage = static::interpretRemoteMessage($response);
+        $responseMessage = self::interpretRemoteMessage($response);
 
         if ($originalException instanceof ConnectException) {
             return "Could not connect to $remoteBuildUrl";

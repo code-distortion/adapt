@@ -64,7 +64,7 @@ class Hasher
      */
     public static function rememberRemoteBuildHash(string $remoteBuildUrl, string $buildHash): void
     {
-        static::$remoteBuildHashes[$remoteBuildUrl] = $buildHash;
+        self::$remoteBuildHashes[$remoteBuildUrl] = $buildHash;
     }
 
     /**
@@ -75,7 +75,7 @@ class Hasher
      */
     public static function getRemoteBuildHash(string $remoteBuildUrl): ?string
     {
-        return static::$remoteBuildHashes[$remoteBuildUrl] ?? null;
+        return self::$remoteBuildHashes[$remoteBuildUrl] ?? null;
     }
 
 
@@ -136,7 +136,7 @@ class Hasher
     /**
      * Generate a combined and sorted list of the "build" files.
      *
-     * @return array
+     * @return string[]
      */
     private function buildListOfBuildFiles(): array
     {
@@ -253,7 +253,7 @@ class Hasher
      * Take the list of files and generate a hash for the contents of each.
      *
      * @param string[] $paths The files to hash.
-     * @return array<string, string>
+     * @return array<string, string|null>
      */
     private function hashFiles(array $paths): array
     {

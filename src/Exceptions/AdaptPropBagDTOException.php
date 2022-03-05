@@ -15,6 +15,6 @@ class AdaptPropBagDTOException extends AdaptException
      */
     public static function propertyDoesNotExist(string $name): self
     {
-        return new self('Property "' . $name . '" hasn\'t been added');
+        return new self("Property \"$name\" hasn't been added");
     }
 }

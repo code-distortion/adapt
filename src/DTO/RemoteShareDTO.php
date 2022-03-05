@@ -23,7 +23,7 @@ class RemoteShareDTO
     /** @var string|null The location of the temporary config file. */
     public ?string $tempConfigPath;
 
-    /** @var array The connections and the names of their prepared databases. */
+    /** @var array<string, string> The connections and the names of their prepared databases. */
     public array $connectionDBs;
 
 
@@ -115,6 +115,6 @@ class RemoteShareDTO
      */
     public function buildPayload(): string
     {
-        return base64_encode(json_encode(get_object_vars($this)));
+        return base64_encode((string) json_encode(get_object_vars($this)));
     }
 }

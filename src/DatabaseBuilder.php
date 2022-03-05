@@ -118,20 +118,20 @@ class DatabaseBuilder
 
 
 
-    /**
-     * Pre-generate the build-hash, so the "Generated the build-hash" log line appears before the rest of the logs.
-     *
-     * @return void
-     */
-    private function primeTheBuildHash(): void
-    {
-        $resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
-        if ($resolvedSettingsDTO) {
-            $this->hasher->buildHashWasPreCalculated($resolvedSettingsDTO->buildHash);
-        } elseif (!$this->config->shouldBuildRemotely()) {
-            $this->hasher->getBuildHash();
-        }
-    }
+//    /**
+//     * Pre-generate the build-hash, so the "Generated the build-hash" log line appears before the rest of the logs.
+//     *
+//     * @return void
+//     */
+//    private function primeTheBuildHash(): void
+//    {
+//        $resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
+//        if ($resolvedSettingsDTO) {
+//            $this->hasher->buildHashWasPreCalculated($resolvedSettingsDTO->buildHash);
+//        } elseif (!$this->config->shouldBuildRemotely()) {
+//            $this->hasher->getBuildHash();
+//        }
+//    }
 
     /**
      * Perform any checks that that need to happen before building a database.
@@ -209,15 +209,15 @@ class DatabaseBuilder
             }
 
             $origDatabase = $this->getCurrentDatabase();
-            $this->silentlyUseDatabase($resolvedSettingsDTO->database);
+            $this->silentlyUseDatabase((string) $resolvedSettingsDTO->database);
 
             $return = $this->canReuseDB(
-                $resolvedSettingsDTO->buildHash,
-                $resolvedSettingsDTO->scenarioHash,
-                $resolvedSettingsDTO->database,
+                (string) $resolvedSettingsDTO->buildHash,
+                (string) $resolvedSettingsDTO->scenarioHash,
+                (string) $resolvedSettingsDTO->database,
             );
 
-            $this->silentlyUseDatabase($origDatabase); // restore it back so it can be officially changed later
+            $this->silentlyUseDatabase((string) $origDatabase); // restore it back so it can be officially changed later
 
             return $return;
 
@@ -241,7 +241,7 @@ class DatabaseBuilder
     }
 
     /**
-     * Reuse the datbase.
+     * Reuse the database.
      *
      * @return void
      * @throws Throwable When something goes wrong.
@@ -257,9 +257,10 @@ class DatabaseBuilder
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
 
             $connection = $this->config->connection;
-            $database = $this->resolvedSettingsDTO->database;
+            $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
+            $buildHash = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildHash : null;
             $this->config->remoteBuildUrl = null; // stop the debug output from showing that it's being built remotely
-            $this->hasher->buildHashWasPreCalculated($this->resolvedSettingsDTO->buildHash);
+            $this->hasher->buildHashWasPreCalculated($buildHash);
 
             $this->logTitle();
 
@@ -319,7 +320,7 @@ class DatabaseBuilder
         $this->pickDriver();
 
         if (($this->config->isBrowserTest) && (!$this->dbAdapter()->build->isCompatibleWithBrowserTests())) {
-            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests($this->config->driver);
+            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests((string) $this->config->driver);
         }
     }
 
@@ -338,7 +339,7 @@ class DatabaseBuilder
             $canReuse = !$forceRebuild && $this->canReuseDB(
                 $this->hasher->getBuildHash(),
                 $this->hasher->currentScenarioHash(),
-                $this->config->database,
+                (string) $this->config->database,
             );
 
             if ($canReuse) {
@@ -667,7 +668,7 @@ class DatabaseBuilder
     private function buildDBRemotely(bool $forceRebuild, int $logTimer): void
     {
         if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
-            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely($this->config->driver);
+            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely((string) $this->config->driver);
         }
 
         if ($this->config->shouldInitialise()) {
@@ -682,7 +683,7 @@ class DatabaseBuilder
         Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioHash(), $this->resolvedSettingsDTO);
 
         $connection = $this->resolvedSettingsDTO->connection;
-        $database = $this->resolvedSettingsDTO->database;
+        $database = (string) $this->resolvedSettingsDTO->database;
 
         $this->config->dbWillBeReusable()
             ? $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer)
@@ -720,7 +721,7 @@ class DatabaseBuilder
             $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
             $resolvedSettingsDTO->builtRemotely(true, $url);
 
-            Hasher::rememberRemoteBuildHash($url, $resolvedSettingsDTO->buildHash);
+            Hasher::rememberRemoteBuildHash($url, (string) $resolvedSettingsDTO->buildHash);
 
             return $resolvedSettingsDTO;
 
@@ -932,34 +933,35 @@ class DatabaseBuilder
      */
     private function buildResolvedSettingsDTO(string $database): ResolvedSettingsDTO
     {
-        $canHash = $this->config->usingScenarioTestDBs() && !$this->config->shouldBuildRemotely();
+        $config = $this->config;
+        $canHash = $config->usingScenarioTestDBs() && !$config->shouldBuildRemotely();
 
         return (new ResolvedSettingsDTO())
-            ->projectName($this->config->projectName)
-            ->testName($this->config->testName)
-            ->connection($this->config->connection)
-            ->driver($this->config->driver)
+            ->projectName($config->projectName)
+            ->testName($config->testName)
+            ->connection($config->connection)
+            ->driver((string) $config->driver)
             ->host($this->di->db->getHost())
             ->database($database)
-            ->storageDir($this->config->storageDir)
-            ->preMigrationImports($this->config->pickPreMigrationImports())
-            ->migrations($this->config->migrations)
-            ->seeders($this->config->seedingIsAllowed(), $this->config->seeders)
+            ->storageDir($config->storageDir)
+            ->preMigrationImports($config->pickPreMigrationImports())
+            ->migrations($config->migrations)
+            ->seeders($config->seedingIsAllowed(), $config->seeders)
             ->builtRemotely(
-                $this->config->shouldBuildRemotely(),
-                $this->config->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
+                $config->shouldBuildRemotely(),
+                $config->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
             )
             ->snapshotType(
-                $this->config->snapshotType(),
-                $this->config->useSnapshotsWhenReusingDB,
-                $this->config->useSnapshotsWhenNotReusingDB,
+                $config->snapshotType(),
+                is_string($config->useSnapshotsWhenReusingDB) ? $config->useSnapshotsWhenReusingDB : null,
+                is_string($config->useSnapshotsWhenNotReusingDB) ? $config->useSnapshotsWhenNotReusingDB : null,
             )
-            ->isBrowserTest($this->config->isBrowserTest)
-            ->sessionDriver($this->config->sessionDriver)
-            ->databaseIsReusable($this->config->dbWillBeReusable())
-            ->forceRebuild($this->config->forceRebuild)
+            ->isBrowserTest($config->isBrowserTest)
+            ->sessionDriver($config->sessionDriver)
+            ->databaseIsReusable($config->dbWillBeReusable())
+            ->forceRebuild($config->forceRebuild)
             ->scenarioTestDBs(
-                $this->config->usingScenarioTestDBs(),
+                $config->usingScenarioTestDBs(),
                 $canHash ? $this->hasher->getBuildHash() : null,
                 $canHash ? $this->hasher->currentSnapshotHash() : null,
                 $canHash ? $this->hasher->currentScenarioHash() : null
@@ -969,9 +971,9 @@ class DatabaseBuilder
     /**
      * Get the ResolvedSettingsDTO representing the settings that were used.
      *
-     * @return ResolvedSettingsDTO
+     * @return ResolvedSettingsDTO|null
      */
-    public function getResolvedSettingsDTO(): ResolvedSettingsDTO
+    public function getResolvedSettingsDTO(): ?ResolvedSettingsDTO
     {
         return $this->resolvedSettingsDTO;
     }

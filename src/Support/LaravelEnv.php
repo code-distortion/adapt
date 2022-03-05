@@ -31,8 +31,8 @@ class LaravelEnv
         }
 
         class_exists(Env::class)
-            ? static::addValuesToNewEnvHelper($dotEnvValues)
-            : static::addValuesToOldEnvHelper($dotEnvValues);
+            ? self::addValuesToNewEnvHelper($dotEnvValues)
+            : self::addValuesToOldEnvHelper($dotEnvValues);
     }
 
     /**

@@ -98,8 +98,8 @@ class LaravelSupport
     /**
      * Get a value from Laravel's config, and make sure it's an array.
      *
-     * @param string $key     The config key to get.
-     * @param array  $default The default value.
+     * @param string  $key     The config key to get.
+     * @param mixed[] $default The default value.
      * @return mixed[]
      */
     public static function configArray(string $key, array $default = []): array
@@ -164,13 +164,13 @@ class LaravelSupport
     /**
      * Read the list of connections that have been prepared, and their corresponding databases from the framework.
      *
-     * @return array|null
+     * @return array<string, string>|null
      */
     public static function readPreparedConnectionDBsFromFramework(): ?array
     {
-        /** @var array|null $connectionDatabases */
         try {
-            return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+            $return = app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+            return is_array($return) || is_null($return) ? $return : null;
         } catch (BindingResolutionException $e) {
             return null;
         }

@@ -95,7 +95,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase(config("database.connections.$connection.database"))
-            ->database(config("database.connections.$connection.database"))
+//            ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfig->databaseModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
@@ -143,6 +143,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     private function storageDir(): string
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return rtrim(config("$c.storage_dir"), '\\/');
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
     }
 }

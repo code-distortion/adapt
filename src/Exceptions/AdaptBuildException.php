@@ -79,7 +79,7 @@ class AdaptBuildException extends AdaptException
      * The database being used isn't compatible with browser testing.
      *
      * @param string $driver The driver being used.
-     * @return static
+     * @return self
      */
     public static function databaseNotCompatibleWithBrowserTests(string $driver): self
     {

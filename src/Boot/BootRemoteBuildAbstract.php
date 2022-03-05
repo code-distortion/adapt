@@ -9,8 +9,8 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
  */
 abstract class BootRemoteBuildAbstract implements BootRemoteBuildInterface
 {
-    /** @var LogInterface|null The LogInterface to use. */
-    protected ?LogInterface $log = null;
+    /** @var LogInterface The LogInterface to use. */
+    protected LogInterface $log;
 
 
 

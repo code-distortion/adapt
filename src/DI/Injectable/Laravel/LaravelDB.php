@@ -45,7 +45,11 @@ class LaravelDB
      */
     public function getHost(): ?string
     {
-        $connection ??= $this->connection;
+        $connection = $this->connection ?? null;
+        if (!$connection) {
+            return null;
+        }
+
         return LaravelSupport::configString("database.connections.$connection.host");
     }
 
@@ -93,7 +97,9 @@ class LaravelDB
     public function currentDatabaseExists(): bool
     {
         try {
-            DB::connection($this->connection)->getPdo();
+            /** @var \Illuminate\Database\MySqlConnection $mysqlConnection */
+            $mysqlConnection = DB::connection($this->connection);
+            $mysqlConnection->getPdo();
             return true;
         } catch (Throwable $e) {
             return false;

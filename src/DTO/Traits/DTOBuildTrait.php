@@ -7,8 +7,8 @@ trait DTOBuildTrait
     /**
      * Build a new instance of this DTO, populated with certain values.
      *
-     * @param array $values The source values to read from.
-     * @return static
+     * @param array<string, mixed> $values The source values to read from.
+     * @return self
      */
     protected static function buildFromArray(array $values): self
     {

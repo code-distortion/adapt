@@ -92,7 +92,7 @@ interface BootTestInterface
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array;
 

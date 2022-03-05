@@ -28,7 +28,7 @@ class LaravelConfig
         $app = app();
         (new LoadConfiguration())->bootstrap($app);
 
-        static::updateLoggerEnvironment();
+        self::updateLoggerEnvironment();
     }
 
 
@@ -63,7 +63,7 @@ class LaravelConfig
             }
 
             if ($monolog instanceof MonologLogger) {
-                static::updatePrivateProperty($monolog, 'name', $app->environment());
+                self::updatePrivateProperty($monolog, 'name', $app->environment());
 //            } elseif ($monolog instanceof Logger) {
             }
 
@@ -98,7 +98,7 @@ class LaravelConfig
      * Re-evaluate a particular config file, based on the current env(..) values.
      *
      * @param string $configFile The config file to load.
-     * @return array
+     * @return mixed[]
      */
     public static function readConfigFile(string $configFile): array
     {

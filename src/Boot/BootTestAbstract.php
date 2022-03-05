@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
@@ -13,23 +14,23 @@ use CodeDistortion\Adapt\Support\Settings;
  */
 abstract class BootTestAbstract implements BootTestInterface
 {
-    /** @var LogInterface|null The LogInterface to use. */
-    protected ?LogInterface $log = null;
+    /** @var LogInterface The LogInterface to use. */
+    protected LogInterface $log;
 
-    /** @var string|null The name of the test being run. */
-    protected ?string $testName = null;
+    /** @var string The name of the test being run. */
+    protected string $testName;
 
-    /** @var PropBagDTO|null The properties that were present in the test-class. */
-    protected ?PropBagDTO $propBag = null;
+    /** @var PropBagDTO The properties that were present in the test-class. */
+    protected PropBagDTO $propBag;
 
     /** @var boolean Whether a browser test is being run. */
     protected bool $browserTestDetected = false;
 
-    /** @var callable|null The closure to call to start a db transaction. */
-    protected $transactionClosure = null;
+    /** @var callable The closure to call to start a db transaction. */
+    protected $transactionClosure;
 
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
-    private $initCallback = null;
+    private $initCallback;
 
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private array $builders = [];
@@ -152,25 +153,32 @@ abstract class BootTestAbstract implements BootTestInterface
     }
 
     /**
+     * Check that it's safe to run.
+     *
+     * @return void
+     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
+     */
+    abstract protected function isAllowedToRun(): void;
+
+    /**
      * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
      *
      * @return void
      */
     private function initBuilders(): void
     {
-        if (!$this->propBag) {
-            return;
-        }
         if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
             return;
         }
 
         $builder = $this->newDefaultBuilder();
 
-        if ($this->initCallback) {
-            $callback = $this->initCallback;
-            $callback($builder);
+        if (!$this->initCallback) {
+            return;
         }
+
+        $callback = $this->initCallback;
+        $callback($builder);
     }
 
     /**
@@ -256,7 +264,7 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array
     {

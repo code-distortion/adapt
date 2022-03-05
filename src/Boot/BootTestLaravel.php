@@ -112,10 +112,6 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function defaultDI(string $connection): DIContainer
     {
-        if (!$this->propBag) {
-            throw AdaptBootException::propBagNotSet();
-        }
-
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
@@ -160,7 +156,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function createBuilder(string $connection): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection, (string) $this->testName);
+        $config = $this->newConfigDTO($connection, $this->testName);
 
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
@@ -185,14 +181,9 @@ class BootTestLaravel extends BootTestAbstract
      * @param string $connection The connection to use.
      * @param string $testName   The current test's name.
      * @return ConfigDTO
-     * @throws AdaptBootException Thrown when a PropBag hasn't been set yet.
      */
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
-        if (!$this->propBag) {
-            throw AdaptBootException::propBagNotSet();
-        }
-
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
 
         return (new ConfigDTO())
@@ -200,8 +191,8 @@ class BootTestLaravel extends BootTestAbstract
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->origDatabase(config("database.connections.$connection.database"))
-            ->database(config("database.connections.$connection.database"))
+            ->origDatabase($this->propBag->config("database.connections.$connection.database"))
+//            ->database($this->propBag->adaptConfigString("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
@@ -250,9 +241,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function storageDir(): string
     {
-        return $this->propBag
-            ? rtrim($this->propBag->adaptConfig('storage_dir'), '\\/')
-            : '';
+        return rtrim($this->propBag->adaptConfig('storage_dir'), '\\/');
     }
 
     /**

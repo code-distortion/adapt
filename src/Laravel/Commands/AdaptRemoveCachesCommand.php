@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Application;
 use Throwable;
 
 /**
@@ -39,7 +40,9 @@ class AdaptRemoveCachesCommand extends Command
      */
     public function handle(): void
     {
-        if (!app()->environment('testing')) {
+        /** @var Application $app */
+        $app = app();
+        if (!$app->environment('testing')) {
             LaravelSupport::useTestingConfig();
         }
 

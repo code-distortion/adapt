@@ -306,9 +306,9 @@ trait HasConfigDTOTrait
     /**
      * Retrieve the database being used.
      *
-     * @return string
+     * @return string|null
      */
-    public function getDatabase(): string
+    public function getDatabase(): ?string
     {
         return $this->config->database;
     }

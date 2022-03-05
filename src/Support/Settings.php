@@ -25,11 +25,11 @@ class Settings
     /**
      * Included when preparing a database remotely between Adapt installations. Mismatches cause an exception.
      *
-     * @var string
+     * @var integer
      */
     public const CONFIG_DTO_VERSION = 2;
 
-    /** @var string Included in the remote-share payload between Adapt installations. Mismatches cause an exception. */
+    /** @var integer Included in the remote-share payload between Adapt installations. Mismatches cause an exception. */
     public const REMOTE_SHARE_DTO_VERSION = 2;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
