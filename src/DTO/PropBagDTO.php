@@ -33,7 +33,7 @@ abstract class PropBagDTO
      * @param string|null $name    The name of the property.
      * @param mixed       $default The default value to fall back to.
      * @return mixed
-     * @throws AdaptPropBagDTOException Thrown when the property hasn't been set.
+     * @throws AdaptPropBagDTOException When the property hasn't been set.
      */
     public function prop(?string $name, $default = null)
     {

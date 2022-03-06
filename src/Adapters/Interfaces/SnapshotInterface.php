@@ -14,10 +14,10 @@ interface SnapshotInterface
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config);
+    public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
     /**
@@ -40,7 +40,7 @@ interface SnapshotInterface
      * @param string  $path           The location of the snapshot file.
      * @param boolean $throwException Should an exception be thrown if the file doesn't exist?.
      * @return boolean
-     * @throws AdaptSnapshotException Thrown when the import fails.
+     * @throws AdaptSnapshotException When the import fails.
      */
     public function importSnapshot(string $path, bool $throwException = false): bool;
 
@@ -49,7 +49,7 @@ interface SnapshotInterface
      *
      * @param string $path The location of the snapshot file.
      * @return void
-     * @throws AdaptSnapshotException Thrown when the snapshot export fails.
+     * @throws AdaptSnapshotException When the snapshot export fails.
      */
     public function takeSnapshot(string $path): void;
 }

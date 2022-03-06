@@ -41,14 +41,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return DatabaseBuilder
      * @throws AdaptRemoteShareException When the session drivers don't match during browser tests.
      */
-    public function makeNewBuilder(ConfigDTO $remoteConfig): DatabaseBuilder
+    public function makeNewBuilder(ConfigDTO $remoteConfigDTO): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($remoteConfig);
-        $di = $this->defaultDI($remoteConfig->connection);
+        $configDTO = $this->newConfigDTO($remoteConfigDTO);
+        $di = $this->defaultDI($remoteConfigDTO->connection);
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
@@ -56,8 +56,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            new Hasher($di, $config),
+            $configDTO,
+            new Hasher($di, $configDTO),
             $pickDriverClosure
         );
     }
@@ -82,46 +82,48 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     /**
      * Create a new ConfigDTO object with default values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return ConfigDTO
      */
-    private function newConfigDTO(ConfigDTO $remoteConfig): configDTO
+    private function newConfigDTO(ConfigDTO $remoteConfigDTO): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        $connection = $remoteConfig->connection;
+        $connection = $remoteConfigDTO->connection;
         return (new ConfigDTO())
-            ->projectName($remoteConfig->projectName)
-            ->testName($remoteConfig->testName)
+            ->projectName($remoteConfigDTO->projectName)
+            ->testName($remoteConfigDTO->testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase(config("database.connections.$connection.database"))
 //            ->database(config("database.connections.$connection.database"))
-            ->databaseModifier($remoteConfig->databaseModifier)
+            ->databaseModifier($remoteConfigDTO->databaseModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($remoteConfig->checkForSourceChanges)
+            ->checkForSourceChanges($remoteConfigDTO->checkForSourceChanges)
             ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->preCalculatedBuildHash($remoteConfig->preCalculatedBuildHash)
+            ->preCalculatedBuildHash($remoteConfigDTO->preCalculatedBuildHash)
             ->buildSettings(
-                $remoteConfig->preMigrationImports,
-                $remoteConfig->migrations,
-                $remoteConfig->seeders,
+                $remoteConfigDTO->preMigrationImports,
+                $remoteConfigDTO->migrations,
+                $remoteConfigDTO->seeders,
                 null, // don't forward again
-                $remoteConfig->isBrowserTest,
+                $remoteConfigDTO->isBrowserTest,
                 true, // yes, a remote database is being built here now, locally
                 config("session.driver"),
-                $remoteConfig->sessionDriver,
+                $remoteConfigDTO->sessionDriver,
             )
             ->cacheTools(
-                $remoteConfig->reuseTestDBs,
-                $remoteConfig->scenarioTestDBs,
+                $remoteConfigDTO->reuseTransaction,
+                $remoteConfigDTO->reuseJournal,
+                $remoteConfigDTO->verifyDatabase,
+                $remoteConfigDTO->scenarioTestDBs,
             )
             ->snapshots(
-                $remoteConfig->useSnapshotsWhenReusingDB,
-                $remoteConfig->useSnapshotsWhenNotReusingDB,
+                $remoteConfigDTO->useSnapshotsWhenReusingDB,
+                $remoteConfigDTO->useSnapshotsWhenNotReusingDB,
             )
-            ->forceRebuild($remoteConfig->forceRebuild)
+            ->forceRebuild($remoteConfigDTO->forceRebuild)
             ->mysqlSettings(
                 config("$c.database.mysql.executables.mysql"),
                 config("$c.database.mysql.executables.mysqldump"),

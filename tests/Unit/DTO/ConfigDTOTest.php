@@ -194,6 +194,11 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['isRemoteBuild' => true],
             ],
 
+            'dbIsTransactionable' => [
+                'method' => 'dbIsTransactionable',
+                'params' => ['dbIsTransactionable' => true],
+            ],
+
             'sessionDriver' => [
                 'method' => 'sessionDriver',
                 'params' => ['sessionDriver' => 'database'],
@@ -212,36 +217,58 @@ class ConfigDTOTest extends PHPUnitTestCase
             'cacheTools 1' => [
                 'method' => 'cacheTools',
                 'params' => [
-                    'reuseTestDBs' => true,
+                    'reuseTransaction' => false,
+                    'reuseJournal' => true,
+                    'verifyDatabase' => false,
                     'scenarioTestDBs' => true,
                 ],
             ],
             'cacheTools 2' => [
                 'method' => 'cacheTools',
                 'params' => [
-                    'reuseTestDBs' => false,
+                    'reuseTransaction' => false,
+                    'reuseJournal' => false,
+                    'verifyDatabase' => true,
                     'scenarioTestDBs' => true,
                 ],
             ],
             'cacheTools 3' => [
                 'method' => 'cacheTools',
                 'params' => [
-                    'reuseTestDBs' => true,
+                    'reuseTransaction' => true,
+                    'reuseJournal' => true,
+                    'verifyDatabase' => false,
                     'scenarioTestDBs' => false,
                 ],
             ],
             'cacheTools 4' => [
                 'method' => 'cacheTools',
                 'params' => [
-                    'reuseTestDBs' => true,
-                    'scenarioTestDBs' => true,
+                    'reuseTransaction' => true,
+                    'reuseJournal' => false,
+                    'verifyDatabase' => true,
+                    'scenarioTestDBs' => false,
                 ],
             ],
 
-            'reuseTestDBs' => [
-                'method' => 'reuseTestDBs',
+            'reuseTransaction' => [
+                'method' => 'reuseTransaction',
                 'params' => [
-                    'reuseTestDBs' => true,
+                    'reuseTransaction' => true,
+                ],
+            ],
+
+            'reuseJournal' => [
+                'method' => 'reuseJournal',
+                'params' => [
+                    'reuseJournal' => true,
+                ],
+            ],
+
+            'verifyDatabase' => [
+                'method' => 'verifyDatabase',
+                'params' => [
+                    'verifyDatabase' => true,
                 ],
             ],
 
@@ -336,16 +363,16 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null): void
     {
-        $config = new ConfigDTO();
+        $configDTO = new ConfigDTO();
 
-        $callable = [$config, $method];
+        $callable = [$configDTO, $method];
         if (is_callable($callable)) {
             call_user_func_array($callable, $params);
         }
 
         $outcome ??= $params;
         foreach ($outcome as $name => $value) {
-            $this->assertSame($value, $config->$name);
+            $this->assertSame($value, $configDTO->$name);
         }
     }
 
@@ -360,13 +387,13 @@ class ConfigDTOTest extends PHPUnitTestCase
     public function test_pick_seeders_to_include_getter(): void
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
-        $config = (new ConfigDTO())->seeders($seeders);
+        $configDTO = (new ConfigDTO())->seeders($seeders);
 
-        $config->migrations(true);
-        $this->assertSame($seeders, $config->pickSeedersToInclude());
+        $configDTO->migrations(true);
+        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
 
-        $config->migrations(false);
-        $this->assertSame([], $config->pickSeedersToInclude());
+        $configDTO->migrations(false);
+        $this->assertSame([], $configDTO->pickSeedersToInclude());
     }
 
 
@@ -427,7 +454,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider pickPreMigrationDumpsDataProvider
-     * @param array<int, string|string[]> $preMigrationImports The pre-migration-imports value (same as what could be put in the config).
+     * @param array<int, string|string[]> $preMigrationImports The pre-migration-imports value (same as what could be
+     *                                                         put in the config).
      * @param string                      $driver              The driver to read from.
      * @param mixed                       $expected            The expected output.
      * @return void
@@ -459,7 +487,7 @@ class ConfigDTOTest extends PHPUnitTestCase
     /**
      * DataProvider for the test_check_that_session_drivers_match test.
      *
-     * @return array
+     * @return mixed[][]
      */
     public function sessionDriversDataProvider(): array
     {
@@ -511,7 +539,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean     $isBrowserTest             The isBrowserTest value.
      * @param string      $sessionDriver             The sessionDriver value.
      * @param string      $remoteCallerSessionDriver The remoteCallerSessionDriver value.
-     * @param string|null $expectException           The expected exception
+     * @param string|null $expectException           The expected exception.
      * @return void
      */
     public function test_check_that_session_drivers_match(
@@ -527,7 +555,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->isBrowserTest($isBrowserTest)
             ->sessionDriver($sessionDriver)
             ->remoteCallerSessionDriver($remoteCallerSessionDriver)
-            ->checkThatSessionDriversMatch();
+            ->ensureThatSessionDriversMatch();
 
         $this->assertException($expectException, $callback);
     }
@@ -535,72 +563,402 @@ class ConfigDTOTest extends PHPUnitTestCase
 
 
     /**
-     * Test ConfigDTO->usingReuseTestDBs().
+     * Provide data for the test_can_use_transactions test.
+     *
+     * @return mixed[][]
+     */
+    public function databaseCanUseTransactionsDataProvider(): array
+    {
+        return [
+            [
+                'reuseTransaction' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => true,
+            ],
+            [
+                'reuseTransaction' => true,
+                'connectionExists' => false, // off
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => true, // true
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => true,
+            ],
+            [
+                'reuseTransaction' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => true, // true
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => false, // false
+                'expectedCanUseTransactions' => false,
+            ],
+
+            [
+                'reuseTransaction' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => false,
+                'connectionExists' => false, // off
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => true, // true
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => true, // true
+                'dbIsTransactionable' => true,
+                'expectedCanUseTransactions' => false,
+            ],
+            [
+                'reuseTransaction' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsTransactionable' => false, // false
+                'expectedCanUseTransactions' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Test ConfigDTO->canUseTransactions().
      *
      * @test
+     * @dataProvider databaseCanUseTransactionsDataProvider
+     * @param boolean $reuseTransaction           The "reuse-transaction" setting.
+     * @param boolean $connectionExists           Whether the connection exists or not.
+     * @param boolean $isRemoteBuild              Is this process building a db for another Adapt installation?.
+     * @param boolean $isBrowserTest              Is this test a browser-test?.
+     * @param boolean $dbIsTransactionable        Whether the database is transactionable or not.
+     * @param boolean $expectedCanUseTransactions The expected canUseTransactions() result.
      * @return void
      */
-    public function test_using_reuse_test_dbs(): void
-    {
-        $this->assertTrue((new ConfigDTO())->reuseTestDBs(true)->isBrowserTest(false)->usingReuseTestDBs());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(true)->isBrowserTest(true)->usingReuseTestDBs());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(false)->isBrowserTest(false)->usingReuseTestDBs());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(false)->isBrowserTest(true)->usingReuseTestDBs());
+    public function test_can_use_transactions(
+        bool $reuseTransaction,
+        bool $connectionExists,
+        bool $isRemoteBuild,
+        bool $isBrowserTest,
+        bool $dbIsTransactionable,
+        bool $expectedCanUseTransactions
+    ): void {
+
+        $configDTO = (new ConfigDTO())
+            ->reuseTransaction($reuseTransaction)
+            ->reuseJournal(true)
+            ->connectionExists($connectionExists)
+            ->isRemoteBuild($isRemoteBuild)
+            ->isBrowserTest($isBrowserTest)
+            ->dbIsTransactionable($dbIsTransactionable)
+            ->dbIsJournalable(true);
+
+        $this->assertSame($expectedCanUseTransactions, $configDTO->canUseTransactions());
     }
 
 
 
     /**
-     * Test ConfigDTO->dbWillBeReusable().
+     * Provide data for the test_can_use_journaling test.
+     *
+     * @return mixed[][]
+     */
+    public function databaseCanUseJournalingDataProvider(): array
+    {
+        return [
+            [
+                'reuseJournal' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => true,
+            ],
+            [
+                'reuseJournal' => true,
+                'connectionExists' => false, // off
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => false,
+            ],
+            [
+                'reuseJournal' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => true, // true
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => true,
+            ],
+            [
+                'reuseJournal' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => true, // true
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => true, // journaling is allowed for browser tests
+            ],
+            [
+                'reuseJournal' => true,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => false, // false
+                'expectedCanUseJournaling' => false,
+            ],
+
+            [
+                'reuseJournal' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => false,
+            ],
+            [
+                'reuseJournal' => false,
+                'connectionExists' => false, // off
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => false,
+            ],
+            [
+                'reuseJournal' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => true, // true
+                'isBrowserTest' => false,
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => false,
+            ],
+            [
+                'reuseJournal' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => true, // true
+                'dbIsJournalable' => true,
+                'expectedCanUseJournaling' => false,
+            ],
+            [
+                'reuseJournal' => false,
+                'connectionExists' => true,
+                'isRemoteBuild' => false,
+                'isBrowserTest' => false,
+                'dbIsJournalable' => false, // false
+                'expectedCanUseJournaling' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Test ConfigDTO->canUseJournaling().
      *
      * @test
+     * @dataProvider databaseCanUseJournalingDataProvider
+     * @param boolean $reuseJournal             The "reuse-journal" setting.
+     * @param boolean $connectionExists         Whether the connection exists or not.
+     * @param boolean $isRemoteBuild            Is this process building a db for another Adapt installation?.
+     * @param boolean $isBrowserTest            Is this test a browser-test?.
+     * @param boolean $dbIsJournalable          Whether the database is journalable or not.
+     * @param boolean $expectedCanUseJournaling The expected canUseJournaling() result.
      * @return void
      */
-    public function test_db_will_be_reusable(): void
-    {
-        $this->assertTrue((new ConfigDTO())->reuseTestDBs(true)->isBrowserTest(false)->dbWillBeReusable());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(true)->isBrowserTest(true)->dbWillBeReusable());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(false)->isBrowserTest(false)->dbWillBeReusable());
-        $this->assertFalse((new ConfigDTO())->reuseTestDBs(false)->isBrowserTest(true)->dbWillBeReusable());
+    public function test_can_use_journaling(
+        bool $reuseJournal,
+        bool $connectionExists,
+        bool $isRemoteBuild,
+        bool $isBrowserTest,
+        bool $dbIsJournalable,
+        bool $expectedCanUseJournaling
+    ): void {
+
+        $configDTO = (new ConfigDTO())
+            ->reuseTransaction(true)
+            ->reuseJournal($reuseJournal)
+            ->connectionExists($connectionExists)
+            ->isRemoteBuild($isRemoteBuild)
+            ->isBrowserTest($isBrowserTest)
+            ->dbIsTransactionable(true)
+            ->dbIsJournalable($dbIsJournalable);
+
+        $this->assertSame($expectedCanUseJournaling, $configDTO->canUseJournaling());
     }
 
 
 
     /**
-     * Test ConfigDTO->usingTransactions().
+     * Provide data for the test_should_use_transactions_or_journaling test.
+     *
+     * @return mixed[][]
+     */
+    public function databaseShouldUseTransactionsOrJournalingDataProvider(): array
+    {
+        return [
+            [
+                'reuseTransaction' => true,
+                'reuseJournal' => true,
+                'expectedShouldUseTransactions' => true,
+                'expectedShouldUseJournaling' => false,
+                'expectedReusingDB' => true,
+            ],
+            [
+                'reuseTransaction' => true,
+                'reuseJournal' => false,
+                'expectedShouldUseTransactions' => true,
+                'expectedShouldUseJournaling' => false,
+                'expectedReusingDB' => true,
+            ],
+            [
+                'reuseTransaction' => false,
+                'reuseJournal' => true,
+                'expectedShouldUseTransactions' => false,
+                'expectedShouldUseJournaling' => true,
+                'expectedReusingDB' => true,
+            ],
+            [
+                'reuseTransaction' => false,
+                'reuseJournal' => false,
+                'expectedShouldUseTransactions' => false,
+                'expectedShouldUseJournaling' => false,
+                'expectedReusingDB' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Test ConfigDTO->shouldUseTransactions(), ConfigDTO->shouldUseJournaling() and ConfigDTO->reusingDB().
      *
      * @test
+     * @dataProvider databaseShouldUseTransactionsOrJournalingDataProvider
+     * @param boolean $reuseTransaction              The "reuse-transaction" setting.
+     * @param boolean $reuseJournal                  The "reuse-journal" setting.
+     * @param boolean $expectedShouldUseTransactions The expected canUseTransactions() result.
+     * @param boolean $expectedShouldUseJournaling   The expected canUseJournaling() result.
+     * @param boolean $expectedReusingDB             The expected reusingDB() result.
      * @return void
      */
-    public function test_using_transactions(): void
+    public function test_should_use_transactions_or_journaling(
+        bool $reuseTransaction,
+        bool $reuseJournal,
+        bool $expectedShouldUseTransactions,
+        bool $expectedShouldUseJournaling,
+        bool $expectedReusingDB
+    ): void {
+
+        $configDTO = (new ConfigDTO())
+            ->reuseTransaction($reuseTransaction)
+            ->reuseJournal($reuseJournal)
+            ->connectionExists(true)
+            ->isRemoteBuild(false)
+            ->isBrowserTest(false)
+            ->dbIsTransactionable(true)
+            ->dbIsJournalable(true);
+
+        $this->assertSame($expectedShouldUseTransactions, $configDTO->shouldUseTransaction());
+        $this->assertSame($expectedShouldUseJournaling, $configDTO->shouldUseJournal());
+        $this->assertSame($expectedReusingDB, $configDTO->reusingDB());
+    }
+
+
+
+    /**
+     * Provide data for the test_should_verify_database test.
+     *
+     * @return mixed[][]
+     */
+    public function databaseShouldVerifyDatabaseDataProvider(): array
     {
-        $this->assertFalse(
-            $this->newConfigReusableDB()
-                ->isRemoteBuild(false)
-                ->connectionExists(false)
-                ->usingTransactions()
-        );
+        return [
+            [
+                'verifyDatabase' => true,
+                'dbIsVerifiable' => true,
+                'shouldVerifyStructure' => true,
+                'shouldVerifyData' => true,
+                'expectedShouldVerifyDatabase' => true,
+            ],
+            [
+                'verifyDatabase' => true,
+                'dbIsVerifiable' => false,
+                'shouldVerifyStructure' => false,
+                'shouldVerifyData' => false,
+                'expectedShouldVerifyDatabase' => false,
+            ],
+            [
+                'verifyDatabase' => false,
+                'dbIsVerifiable' => true,
+                'shouldVerifyStructure' => false,
+                'shouldVerifyData' => false,
+                'expectedShouldVerifyDatabase' => false,
+            ],
+            [
+                'verifyDatabase' => false,
+                'dbIsVerifiable' => false,
+                'shouldVerifyStructure' => false,
+                'shouldVerifyData' => false,
+                'expectedShouldVerifyDatabase' => false,
+            ],
+        ];
+    }
 
-        $this->assertTrue(
-            $this->newConfigReusableDB()
-                ->isRemoteBuild(false)
-                ->connectionExists(true)
-                ->usingTransactions()
-        );
+    /**
+     * Test ConfigDTO->shouldVerifyStructure(), ConfigDTO->shouldVerifyData() and ConfigDTO->shouldVerifyDatabase().
+     *
+     * @test
+     * @dataProvider databaseShouldVerifyDatabaseDataProvider
+     * @param boolean $verifyDatabase               The "verify-database" setting.
+     * @param boolean $dbIsVerifiable               Whether the database is verifiable or not.
+     * @param boolean $shouldVerifyStructure        The expected shouldVerifyStructure() result.
+     * @param boolean $shouldVerifyData             The expected shouldVerifyData() result.
+     * @param boolean $expectedShouldVerifyDatabase The expected shouldVerifyDatabase() result.
+     * @return void
+     */
+    public function test_should_verify_database(
+        bool $verifyDatabase,
+        bool $dbIsVerifiable,
+        bool $shouldVerifyStructure,
+        bool $shouldVerifyData,
+        bool $expectedShouldVerifyDatabase
+    ): void {
 
-        $this->assertFalse(
-            $this->newConfigReusableDB()
-                ->isRemoteBuild(true)
-                ->connectionExists(false)
-                ->usingTransactions()
-        );
+        $configDTO = (new ConfigDTO())
+            ->verifyDatabase($verifyDatabase)
+            ->dbIsVerifiable($dbIsVerifiable);
 
-        $this->assertFalse(
-            $this->newConfigNotReusableDB()
-                ->isRemoteBuild(true)
-                ->connectionExists(true)
-                ->usingTransactions()
-        );
+        $this->assertSame($shouldVerifyStructure, $configDTO->shouldVerifyStructure());
+        $this->assertSame($shouldVerifyData, $configDTO->shouldVerifyData());
+        $this->assertSame($expectedShouldVerifyDatabase, $configDTO->shouldVerifyDatabase());
     }
 
 
@@ -685,46 +1043,9 @@ class ConfigDTOTest extends PHPUnitTestCase
 
 
     /**
-     * Test ConfigDTO->snapshotType().
-     *
-     * @test
-     * @return void
-     */
-    public function test_snapshot_type(): void
-    {
-        $this->assertSame(
-            'afterMigrations',
-            $this->newConfigReusableDB()
-                ->snapshots('afterMigrations', false)
-                ->snapshotType()
-        );
-
-        $this->assertSame(
-            'afterMigrations',
-            $this->newConfigNotReusableDB()
-                ->snapshots(false, 'afterMigrations')
-                ->snapshotType()
-        );
-
-        $this->assertNull(
-            $this->newConfigReusableDB()
-                ->snapshots(false, false)
-                ->snapshotType()
-        );
-
-        $this->assertNull(
-            $this->newConfigNotReusableDB()
-                ->snapshots(false, false)
-                ->snapshotType()
-        );
-    }
-
-
-
-    /**
      * Provide data for the test_should_take_snapshot_after_migrations_and_seeders test.
      *
-     * @return void
+     * @return mixed[][]
      */
     public function shouldTakeSnapshotsDataProvider(): array
     {
@@ -738,6 +1059,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => null,
             ],
             [
                 'reusableDB' => true,
@@ -747,6 +1069,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'afterMigrations',
             ],
             [
                 'reusableDB' => true,
@@ -756,6 +1079,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'afterSeeders',
             ],
             [
                 'reusableDB' => true,
@@ -765,6 +1089,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'both',
             ],
 
             // reusable database - with migrations but no seeders
@@ -776,6 +1101,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => null,
             ],
             [
                 'reusableDB' => true,
@@ -785,6 +1111,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => true,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'afterMigrations',
             ],
             [
                 'reusableDB' => true,
@@ -794,6 +1121,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => true,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'afterSeeders',
             ],
             [
                 'reusableDB' => true,
@@ -803,6 +1131,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => true,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'both',
             ],
 
             // reusable database - with migrations and seeders
@@ -814,6 +1143,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => null,
             ],
             [
                 'reusableDB' => true,
@@ -823,6 +1153,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => true,
                 'afterSeedersExpected' => false,
+                'snapshotTypeExpected' => 'afterMigrations',
             ],
             [
                 'reusableDB' => true,
@@ -832,6 +1163,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => false,
                 'afterSeedersExpected' => true,
+                'snapshotTypeExpected' => 'afterSeeders',
             ],
             [
                 'reusableDB' => true,
@@ -841,6 +1173,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'useSnapshotsWhenNotReusingDB' => false,
                 'afterMigrationsExpected' => true,
                 'afterSeedersExpected' => true,
+                'snapshotTypeExpected' => 'both',
             ],
         ];
 
@@ -851,6 +1184,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             // swap useSnapshotsWhenReusingDB and useSnapshotsWhenNotReusingDB
             $set['useSnapshotsWhenNotReusingDB'] = $set['useSnapshotsWhenReusingDB'];
             $set['useSnapshotsWhenReusingDB'] = false;
+            $set['snapshotTypeExpected'] = $set['useSnapshotsWhenNotReusingDB'] ?: null;
             $return2[] = $set;
         }
 
@@ -862,13 +1196,14 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider shouldTakeSnapshotsDataProvider
-     * @param boolean        $reusableDB                   Can the database be reused?
+     * @param boolean        $reusableDB                   Can the database be reused?.
      * @param boolean|string $migrations                   The migrations to run.
-     * @param array          $seeders                      The seeders to run.
+     * @param string[]       $seeders                      The seeders to run.
      * @param boolean|string $useSnapshotsWhenReusingDB    Use snapshots when reusing the database?.
      * @param boolean|string $useSnapshotsWhenNotReusingDB Use snapshots when not reusing the database?.
      * @param boolean        $afterMigrationsExpected      Whether to take a snapshot after migrations or not.
      * @param boolean        $afterSeedersExpected         Whether to take a snapshot after seeders or not.
+     * @param string|null    $snapshotTypeExpected         The type of snapshots to take.
      * @return void
      */
     public function test_should_take_snapshot_after_migrations_and_seeders(
@@ -878,7 +1213,8 @@ class ConfigDTOTest extends PHPUnitTestCase
         $useSnapshotsWhenReusingDB,
         $useSnapshotsWhenNotReusingDB,
         bool $afterMigrationsExpected,
-        bool $afterSeedersExpected
+        bool $afterSeedersExpected,
+        ?string $snapshotTypeExpected
     ): void {
 
         $configDTO = $reusableDB ? $this->newConfigReusableDB() : $this->newConfigNotReusableDB();
@@ -893,6 +1229,7 @@ class ConfigDTOTest extends PHPUnitTestCase
 
         $this->assertSame($afterMigrationsExpected, $configDTO->shouldTakeSnapshotAfterMigrations());
         $this->assertSame($afterSeedersExpected, $configDTO->shouldTakeSnapshotAfterSeeders());
+        $this->assertSame($snapshotTypeExpected, $configDTO->snapshotType());
     }
 
 
@@ -907,8 +1244,13 @@ class ConfigDTOTest extends PHPUnitTestCase
     private function newConfigReusableDB(): ConfigDTO
     {
         return (new ConfigDTO())
-            ->reuseTestDBs(true)
-            ->isBrowserTest(false);
+            ->connectionExists(true)
+            ->isRemoteBuild(false)
+            ->isBrowserTest(false)
+            ->dbIsTransactionable(true)
+            ->dbIsJournalable(true)
+            ->reuseTransaction(true)
+            ->reuseJournal(true);
     }
 
     /**
@@ -919,7 +1261,12 @@ class ConfigDTOTest extends PHPUnitTestCase
     private function newConfigNotReusableDB(): ConfigDTO
     {
         return (new ConfigDTO())
-            ->reuseTestDBs(false)
-            ->isBrowserTest(false);
+            ->connectionExists(true)
+            ->isRemoteBuild(false)
+            ->isBrowserTest(false)
+            ->dbIsTransactionable(true)
+            ->dbIsJournalable(true)
+            ->reuseTransaction(false)
+            ->reuseJournal(false);
     }
 }

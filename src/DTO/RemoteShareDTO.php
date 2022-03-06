@@ -14,7 +14,7 @@ class RemoteShareDTO
     use DTOBuildTrait;
 
     /**
-     * The RemoteShareDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
+     * The RemoteShareDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *
      * @var integer
      */

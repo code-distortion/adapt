@@ -84,8 +84,14 @@ class ResolvedSettingsDTO
     /** @var string|null The session-driver being used. */
     public ?string $sessionDriver;
 
-    /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
-    public bool $databaseIsReusable;
+    /** @var boolean When turned on, transactions will be used to allow the database to be reused. */
+    public bool $transactionReusable;
+
+    /** @var boolean When turned on, journaling will be used to allow the database to be reused. */
+    public bool $journalReusable;
+
+    /** @var boolean When turned on, the database structure and content will be checked after each test. */
+    public bool $verifyDatabase;
 
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public bool $forceRebuild;
@@ -165,7 +171,7 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Specify the url to send "build" requests to.
+     * Specify the url to send "remote-build" requests to.
      *
      * @param boolean     $builtRemotely  Whether the database was built remotely or not.
      * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
@@ -296,14 +302,38 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Turn the reusable-database setting on (or off).
+     * Turn the transaction-reusable setting on (or off).
      *
-     * @param boolean $databaseIsReusable Is the database reusable?.
+     * @param boolean $transactionReusable Are transactions going to be used to allow reuse?.
      * @return static
      */
-    public function databaseIsReusable(bool $databaseIsReusable): self
+    public function transactionReusable(bool $transactionReusable): self
     {
-        $this->databaseIsReusable = $databaseIsReusable;
+        $this->transactionReusable = $transactionReusable;
+        return $this;
+    }
+
+    /**
+     * Turn the journal-reusable setting on (or off).
+     *
+     * @param boolean $journalReusable Are transactions going to be used to allow reuse?.
+     * @return static
+     */
+    public function journalReusable(bool $journalReusable): self
+    {
+        $this->journalReusable = $journalReusable;
+        return $this;
+    }
+
+    /**
+     * Turn the database verification setting on (or off).
+     *
+     * @param boolean $verifyDatabase Perform a check of the db structure and content after each test?.
+     * @return static
+     */
+    public function verifyDatabase(bool $verifyDatabase): self
+    {
+        $this->verifyDatabase = $verifyDatabase;
         return $this;
     }
 
@@ -392,9 +422,13 @@ class ResolvedSettingsDTO
 
         $isBrowserTest = $this->renderBoolean($this->isBrowserTest, "Yes (session-driver: \"$this->sessionDriver\")");
 
+        $reuseTypes = array_filter([
+            $this->transactionReusable ? 'transaction' : '',
+            $this->journalReusable ? 'journal' : '',
+        ]);
         $isReusable = $this->renderBoolean(
-            $this->databaseIsReusable,
-            'Yes',
+            (bool) count($reuseTypes),
+            'Yes - ' . implode(', ', $reuseTypes),
             'No, it will be rebuilt for each test'
         );
 
@@ -410,9 +444,9 @@ class ResolvedSettingsDTO
             $seedersTitle => $seeders,
             'Is a browser-test?' => $isBrowserTest,
 //            'Is reusable?' => $this->renderBoolean($this->databaseIsReusable),
-            'Is reusable?' => ' ',
-            '- Using transactions?' => $isReusable,
+            'Is reusable?' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
+            'Verify database?' => $this->renderBoolean($this->verifyDatabase),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
             '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),

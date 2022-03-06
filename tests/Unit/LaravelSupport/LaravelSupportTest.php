@@ -15,7 +15,7 @@ class LaravelSupportTest extends PHPUnitTestCase
     /**
      * Provide data for the test_that_the_correct_seeders_are_picked test below.
      *
-     * @return array
+     * @return mixed[][]
      */
     public function seedersDataProvider(): array
     {
@@ -49,11 +49,12 @@ class LaravelSupportTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider seedersDataProvider
-     * @param boolean $hasSeedersProp Whether the test has the $seeders property or not.
-     * @param mixed   $seedersProp    The $seeders property.
-     * @param boolean $hasSeedProp    Whether the test has the $seed property or not.
-     * @param mixed   $seedProp       The $seed property.
-     * @param mixed   $seedersConfig  The "code_distortion.adapt.seeders" Laravel config value.
+     * @param boolean  $hasSeedersProp  Whether the test has the $seeders property or not.
+     * @param mixed    $seedersProp     The $seeders property.
+     * @param boolean  $hasSeedProp     Whether the test has the $seed property or not.
+     * @param mixed    $seedProp        The $seed property.
+     * @param mixed    $seedersConfig   The "code_distortion.adapt.seeders" Laravel config value.
+     * @param string[] $expectedOutcome The expected seeders.
      * @return void
      */
     public function test_that_the_correct_seeders_are_picked(

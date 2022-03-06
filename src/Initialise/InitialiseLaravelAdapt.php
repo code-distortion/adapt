@@ -65,7 +65,9 @@ trait InitialiseLaravelAdapt
         // build a PropBagDTO containing the relevant properties this class has.
         $propNames = [
             'buildDatabases',
-            'reuseTestDBs',
+            'reuseTestDBs', // @deprecated
+            'reuseTransaction',
+            'reuseJournal',
             'scenarioTestDBs',
             'useSnapshotsWhenReusingDB',
             'useSnapshotsWhenNotReusingDB',
@@ -107,7 +109,6 @@ trait InitialiseLaravelAdapt
             }
 
             $this->beforeApplicationDestroyed(
-
                 function () use ($database, $conn, $useEventDispatcher) {
                     $connection = $database->connection($conn);
                     if ($useEventDispatcher) {
@@ -134,9 +135,9 @@ trait InitialiseLaravelAdapt
         // allow for a custom build process via databaseInit(…)
         // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
-        if (method_exists(static::class, Settings::CUSTOM_BUILD_METHOD)) {
+        if (method_exists(static::class, Settings::LARAVEL_CUSTOM_BUILD_METHOD)) {
             $buildInitCallback = function (DatabaseBuilder $builder) {
-                $initMethod = Settings::CUSTOM_BUILD_METHOD;
+                $initMethod = Settings::LARAVEL_CUSTOM_BUILD_METHOD;
                 $this->$initMethod($builder);
             };
         }
@@ -178,7 +179,7 @@ trait InitialiseLaravelAdapt
      *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
      */
     protected function newBuilder(string $connection): DatabaseBuilder
     {
@@ -197,7 +198,7 @@ trait InitialiseLaravelAdapt
      * @param Browser               $browser     The browser to update with the current config.
      * @param Browser[]|Browser[][] ...$browsers Any additional browsers to update with the current config.
      * @return void
-     * @throws AdaptDeprecatedFeatureException Thrown because this method has been deprecated.
+     * @throws AdaptDeprecatedFeatureException Because this method has been deprecated.
      */
     public function useCurrentConfig(Browser $browser, Browser ...$browsers): void
     {

@@ -34,7 +34,7 @@ class LaravelSupport
     public static function useTestingConfig(): void
     {
         LaravelEnv::reloadEnv(
-            base_path(Settings::ENV_TESTING_FILE),
+            base_path(Settings::LARAVEL_ENV_TESTING_FILE),
             ['APP_ENV' => 'testing']
         );
 
@@ -154,11 +154,9 @@ class LaravelSupport
     {
         /** @var Application $app */
         $app = app();
-        if (method_exists($app, 'scoped')) {
-            $app->scoped(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
-        } else {
-            $app->singleton(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
-        }
+        method_exists($app, 'scoped')
+            ? $app->scoped(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases)
+            : $app->singleton(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
     }
 
     /**
@@ -169,7 +167,7 @@ class LaravelSupport
     public static function readPreparedConnectionDBsFromFramework(): ?array
     {
         try {
-            $return = app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+            $return = app(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME);
             return is_array($return) || is_null($return) ? $return : null;
         } catch (BindingResolutionException $e) {
             return null;

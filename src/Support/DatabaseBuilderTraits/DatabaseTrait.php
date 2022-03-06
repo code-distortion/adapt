@@ -16,7 +16,7 @@ trait DatabaseTrait
      */
     private function pickDatabaseNameAndUse(): void
     {
-        if ($this->config->shouldBuildRemotely()) {
+        if ($this->configDTO->shouldBuildRemotely()) {
             return;
         }
 
@@ -31,14 +31,14 @@ trait DatabaseTrait
     private function pickDatabaseName(): string
     {
         // return the original name
-        if (!$this->config->usingScenarioTestDBs()) {
+        if (!$this->configDTO->usingScenarioTestDBs()) {
             return $this->origDBName();
         }
 
         // or generate a new name
         $dbNameHash = $this->hasher->generateDatabaseNameHashPart(
-            $this->config->pickSeedersToInclude(),
-            $this->config->databaseModifier
+            $this->configDTO->pickSeedersToInclude(),
+            $this->configDTO->databaseModifier
         );
         return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
     }
@@ -82,6 +82,6 @@ trait DatabaseTrait
      */
     private function origDBName(): string
     {
-        return $this->config->origDatabase;
+        return $this->configDTO->origDatabase;
     }
 }

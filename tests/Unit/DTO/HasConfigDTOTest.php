@@ -17,18 +17,25 @@ class HasConfigDTOTest extends PHPUnitTestCase
     use DatabaseBuilderTestTrait;
 
     /**
-     * Provide data for the config_dto_can_set_and_get_values test.
+     * Provide data for the has_config_dto_trait_can_set_and_get_values test.
      *
      * @return mixed[][]
      */
     public function configDtoDataProvider(): array
     {
         return [
-            'databaseModifier' => [
+            'databaseModifier 1' => [
                 'method' => 'databaseModifier',
                 'params' => ['1'],
                 'outcome' => [
                     'databaseModifier' => '1',
+                ],
+            ],
+            'databaseModifier 2' => [
+                'method' => 'databaseModifier',
+                'params' => ['2'],
+                'outcome' => [
+                    'databaseModifier' => '2',
                 ],
             ],
             'noDatabaseModifier' => [
@@ -39,11 +46,40 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'preMigrationImports' => [
+            'checkForSourceChanges 1' => [
+                'method' => 'checkForSourceChanges',
+                'params' => [true],
+                'outcome' => [
+                    'checkForSourceChanges' => true,
+                ],
+            ],
+            'checkForSourceChanges 2' => [
+                'method' => 'checkForSourceChanges',
+                'params' => [false],
+                'outcome' => [
+                    'checkForSourceChanges' => false,
+                ],
+            ],
+            'dontCheckForSourceChanges' => [
+                'method' => 'dontCheckForSourceChanges',
+                'params' => [],
+                'outcome' => [
+                    'checkForSourceChanges' => false,
+                ],
+            ],
+
+            'preMigrationImports 1' => [
                 'method' => 'preMigrationImports',
                 'params' => [['a']],
                 'outcome' => [
                     'preMigrationImports' => ['a'],
+                ],
+            ],
+            'preMigrationImports 2' => [
+                'method' => 'preMigrationImports',
+                'params' => [[]],
+                'outcome' => [
+                    'preMigrationImports' => [],
                 ],
             ],
             'noPreMigrationImports' => [
@@ -83,11 +119,18 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'seeders' => [
+            'seeders 1' => [
                 'method' => 'seeders',
                 'params' => [['a']],
                 'outcome' => [
                     'seeders' => ['a'],
+                ],
+            ],
+            'seeders 2' => [
+                'method' => 'seeders',
+                'params' => [[]],
+                'outcome' => [
+                    'seeders' => [],
                 ],
             ],
             'noSeeders' => [
@@ -98,50 +141,106 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
+            'remoteBuildUrl 1' => [
+                'method' => 'remoteBuildUrl',
+                'params' => ['http://something'],
+                'outcome' => [
+                    'remoteBuildUrl' => 'http://something',
+                ],
+            ],
+            'remoteBuildUrl 2' => [
+                'method' => 'remoteBuildUrl',
+                'params' => [null],
+                'outcome' => [
+                    'remoteBuildUrl' => null,
+                ],
+            ],
+            'noRemoteBuildUrl' => [
+                'method' => 'noRemoteBuildUrl',
+                'params' => [],
+                'outcome' => [
+                    'remoteBuildUrl' => null,
+                ],
+            ],
+
             'cacheTools 1' => [
                 'method' => 'cacheTools',
-                'params' => [true, false],
+                'params' => [false, true, true],
                 'outcome' => [
-                    'reuseTestDBs' => true,
-                    'scenarioTestDBs' => false,
+                    'reuseTransaction' => false,
+                    'reuseJournal' => true,
+                    'scenarioTestDBs' => true,
                 ],
             ],
             'cacheTools 2' => [
                 'method' => 'cacheTools',
-                'params' => [false, true],
+                'params' => [false, false, true],
                 'outcome' => [
-                    'reuseTestDBs' => false,
+                    'reuseTransaction' => false,
+                    'reuseJournal' => false,
                     'scenarioTestDBs' => true,
                 ],
             ],
             'cacheTools 3' => [
                 'method' => 'cacheTools',
-                'params' => [false, false],
+                'params' => [true, true, false],
                 'outcome' => [
-                    'reuseTestDBs' => false,
+                    'reuseTransaction' => true,
+                    'reuseJournal' => true,
+                    'scenarioTestDBs' => false,
+                ],
+            ],
+            'cacheTools 4' => [
+                'method' => 'cacheTools',
+                'params' => [true, false, false],
+                'outcome' => [
+                    'reuseTransaction' => true,
+                    'reuseJournal' => false,
                     'scenarioTestDBs' => false,
                 ],
             ],
 
-            'reuseTestDBs 1' => [
-                'method' => 'reuseTestDBs',
+            'reuseTransaction 1' => [
+                'method' => 'reuseTransaction',
                 'params' => [true],
                 'outcome' => [
-                    'reuseTestDBs' => true,
+                    'reuseTransaction' => true,
                 ],
             ],
-            'reuseTestDBs 2' => [
-                'method' => 'reuseTestDBs',
+            'reuseTransaction 2' => [
+                'method' => 'reuseTransaction',
                 'params' => [false],
                 'outcome' => [
-                    'reuseTestDBs' => false,
+                    'reuseTransaction' => false,
                 ],
             ],
-            'noReuseTestDBs' => [
-                'method' => 'noReuseTestDBs',
+            'noReuseTransaction' => [
+                'method' => 'noReuseTransaction',
                 'params' => [],
                 'outcome' => [
-                    'reuseTestDBs' => false,
+                    'reuseTransaction' => false,
+                ],
+            ],
+
+            'reuseJournal 1' => [
+                'method' => 'reuseJournal',
+                'params' => [true],
+                'outcome' => [
+                    'reuseJournal' => true,
+                ],
+            ],
+            'reuseJournal 2' => [
+                'method' => 'reuseJournal',
+                'params' => [false],
+                'outcome' => [
+                    'reuseJournal' => false,
+                ],
+            ],
+            'noReuseJournal' => [
+                'method' => 'noReuseJournal',
+                'params' => [],
+                'outcome' => [
+                    'reuseJournal' => false,
                 ],
             ],
 
@@ -208,6 +307,28 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
+            'forceRebuild 1' => [
+                'method' => 'forceRebuild',
+                'params' => [true],
+                'outcome' => [
+                    'forceRebuild' => true,
+                ],
+            ],
+            'forceRebuild 2' => [
+                'method' => 'forceRebuild',
+                'params' => [false],
+                'outcome' => [
+                    'forceRebuild' => false,
+                ],
+            ],
+            'dontForceRebuild' => [
+                'method' => 'dontForceRebuild',
+                'params' => [],
+                'outcome' => [
+                    'forceRebuild' => false,
+                ],
+            ],
+
             'isBrowserTest 1' => [
                 'method' => 'isBrowserTest',
                 'params' => [true],
@@ -248,14 +369,16 @@ class HasConfigDTOTest extends PHPUnitTestCase
         array $outcome
     ): void {
 
-        $config = new ConfigDTO();
-        $object = new HasConfigDTOClass($config);
+        $configDTO = new ConfigDTO();
+        $object = new HasConfigDTOClass($configDTO);
 
         $callable = [$object, $method];
-        is_callable($callable) ? call_user_func_array($callable, $params) : null;
+        if (is_callable($callable)) {
+            call_user_func_array($callable, $params);
+        }
 
         foreach ($outcome as $field => $value) {
-            $this->assertSame($value, $config->$field);
+            $this->assertSame($value, $configDTO->$field);
         }
     }
 
@@ -267,8 +390,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
      */
     public function has_config_dto_trait_can_get_connection(): void
     {
-        $config = (new ConfigDTO())->connection('a');
-        $object = new HasConfigDTOClass($config);
+        $configDTO = (new ConfigDTO())->connection('a');
+        $object = new HasConfigDTOClass($configDTO);
         $this->assertSame('a', $object->getConnection());
     }
 }

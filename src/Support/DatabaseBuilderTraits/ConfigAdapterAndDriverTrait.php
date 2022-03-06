@@ -20,7 +20,7 @@ trait ConfigAdapterAndDriverTrait
      * Create a database adapter to do the database specific work.
      *
      * @return DBAdapter
-     * @throws AdaptConfigException Thrown when the type of database isn't recognised.
+     * @throws AdaptConfigException When the type of database isn't recognised.
      */
     private function dbAdapter(): DBAdapter
     {
@@ -35,12 +35,12 @@ trait ConfigAdapterAndDriverTrait
             (!isset($this->availableDBAdapters[$framework]))
             || (!isset($this->availableDBAdapters[$framework][$driver]))
         ) {
-            throw AdaptConfigException::unsupportedDriver($this->config->connection, $driver);
+            throw AdaptConfigException::unsupportedDriver($this->configDTO->connection, $driver);
         }
 
         $adapterClass = $this->availableDBAdapters[$framework][$driver];
         /** @var DBAdapter $dbAdapter */
-        $dbAdapter = new $adapterClass($this->di, $this->config, $this->hasher);
+        $dbAdapter = new $adapterClass($this->di, $this->configDTO, $this->hasher);
         $this->dbAdapter = $dbAdapter;
 
         return $this->dbAdapter;
@@ -64,7 +64,7 @@ trait ConfigAdapterAndDriverTrait
     private function pickDriver(): string
     {
         $pickDriver = $this->pickDriverClosure;
-        return $this->config->driver = $pickDriver($this->config->connection);
+        return $this->configDTO->driver = $pickDriver($this->configDTO->connection);
     }
 
 
@@ -87,9 +87,9 @@ trait ConfigAdapterAndDriverTrait
      */
     public function getResolvedDatabase(): string
     {
-        if (!$this->config->database) {
+        if (!$this->configDTO->database) {
             $this->pickDatabaseNameAndUse();
         }
-        return (string) $this->config->database;
+        return (string) $this->configDTO->database;
     }
 }

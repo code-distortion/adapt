@@ -17,6 +17,7 @@ class LaravelSQLiteName implements NameInterface
     use SQLiteHelperTrait;
 
 
+
     /**
      * Build a scenario database name.
      *
@@ -28,12 +29,12 @@ class LaravelSQLiteName implements NameInterface
     public function generateScenarioDBName(string $dbNameHash): string
     {
         if ($this->isMemoryDatabase()) {
-            return $this->config->origDatabase; // ":memory:"
+            return $this->configDTO->origDatabase; // ":memory:"
         }
         $dbNameHash = str_replace('_', '-', $dbNameHash);
-        $filename = $this->pickBaseFilename($this->config->origDatabase);
-        $filename = $this->config->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
-        return $this->config->storageDir . '/' . $filename;
+        $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
+        $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
+        return $this->configDTO->storageDir . '/' . $filename;
     }
 
     /**
@@ -45,9 +46,9 @@ class LaravelSQLiteName implements NameInterface
      */
     public function generateSnapshotPath(string $snapshotHash): string
     {
-        $filename = $this->pickBaseFilename($this->config->origDatabase);
-        $filename = $this->config->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';
+        $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
+        $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';
         $filename = str_replace('_', '-', $filename);
-        return $this->config->storageDir . '/' . $filename;
+        return $this->configDTO->storageDir . '/' . $filename;
     }
 }

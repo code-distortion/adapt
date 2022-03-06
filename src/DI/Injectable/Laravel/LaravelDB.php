@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 use Throwable;
 
 /**
@@ -61,7 +62,7 @@ class LaravelDB
      * @param string|null $database   The database to connect to (only when required by the driver - e.g. sqlite).
      * @param string|null $connection The connection to use (defaults to the current one).
      * @return LaravelPDO
-     * @throws AdaptConfigException Thrown when the driver isn't recognised.
+     * @throws AdaptConfigException When the driver isn't recognised.
      */
     public function newPDO(?string $database = null, ?string $connection = null): LaravelPDO
     {
@@ -124,7 +125,7 @@ class LaravelDB
      *
      * @param string  $query    The query to run.
      * @param mixed[] $bindings The values to bind.
-     * @return mixed[]
+     * @return stdClass[]
      */
     public function select(string $query, array $bindings = []): array
     {
@@ -156,26 +157,37 @@ class LaravelDB
     }
 
     /**
-     * Drop all the tables from the current database.
+     * Run a statement on the database using the PDO->exec(..) method directly.
      *
-     * @return void
+     * @param string $query The query to run.
+     * @return boolean
      */
-    public function dropAllTables(): void
+    public function directExec(string $query): bool
     {
-        // @todo make this works for database types other than mysql
-        // @todo make sure this works with views
-//        if (mysql) { ...
-        $tables = [];
-        foreach (DB::connection($this->connection)->select("SHOW TABLES") as $row) {
-            $tables[] = array_values(get_object_vars($row))[0];
-        }
-
-        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 0");
-        foreach ($tables as $table) {
-            DB::connection($this->connection)->statement("DROP TABLE `" . $table . "`");
-        }
-        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 1");
+        return DB::connection($this->connection)->getPDO()->exec($query);
     }
+
+//    /**
+//     * Drop all the tables from the current database.
+//     *
+//     * @return void
+//     */
+//    public function dropAllTables(): void
+//    {
+//        // @todo make this works for database types other than mysql
+//        // @todo make sure this works with views
+////        if (mysql) { ...
+//        $tables = [];
+//        foreach (DB::connection($this->connection)->select("SHOW TABLES") as $row) {
+//            $tables[] = array_values(get_object_vars($row))[0];
+//        }
+//
+//        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 0");
+//        foreach ($tables as $table) {
+//            DB::connection($this->connection)->statement("DROP TABLE `" . $table . "`");
+//        }
+//        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 1");
+//    }
 
     /**
      * Disconnect from the database.

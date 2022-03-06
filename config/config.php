@@ -36,18 +36,25 @@ return [
     | Reuse Test-Databases
     |--------------------------------------------------------------------------
     |
-    | Tests are wrapped in a transaction to keep the database in a clean state.
-    | Databases are re-used between tests, and also between test-runs.
-    | This is best used with the scenario_test_dbs setting below.
+    | Databases can be re-used when their contents can be kept in a known
+    | state, saving time. This can be achieved using transactions, or
+    | via a journal process.
     |
-    | This config setting can be overridden by adding the
-    | $reuseTestDBs property to your test-class.
+    | These config settings can be overridden by adding the
+    | $reuseTransaction and $reuseJournal properties to
+    | your test-class.
     |
-    | boolean
+    | NOTE: Journal based re-use is EXPERIMENTAL, and is currently only
+    | available for MySQL databases.
+    |
+    | array<string, boolean>
     |
     */
 
-    'reuse_test_dbs' => env('ADAPT_REUSE_TEST_DBS', true),
+    'reuse' => [
+        'transactions' => env('ADAPT_REUSE_TRANSACTIONS', true),
+        'journals' => env('ADAPT_REUSE_JOURNALS', false),
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +63,7 @@ return [
     |
     | A new database (based on the original database name) will be created
     | for each "scenario" the tests need. This is best used with the
-    | reuse_test_dbs setting above.
+    | "reuse" setting above.
     |
     | An scenario database will be called something like:
     | "test_your_database_name_17bd3c_d266ab43ac75"
@@ -101,7 +108,6 @@ return [
     | If you have your own database-dump/s that you'd like to be applied BEFORE
     | migrations run, list them here. This config setting can be overridden
     | by adding the $preMigrationImports property to your test-class.
-    |
     |
     | NOTE: It's important that these dumps don't contain output from seeders
     | if those seeders are also run by Adapt afterwards.
@@ -231,6 +237,25 @@ return [
     */
 
     'remove_stale_things' => env('ADAPT_REMOVE_STALE_THINGS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Verification
+    |--------------------------------------------------------------------------
+    |
+    | The database structure and content will be verified after each test has
+    | completed to ensure it hasn't changed. This is disabled by default and
+    | isn't generally necessary. It was added as a safety-check when using
+    | the experimental journal-based re-use option above.
+    |
+    | NOTE: Database verification EXPERIMENTAL, and is currently only
+    | available for MySQL databases.
+    |
+    | boolean
+    |
+    */
+
+    'verify_databases' => env('ADAPT_VERIFY_DATABASES', false),
 
     /*
     |--------------------------------------------------------------------------

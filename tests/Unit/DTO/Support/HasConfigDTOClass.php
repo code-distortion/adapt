@@ -15,10 +15,10 @@ class HasConfigDTOClass
     /**
      * Constructor.
      *
-     * @param ConfigDTO $config The ConfigDTO to use.
+     * @param ConfigDTO $configDTO The ConfigDTO to use.
      */
-    public function __construct(ConfigDTO $config)
+    public function __construct(ConfigDTO $configDTO)
     {
-        $this->config = $config;
+        $this->configDTO = $configDTO;
     }
 }

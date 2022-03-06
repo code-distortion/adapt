@@ -16,6 +16,6 @@ trait LaravelHelperTrait
      */
     protected function conVal(string $var, $default = null)
     {
-        return config("database.connections.{$this->config->connection}.$var", $default);
+        return config("database.connections.{$this->configDTO->connection}.$var", $default);
     }
 }

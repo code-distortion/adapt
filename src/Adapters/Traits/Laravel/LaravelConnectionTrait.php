@@ -14,9 +14,9 @@ trait LaravelConnectionTrait
      */
     protected function laravelMakeThisConnectionDefault(): void
     {
-        config(['database.default' => $this->config->connection]);
+        config(['database.default' => $this->configDTO->connection]);
 
-        $this->di->log->debug("Changed the default connection to: \"{$this->config->connection}\"");
+        $this->di->log->debug("Changed the default connection to: \"{$this->configDTO->connection}\"");
     }
 
     /**
@@ -28,9 +28,9 @@ trait LaravelConnectionTrait
      */
     protected function laravelUseDatabase(string $database, bool $applyLogging): void
     {
-        $this->config->database($database);
+        $this->configDTO->database($database);
 
-        $connection = $this->config->connection;
+        $connection = $this->configDTO->connection;
 
         if ($applyLogging) {
 
@@ -51,7 +51,7 @@ trait LaravelConnectionTrait
      */
     protected function laravelGetCurrentDatabase(): ?string
     {
-        $connection = $this->config->connection;
+        $connection = $this->configDTO->connection;
         $return = config("database.connections.$connection.database");
         return is_string($return) ? $return : '';
     }

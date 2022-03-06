@@ -15,7 +15,7 @@ trait OnlyExecuteOnceTrait
      * Make sure this object is only "executed" once.
      *
      * @return void
-     * @throws AdaptBuildException Thrown when this object is executed more than once.
+     * @throws AdaptBuildException When this object is executed more than once.
      */
     private function onlyExecuteOnce(): void
     {

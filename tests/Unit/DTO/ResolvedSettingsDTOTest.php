@@ -120,17 +120,52 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 'method' => 'seeders',
                 'params' => [
                     'isSeedingAllowed' => false,
+                    'seeders' => ['DatabaseSeederA', 'DatabaseSeederB'],
+                ],
+                'outcome' => [
+                    'isSeedingAllowed' => false,
+                    'seeders' => [],
+                ],
+            ],
+            'seeders 3' => [
+                'method' => 'seeders',
+                'params' => [
+                    'isSeedingAllowed' => false,
                     'seeders' => [],
                 ],
             ],
 
-            'scenarioTestDBs' => [
+            'scenarioTestDBs 1' => [
                 'method' => 'scenarioTestDBs',
                 'params' => [
                     'usingScenarios' => true,
                     'buildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                     'snapshotHash' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
                     'scenarioHash' => 'cccccccccccccccccccccccccccccccc',
+                ],
+            ],
+            'scenarioTestDBs 2' => [
+                'method' => 'scenarioTestDBs',
+                'params' => [
+                    'usingScenarios' => true,
+                    'buildHash' => null,
+                    'snapshotHash' => null,
+                    'scenarioHash' => null,
+                ],
+            ],
+            'scenarioTestDBs 3' => [
+                'method' => 'scenarioTestDBs',
+                'params' => [
+                    'usingScenarios' => false,
+                    'buildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    'snapshotHash' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                    'scenarioHash' => 'cccccccccccccccccccccccccccccccc',
+                ],
+                'outcome' => [
+                    'usingScenarios' => false,
+                    'buildHash' => null,
+                    'snapshotHash' => null,
+                    'scenarioHash' => null,
                 ],
             ],
 
@@ -144,9 +179,19 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 'params' => ['sessionDriver' => 'database'],
             ],
 
-            'databaseIsReusable' => [
-                'method' => 'databaseIsReusable',
-                'params' => ['databaseIsReusable' => true],
+            'transactionReusable' => [
+                'method' => 'transactionReusable',
+                'params' => ['transactionReusable' => true],
+            ],
+
+            'journalReusable' => [
+                'method' => 'journalReusable',
+                'params' => ['journalReusable' => true],
+            ],
+
+            'verifyDatabase' => [
+                'method' => 'verifyDatabase',
+                'params' => ['verifyDatabase' => true],
             ],
 
             'forceRebuild' => [
@@ -166,18 +211,22 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public function resolved_settings_dto_can_set_and_get_values(string $method, array $params, array $outcome = null): void
-    {
-        $config = new ResolvedSettingsDTO();
+    public function resolved_settings_dto_can_set_and_get_values(
+        string $method,
+        array $params,
+        array $outcome = null
+    ): void {
 
-        $callable = [$config, $method];
+        $configDTO = new ResolvedSettingsDTO();
+
+        $callable = [$configDTO, $method];
         if (is_callable($callable)) {
             call_user_func_array($callable, $params);
         }
 
         $outcome ??= $params;
         foreach ($outcome as $name => $value) {
-            $this->assertSame($value, $config->$name);
+            $this->assertSame($value, $configDTO->$name);
         }
     }
 }

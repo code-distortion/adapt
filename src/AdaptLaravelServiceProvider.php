@@ -135,6 +135,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function getMiddlewareGroups(): array
     {
+        /** @var HttpKernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
         return method_exists($httpKernel, 'getMiddlewareGroups')
             ? array_keys($httpKernel->getMiddlewareGroups())
@@ -178,9 +179,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * Build a test-database for a remote installation of Adapt.
      *
      * @param Request $request The request object.
-     * @return Response
+     * @return ResponseFactory|Response
      */
-    private function handleBuildRequest(Request $request): Response
+    private function handleBuildRequest(Request $request)
     {
         $log = null;
         try {
@@ -203,7 +204,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function newLog(): LogInterface
     {
-        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
+        $useLaravelLog = (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
 
         // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
         return new LaravelLog(false, $useLaravelLog);
@@ -219,7 +220,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function executeBuilder(Request $request, LogInterface $log)
     {
-        $configDTO = $this->buildConfigDTO($request->input('configDTO'));
+        $payload = $request->input('configDTO');
+        $payload = is_string($payload) ? $payload : ''; // phpstan
+
+        $configDTO = $this->buildConfigDTO($payload);
         if (!$configDTO) {
             throw AdaptBootException::couldNotReadRemoteConfiguration();
         }
@@ -272,7 +276,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             Exceptions::logException($log, $e, true);
         }
 
-        $exceptionClass = Exceptions::resolveExceptionClass($e);
+        $exceptionClass = Exceptions::readableExceptionClass($e);
         return response("$exceptionClass: {$e->getMessage()}", 500);
     }
 }

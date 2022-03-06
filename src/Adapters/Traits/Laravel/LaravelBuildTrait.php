@@ -29,9 +29,9 @@ trait LaravelBuildTrait
 //                array_filter(
 //                    [
 //                        '--env' =>  'testing',
-//                        '--database' => $this->config->connection,
+//                        '--database' => $this->configDTO->connection,
 //                        '--drop-views' => true,
-//                        '--drop-types' => ($this->config->driver == 'pgsql'),
+//                        '--drop-types' => ($this->configDTO->driver == 'pgsql'),
 //                        '--force' => true,
 //                    ]
 //                )
@@ -53,7 +53,7 @@ trait LaravelBuildTrait
     {
         $logTimer = $this->di->log->newTimer();
 
-        if (!$this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS `{$this->config->database}`")) {
+        if (!$this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS `{$this->configDTO->database}`")) {
             return;
         }
 
@@ -65,7 +65,7 @@ trait LaravelBuildTrait
      *
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
-     * @throws AdaptBuildException Thrown when the migrations couldn't be run.
+     * @throws AdaptBuildException When the migrations couldn't be run.
      */
     protected function laravelMigrate(?string $migrationsPath): void
     {
@@ -87,7 +87,7 @@ trait LaravelBuildTrait
                 'migrate',
                 array_filter([
                     '--env' => 'testing',
-                    '--database' => $this->config->connection,
+                    '--database' => $this->configDTO->connection,
                     '--force' => true,
                     '--path' => $migrationsPath,
                     '--realpath' => ($useRealPath ? true : null),
@@ -105,7 +105,7 @@ trait LaravelBuildTrait
      *
      * @param string[] $seeders The seeders to run.
      * @return void
-     * @throws AdaptBuildException Thrown when the seeder couldn't be run.
+     * @throws AdaptBuildException When the seeder couldn't be run.
      */
     protected function laravelSeed(array $seeders): void
     {
@@ -121,7 +121,7 @@ trait LaravelBuildTrait
                     array_filter(
                         [
                             '--env' => 'testing',
-                            '--database' => $this->config->connection,
+                            '--database' => $this->configDTO->connection,
                             '--class' => $seeder,
                             '--no-interaction' => true,
                         ]
@@ -180,7 +180,7 @@ trait LaravelBuildTrait
     {
         $closure = $this->di->dbTransactionClosure;
         if (is_callable($closure)) {
-            $closure($this->config->connection);
+            $closure($this->configDTO->connection);
         }
     }
 

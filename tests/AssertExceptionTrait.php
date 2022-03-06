@@ -33,7 +33,7 @@ trait AssertExceptionTrait
             $this->assertTrue(false, "A \"$thrownException\" exception was thrown. None was expected");
         }
 
-        if ($thrownException && $expectException && !is_a($e, $expectException)) {
+        if ($thrownException && $expectException && !is_a($e ?? '', $expectException)) {
             $this->assertTrue(
                 false,
                 "A \"$expectException\" exception was expected, but \"$thrownException\" was thrown"

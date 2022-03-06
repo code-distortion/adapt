@@ -47,18 +47,18 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     public function makeNewBuilder(string $connection): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection, '');
+        $configDTO = $this->newConfigDTO($connection, '');
         $di = $this->defaultDI($connection);
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
-        StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
+        StorageDir::ensureStorageDirExists($configDTO->storageDir, $di->filesystem, $di->log);
 
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            new Hasher($di, $config),
+            $configDTO,
+            new Hasher($di, $configDTO),
             $pickDriverClosure
         );
     }
@@ -125,7 +125,9 @@ class BootCommandLaravel extends BootCommandAbstract
                 null,
             )
             ->cacheTools(
-                config("$c.reuse_test_dbs"),
+                config("$c.reuse.transactions"),
+                config("$c.reuse.journals"),
+                config("$c.verify_databases"),
                 config("$c.scenario_test_dbs"),
             )
             ->snapshots(

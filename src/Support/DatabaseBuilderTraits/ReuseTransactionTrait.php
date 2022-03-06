@@ -8,7 +8,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 /**
  * @mixin DatabaseBuilder
  */
-trait TransactionTrait
+trait ReuseTransactionTrait
 {
     /**
      * Start the database transaction.
@@ -17,34 +17,34 @@ trait TransactionTrait
      */
     public function applyTransaction(): void
     {
-        if (!$this->config->usingTransactions()) {
+        if (!$this->configDTO->shouldUseTransaction()) {
             return;
         }
 
-        $this->dbAdapter()->build->applyTransaction();
+        $this->dbAdapter()->reuseTransaction->applyTransaction();
     }
 
     /**
      * Check to see if any of the transaction was committed (if relevant), and generate a warning.
      *
      * @return void
-     * @throws AdaptTransactionException Thrown when the test committed the test-transaction.
+     * @throws AdaptTransactionException When the test committed the test-transaction.
      */
-    public function checkForCommittedTransaction(): void
+    private function checkForCommittedTransaction(): void
     {
-        if (!$this->config->usingTransactions()) {
+        if (!$this->configDTO->shouldUseTransaction()) {
             return;
         }
-        if (!$this->dbAdapter()->reuse->wasTransactionCommitted()) {
+        if (!$this->dbAdapter()->reuseTransaction->wasTransactionCommitted()) {
             return;
         }
 
         $this->di->log->warning(
-            "The {$this->config->testName} test committed the transaction wrapper - "
-            . "turn \$reuseTestDBs off to isolate it from other "
+            "The {$this->configDTO->testName} test committed the transaction wrapper - "
+            . "turn \$reuseTransaction off to isolate it from other "
             . "tests that don't commit their transactions"
         );
 
-        throw AdaptTransactionException::testCommittedTransaction($this->config->testName);
+        throw AdaptTransactionException::testCommittedTransaction($this->configDTO->testName);
     }
 }

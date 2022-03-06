@@ -14,10 +14,10 @@ interface NameInterface
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config);
+    public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
     /**
@@ -27,7 +27,7 @@ interface NameInterface
      *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
      *                           transactions and isBrowserTest.
      * @return string
-     * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
+     * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
      */
     public function generateScenarioDBName(string $dbNameHash): string;
 

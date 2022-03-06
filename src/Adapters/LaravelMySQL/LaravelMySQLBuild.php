@@ -6,7 +6,6 @@ use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
-use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to building a Laravel/MySQL database.
@@ -16,6 +15,8 @@ class LaravelMySQLBuild implements BuildInterface
     use InjectTrait;
     use LaravelBuildTrait;
     use LaravelHelperTrait;
+
+
 
     /**
      * Check if this database type can be built remotely.
@@ -63,7 +64,7 @@ class LaravelMySQLBuild implements BuildInterface
         $this->di->db->newPDO()->createDatabase(
             sprintf(
                 'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
-                $this->config->database,
+                $this->configDTO->database,
                 $this->conVal('charset', 'utf8mb4'),
                 $this->conVal('collation', 'utf8mb4_unicode_ci')
             )
@@ -92,26 +93,5 @@ class LaravelMySQLBuild implements BuildInterface
     public function seed(array $seeders): void
     {
         $this->laravelSeed($seeders);
-    }
-
-    /**
-     * Determine if a transaction can (and should) be used on this database.
-     *
-     * @return boolean
-     */
-    public function isTransactionable(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Start the transaction that the test will be encapsulated in.
-     *
-     * @return void
-     */
-    public function applyTransaction(): void
-    {
-        $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1");
     }
 }

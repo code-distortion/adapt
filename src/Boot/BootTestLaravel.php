@@ -108,7 +108,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @param string $connection The connection to start using.
      * @return DIContainer
-     * @throws AdaptBootException Thrown when a PropBagDTO hasn't been set yet.
+     * @throws AdaptBootException When a PropBagDTO hasn't been set yet.
      */
     protected function defaultDI(string $connection): DIContainer
     {
@@ -136,7 +136,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
      */
     public function newBuilder(string $connection): DatabaseBuilder
     {
@@ -156,7 +156,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function createBuilder(string $connection): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection, $this->testName);
+        $configDTO = $this->newConfigDTO($connection, $this->testName);
 
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
@@ -169,8 +169,8 @@ class BootTestLaravel extends BootTestAbstract
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            new Hasher($di, $config),
+            $configDTO,
+            new Hasher($di, $configDTO),
             $pickDriverClosure
         );
     }
@@ -186,48 +186,59 @@ class BootTestLaravel extends BootTestAbstract
     {
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
 
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        $pb = $this->propBag;
+
+        // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
+//        $reuseTransaction = $pb->adaptConfig('reuse.transactions', 'reuseTransaction');
+        $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
+        $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
+        $reuseTransaction = $propVal ?? $configVal;
+
         return (new ConfigDTO())
-            ->projectName($this->propBag->adaptConfig('project_name'))
+            ->projectName($pb->adaptConfig('project_name'))
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->origDatabase($this->propBag->config("database.connections.$connection.database"))
-//            ->database($this->propBag->adaptConfigString("database.connections.$connection.database"))
+            ->origDatabase($pb->config("database.connections.$connection.database"))
+//            ->database($pb->adaptConfigString("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($this->propBag->adaptConfig('check_for_source_changes'))
-            ->hashPaths($this->checkLaravelHashPaths($this->propBag->adaptConfig('look_for_changes_in')))
+            ->checkForSourceChanges($pb->adaptConfig('check_for_source_changes'))
+            ->hashPaths($this->checkLaravelHashPaths($pb->adaptConfig('look_for_changes_in')))
             ->preCalculatedBuildHash(null)
             ->buildSettings(
-                $this->propBag->adaptConfig('pre_migration_imports', 'preMigrationImports'),
-                $this->propBag->adaptConfig('migrations', 'migrations'),
+                $pb->adaptConfig('pre_migration_imports', 'preMigrationImports'),
+                $pb->adaptConfig('migrations', 'migrations'),
                 $this->resolveSeeders(),
-                $this->propBag->adaptConfig('remote_build_url', 'remoteBuildUrl'),
-                $this->propBag->prop('isBrowserTest', $this->browserTestDetected),
+                $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'),
+                $pb->prop('isBrowserTest', $this->browserTestDetected),
                 false,
-                $this->propBag->config('session.driver'),
+                $pb->config('session.driver'),
                 null,
             )
             ->cacheTools(
-                $this->propBag->adaptConfig('reuse_test_dbs', 'reuseTestDBs'),
-                $this->propBag->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'),
+                $reuseTransaction,
+                $pb->adaptConfig('reuse.journals', 'reuseJournal'),
+                $pb->adaptConfig('verify_databases'),
+                $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'),
             )
             ->snapshots(
-                $this->propBag->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
-                $this->propBag->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
+                $pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),
+                $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'),
             )
             ->forceRebuild($this->parallelTestingSaysRebuildDBs())
             ->mysqlSettings(
-                $this->propBag->adaptConfig('database.mysql.executables.mysql'),
-                $this->propBag->adaptConfig('database.mysql.executables.mysqldump'),
+                $pb->adaptConfig('database.mysql.executables.mysql'),
+                $pb->adaptConfig('database.mysql.executables.mysqldump'),
             )
             ->postgresSettings(
-                $this->propBag->adaptConfig('database.pgsql.executables.psql'),
-                $this->propBag->adaptConfig('database.pgsql.executables.pg_dump'),
+                $pb->adaptConfig('database.pgsql.executables.psql'),
+                $pb->adaptConfig('database.pgsql.executables.pg_dump'),
             )
-            ->staleGraceSeconds($this->propBag->adaptConfig(
+            ->staleGraceSeconds($pb->adaptConfig(
                 'stale_grace_seconds',
                 null,
                 Settings::DEFAULT_STALE_GRACE_SECONDS,
@@ -258,19 +269,6 @@ class BootTestLaravel extends BootTestAbstract
             $this->propBag->prop('seed', null),
             config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
         );
-    }
-
-    /**
-     * Determine if the database should be reused or not.
-     *
-     * @return boolean
-     */
-    private function shouldReuseTestDB(): bool
-    {
-        if ($this->parallelTestingSaysRebuildDBs()) {
-            return false;
-        }
-        return $this->propBag->adaptConfig('reuse_test_dbs', 'reuseTestDBs');
     }
 
     /**
@@ -377,7 +375,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @return void
      */
-    public function postTestCleanUp(): void
+    public function runPostTestCleanUp(): void
     {
         // remove the temporary config files that were created in this test run (if this is a browser test)
         foreach ($this->tempConfigPaths as $path) {
@@ -392,7 +390,7 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @return void
      */
-    public function performPurgeStaleThings(): void
+    public function performPurgeOfStaleThings(): void
     {
         if (!$this->canPurgeStaleThings()) {
             return;

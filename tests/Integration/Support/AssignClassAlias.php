@@ -27,7 +27,7 @@ class AssignClassAlias
             return;
         }
 
-        $sourceTrait = static::setUpReturnsVoid()
+        $sourceTrait = self::setUpReturnsVoid()
             ? DatabaseBuilderSetUpVoidTrait::class
             : DatabaseBuilderSetUpNoVoidTrait::class;
 

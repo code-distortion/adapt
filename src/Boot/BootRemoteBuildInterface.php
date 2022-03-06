@@ -31,8 +31,8 @@ interface BootRemoteBuildInterface
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder(ConfigDTO $remoteConfig): DatabaseBuilder;
+    public function makeNewBuilder(ConfigDTO $remoteConfigDTO): DatabaseBuilder;
 }

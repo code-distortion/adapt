@@ -54,7 +54,7 @@ class AdaptRemoteBuildException extends AdaptException
      * @param string                 $connection        The connection the database was being built for.
      * @param string                 $remoteBuildUrl    The url used to build a database remotely.
      * @param ResponseInterface|null $response          The response to the build http request.
-     * @param Throwable              $originalException The originally thrown exception.
+     * @param Throwable              $previousException The original exception.
      * @param boolean                $someLoggingIsOn   Whether some logging (stdout or laravel) is on or not.
      * @return self
      */
@@ -62,13 +62,13 @@ class AdaptRemoteBuildException extends AdaptException
         string $connection,
         string $remoteBuildUrl,
         ?ResponseInterface $response,
-        Throwable $originalException,
+        Throwable $previousException,
         bool $someLoggingIsOn
     ): self {
 
         $renderedResponseMessage = self::buildResponseMessage(
             $remoteBuildUrl,
-            $originalException,
+            $previousException,
             $response
         );
 
@@ -81,7 +81,7 @@ class AdaptRemoteBuildException extends AdaptException
             "The remote database for connection \"$connection\" could not be built $loggingExtra"
             . "- $renderedResponseMessage";
 
-        $exception = new self($message, 0, $originalException);
+        $exception = new self($message, 0, $previousException);
         $exception->remoteBuildUrl = $remoteBuildUrl;
         $exception->responseStatusCode = $response ? $response->getStatusCode() : null;
         $exception->renderedResponseMessage = $renderedResponseMessage;
@@ -98,21 +98,21 @@ class AdaptRemoteBuildException extends AdaptException
      * Get the http response status.
      *
      * @param string                 $remoteBuildUrl    The "remote-build" url.
-     * @param Throwable|null         $originalException The exception that was originally thrown.
+     * @param Throwable|null         $previousException The original exception.
      * @param ResponseInterface|null $response          The response object returned by the remote Adapt installation.
      * @return string|null
      */
     private static function buildResponseMessage(
         string $remoteBuildUrl,
-        ?Throwable $originalException,
+        ?Throwable $previousException,
         ?ResponseInterface $response
     ): ?string {
 
         $responseMessage = self::interpretRemoteMessage($response);
 
-        if ($originalException instanceof ConnectException) {
+        if ($previousException instanceof ConnectException) {
             return "Could not connect to $remoteBuildUrl";
-        } elseif ($originalException instanceof BadResponseException) {
+        } elseif ($previousException instanceof BadResponseException) {
             return $responseMessage
                 ? "Remote error message: \"{$responseMessage}\""
                 : null;

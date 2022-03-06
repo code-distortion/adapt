@@ -14,18 +14,18 @@ trait InjectTrait
     protected DIContainer $di;
 
     /** @var ConfigDTO A DTO containing the settings to use. */
-    protected ConfigDTO $config;
+    protected ConfigDTO $configDTO;
 
 
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config)
+    public function __construct(DIContainer $di, ConfigDTO $configDTO)
     {
         $this->di = $di;
-        $this->config = $config;
+        $this->configDTO = $configDTO;
     }
 }

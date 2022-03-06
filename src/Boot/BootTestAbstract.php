@@ -135,22 +135,64 @@ abstract class BootTestAbstract implements BootTestInterface
         $this->builders[] = $builder;
     }
 
+
+
     /**
      * Run the process to build the databases.
      *
      * @return void
      */
-    public function run(): void
+    public function runBuildSteps(): void
     {
         $this->isAllowedToRun();
 
 //        $this->resolveDI();
         $this->initBuilders();
         $this->purgeStaleThings();
-        $this->executeBuilders();
+
+        foreach ($this->pickBuildersToExecute() as $builder) {
+            $builder->execute();
+        }
 
         $this->registerConnectionDBs();
     }
+
+    /**
+     * Perform things AFTER BUILDING, but BEFORE the TEST has run.
+     *
+     * e.g. Start the re-use transaction.
+     *
+     * @return void
+     */
+    public function runPostBuildSteps(): void
+    {
+        foreach ($this->pickExecutedBuilders() as $builder) {
+            $builder->runPostBuildSteps();
+        }
+    }
+
+    /**
+     * Perform things AFTER the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostTestSteps(): void
+    {
+        $count = 0;
+        foreach ($this->builders as $builder) {
+            $isLast = (++$count == count($this->builders));
+            $builder->runPostTestSteps($isLast);
+        }
+    }
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    abstract public function runPostTestCleanUp(): void;
+
+
 
     /**
      * Check that it's safe to run.
@@ -189,27 +231,6 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function newDefaultBuilder(): DatabaseBuilder;
 
     /**
-     * Execute the builders that this object created (i.e. build their databases).
-     *
-     * Any that have already been executed will be skipped.
-     *
-     * @return void
-     */
-    private function executeBuilders(): void
-    {
-        $builders = $this->pickBuildersToExecute();
-
-        foreach ($builders as $builder) {
-            $builder->execute();
-        }
-
-        // apply the transactions, AFTER all the databases have been built
-        foreach ($builders as $builder) {
-            $builder->applyTransaction();
-        }
-    }
-
-    /**
      * Pick the list of Builders that haven't been executed yet.
      *
      * @return DatabaseBuilder[]
@@ -219,6 +240,22 @@ abstract class BootTestAbstract implements BootTestInterface
         $builders = [];
         foreach ($this->builders as $builder) {
             if (!$builder->hasExecuted()) {
+                $builders[] = $builder;
+            }
+        }
+        return $builders;
+    }
+
+    /**
+     * Pick the list of Builders that have been executed.
+     *
+     * @return DatabaseBuilder[]
+     */
+    private function pickExecutedBuilders(): array
+    {
+        $builders = [];
+        foreach ($this->builders as $builder) {
+            if ($builder->hasExecuted()) {
                 $builders[] = $builder;
             }
         }
@@ -296,27 +333,6 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function defaultDI(string $connection): DIContainer;
 
     /**
-     * Check to see if any of the transactions were committed, and generate an exception.
-     *
-     * To be run after the transaction was rolled back.
-     *
-     * @return void
-     */
-    public function checkForCommittedTransactions(): void
-    {
-        foreach ($this->builders as $builder) {
-            $builder->checkForCommittedTransaction();
-        }
-    }
-
-    /**
-     * Perform any clean-up needed after the test has finished.
-     *
-     * @return void
-     */
-    abstract public function postTestCleanUp(): void;
-
-    /**
      * Handle the process to remove stale databases, snapshots and orphaned config files.
      *
      * @return void
@@ -332,7 +348,7 @@ abstract class BootTestAbstract implements BootTestInterface
             return;
         }
 
-        $this->performPurgeStaleThings();
+        $this->performPurgeOfStaleThings();
     }
 
     /**
@@ -340,7 +356,7 @@ abstract class BootTestAbstract implements BootTestInterface
      *
      * @return void
      */
-    abstract protected function performPurgeStaleThings(): void;
+    abstract protected function performPurgeOfStaleThings(): void;
 
     /**
      * Work out if stale things are allowed to be purged.

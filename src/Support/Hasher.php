@@ -81,17 +81,6 @@ class Hasher
 
 
     /**
-     * Resolve the current build-hash.
-     *
-     * @return string
-     * @throws AdaptConfigException Thrown when a directory or file could not be opened.
-     */
-    public function getBuildHash(): string
-    {
-        return self::$buildHash ??= $this->generateBuildHash();
-    }
-
-    /**
      * Generate the build-hash part for snapshot filenames.
      *
      * @return string
@@ -102,15 +91,31 @@ class Hasher
         return mb_substr($buildHash, 0, 6);
     }
 
+
+
+    /**
+     * Resolve the current build-hash.
+     *
+     * @return string
+     * @throws AdaptConfigException When a directory or file could not be opened.
+     */
+    public function getBuildHash(): string
+    {
+        return self::$buildHash ??= $this->generateBuildHash();
+    }
+
     /**
      * Build a hash based on the source files (and the database name prefix).
      *
+     * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "x" part.
+     * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "x" part.
+     *
      * @return string
-     * @throws AdaptConfigException Thrown when a directory or file could not be opened.
+     * @throws AdaptConfigException When a directory or file could not be opened.
      */
     private function generateBuildHash(): string
     {
-        if (!$this->config->checkForSourceChanges) {
+        if (!$this->configDTO->checkForSourceChanges) {
             return '';
         }
 
@@ -121,7 +126,7 @@ class Hasher
 
         $buildHash = md5(serialize([
             'fileHashes' => $hashes,
-            'databasePrefix' => $this->config->databasePrefix,
+            'databasePrefix' => $this->configDTO->databasePrefix,
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
@@ -153,12 +158,12 @@ class Hasher
      * Look for paths to hash from the hash-paths list.
      *
      * @return string[]
-     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
     private function resolveHashFilePaths(): array
     {
         return $this->resolvePaths(
-            $this->config->hashPaths,
+            $this->configDTO->hashPaths,
             true,
             'databaseRelatedFilesPathInvalid'
         );
@@ -168,12 +173,12 @@ class Hasher
      * Look for pre-migration paths to hash.
      *
      * @return string[]
-     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
     private function resolvePreMigrationPaths(): array
     {
         return $this->resolvePaths(
-            $this->config->pickPreMigrationImports(),
+            $this->configDTO->pickPreMigrationImports(),
             false,
             'preMigrationImportPathInvalid'
         );
@@ -183,12 +188,12 @@ class Hasher
      * Look for migration paths to hash.
      *
      * @return string[]
-     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
     private function resolveMigrationPaths(): array
     {
         return $this->resolvePaths(
-            is_string($this->config->migrations) ? [$this->config->migrations] : [],
+            is_string($this->configDTO->migrations) ? [$this->configDTO->migrations] : [],
             true,
             'migrationsPathInvalid'
         );
@@ -201,7 +206,7 @@ class Hasher
      * @param boolean  $dirAllowed      Recurse into directories?.
      * @param string   $exceptionMethod The method to call if an exception needs to be returned.
      * @return string[]
-     * @throws AdaptConfigException Thrown when a file does not exist or is a directory that shouldn't be used.
+     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
     private function resolvePaths(array $paths, bool $dirAllowed, string $exceptionMethod): array
     {
@@ -222,7 +227,7 @@ class Hasher
      * @param boolean $dirAllowed      Recurse into directories?.
      * @param string  $exceptionMethod The method to call if an exception needs to be returned.
      * @return string[]
-     * @throws AdaptConfigException Thrown when the file does not exist or is a directory that shouldn't be used.
+     * @throws AdaptConfigException When the file does not exist or is a directory that shouldn't be used.
      */
     private function resolvePath(string $path, bool $dirAllowed, string $exceptionMethod): array
     {
@@ -273,14 +278,16 @@ class Hasher
      */
     public function currentSnapshotHash(): string
     {
-        return $this->currentSnapshotHash ??= $this->generateSnapshotHash($this->config->pickSeedersToInclude());
+        return $this->currentSnapshotHash ??= $this->generateSnapshotHash($this->configDTO->pickSeedersToInclude());
     }
 
     /**
      * Generate the snapshot scenario-hash, based on the way this DatabaseBuilder will build this database.
      *
-     * It's based on the database-building file content: the current pre-migration-imports, current migrations and
-     * current seeders.
+     * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "y" part.
+     *
+     * It's based on the database-building file content *that's being used in this situation*:
+     * the current pre-migration-imports, current migrations and current seeders.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string
@@ -288,9 +295,10 @@ class Hasher
     private function generateSnapshotHash(array $seeders): string
     {
         return md5(serialize([
-            'preMigrationImports' => $this->config->preMigrationImports,
-            'migrations' => $this->config->migrations,
+            'preMigrationImports' => $this->configDTO->preMigrationImports,
+            'migrations' => $this->configDTO->migrations,
             'seeders' => $seeders,
+//            'hasAppliedJournaling' => $hasAppliedJournaling, // @todo
         ]));
     }
 
@@ -303,14 +311,16 @@ class Hasher
      */
     public function currentScenarioHash(): string
     {
-        return $this->currentScenarioHash ??= $this->generateScenarioHash($this->config->pickSeedersToInclude());
+        return $this->currentScenarioHash ??= $this->generateScenarioHash($this->configDTO->pickSeedersToInclude());
     }
 
     /**
      * Generate an extended scenario hash.
      *
-     * It's based on the snapshot hash, project-name, original-database name, database re-usability, and
-     * is-browser-test setting.
+     * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "y" part.
+     *
+     * It's based on the settings *being used in this situation*: snapshot hash, project-name, original-database name,
+     * is-browser-test setting, database reusability (transaction and journal) settings, and verification setting.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string
@@ -319,11 +329,15 @@ class Hasher
     {
         return md5(serialize([
             'snapshotHash' => $this->generateSnapshotHash($seeders),
-            'projectName' => $this->config->projectName,
-//            'connection' => $this->config->connection,
-            'origDatabase' => $this->config->origDatabase,
-            'reuseTestDBs' => $this->config->reuseTestDBs,
-            'browserTest' => $this->config->isBrowserTest,
+            'usingScenarios' => $this->configDTO->scenarioTestDBs,
+            'projectName' => $this->configDTO->projectName,
+//            'connection' => $this->configDTO->connection,
+            'origDatabase' => $this->configDTO->origDatabase,
+            'isBrowserTest' => $this->configDTO->isBrowserTest,
+            'reuseTransaction' => $this->configDTO->shouldUseTransaction(),
+            'reuseJournal' => $this->configDTO->shouldUseJournal(),
+            'verifyStructure' => $this->configDTO->shouldVerifyStructure(),
+            'verifyData' => $this->configDTO->shouldVerifyData(),
         ]));
     }
 

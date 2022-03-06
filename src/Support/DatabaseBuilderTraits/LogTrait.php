@@ -16,15 +16,15 @@ trait LogTrait
      */
     private function logTitle(): void
     {
-        $prepLine = "Preparing the \"{$this->config->connection}\" database";
-        if ($this->config->shouldBuildRemotely()) {
+        $prepLine = "Preparing the \"{$this->configDTO->connection}\" database";
+        if ($this->configDTO->shouldBuildRemotely()) {
             $prepLine .= " remotely";
-        } elseif ($this->config->isRemoteBuild) {
+        } elseif ($this->configDTO->isRemoteBuild) {
             $prepLine .= " locally, for another Adapt installation";
         }
 
         $this->di->log->logBox(
-            [$prepLine, "For test \"{$this->config->testName}\""],
+            [$prepLine, "For test \"{$this->configDTO->testName}\""],
             'ADAPT - Preparing a Test-Database'
         );
     }
@@ -36,7 +36,6 @@ trait LogTrait
      */
     private function logTheUsedSettings(): void
     {
-
         $lines = $this->di->log->padList(
             $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderBuildSettings() : []
         );
@@ -51,5 +50,19 @@ trait LogTrait
 //        foreach ($lines as $line) {
 //            $this->di->log->debug($line);
 //        }
+    }
+
+    /**
+     * Log the fact that the remotely-built database is being reused before sending the http request.
+     *
+     * @param string $database The database being reused.
+     * @return void
+     */
+    private function logHttpRequestWasSaved(string $database): void
+    {
+        $this->di->log->debug(
+            "Database \"$database\" was already prepared remotely, "
+            . "and can be reused without sending another request"
+        );
     }
 }

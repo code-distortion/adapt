@@ -15,7 +15,7 @@ trait InjectInclHasherTrait
     protected DIContainer $di;
 
     /** @var ConfigDTO A DTO containing the settings to use. */
-    protected ConfigDTO $config;
+    protected ConfigDTO $configDTO;
 
     /** @var Hasher A Hasher that's used to generate and check hashes. */
     protected Hasher $hasher;
@@ -24,14 +24,14 @@ trait InjectInclHasherTrait
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
-     * @param Hasher      $hasher The object used to generate and check hashes.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
+     * @param Hasher      $hasher    The object used to generate and check hashes.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config, Hasher $hasher)
+    public function __construct(DIContainer $di, ConfigDTO $configDTO, Hasher $hasher)
     {
         $this->di = $di;
-        $this->config = $config;
+        $this->configDTO = $configDTO;
         $this->hasher = $hasher;
     }
 }

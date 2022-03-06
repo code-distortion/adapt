@@ -27,19 +27,19 @@ class Exceptions
             $title = $e->generateTitleForLog();
         } else {
             $lines = array_filter([$e->getMessage()]);
-            $title = 'An Exception Occurred - ' . Exceptions::resolveExceptionClass($e);
+            $title = 'An Exception Occurred - ' . Exceptions::readableExceptionClass($e);
         }
 
         $log->logBox($lines, $title, 'error', $newLineAfter);
     }
 
     /**
-     * Resolve a readable name for an exception.
+     * Generate a readable name for an exception.
      *
      * @param Throwable $e The exception that was thrown.
      * @return string
      */
-    public static function resolveExceptionClass(Throwable $e): string
+    public static function readableExceptionClass(Throwable $e): string
     {
         $exceptionClass = get_class($e);
         if (!is_a($e, AdaptException::class)) {

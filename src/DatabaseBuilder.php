@@ -13,11 +13,14 @@ use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ConfigAdapterAndDriverTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\DatabaseTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\LogTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\OnlyExecuteOnceTrait;
-use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\TransactionTrait;
+use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ReuseTransactionTrait;
+use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ReuseJournalTrait;
+use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\VerificationTrait;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
@@ -39,7 +42,11 @@ class DatabaseBuilder
     use HasConfigDTOTrait;
     use LogTrait;
     use OnlyExecuteOnceTrait;
-    use TransactionTrait;
+    use ReuseTransactionTrait;
+    use ReuseJournalTrait;
+    use VerificationTrait;
+
+
 
     /** @var string The framework currently being used. */
     protected string $framework;
@@ -74,22 +81,27 @@ class DatabaseBuilder
      *
      * @param string      $framework         The framework currently being used.
      * @param DIContainer $di                The dependency-injection container to use.
-     * @param ConfigDTO   $config            A DTO containing the settings to use.
+     * @param ConfigDTO   $configDTO         A DTO containing the settings to use.
      * @param Hasher      $hasher            The Hasher object to use.
      * @param callable    $pickDriverClosure A closure that will return the driver for the given connection.
      */
     public function __construct(
         string $framework,
         DIContainer $di,
-        ConfigDTO $config,
+        ConfigDTO $configDTO,
         Hasher $hasher,
         callable $pickDriverClosure
     ) {
         $this->framework = $framework;
         $this->di = $di;
-        $this->config = $config;
+        $this->configDTO = $configDTO;
         $this->hasher = $hasher;
         $this->pickDriverClosure = $pickDriverClosure;
+
+        // update $configDTO with some extra settings now that the driver is known
+        $this->configDTO->dbIsTransactionable($this->dbAdapter()->reuseTransaction->isTransactionable());
+        $this->configDTO->dbIsJournalable($this->dbAdapter()->reuseJournal->isJournalable());
+        $this->configDTO->dbIsVerifiable($this->dbAdapter()->verifier->isVerifiable());
     }
 
 
@@ -116,6 +128,39 @@ class DatabaseBuilder
         return $this;
     }
 
+    /**
+     * Perform things after building, but BEFORE the test has run.
+     *
+     * @return void
+     */
+    public function runPostBuildSteps()
+    {
+        $this->recordVerificationStart();
+        $this->recordJournalingStart();
+        $this->applyTransaction();
+    }
+
+    /**
+     * Perform things after the TEST has run.
+     *
+     * @param boolean $isLast Whether this is the last Builder to run or not.
+     * @return void
+     * @throws AdaptTransactionException When the re-use transaction was committed.
+     */
+    public function runPostTestSteps(bool $isLast)
+    {
+        // work out when the new-line should be added
+        $c = $isLast && $this->configDTO->shouldVerifyData();
+        $b = $isLast && $this->configDTO->shouldUseJournal() && !$c;
+        $a = $isLast && $this->configDTO->shouldVerifyStructure() && !$b && !$c;
+
+        $this->checkForCommittedTransaction();
+        $this->verifyDatabaseStructure($a);
+        $this->reverseJournal($b);
+        $this->verifyDatabaseData($c);
+        $this->recordVerificationStop();
+    }
+
 
 
 //    /**
@@ -128,7 +173,7 @@ class DatabaseBuilder
 //        $resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
 //        if ($resolvedSettingsDTO) {
 //            $this->hasher->buildHashWasPreCalculated($resolvedSettingsDTO->buildHash);
-//        } elseif (!$this->config->shouldBuildRemotely()) {
+//        } elseif (!$this->configDTO->shouldBuildRemotely()) {
 //            $this->hasher->getBuildHash();
 //        }
 //    }
@@ -140,7 +185,7 @@ class DatabaseBuilder
      */
     private function prePreparationChecks(): void
     {
-        $this->config->checkThatSessionDriversMatch();
+        $this->configDTO->ensureThatSessionDriversMatch();
     }
 
 
@@ -154,9 +199,9 @@ class DatabaseBuilder
     {
         $logTimer = $this->di->log->newTimer();
 
-        $reusedLocally = $this->reuseLocallyIfPossible();
+        $reusedLocally = $this->reuseRemotelyBuiltDBLocallyIfPossible();
         if ($reusedLocally) {
-            $this->di->log->debug('Reusing the existing database', $logTimer);
+//            $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database", $logTimer);
             return;
         }
 
@@ -164,7 +209,7 @@ class DatabaseBuilder
 
         $forceRebuild = ($reusedLocally === false); // false means it was built before, but couldn't be reused
 
-        $this->config->shouldBuildRemotely()
+        $this->configDTO->shouldBuildRemotely()
             ? $this->buildDBRemotely($forceRebuild, $logTimer)
             : $this->buildDBLocally($forceRebuild, $logTimer);
     }
@@ -174,32 +219,34 @@ class DatabaseBuilder
 
 
     /**
-     * If the database has been resolved before (within the same test-run).
+     * Check if the database was built remotely, earlier in the test-run. Then re-use it if it can be.
      *
-     * @return boolean|null
+     * (This avoids needing to make a remote request to build when the hashes have already been calculated).
+     *
+     * @return boolean|null Null = irrelevant (just build it), false = it exists but can't be reused (force-rebuild).
      */
-    private function reuseLocallyIfPossible(): ?bool
+    private function reuseRemotelyBuiltDBLocallyIfPossible(): ?bool
     {
-        $reuseLocally = $this->checkLocallyIfCanReuseDB();
+        $reuseLocally = $this->checkLocallyIfRemotelyBuiltDBCanBeReused();
 
         if ($reuseLocally) {
-            $this->locallyReuseDB();
+            $this->reuseRemotelyBuiltDB();
         }
 
         return $reuseLocally;
     }
 
     /**
-     * Check if the current database can be re-used.
+     * Check if the current database was built remotely earlier in the test-run, and can be re-used now.
      *
-     * @return boolean|null
+     * @return boolean|null Null = irrelevant (just build it), false = it exists but can't be reused (force-rebuild).
      * @throws Throwable When something goes wrong.
      */
-    private function checkLocallyIfCanReuseDB(): ?bool
+    private function checkLocallyIfRemotelyBuiltDBCanBeReused(): ?bool
     {
         try {
 
-            if (!$this->config->shouldBuildRemotely()) {
+            if (!$this->configDTO->shouldBuildRemotely()) {
                 return null;
             }
 
@@ -217,7 +264,8 @@ class DatabaseBuilder
                 (string) $resolvedSettingsDTO->database,
             );
 
-            $this->silentlyUseDatabase((string) $origDatabase); // restore it back so it can be officially changed later
+            // restore it back so it can be officially changed later
+            $this->silentlyUseDatabase((string) $origDatabase);
 
             return $return;
 
@@ -233,7 +281,7 @@ class DatabaseBuilder
      */
     private function getTheRelevantPreviousResolvedSettingsDTO(): ?ResolvedSettingsDTO
     {
-        if (!$this->config->connectionExists) {
+        if (!$this->configDTO->connectionExists) {
             return null;
         }
 
@@ -241,31 +289,32 @@ class DatabaseBuilder
     }
 
     /**
-     * Reuse the database.
+     * Reuse the database that was built remotely.
      *
      * @return void
      * @throws Throwable When something goes wrong.
      */
-    private function locallyReuseDB(): void
+    private function reuseRemotelyBuiltDB(): void
     {
         try {
 
-            if ($this->config->shouldInitialise()) {
+            if ($this->configDTO->shouldInitialise()) {
                 $this->initialise();
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
 
-            $connection = $this->config->connection;
+            $connection = $this->configDTO->connection;
             $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
             $buildHash = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildHash : null;
-            $this->config->remoteBuildUrl = null; // stop the debug output from showing that it's being built remotely
+            $this->configDTO->remoteBuildUrl = null; // stop debug output from showing that it's being built remotely
             $this->hasher->buildHashWasPreCalculated($buildHash);
 
             $this->logTitle();
+            $this->logHttpRequestWasSaved($database);
 
-            if (!$this->config->shouldInitialise()) {
-//                $this->config->database($database);
+            if (!$this->configDTO->shouldInitialise()) {
+//                $this->configDTO->database($database);
                 $this->di->log->debug("Not using connection \"$connection\" locally");
                 return;
             }
@@ -288,19 +337,20 @@ class DatabaseBuilder
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
      * @param integer $logTimer     The timer, started a little earlier.
      * @return void
-     * @throws AdaptConfigException Thrown when building failed.
+     * @throws AdaptConfigException When building failed.
      */
     private function buildDBLocally(bool $forceRebuild, int $logTimer): void
     {
         $this->initialise();
 
-        $this->hasher->buildHashWasPreCalculated($this->config->preCalculatedBuildHash); // only uses when not null
+        $this->hasher->buildHashWasPreCalculated($this->configDTO->preCalculatedBuildHash); // only used when not null
 
         $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
 
         $this->logTheUsedSettings();
 
         $this->pickDatabaseNameAndUse();
+
         $this->buildOrReuseDBLocally($forceRebuild, $logTimer);
     }
 
@@ -313,14 +363,12 @@ class DatabaseBuilder
      */
     private function initialise(): void
     {
-        if (!$this->config->connectionExists) {
-            throw AdaptConfigException::invalidConnection($this->config->connection);
+        if (!$this->configDTO->connectionExists) {
+            throw AdaptConfigException::invalidConnection($this->configDTO->connection);
         }
 
-        $this->pickDriver();
-
-        if (($this->config->isBrowserTest) && (!$this->dbAdapter()->build->isCompatibleWithBrowserTests())) {
-            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests((string) $this->config->driver);
+        if (($this->configDTO->isBrowserTest) && (!$this->dbAdapter()->build->isCompatibleWithBrowserTests())) {
+            throw AdaptBuildException::databaseNotCompatibleWithBrowserTests((string) $this->configDTO->driver);
         }
     }
 
@@ -330,28 +378,24 @@ class DatabaseBuilder
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
      * @param integer $logTimer     The timer, started a little earlier.
      * @return void
-     * @throws Throwable Thrown when the database couldn't be used.
+     * @throws Throwable When the database couldn't be used.
      */
     private function buildOrReuseDBLocally(bool $forceRebuild, int $logTimer): void
     {
         try {
-
             $canReuse = !$forceRebuild && $this->canReuseDB(
                 $this->hasher->getBuildHash(),
                 $this->hasher->currentScenarioHash(),
-                (string) $this->config->database,
+                (string) $this->configDTO->database,
             );
 
             if ($canReuse) {
-                $this->di->log->debug('Reusing the existing database', $logTimer);
+                $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database", $logTimer);
             } else {
                 $this->buildDBFresh();
             }
 
-            $this->writeReuseMetaData(
-                $this->hasher->currentScenarioHash(),
-                $this->config->dbWillBeReusable()
-            );
+            $this->writeBlankReuseMetaData();
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -374,37 +418,71 @@ class DatabaseBuilder
         string $database
     ): bool {
 
-        if (!$this->config->usingReuseTestDBs()) {
+        if (!$this->configDTO->reusingDB()) {
             return false;
         }
 
-        if ($this->config->forceRebuild) {
+        if ($this->configDTO->forceRebuild) {
             return false;
         }
 
-        return $this->dbAdapter()->reuse->dbIsCleanForReuse(
+        return $this->dbAdapter()->reuseTransaction->dbIsCleanForReuse(
             $buildHash,
             $scenarioHash,
-            $this->config->projectName,
+            $this->configDTO->projectName,
             $database
         );
+    }
+
+//    /**
+//     * Create the re-use meta-data table - with the current settings.
+//     *
+//     * @return void
+//     */
+//    private function writeCurrentReuseMetaData()
+//    {
+//        $this->writeReuseMetaData(
+//            $this->hasher->currentScenarioHash(),
+//            $this->configDTO->shouldUseTransactions(),
+//            $this->configDTO->shouldUseJournal(),
+//            $this->configDTO->shouldVerifyDatabase()
+//        );
+//    }
+
+    /**
+     * Create the re-use meta-data table - with blank settings.
+     *
+     * @return void
+     */
+    private function writeBlankReuseMetaData()
+    {
+        $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false, false, false);
     }
 
     /**
      * Create the re-use meta-data table.
      *
-     * @param string  $scenarioHash The current scenario hash.
-     * @param boolean $reusable     Whether this database can be reused or not.
+     * @param string  $scenarioHash        The current scenario hash.
+     * @param boolean $transactionReusable Whether this database can be reused because of a transaction or not.
+     * @param boolean $journalReusable     Whether this database can be reused because of journaling or not.
+     * @param boolean $willVerify          Whether this database will be verified or not.
      * @return void
      */
-    private function writeReuseMetaData(string $scenarioHash, bool $reusable)
-    {
-        $this->dbAdapter()->reuse->writeReuseMetaData(
+    private function writeReuseMetaData(
+        string $scenarioHash,
+        bool $transactionReusable,
+        bool $journalReusable,
+        bool $willVerify
+    ): void {
+
+        $this->dbAdapter()->reuseTransaction->writeReuseMetaData(
             $this->origDBName(),
             $this->hasher->getBuildHash(),
             $this->hasher->currentSnapshotHash(),
             $scenarioHash,
-            $reusable
+            $transactionReusable,
+            $journalReusable,
+            $willVerify
         );
     }
 
@@ -415,16 +493,16 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->di->log->debug('Building the database…');
+        $this->di->log->debug("Building database \"{$this->configDTO->database}\"…");
 
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
             // put the meta-table there straight away (even though it hasn't been built yet)
             // so another instance will identify that this database is an Adapt one
-            $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false);
+            $this->writeBlankReuseMetaData();
         }
 
-        ($this->config->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())
+        ($this->configDTO->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())
             ? $this->buildDBFromSnapshot()
             : $this->buildDBFromScratch();
     }
@@ -436,14 +514,16 @@ class DatabaseBuilder
      */
     private function buildDBFromSnapshot(): void
     {
-        $seeders = $this->config->pickSeedersToInclude();
+        $seeders = $this->configDTO->pickSeedersToInclude();
         $seedersLeftToRun = [];
 
         if ($this->trySnapshots($seeders, $seedersLeftToRun)) {
-            if (!count($seedersLeftToRun)) {
-                return;
+            if (count($seedersLeftToRun)) {
+                $this->seed($seedersLeftToRun);
+                $this->takeSnapshotAfterSeeders();
             }
-            $this->seed($seedersLeftToRun);
+            $this->setUpVerification();
+            $this->setUpJournaling();
         } else {
             $this->buildDBFromScratch();
         }
@@ -459,16 +539,17 @@ class DatabaseBuilder
         // the db may have been reset above in buildDBFresh(),
         // if it wasn't, do it now to make sure it exists and is empty
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-
             $this->dbAdapter()->build->resetDB();
-
-            // put the meta-table there straight away
-            $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false);
+            $this->writeBlankReuseMetaData(); // put the meta-table there straight away
         }
 
         $this->importPreMigrationImports();
         $this->migrate();
+        $this->takeSnapshotAfterMigrations();
         $this->seed();
+        $this->takeSnapshotAfterSeeders();
+        $this->setUpVerification();
+        $this->setUpJournaling();
     }
 
 
@@ -481,15 +562,15 @@ class DatabaseBuilder
      */
     private function importPreMigrationImports(): void
     {
-        $preMigrationImports = $this->config->pickPreMigrationImports();
+        $preMigrationImports = $this->configDTO->pickPreMigrationImports();
         if (!count($preMigrationImports)) {
             return;
         }
 
         if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
             throw AdaptSnapshotException::importsNotAllowed(
-                (string) $this->config->driver,
-                (string) $this->config->database
+                (string) $this->configDTO->driver,
+                (string) $this->configDTO->database
             );
         }
 
@@ -510,9 +591,9 @@ class DatabaseBuilder
      */
     private function migrate(): void
     {
-        $migrationsPath = is_string($this->config->migrations)
-            ? $this->config->migrations
-            : (bool) $this->config->migrations;
+        $migrationsPath = is_string($this->configDTO->migrations)
+            ? $this->configDTO->migrations
+            : (bool) $this->configDTO->migrations;
 
         if (!mb_strlen((string) $migrationsPath)) {
             return;
@@ -527,11 +608,6 @@ class DatabaseBuilder
         }
 
         $this->dbAdapter()->build->migrate($migrationsPath);
-
-        if ($this->config->shouldTakeSnapshotAfterMigrations()) {
-            $seedersRun = []; // i.e. no seeders
-            $this->takeDBSnapshot($seedersRun);
-        }
     }
 
 
@@ -544,23 +620,51 @@ class DatabaseBuilder
      */
     private function seed(array $seeders = null): void
     {
-        if (!$this->config->seedingIsAllowed()) {
+        if (!$this->configDTO->seedingIsAllowed()) {
             return;
         }
 
         if (is_null($seeders)) {
-            $seeders = $this->config->pickSeedersToInclude();
+            $seeders = $this->configDTO->pickSeedersToInclude();
         }
+
         if (!count($seeders)) {
             return;
         }
 
         $this->dbAdapter()->build->seed($seeders);
+    }
 
-        if ($this->config->shouldTakeSnapshotAfterSeeders()) {
-            $seedersRun = $this->config->pickSeedersToInclude(); // i.e. all seeders
-            $this->takeDBSnapshot($seedersRun);
+
+
+    /**
+     * Take the snapshot that would be taken after the migrations have been run.
+     *
+     * @return void
+     */
+    private function takeSnapshotAfterMigrations(): void
+    {
+        if (!$this->configDTO->shouldTakeSnapshotAfterMigrations()) {
+            return;
         }
+
+        $seedersRun = []; // i.e. no seeders
+        $this->takeDBSnapshot($seedersRun);
+    }
+
+    /**
+     * Take the snapshot that would be taken after the seeders have been run.
+     *
+     * @return void
+     */
+    private function takeSnapshotAfterSeeders(): void
+    {
+        if (!$this->configDTO->shouldTakeSnapshotAfterSeeders()) {
+            return;
+        }
+
+        $seedersRun = $this->configDTO->pickSeedersToInclude(); // i.e. all seeders
+        $this->takeDBSnapshot($seedersRun);
     }
 
 
@@ -573,7 +677,7 @@ class DatabaseBuilder
      */
     private function takeDBSnapshot(array $seeders): void
     {
-        if (!$this->config->snapshotsAreEnabled()) {
+        if (!$this->configDTO->snapshotsAreEnabled()) {
             return;
         }
         if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
@@ -582,13 +686,13 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuse->removeReuseMetaTable(); // remove the meta-table for the snapshot
+        $this->dbAdapter()->reuseTransaction->removeReuseMetaTable(); // remove the meta-table for the snapshot
 
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
         // put the meta-table back
-        $this->writeReuseMetaData($this->hasher->currentScenarioHash(), $this->config->dbWillBeReusable());
+        $this->writeBlankReuseMetaData();
 
         $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
@@ -668,10 +772,10 @@ class DatabaseBuilder
     private function buildDBRemotely(bool $forceRebuild, int $logTimer): void
     {
         if (!$this->dbAdapter()->build->canBeBuiltRemotely()) {
-            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely((string) $this->config->driver);
+            throw AdaptRemoteBuildException::databaseTypeCannotBeBuiltRemotely((string) $this->configDTO->driver);
         }
 
-        if ($this->config->shouldInitialise()) {
+        if ($this->configDTO->shouldInitialise()) {
             $this->initialise();
         }
 
@@ -685,12 +789,13 @@ class DatabaseBuilder
         $connection = $this->resolvedSettingsDTO->connection;
         $database = (string) $this->resolvedSettingsDTO->database;
 
-        $this->config->dbWillBeReusable()
-            ? $this->di->log->debug("Database \"$database\" was built or reused. Remote preparation time", $logTimer)
-            : $this->di->log->debug("Database \"$database\" was built. Remote preparation time", $logTimer);
+        $message = $this->configDTO->reusingDB()
+            ? "Database \"$database\" was built or reused. Remote preparation time"
+            : "Database \"$database\" was built. Remote preparation time";
+        $this->di->log->debug($message, $logTimer);
 
-        if (!$this->config->shouldInitialise()) {
-//            $this->config->database($database);
+        if (!$this->configDTO->shouldInitialise()) {
+//            $this->configDTO->database($database);
             $this->di->log->debug("Not using connection \"$connection\" locally");
             return;
         }
@@ -704,7 +809,7 @@ class DatabaseBuilder
      *
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
      * @return ResolvedSettingsDTO
-     * @throws AdaptRemoteBuildException Thrown when the database couldn't be built.
+     * @throws AdaptRemoteBuildException When the database couldn't be built.
      */
     private function sendBuildRemoteRequest(bool $forceRebuild): ResolvedSettingsDTO
     {
@@ -739,15 +844,15 @@ class DatabaseBuilder
      */
     private function prepareConfigForRemoteRequest(string $remoteBuildUrl, bool $forceRebuild): ConfigDTO
     {
-        $config = clone $this->config;
+        $configDTO = clone $this->configDTO;
 
         if ($forceRebuild) {
-            $config->forceRebuild = true;
+            $configDTO->forceRebuild = true;
         }
 
         // save time by telling the remote Adapt installation what the build-hash was from last time.
-        $config->preCalculatedBuildHash(Hasher::getRemoteBuildHash($remoteBuildUrl));
-        return $config;
+        $configDTO->preCalculatedBuildHash(Hasher::getRemoteBuildHash($remoteBuildUrl));
+        return $configDTO;
     }
 
     /**
@@ -763,7 +868,7 @@ class DatabaseBuilder
         $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
 
         return AdaptRemoteBuildException::remoteBuildFailed(
-            $this->config->connection,
+            $this->configDTO->connection,
             $url,
             $response,
             $e,
@@ -775,11 +880,11 @@ class DatabaseBuilder
      * Build the url to use when building the database remotely.
      *
      * @return string
-     * @throws AdaptRemoteBuildException Thrown when the url is invalid.
+     * @throws AdaptRemoteBuildException When the url is invalid.
      */
     private function buildRemoteUrl(): string
     {
-        $remoteUrl = $origUrl = (string) $this->config->remoteBuildUrl;
+        $remoteUrl = $origUrl = (string) $this->configDTO->remoteBuildUrl;
         $pos = mb_strpos($remoteUrl, '?');
         if ($pos !== false) {
             $remoteUrl = mb_substr($remoteUrl, 0, $pos);
@@ -809,7 +914,7 @@ class DatabaseBuilder
      */
     public function buildDatabaseMetaInfos(): array
     {
-        return $this->dbAdapter()->reuse->findDatabases(
+        return $this->dbAdapter()->find->findDatabases(
             $this->origDBName(),
             $this->hasher->getBuildHash()
         );
@@ -821,17 +926,17 @@ class DatabaseBuilder
      * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
      *
      * @return SnapshotMetaInfo[]
-     * @throws AdaptSnapshotException Thrown when a snapshot file couldn't be used.
+     * @throws AdaptSnapshotException When a snapshot file couldn't be used.
      */
     public function buildSnapshotMetaInfos(): array
     {
-        if (!$this->di->filesystem->dirExists($this->config->storageDir)) {
+        if (!$this->di->filesystem->dirExists($this->configDTO->storageDir)) {
             return [];
         }
 
         try {
             $snapshotMetaInfos = [];
-            $filePaths = $this->di->filesystem->filesInDir($this->config->storageDir);
+            $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
             foreach ($filePaths as $path) {
                 $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
             }
@@ -851,7 +956,7 @@ class DatabaseBuilder
     {
         $temp = explode('/', $path);
         $filename = (string) array_pop($temp);
-        $prefix = $this->config->snapshotPrefix;
+        $prefix = $this->configDTO->snapshotPrefix;
 
         if (mb_substr($filename, 0, mb_strlen($prefix)) != $prefix) {
             return null;
@@ -869,7 +974,7 @@ class DatabaseBuilder
             $accessDT,
             $this->hasher->filenameHasBuildHash($filename),
             fn() => $this->di->filesystem->size($path),
-            $this->config->staleGraceSeconds
+            $this->configDTO->staleGraceSeconds
         );
         $snapshotMetaInfo->setDeleteCallback(fn() => $this->removeSnapshotFile($snapshotMetaInfo));
         return $snapshotMetaInfo;
@@ -933,35 +1038,37 @@ class DatabaseBuilder
      */
     private function buildResolvedSettingsDTO(string $database): ResolvedSettingsDTO
     {
-        $config = $this->config;
-        $canHash = $config->usingScenarioTestDBs() && !$config->shouldBuildRemotely();
+        $configDTO = $this->configDTO;
+        $canHash = $configDTO->usingScenarioTestDBs() && !$configDTO->shouldBuildRemotely();
 
         return (new ResolvedSettingsDTO())
-            ->projectName($config->projectName)
-            ->testName($config->testName)
-            ->connection($config->connection)
-            ->driver((string) $config->driver)
+            ->projectName($configDTO->projectName)
+            ->testName($configDTO->testName)
+            ->connection($configDTO->connection)
+            ->driver((string) $configDTO->driver)
             ->host($this->di->db->getHost())
             ->database($database)
-            ->storageDir($config->storageDir)
-            ->preMigrationImports($config->pickPreMigrationImports())
-            ->migrations($config->migrations)
-            ->seeders($config->seedingIsAllowed(), $config->seeders)
+            ->storageDir($configDTO->storageDir)
+            ->preMigrationImports($configDTO->pickPreMigrationImports())
+            ->migrations($configDTO->migrations)
+            ->seeders($configDTO->seedingIsAllowed(), $configDTO->seeders)
             ->builtRemotely(
-                $config->shouldBuildRemotely(),
-                $config->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
+                $configDTO->shouldBuildRemotely(),
+                $configDTO->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
             )
             ->snapshotType(
-                $config->snapshotType(),
-                is_string($config->useSnapshotsWhenReusingDB) ? $config->useSnapshotsWhenReusingDB : null,
-                is_string($config->useSnapshotsWhenNotReusingDB) ? $config->useSnapshotsWhenNotReusingDB : null,
+                $configDTO->snapshotType(),
+                is_string($configDTO->useSnapshotsWhenReusingDB) ? $configDTO->useSnapshotsWhenReusingDB : null,
+                is_string($configDTO->useSnapshotsWhenNotReusingDB) ? $configDTO->useSnapshotsWhenNotReusingDB : null,
             )
-            ->isBrowserTest($config->isBrowserTest)
-            ->sessionDriver($config->sessionDriver)
-            ->databaseIsReusable($config->dbWillBeReusable())
-            ->forceRebuild($config->forceRebuild)
+            ->isBrowserTest($configDTO->isBrowserTest)
+            ->sessionDriver($configDTO->sessionDriver)
+            ->transactionReusable($configDTO->shouldUseTransaction())
+            ->journalReusable($configDTO->shouldUseJournal())
+            ->verifyDatabase($configDTO->verifyDatabase)
+            ->forceRebuild($configDTO->forceRebuild)
             ->scenarioTestDBs(
-                $config->usingScenarioTestDBs(),
+                $configDTO->usingScenarioTestDBs(),
                 $canHash ? $this->hasher->getBuildHash() : null,
                 $canHash ? $this->hasher->currentSnapshotHash() : null,
                 $canHash ? $this->hasher->currentScenarioHash() : null

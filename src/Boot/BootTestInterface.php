@@ -76,7 +76,30 @@ interface BootTestInterface
      *
      * @return void
      */
-    public function run(): void;
+    public function runBuildSteps(): void;
+
+    /**
+     * Perform things AFTER BUILDING, but BEFORE the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostBuildSteps(): void;
+
+    /**
+     * Perform things AFTER the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostTestSteps(): void;
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    public function runPostTestCleanUp(): void;
+
+
 
     /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.
@@ -85,7 +108,7 @@ interface BootTestInterface
      *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
      */
     public function newBuilder(string $connection): DatabaseBuilder;
 
@@ -105,20 +128,4 @@ interface BootTestInterface
      * @return void
      */
     public function haveBrowsersShareConfig(array $browsers, array $connectionDBs): void;
-
-    /**
-     * Check to see if any of the transactions were committed, and generate an exception.
-     *
-     * To be run after the transaction was rolled back.
-     *
-     * @return void
-     */
-    public function checkForCommittedTransactions(): void;
-
-    /**
-     * Perform any clean-up needed after the test has finished.
-     *
-     * @return void
-     */
-    public function postTestCleanUp(): void;
 }
