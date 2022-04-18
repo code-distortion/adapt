@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
-## [0.9.0] - 2022-04-18 
+## [0.9.1] - 2022-04-19
+
+### Fixed
+- Fixed a re-use Journal bug when determining if a table's structure has changed, after its auto-increment value increased
+
+
+
+## [0.9.0] - 2022-04-18
 
 ### Added
 - Added **EXPERIMENTAL** *journaling* functionality for MySQL databases (needs documentation), a new way to re-use databases without using transactions
@@ -27,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Deprecated
 - The test-class property `reuseTestDBs` has been replaced with `$reuseTransaction`
 - The config `code_distortion.adapt.reuse_test_dbs` setting has been replaced with `code_distortion.adapt.reuse.transactions`
-- The Builder `reuseTestDBs()` and `noReuseTestDBs()` methods (that you might call in a test's `databaseInit(..)` method) have been replaced with `reuseTransaction()` and `noReuseTransaction()` 
+- The Builder `reuseTestDBs()` and `noReuseTestDBs()` methods (that you might call in a test's `databaseInit(..)` method) have been replaced with `reuseTransaction()` and `noReuseTransaction()`
 
 
 

@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\ReuseJournalInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectInclVerifierTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptJournalException;
 use CodeDistortion\Adapt\Support\Settings;
+use CodeDistortion\Adapt\Support\StringSupport;
 use PDOException;
 use Throwable;
 
@@ -143,7 +144,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
     }
 
     /**
-     * Update a query by removing the "AUTO INCREMENT" part (if present).
+     * Update a query by removing the "AUTO_INCREMENT" part (if present).
      *
      * @param string $query The query to update.
      * @return string
@@ -193,7 +194,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         $newPrimaryKey = "PRIMARY KEY (`$newPrimaryKeyField`)";
         $newLastPart = ",\n  $newPrimaryKey\n$engineLine"; // put the engine line back in, as well as a new primary-key
 
-        return $this->strReplaceLast($lastPart, $newLastPart, $query);
+        return StringSupport::strReplaceLast($lastPart, $newLastPart, $query);
     }
 
     /**
@@ -229,29 +230,6 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         }
 
         return $return;
-    }
-
-    /**
-     * Perform a str_replace(..) but only for the last occurrence.
-     *
-     * @param string $search  The string to search for.
-     * @param string $replace The string to replace it with.
-     * @param string $subject The string to search through.
-     * @return string
-     */
-    private function strReplaceLast(string $search, string $replace, string $subject): string
-    {
-        $pos = mb_strpos(strrev($subject), strrev($search));
-        $pos += mb_strlen($search);
-        $pos = mb_strlen($subject) - $pos;
-
-        $start = mb_substr($subject, 0, $pos);
-        $end = mb_substr($subject, $pos);
-
-        // perform the replacement only in the last portion of the string
-        $end = str_replace($search, $replace, $end);
-
-        return "$start$end";
     }
 
 
