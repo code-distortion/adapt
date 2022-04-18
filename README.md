@@ -290,7 +290,7 @@ Your test's config settings (from `.env.testing`) are passed to the server throu
 
 > When Dusk tests are run, transactions are turned off and snapshot dumps are turned on instead.
 
-***Note:*** Running your Dusk tests with `php artisan dusk` works. However, if you do, it goes through the process of copying `.env.dusk.local` over `.env`, which isn't necessary. Use one of the other [methods below](#running-your-tests) instead.
+***Note:*** Running your Dusk tests with `php artisan dusk` works. However, if you do, it goes through the process of copying `.env.dusk.local` over `.env`, which is unnecessary. Use one of the other [methods below](#running-your-tests) instead.
 
 You might like to add the `test/Browser` directory as a [PHPUnit test suite](https://phpunit.readthedocs.io/en/9.5/organizing-tests.html#composing-a-test-suite-using-xml-configuration), so it's picked up by default when you run your tests:
 
@@ -318,7 +318,7 @@ php artisan test --parallel tests
 Just run your tests like normal:
 
 ``` bash
-php artisan test --parallel
+php artisan test
 ```
 
 All the normal methods of running your tests work:
@@ -326,11 +326,11 @@ All the normal methods of running your tests work:
 ``` bash
 # using Laravel's test command
 php artisan test
-# using Laravel's command to start parallel tests
+# using Laravel's command to run tests in parallel
 php artisan test --parallel
 # run PHPUnit directly
 ./vendor/bin/phpunit
-# run ParaTest directly
+# run ParaTest directly to run tests in parallel
 ./vendor/bin/paratest
 ```
 
@@ -353,11 +353,11 @@ You won't need to clear old databases and snapshot files as Adapt does this auto
 To carry out the different types of caching that this package uses, you may need to address the following:
 
 - When connecting to your database server, the user your code connects with needs to have **permission to create and drop databases**.
-- The user your tests run as needs to have **write-access to the filesystem** to store snapshots and sqlite files.
+- The user your tests run as needs to have **write-access to the filesystem** to store snapshot sql-dumps or sqlite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
 - If you have several projects using Adapt that use the same database server, you should give each one a unique `project_name` config value to stop them from interfering with each other's test-databases.
-- If you see databases with names like *test_your_database_name_17bd3c_d266ab43ac75*, don't worry! These are the [scenario databases](#creation-of-scenario-databases). Leave them to get the speed benefit of reusing them (but you can safely delete them).
-- Adapt creates a table in your test-databases called `____adapt____` which holds meta-data used to identify when the database can be used.
+- If you see databases with names like "*test_your_database_name_17bd3c_d266ab43ac75*", don't worry! These are the ["scenario" databases](#creation-of-scenario-databases). Leave them to get the speed benefit of reusing them (but you can safely delete them).
+- Adapt creates table/s in your test-databases with the prefix `____adapt` which holds meta-data used to manage the re-use process.
 
 See the [scenarios and techniques](#testing-scenarios-and-techniques) section below for more tips.
 
@@ -396,11 +396,18 @@ class MyFeatureTest extends TestCase
     protected $buildDatabases = true;
 
     /**
-     * Let Adapt re-use databases.
+     * Let Adapt re-use databases using a transaction.
      *
      * @var boolean
      */
-    protected bool $reuseTestDBs = true;
+    protected bool $reuseTransaction = true;
+
+    /**
+     * Let Adapt re-use databases using journaling (MySQL only).
+     *
+     * @var boolean
+     */
+    protected bool $reuseJournal = true;
 
     /**
      * Let Adapt create databases dynamically (with distinct names) based on
@@ -439,7 +446,7 @@ class MyFeatureTest extends TestCase
      * NOTE: pre_migration_imports aren't available for sqlite :memory:
      * databases.
      *
-     * @var string[]|string[][]
+     * @var array<string, string>|array<string, string[]>
      */
     protected array $preMigrationImports = [
         'mysql' => ['database/dumps/mysql/my-database.sql'],
@@ -485,14 +492,15 @@ class MyFeatureTest extends TestCase
     protected string $defaultConnection = 'mysql';
 
     /**
-     * When performing browser tests, "reuse_test_dbs" needs to be turned off.
+     * When browser-tests are being performed, transaction-based database
+     * re-use needs to be disabled.
      *
      * This is because the browser (which runs in a different process and
      * causes outside requests to your website) needs to access the same
-     * database that your tests build.
+     * database that your test built.
      *
-     * When this value isn't present Adapt will attempt to detect if a browser
-     * test is running.
+     * If you don't specify this value,  Adapt will automatically
+     * detect if a browser test is running.
      *
      * @var boolean
      */
@@ -535,12 +543,16 @@ class MyFeatureTest extends TestCase
         // you can override them with any of the following…
         $builder
             ->connection('primary-mysql') // specify another connection to build a db for
+            ->checkForSourceChanges() // or ->dontCheckForSourceChanges()
             ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
             ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
             ->seeders(['DatabaseSeeder']) // or ->noSeeders()
-            ->reuseTestDBs() // or ->noReuseTestDBs()
+            ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
+            ->reuseTransaction() // or ->noReuseTransaction()
+            ->reuseJournal() // or ->noReuseJournal()
             ->scenarioTestDBs() // or ->noScenarioTestDBs()
-            ->snapshots() // or ->noSnapshots()
+            ->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB) // or ->noSnapshots()
+            ->forceRebuild() // or ->dontForceRebuild()
             ->isBrowserTest() // or isNotBrowserTest()
             ->makeDefault(); // make the "default" Laravel connection point to this database
 
@@ -618,7 +630,7 @@ A snapshot can be taken right after the migrations have run (but before seeding)
 
 Snapshot files are stored in the `database/adapt-test-storage` directory, and are removed automatically when they become [stale](#cache-invalidation).
 
-> ***Snapshots*** are turned **OFF** by default, and turned **ON** when the `reuse_test_dbs` setting is off.
+> ***Snapshots*** are turned **OFF** by default, and turned **ON** when the `reuse` settings are off.
 
 
 
@@ -626,7 +638,7 @@ Snapshot files are stored in the `database/adapt-test-storage` directory, and ar
 
 Adapt wraps your tests inside a transaction, and rolls it back afterwards. When the next test runs, it checks to make sure the transaction wasn't committed.
 
-> ***Reuse test dbs*** is turned **ON** by default, but turned off automatically during browser tests.
+> ***Reuse using transactions*** is turned **ON** by default, but turned off automatically during browser tests.
 
 
 
@@ -654,11 +666,33 @@ Old scenario databases are removed automatically when they aren't valid anymore.
 
 ## Cache Invalidation
 
-So that you don't run into problems when you update the structure of your database, or the way it's populated, changes to files inside */database/factories*, */database/migrations*, and */database/seeders* are detected and will invalidate existing test-databases and snapshots - making them *stale*.
+So that you don't run into problems when you update the structure of your database, or the way it's populated, changes to certain files are detected. When changes are found, existing test-databases and snapshots are invalidated - making them *stale*.
+
+By default, these directories are looked through for changes:
+
+- */database/factories*
+- */database/migrations*
+- */database/seeders*
 
 These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
 This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are included automatically).
+
+> Cache invalidation can be disabled to save some time, however this is only really useful on systems where this step is slow.
+>
+> You can see how much time this might save by turning logging on via the `log.laravel` or `log.stdout` config setting. e.g.
+>
+> ```
+> Generated the build-hash - of the files that can be used to build the database (22ms)
+> ```
+> 
+> You can turn it off by turning the `check_for_source_changes` config setting off. However, if you do, it's *your* responsibility to remove databases when they change.
+>
+> You can remove the existing test-databases using:
+>
+> ``` bash
+> php artisan adapt:remove
+> ```
 
 
 
@@ -760,7 +794,25 @@ class MyFeatureTest extends TestCase
 
 [ParaTest](https://github.com/paratestphp/paratest) allows you to run your tests to run in parallel. Tests are run in different processes, and the collated results are shown afterwards. It is included by default in Laravel 8 onwards.
 
-Adapt detects when ParaTest used and creates a distinct database for each process by adding a unique suffix to the database name.
+Adapt detects when ParaTest is being used and creates a distinct database for each process by adding a unique suffix to the database name.
+
+Just use Laravel's `--parallel` option to run tests in parallel:
+
+``` bash
+php artisan test --parallel
+```
+
+Or run ParaTest directly:
+
+``` bash
+./vendor/bin/paratest
+```
+
+> ***Note:*** Adapt will throw an exception when the `--recreate-databases` option is used.
+> 
+> Because Adapt dynamically decides which database/s to use based on the settings for each test, it's not practical to pre-determine which ones to rebuild until they are needed. And because of the nature of parallel testing, it's also not possible to simply remove *all* of the databases before running the tests.
+> 
+> Instead, simply run `php artisan adapt:remove` or `php artisan adapt:remove --force` before running your tests.
 
 
 
@@ -794,7 +846,9 @@ If your *own code* uses transactions as well, this will cause the wrapper transa
 
 Adapt detects when this happens and throws an `AdaptTransactionException` to let you know which test caused it.
 
-To stop the exception from occurring, turn the "reuse test dbs" option off for that test - by adding `protected bool $reuseTestDBs = false;` [to your test class](#customisation). (You can also turn it off for *all tests* by updating the `reuse_test_dbs` config setting).
+> To stop the exception from occurring, turn the "reuse" option off for that test - by adding `protected bool $reuseTransaction = false;` [to your test class](#customisation).
+> 
+> You can also turn it off for *all tests* by updating the `reuse` config settings.
 
 Turning this off will isolate the test from other tests that *can* reuse the database.
 
