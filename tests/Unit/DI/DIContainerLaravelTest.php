@@ -6,7 +6,6 @@ use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
@@ -32,14 +31,6 @@ class DIContainerLaravelTest extends LaravelTestCase
             'artisan' => [
                 'method' => 'artisan',
                 'params' => ['artisan' => new LaravelArtisan()],
-            ],
-            'config' => [
-                'method' => 'config',
-                'params' => [
-                    'config' => function () {
-                        return new LaravelConfig(); // must be run after booting Laravel
-                    }
-                ],
             ],
             'db' => [
                 'method' => 'db',

@@ -4,9 +4,12 @@ namespace CodeDistortion\Adapt\Adapters;
 
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLBuild;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLConnection;
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLFind;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLName;
-use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLReuse;
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLReuseTransaction;
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLReuseJournal;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLVerifier;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Hasher;
@@ -19,16 +22,19 @@ class LaravelMySQLAdapter extends DBAdapter
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
-     * @param Hasher      $hasher The object used to generate and check hashes.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
+     * @param Hasher      $hasher    The object used to generate and check hashes.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config, Hasher $hasher)
+    public function __construct(DIContainer $di, ConfigDTO $configDTO, Hasher $hasher)
     {
-        $this->build = new LaravelMySQLBuild($di, $config);
-        $this->connection = new LaravelMySQLConnection($di, $config);
-        $this->name = new LaravelMySQLName($di, $config);
-        $this->reuse = new LaravelMySQLReuse($di, $config, $hasher);
-        $this->snapshot = new LaravelMySQLSnapshot($di, $config);
+        $this->build = new LaravelMySQLBuild($di, $configDTO);
+        $this->connection = new LaravelMySQLConnection($di, $configDTO);
+        $this->find = new LaravelMySQLFind($di, $configDTO);
+        $this->name = new LaravelMySQLName($di, $configDTO);
+        $this->verifier = new LaravelMySQLVerifier($di, $configDTO);
+        $this->reuseTransaction = new LaravelMySQLReuseTransaction($di, $configDTO, $hasher);
+        $this->reuseJournal = new LaravelMySQLReuseJournal($di, $configDTO, $this->verifier);
+        $this->snapshot = new LaravelMySQLSnapshot($di, $configDTO);
     }
 }

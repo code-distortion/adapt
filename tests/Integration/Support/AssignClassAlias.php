@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Tests\Integration\Support;
 
 use Orchestra\Testbench\TestCase;
+use ReflectionMethod;
 
 /**
  * Detect the relevant TestCase setUp() method signature to use, and create an alias for the relevant trait.
@@ -26,7 +27,7 @@ class AssignClassAlias
             return;
         }
 
-        $sourceTrait = static::setUpReturnsVoid()
+        $sourceTrait = self::setUpReturnsVoid()
             ? DatabaseBuilderSetUpVoidTrait::class
             : DatabaseBuilderSetUpNoVoidTrait::class;
 
@@ -40,7 +41,7 @@ class AssignClassAlias
      */
     private static function setUpReturnsVoid(): bool
     {
-        $setupMethod = new \ReflectionMethod(TestCase::class, 'setUp');
+        $setupMethod = new ReflectionMethod(TestCase::class, 'setUp');
         $returnType = $setupMethod->getReturnType();
         return (($returnType) && ($returnType->getName() == 'void'));
     }

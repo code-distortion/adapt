@@ -5,13 +5,10 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
@@ -36,7 +33,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      */
     public function ensureStorageDirExists()
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -44,14 +41,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return DatabaseBuilder
      * @throws AdaptRemoteShareException When the session drivers don't match during browser tests.
      */
-    public function makeNewBuilder($remoteConfig): DatabaseBuilder
+    public function makeNewBuilder($remoteConfigDTO): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($remoteConfig);
-        $di = $this->defaultDI($remoteConfig->connection);
+        $configDTO = $this->newConfigDTO($remoteConfigDTO);
+        $di = $this->defaultDI($remoteConfigDTO->connection);
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
@@ -59,8 +56,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            new Hasher($di, $config),
+            $configDTO,
+            new Hasher($di, $configDTO),
             $pickDriverClosure
         );
     }
@@ -75,61 +72,51 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
                 return null;
             })
-            ->log($this->newLog())
+            ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
     }
 
     /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        $useLaravelLog = config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
-
-        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
-        return new LaravelLog(false, $useLaravelLog);
-    }
-
-    /**
      * Create a new ConfigDTO object with default values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return ConfigDTO
      */
-    private function newConfigDTO(ConfigDTO $remoteConfig): configDTO
+    private function newConfigDTO(ConfigDTO $remoteConfigDTO): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        $connection = $remoteConfig->connection;
+        $connection = $remoteConfigDTO->connection;
         return (new ConfigDTO())
-            ->projectName($remoteConfig->projectName)
-            ->testName($remoteConfig->testName)
+            ->projectName($remoteConfigDTO->projectName)
+            ->testName($remoteConfigDTO->testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->database(config("database.connections.$connection.database"))
-            ->databaseModifier($remoteConfig->databaseModifier)
+            ->origDatabase(config("database.connections.$connection.database"))
+//            ->database(config("database.connections.$connection.database"))
+            ->databaseModifier($remoteConfigDTO->databaseModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))->buildSettings(
-                $remoteConfig->preMigrationImports,
-                $remoteConfig->migrations,
-                $remoteConfig->seeders,
+            ->checkForSourceChanges($remoteConfigDTO->checkForSourceChanges)
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildHash($remoteConfigDTO->preCalculatedBuildHash)->buildSettings(
+                $remoteConfigDTO->preMigrationImports,
+                $remoteConfigDTO->migrations,
+                $remoteConfigDTO->seeders,
                 null,
                 // don't forward again
-                $remoteConfig->isBrowserTest,
+                $remoteConfigDTO->isBrowserTest,
                 true,
                 // yes, a remote database is being built here now, locally
                 config("session.driver"),
-                $remoteConfig->sessionDriver
-            )->cacheTools($remoteConfig->reuseTestDBs, $remoteConfig->scenarioTestDBs)->snapshots($remoteConfig->useSnapshotsWhenReusingDB, $remoteConfig->useSnapshotsWhenNotReusingDB)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
+                $remoteConfigDTO->sessionDriver
+            )->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarioTestDBs)->snapshots($remoteConfigDTO->useSnapshotsWhenReusingDB, $remoteConfigDTO->useSnapshotsWhenNotReusingDB)
+            ->forceRebuild($remoteConfigDTO->forceRebuild)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 
     /**
@@ -140,6 +127,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
     private function storageDir(): string
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return rtrim(config("$c.storage_dir"), '\\/');
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
     }
 }

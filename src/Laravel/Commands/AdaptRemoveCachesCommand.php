@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Application;
 use Throwable;
 
 /**
@@ -39,14 +40,16 @@ class AdaptRemoveCachesCommand extends Command
      */
     public function handle()
     {
-        if (!app()->environment('testing')) {
+        /** @var Application $app */
+        $app = app();
+        if (!$app->environment('testing')) {
             LaravelSupport::useTestingConfig();
         }
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
-            $this->info('There are no caches to remove.');
+            $this->info('There are no databases or snapshot files to remove.');
             $this->info('');
             return;
         }
@@ -74,7 +77,7 @@ class AdaptRemoveCachesCommand extends Command
 
         $this->listDatabases($cacheListDTO);
         $this->listSnapshotPaths($cacheListDTO);
-        return $this->confirm('Do you wish to proceed?');
+        return $this->confirm('Do you wish to proceed? (use the --force option to skip)');
     }
 
     /**

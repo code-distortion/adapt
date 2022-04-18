@@ -10,7 +10,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 trait HasConfigDTOTrait
 {
     /** @var ConfigDTO A DTO containing the settings to use. */
-    private $config;
+    private $configDTO;
 
     /**
      * Specify the database connection to prepare.
@@ -20,7 +20,7 @@ trait HasConfigDTOTrait
      */
     public function connection($connection): self
     {
-        $this->config->connection($connection);
+        $this->configDTO->connection($connection);
         return $this;
     }
 
@@ -32,7 +32,7 @@ trait HasConfigDTOTrait
      */
     public function databaseModifier($databaseModifier): self
     {
-        $this->config->databaseModifier($databaseModifier);
+        $this->configDTO->databaseModifier($databaseModifier);
         return $this;
     }
 
@@ -43,7 +43,30 @@ trait HasConfigDTOTrait
      */
     public function noDatabaseModifier(): self
     {
-        $this->config->databaseModifier('');
+        $this->configDTO->databaseModifier('');
+        return $this;
+    }
+
+    /**
+     * Turn the usage of build-hashes on (or off).
+     *
+     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @return static
+     */
+    public function checkForSourceChanges($checkForSourceChanges = true): self
+    {
+        $this->configDTO->checkForSourceChanges = $checkForSourceChanges;
+        return $this;
+    }
+
+    /**
+     * Turn the usage of build-hashes off.
+     *
+     * @return static
+     */
+    public function dontCheckForSourceChanges(): self
+    {
+        $this->configDTO->checkForSourceChanges = false;
         return $this;
     }
 
@@ -55,7 +78,7 @@ trait HasConfigDTOTrait
      */
     public function preMigrationImports($preMigrationImports = []): self
     {
-        $this->config->preMigrationImports($preMigrationImports);
+        $this->configDTO->preMigrationImports($preMigrationImports);
         return $this;
     }
 
@@ -66,7 +89,7 @@ trait HasConfigDTOTrait
      */
     public function noPreMigrationImports(): self
     {
-        $this->config->preMigrationImports([]);
+        $this->configDTO->preMigrationImports([]);
         return $this;
     }
 
@@ -78,7 +101,7 @@ trait HasConfigDTOTrait
      */
     public function migrations($migrations = true): self
     {
-        $this->config->migrations($migrations);
+        $this->configDTO->migrations($migrations);
         return $this;
     }
 
@@ -89,7 +112,7 @@ trait HasConfigDTOTrait
      */
     public function noMigrations(): self
     {
-        $this->config->migrations(false);
+        $this->configDTO->migrations(false);
         return $this;
     }
 
@@ -101,7 +124,7 @@ trait HasConfigDTOTrait
      */
     public function seeders($seeders): self
     {
-        $this->config->seeders($seeders);
+        $this->configDTO->seeders($seeders);
         return $this;
     }
 
@@ -112,19 +135,19 @@ trait HasConfigDTOTrait
      */
     public function noSeeders(): self
     {
-        $this->config->seeders([]);
+        $this->configDTO->seeders([]);
         return $this;
     }
 
     /**
-     * Specify the url to send "build" requests to.
+     * Specify the url to send "remote-build" requests to.
      *
      * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
      * @return static
      */
     public function remoteBuildUrl($remoteBuildUrl): self
     {
-        $this->config->remoteBuildUrl($remoteBuildUrl);
+        $this->configDTO->remoteBuildUrl($remoteBuildUrl);
         return $this;
     }
 
@@ -135,43 +158,97 @@ trait HasConfigDTOTrait
      */
     public function noRemoteBuildUrl(): self
     {
-        $this->config->remoteBuildUrl(null);
+        $this->configDTO->remoteBuildUrl(null);
         return $this;
     }
 
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs    Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
+     * @param boolean $reuseTransaction Reuse databases with a transaction?.
+     * @param boolean $reuseJournal     Reuse databases with a journal?.
+     * @param boolean $scenarioTestDBs  Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function cacheTools($reuseTestDBs, $scenarioTestDBs): self
-    {
-        $this->config->cacheTools($reuseTestDBs, $scenarioTestDBs);
+    public function cacheTools(
+        $reuseTransaction,
+        $reuseJournal,
+        $scenarioTestDBs
+    ): self {
+        $this->configDTO->reuseTransaction($reuseTransaction);
+        $this->configDTO->reuseJournal($reuseJournal);
+        $this->configDTO->scenarioTestDBs($scenarioTestDBs);
         return $this;
     }
 
     /**
      * Turn the reuse-test-dbs setting on (or off).
      *
+     * @deprecated
      * @param boolean $reuseTestDBs Reuse existing databases?.
      * @return static
      */
     public function reuseTestDBs($reuseTestDBs = true): self
     {
-        $this->config->reuseTestDBs($reuseTestDBs);
+        $this->reuseTransaction($reuseTestDBs);
         return $this;
     }
 
     /**
      * Turn the reuse-test-dbs setting off.
      *
+     * @deprecated
      * @return static
      */
     public function noReuseTestDBs(): self
     {
-        $this->config->reuseTestDBs(false);
+        $this->reuseTransaction(false);
+        return $this;
+    }
+
+    /**
+     * Turn database re-use using transaction setting on (or off).
+     *
+     * @param boolean $reuseTransaction Reuse databases with a transaction?.
+     * @return static
+     */
+    public function reuseTransaction($reuseTransaction = true): self
+    {
+        $this->configDTO->reuseTransaction($reuseTransaction);
+        return $this;
+    }
+
+    /**
+     * Turn database re-use using transaction setting off.
+     *
+     * @return static
+     */
+    public function noReuseTransaction(): self
+    {
+        $this->configDTO->reuseTransaction(false);
+        return $this;
+    }
+
+    /**
+     * Turn database re-use using journaling setting on (or off).
+     *
+     * @param boolean $reuseJournal Reuse databases with a journal?.
+     * @return static
+     */
+    public function reuseJournal($reuseJournal = true): self
+    {
+        $this->configDTO->reuseJournal($reuseJournal);
+        return $this;
+    }
+
+    /**
+     * Turn database re-use using journaling setting off.
+     *
+     * @return static
+     */
+    public function noReuseJournal(): self
+    {
+        $this->configDTO->reuseJournal(false);
         return $this;
     }
 
@@ -183,7 +260,7 @@ trait HasConfigDTOTrait
      */
     public function scenarioTestDBs($scenarioTestDBs = true): self
     {
-        $this->config->scenarioTestDBs($scenarioTestDBs);
+        $this->configDTO->scenarioTestDBs($scenarioTestDBs);
         return $this;
     }
 
@@ -194,7 +271,7 @@ trait HasConfigDTOTrait
      */
     public function noScenarioTestDBs(): self
     {
-        $this->config->scenarioTestDBs(false);
+        $this->configDTO->scenarioTestDBs(false);
         return $this;
     }
 
@@ -209,7 +286,7 @@ trait HasConfigDTOTrait
      */
     public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB): self
     {
-        $this->config->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB);
+        $this->configDTO->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB);
         return $this;
     }
 
@@ -220,7 +297,30 @@ trait HasConfigDTOTrait
      */
     public function noSnapshots(): self
     {
-        $this->config->snapshots(false, false);
+        $this->configDTO->snapshots(false, false);
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting on (or off).
+     *
+     * @param boolean $forceRebuild Force the database to be rebuilt (or not).
+     * @return static
+     */
+    public function forceRebuild($forceRebuild = true): self
+    {
+        $this->configDTO->forceRebuild = $forceRebuild;
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting off.
+     *
+     * @return static
+     */
+    public function dontForceRebuild(): self
+    {
+        $this->configDTO->forceRebuild = false;
         return $this;
     }
 
@@ -232,7 +332,7 @@ trait HasConfigDTOTrait
      */
     public function isBrowserTest($isBrowserTest = true): self
     {
-        $this->config->isBrowserTest($isBrowserTest);
+        $this->configDTO->isBrowserTest($isBrowserTest);
         return $this;
     }
 
@@ -243,7 +343,7 @@ trait HasConfigDTOTrait
      */
     public function isNotBrowserTest(): self
     {
-        $this->config->isBrowserTest(false);
+        $this->configDTO->isBrowserTest(false);
         return $this;
     }
 
@@ -254,16 +354,28 @@ trait HasConfigDTOTrait
      */
     public function getConnection(): string
     {
-        return $this->config->connection;
+        return $this->configDTO->connection;
     }
 
     /**
      * Retrieve the database being used.
      *
-     * @return string
+     * @return string|null
      */
-    public function getDatabase(): string
+    public function getDatabase()
     {
-        return $this->config->database;
+        return $this->configDTO->database;
+    }
+
+
+
+    /**
+     * Check if this builder will build remotely.
+     *
+     * @return boolean
+     */
+    public function shouldBuildRemotely(): bool
+    {
+        return $this->configDTO->shouldBuildRemotely();
     }
 }

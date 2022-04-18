@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Laravel\Dusk\Browser;
@@ -12,6 +13,14 @@ use Laravel\Dusk\Browser;
  */
 interface BootTestInterface
 {
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log($log);
+
     /**
      * Set the name of the test being run.
      *
@@ -67,7 +76,30 @@ interface BootTestInterface
      *
      * @return void
      */
-    public function run();
+    public function runBuildSteps();
+
+    /**
+     * Perform things AFTER BUILDING, but BEFORE the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostBuildSteps();
+
+    /**
+     * Perform things AFTER the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostTestSteps();
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    public function runPostTestCleanUp();
+
+
 
     /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.
@@ -76,14 +108,14 @@ interface BootTestInterface
      *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
      */
     public function newBuilder($connection): DatabaseBuilder;
 
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array;
 
@@ -96,27 +128,4 @@ interface BootTestInterface
      * @return void
      */
     public function haveBrowsersShareConfig($browsers, $connectionDBs);
-
-    /**
-     * Check to see if any of the transactions were committed, and generate an exception.
-     *
-     * To be run after the transaction was rolled back.
-     *
-     * @return void
-     */
-    public function checkForCommittedTransactions();
-
-    /**
-     * Perform any clean-up needed after the test has finished.
-     *
-     * @return void
-     */
-    public function postTestCleanUp();
-
-    /**
-     * Remove stale databases, snapshots and orphaned config files.
-     *
-     * @return void
-     */
-    public function purgeStaleThings();
 }

@@ -28,11 +28,18 @@ trait LaravelAdapt
 //    protected $buildDatabases = true;
 
     /**
-     * Let Adapt re-use databases.
+     * Let Adapt re-use databases using a transaction.
      *
      * @var boolean
      */
-//    protected bool $reuseTestDBs = true;
+//    protected bool $reuseTransaction = true;
+
+    /**
+     * Let Adapt re-use databases using journaling (MySQL only).
+     *
+     * @var boolean
+     */
+//    protected bool $reuseJournal = true;
 
     /**
      * Let Adapt create databases dynamically (with distinct names) based on
@@ -71,7 +78,7 @@ trait LaravelAdapt
      * NOTE: pre_migration_imports aren't available for sqlite :memory:
      * databases.
      *
-     * @var string[]|string[][]
+     * @var array<string, string>|array<string, string[]>
      */
 //    protected array $preMigrationImports = [
 //        'mysql' => ['database/dumps/mysql/my-database.sql'],
@@ -117,14 +124,15 @@ trait LaravelAdapt
 //    protected string $defaultConnection = 'mysql';
 
     /**
-     * When performing browser tests, "reuse_test_dbs" needs to be turned off.
+     * When browser-tests are being performed, transaction-based database
+     * re-use needs to be disabled.
      *
      * This is because the browser (which runs in a different process and
      * causes outside requests to your website) needs to access the same
-     * database that your tests build.
+     * database that your test built.
      *
-     * When this value isn't present Adapt will attempt to detect if a browser
-     * test is running.
+     * If you don't specify this value,  Adapt will automatically
+     * detect if a browser test is running.
      *
      * @var boolean
      */
@@ -167,12 +175,16 @@ trait LaravelAdapt
 //        // you can override them with any of the following…
 //        $builder
 //            ->connection('primary-mysql') // specify another connection to build a db for
+//            ->checkForSourceChanges() // or ->dontCheckForSourceChanges()
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()
-//            ->reuseTestDBs() // or ->noReuseTestDBs()
+//            ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
+//            ->reuseTransaction() // or ->noReuseTransaction()
+//            ->reuseJournal() // or ->noReuseJournal()
 //            ->scenarioTestDBs() // or ->noScenarioTestDBs()
-//            ->snapshots() // or ->noSnapshots()
+//            ->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB) // or ->noSnapshots()
+//            ->forceRebuild() // or ->dontForceRebuild()
 //            ->isBrowserTest() // or isNotBrowserTest()
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
 //

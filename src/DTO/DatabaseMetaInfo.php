@@ -89,23 +89,11 @@ class DatabaseMetaInfo
 
 
     /**
-     * Remove the snapshot if it should be removed.
-     *
-     * @return void
-     */
-    public function purgeIfNeeded()
-    {
-        if ($this->shouldPurgeNow()) {
-            $this->delete();
-        }
-    }
-
-    /**
      * Determine if this snapshot should be purged or not.
      *
      * @return boolean
      */
-    private function shouldPurgeNow(): bool
+    public function shouldPurgeNow(): bool
     {
         $purgeAfter = $this->getPurgeAfter();
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));

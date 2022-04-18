@@ -19,7 +19,7 @@ class StorageDir
      * @param FilesystemInterface $filesystem The filesystem object to use.
      * @param LogInterface        $log        The log object to use.
      * @return void
-     * @throws AdaptConfigException Thrown when the directory could not be created.
+     * @throws AdaptConfigException When the directory could not be created.
      */
     public static function ensureStorageDirExists(
         $storageDir,

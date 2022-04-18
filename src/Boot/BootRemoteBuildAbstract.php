@@ -2,9 +2,27 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+
 /**
  * Bootstrap Adapt to build a database remotely.
  */
 abstract class BootRemoteBuildAbstract implements BootRemoteBuildInterface
 {
+    /** @var LogInterface The LogInterface to use. */
+    protected $log;
+
+
+
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log($log): self
+    {
+        $this->log = $log;
+        return $this;
+    }
 }

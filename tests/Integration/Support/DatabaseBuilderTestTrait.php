@@ -8,7 +8,6 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -62,7 +61,6 @@ trait DatabaseBuilderTestTrait
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
@@ -94,16 +92,19 @@ trait DatabaseBuilderTestTrait
             ->testName('A test')
             ->connection($connection)
             ->connectionExists(true)
+            ->origDatabase($this->wsDatabaseDir . '/database.sqlite')
 //            ->database('test_db')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
+            ->checkForSourceChanges(true)
             ->hashPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,
                 $this->wsPreMigrationsDir,
                 $this->wsSeedsDir,
             ])
+            ->preCalculatedBuildHash(null)
             ->buildSettings(
                 [],
                 $this->wsMigrationsDir,
@@ -114,8 +115,9 @@ trait DatabaseBuilderTestTrait
                 'database',
                 null
             )
-            ->cacheTools(true, true)
+            ->cacheTools(true, false, false, true)
             ->snapshots(false, 'afterMigrations')
+            ->forceRebuild(false)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');
     }
@@ -123,14 +125,14 @@ trait DatabaseBuilderTestTrait
     /**
      * Build a new DatabaseBuilder object.
      *
-     * @param ConfigDTO|null   $config The ConfigDTO to use.
-     * @param DIContainer|null $di     The DIContainer to use.
+     * @param ConfigDTO|null   $configDTO The ConfigDTO to use.
+     * @param DIContainer|null $di        The DIContainer to use.
      * @return DatabaseBuilder
      */
-    private function newDatabaseBuilder($config = null, $di = null): DatabaseBuilder
+    private function newDatabaseBuilder($configDTO = null, $di = null): DatabaseBuilder
     {
-        $config = $config ?? $this->newConfigDTO('sqlite');
-        $di = $di ?? $this->newDIContainer($config->connection);
+        $configDTO = $configDTO ?? $this->newConfigDTO('sqlite');
+        $di = $di ?? $this->newDIContainer($configDTO->connection);
 
         $pickDriver = function (string $connection) {
             return config("database.connections.$connection.driver", 'unknown');
@@ -139,8 +141,8 @@ trait DatabaseBuilderTestTrait
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            $this->newHasher($config, $di),
+            $configDTO,
+            $this->newHasher($configDTO, $di),
             $pickDriver
         );
     }
@@ -148,28 +150,28 @@ trait DatabaseBuilderTestTrait
     /**
      * Use a config as the environment.
      *
-     * @param ConfigDTO|null   $config The ConfigDTO to use.
-     * @param DIContainer|null $di     The DIContainer to use.
+     * @param ConfigDTO|null   $configDTO The ConfigDTO to use.
+     * @param DIContainer|null $di        The DIContainer to use.
      * @return void
      */
-    public function useConfig($config = null, $di = null)
+    public function useConfig($configDTO = null, $di = null)
     {
         // generate a build-hash based on the current look_for_changes_in etc. dirs
-        $this->newHasher($config, $di)->getBuildHash();
+        $this->newHasher($configDTO, $di)->getBuildHash();
     }
 
     /**
      * Build a new Hasher based on a ConfigDTO and DIContainer.
      *
-     * @param ConfigDTO|null   $config The ConfigDTO to use.
-     * @param DIContainer|null $di     The DIContainer to use.
+     * @param ConfigDTO|null   $configDTO The ConfigDTO to use.
+     * @param DIContainer|null $di        The DIContainer to use.
      * @return Hasher
      */
-    private function newHasher($config = null, $di = null): Hasher
+    private function newHasher($configDTO = null, $di = null): Hasher
     {
-        $config = $config ?? $this->newConfigDTO('sqlite');
-        $di = $di ?? $this->newDIContainer($config->connection);
-        return new Hasher($di, $config);
+        $configDTO = $configDTO ?? $this->newConfigDTO('sqlite');
+        $di = $di ?? $this->newDIContainer($configDTO->connection);
+        return new Hasher($di, $configDTO);
     }
 
 
@@ -328,7 +330,8 @@ trait DatabaseBuilderTestTrait
      */
     private function getDBDriver(string $connection)
     {
-        return config("database.connections.$connection.driver", 'unknown');
+        $return = config("database.connections.$connection.driver", 'unknown');
+        return is_string($return) || is_null($return) ? $return : null; // phpstan
     }
 
     /**
@@ -337,7 +340,7 @@ trait DatabaseBuilderTestTrait
      * @param string   $connection     The connection to check on.
      * @param string[] $expectedTables The expected tables.
      * @return void
-     * @throws Exception Thrown when an unknown database driver is found.
+     * @throws Exception When an unknown database driver is found.
      */
     private function assertTableList(string $connection, array $expectedTables)
     {

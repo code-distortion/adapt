@@ -5,7 +5,6 @@ namespace CodeDistortion\Adapt\DI;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\FilesystemInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 
@@ -16,9 +15,6 @@ class DIContainer
 {
     /** @var LaravelArtisan The LaravelArtisan object to use. */
     public $artisan;
-
-    /** @var LaravelConfig The LaravelConfig object to use. */
-    public $config;
 
     /** @var LaravelDB The LaravelDB object to use. */
     public $db;
@@ -45,18 +41,6 @@ class DIContainer
     public function artisan($artisan): self
     {
         $this->artisan = $artisan;
-        return $this;
-    }
-
-    /**
-     * Set the LaravelConfig object to use.
-     *
-     * @param LaravelConfig $config The LaravelConfig object to store.
-     * @return static
-     */
-    public function config($config): self
-    {
-        $this->config = $config;
         return $this;
     }
 

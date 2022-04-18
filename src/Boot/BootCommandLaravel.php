@@ -9,7 +9,6 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelConfig;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -48,18 +47,18 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     public function makeNewBuilder($connection): DatabaseBuilder
     {
-        $config = $this->newConfigDTO($connection, '');
+        $configDTO = $this->newConfigDTO($connection, '');
         $di = $this->defaultDI($connection);
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
-        StorageDir::ensureStorageDirExists($config->storageDir, $di->filesystem, $di->log);
+        StorageDir::ensureStorageDirExists($configDTO->storageDir, $di->filesystem, $di->log);
 
         return new DatabaseBuilder(
             'laravel',
             $di,
-            $config,
-            new Hasher($di, $config),
+            $configDTO,
+            new Hasher($di, $configDTO),
             $pickDriverClosure
         );
     }
@@ -74,7 +73,6 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
-            ->config(new LaravelConfig())
             ->db((new LaravelDB())->useConnection($connection))
             ->dbTransactionClosure(function () {
             })
@@ -108,11 +106,15 @@ class BootCommandLaravel extends BootCommandAbstract
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->database(config("database.connections.$connection.database"))
+            ->origDatabase(config("database.connections.$connection.database"))
+//            ->database(config("database.connections.$connection.database"))
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))->buildSettings(config("$c.pre_migration_imports"), config("$c.migrations"), config("$c.seeders"), config("$c.remote_build_url"), false, false, config("session.driver"), null)->cacheTools(config("$c.reuse_test_dbs"), config("$c.scenario_test_dbs"))->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
+            ->checkForSourceChanges(config("$c.check_for_source_changes"))
+            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildHash(null)->buildSettings(config("$c.pre_migration_imports"), config("$c.migrations"), config("$c.seeders"), config("$c.remote_build_url"), false, false, config("session.driver"), null)->cacheTools(config("$c.reuse.transactions"), config("$c.reuse.journals"), config("$c.verify_databases"), config("$c.scenario_test_dbs"))->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
+            ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 
     /**
@@ -123,7 +125,9 @@ class BootCommandLaravel extends BootCommandAbstract
     private function storageDir(): string
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
-        return rtrim(config("$c.storage_dir"), '\\/');
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
     }
 
     /**

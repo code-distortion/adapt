@@ -196,7 +196,7 @@ class Filesystem implements FilesystemInterface
     public function size($path)
     {
         $size = filesize($path);
-        return (is_integer($size) ? $size : null);
+        return is_integer($size) ? $size : null;
     }
 
     /**

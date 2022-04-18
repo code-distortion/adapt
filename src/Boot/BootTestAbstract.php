@@ -14,20 +14,23 @@ use CodeDistortion\Adapt\Support\Settings;
  */
 abstract class BootTestAbstract implements BootTestInterface
 {
-    /** @var string|null The name of the test being run. */
+    /** @var LogInterface The LogInterface to use. */
+    protected $log;
+
+    /** @var string The name of the test being run. */
     protected $testName;
 
-    /** @var PropBagDTO|null The properties that were present in the test-class. */
+    /** @var PropBagDTO The properties that were present in the test-class. */
     protected $propBag;
 
     /** @var boolean Whether a browser test is being run. */
     protected $browserTestDetected = false;
 
-    /** @var callable|null The closure to call to start a db transaction. */
-    protected $transactionClosure = null;
+    /** @var callable The closure to call to start a db transaction. */
+    protected $transactionClosure;
 
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
-    private $initCallback = null;
+    private $initCallback;
 
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
     private $builders = [];
@@ -35,6 +38,19 @@ abstract class BootTestAbstract implements BootTestInterface
 //    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
 
+
+
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log($log)
+    {
+        $this->log = $log;
+        return $this;
+    }
 
     /**
      * Set the name of the test being run.
@@ -119,24 +135,72 @@ abstract class BootTestAbstract implements BootTestInterface
         $this->builders[] = $builder;
     }
 
+
+
     /**
      * Run the process to build the databases.
      *
      * @return void
      */
-    public function run()
+    public function runBuildSteps()
     {
-        if (Settings::$isFirstTest) {
-            Settings::$isFirstTest = false;
-            $this->purgeStaleThings();
-        }
+        $this->isAllowedToRun();
 
 //        $this->resolveDI();
         $this->initBuilders();
-        $this->executeBuilders();
+        $this->purgeStaleThings();
+
+        foreach ($this->pickBuildersToExecute() as $builder) {
+            $builder->execute();
+        }
 
         $this->registerConnectionDBs();
     }
+
+    /**
+     * Perform things AFTER BUILDING, but BEFORE the TEST has run.
+     *
+     * e.g. Start the re-use transaction.
+     *
+     * @return void
+     */
+    public function runPostBuildSteps()
+    {
+        foreach ($this->pickExecutedBuilders() as $builder) {
+            $builder->runPostBuildSteps();
+        }
+    }
+
+    /**
+     * Perform things AFTER the TEST has run.
+     *
+     * @return void
+     */
+    public function runPostTestSteps()
+    {
+        $count = 0;
+        foreach ($this->builders as $builder) {
+            $isLast = (++$count == count($this->builders));
+            $builder->runPostTestSteps($isLast);
+        }
+    }
+
+    /**
+     * Perform any clean-up needed after the test has finished.
+     *
+     * @return void
+     */
+    abstract public function runPostTestCleanUp();
+
+
+
+    /**
+     * Check that it's safe to run.
+     *
+     * @return void
+     * @throws AdaptConfigException When the .env.testing file wasn't used to build the environment.
+     */
+    abstract protected function isAllowedToRun();
 
     /**
      * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
@@ -145,19 +209,18 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function initBuilders()
     {
-        if (!$this->propBag) {
-            return;
-        }
         if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
             return;
         }
 
         $builder = $this->newDefaultBuilder();
 
-        if ($this->initCallback) {
-            $callback = $this->initCallback;
-            $callback($builder);
+        if (!$this->initCallback) {
+            return;
         }
+
+        $callback = $this->initCallback;
+        $callback($builder);
     }
 
     /**
@@ -166,27 +229,6 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      */
     abstract protected function newDefaultBuilder(): DatabaseBuilder;
-
-    /**
-     * Execute the builders that this object created (i.e. build their databases).
-     *
-     * Any that have already been executed will be skipped.
-     *
-     * @return void
-     */
-    private function executeBuilders()
-    {
-        $builders = $this->pickBuildersToExecute();
-
-        foreach ($builders as $builder) {
-            $builder->execute();
-        }
-
-        // apply the transactions, AFTER all the databases have been built
-        foreach ($builders as $builder) {
-            $builder->applyTransaction();
-        }
-    }
 
     /**
      * Pick the list of Builders that haven't been executed yet.
@@ -202,6 +244,38 @@ abstract class BootTestAbstract implements BootTestInterface
             }
         }
         return $builders;
+    }
+
+    /**
+     * Pick the list of Builders that have been executed.
+     *
+     * @return DatabaseBuilder[]
+     */
+    private function pickExecutedBuilders(): array
+    {
+        $builders = [];
+        foreach ($this->builders as $builder) {
+            if ($builder->hasExecuted()) {
+                $builders[] = $builder;
+            }
+        }
+        return $builders;
+    }
+
+    /**
+     * Check to see if any builders will build locally.
+     *
+     * @return boolean
+     */
+    private function hasBuildersThatWillBuildLocally(): bool
+    {
+        $builders = $this->pickBuildersToExecute();
+        foreach ($builders as $builder) {
+            if (!$builder->shouldBuildRemotely()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -227,7 +301,7 @@ abstract class BootTestAbstract implements BootTestInterface
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array
     {
@@ -259,39 +333,30 @@ abstract class BootTestAbstract implements BootTestInterface
     abstract protected function defaultDI($connection): DIContainer;
 
     /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    abstract protected function newLog(): LogInterface;
-
-    /**
-     * Check to see if any of the transactions were committed, and generate an exception.
-     *
-     * To be run after the transaction was rolled back.
+     * Handle the process to remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    public function checkForCommittedTransactions()
+    private function purgeStaleThings()
     {
-        foreach ($this->builders as $builder) {
-            $builder->checkForCommittedTransaction();
+        if (!Settings::$isFirstTest) {
+            return;
         }
-    }
+        Settings::$isFirstTest = false;
 
-    /**
-     * Perform any clean-up needed after the test has finished.
-     *
-     * @return void
-     */
-    abstract public function postTestCleanUp();
+        if (!$this->hasBuildersThatWillBuildLocally()) {
+            return;
+        }
+
+        $this->performPurgeOfStaleThings();
+    }
 
     /**
      * Remove stale databases, snapshots and orphaned config files.
      *
      * @return void
      */
-    abstract public function purgeStaleThings();
+    abstract protected function performPurgeOfStaleThings();
 
     /**
      * Work out if stale things are allowed to be purged.

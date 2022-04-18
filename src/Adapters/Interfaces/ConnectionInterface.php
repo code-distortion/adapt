@@ -13,14 +13,14 @@ interface ConnectionInterface
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config);
+    public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
     /**
-     * Set the this builder's database connection as the default one.
+     * Set this builder's database connection as the default one.
      *
      * @return void
      */
@@ -29,8 +29,16 @@ interface ConnectionInterface
     /**
      * Tell the adapter to use the given database name.
      *
-     * @param string $database The name of the database to use.
+     * @param string  $database     The name of the database to use.
+     * @param boolean $applyLogging Enable or disable logging.
      * @return void
      */
-    public function useDatabase($database);
+    public function useDatabase($database, $applyLogging = true);
+
+    /**
+     * Get the database currently being used.
+     *
+     * @return string|null
+     */
+    public function getDatabase();
 }

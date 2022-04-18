@@ -13,23 +13,23 @@ class AdaptSnapshotException extends AdaptException
     /**
      * Could not remove snapshot files.
      *
-     * @param Throwable $originalException The originally thrown exception.
+     * @param Throwable $previousException The original exception.
      * @return self
      */
-    public static function couldNotRemoveSnapshots($originalException): self
+    public static function couldNotRemoveSnapshots($previousException): self
     {
-        return new self('Had trouble removing snapshot files', 0, $originalException);
+        return new self('Had trouble removing snapshot files', 0, $previousException);
     }
 
     /**
      * Could not find snapshot files.
      *
-     * @param Throwable $originalException The originally thrown exception.
+     * @param Throwable $previousException The original exception.
      * @return self
      */
-    public static function hadTroubleFindingSnapshots($originalException): self
+    public static function hadTroubleFindingSnapshots($previousException): self
     {
-        return new self('Had trouble finding snapshot files', 0, $originalException);
+        return new self('Had trouble finding snapshot files', 0, $previousException);
     }
 
     /**
@@ -100,17 +100,17 @@ class AdaptSnapshotException extends AdaptException
      *
      * @param string         $srcPath           The path to the file being renamed.
      * @param string         $destPath          The path to be changed to.
-     * @param Throwable|null $originalException The originally thrown exception.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
     public static function mysqlExportErrorRenameTempFile(
         $srcPath,
         $destPath,
-        $originalException = null
+        $previousException = null
     ): self {
 
-        return $originalException
-            ? new self("Could not rename temporary snapshot file $srcPath to $destPath", 0, $originalException)
+        return $previousException
+            ? new self("Could not rename temporary snapshot file $srcPath to $destPath", 0, $previousException)
             : new self("Could not rename temporary snapshot file $srcPath to $destPath");
     }
 

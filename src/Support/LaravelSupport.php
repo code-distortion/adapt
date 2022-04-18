@@ -34,7 +34,7 @@ class LaravelSupport
     public static function useTestingConfig()
     {
         LaravelEnv::reloadEnv(
-            base_path(Settings::ENV_TESTING_FILE),
+            base_path(Settings::LARAVEL_ENV_TESTING_FILE),
             ['APP_ENV' => 'testing']
         );
 
@@ -47,7 +47,6 @@ class LaravelSupport
      * Override the connection's existing databases.
      *
      * @param array<string,string> $connectionDatabases The connections' databases.
-     * @retun void
      * @return void
      */
     public static function useConnectionDatabases($connectionDatabases)
@@ -65,7 +64,7 @@ class LaravelSupport
      * e.g. /var/www/html instead of /var/www/html/public
      *
      * This ensures that the paths of hash files (migrations, seeders etc) are resolved identically, compared to when
-     * Adapt is running in non-web situations tests (e.g. tests).
+     * Adapt is running in non-web situations tests (i.e. tests).
      *
      * @return void
      */
@@ -99,8 +98,8 @@ class LaravelSupport
     /**
      * Get a value from Laravel's config, and make sure it's an array.
      *
-     * @param string $key     The config key to get.
-     * @param array  $default The default value.
+     * @param string  $key     The config key to get.
+     * @param mixed[] $default The default value.
      * @return mixed[]
      */
     public static function configArray($key, $default = []): array
@@ -155,27 +154,25 @@ class LaravelSupport
     {
         /** @var Application $app */
         $app = app();
-        if (method_exists($app, 'scoped')) {
-            $app->scoped(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
+        method_exists($app, 'scoped')
+            ? $app->scoped(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
+                return $connectionDatabases;
+            })
+            : $app->singleton(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
                 return $connectionDatabases;
             });
-        } else {
-            $app->singleton(Settings::SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
-                return $connectionDatabases;
-            });
-        }
     }
 
     /**
      * Read the list of connections that have been prepared, and their corresponding databases from the framework.
      *
-     * @return array|null
+     * @return mixed[]|null
      */
     public static function readPreparedConnectionDBsFromFramework()
     {
-        /** @var array|null $connectionDatabases */
         try {
-            return app(Settings::SHARE_CONNECTIONS_SINGLETON_NAME);
+            $return = app(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME);
+            return is_array($return) || is_null($return) ? $return : null;
         } catch (BindingResolutionException $e) {
             return null;
         }

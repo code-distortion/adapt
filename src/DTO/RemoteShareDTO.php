@@ -14,7 +14,7 @@ class RemoteShareDTO
     use DTOBuildTrait;
 
     /**
-     * The RemoteShareDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
+     * The RemoteShareDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *
      * @var integer
      */
@@ -23,7 +23,7 @@ class RemoteShareDTO
     /** @var string|null The location of the temporary config file. */
     public $tempConfigPath;
 
-    /** @var array The connections and the names of their prepared databases. */
+    /** @var array<string, string> The connections and the names of their prepared databases. */
     public $connectionDBs;
 
 
@@ -115,6 +115,6 @@ class RemoteShareDTO
      */
     public function buildPayload(): string
     {
-        return base64_encode(json_encode(get_object_vars($this)));
+        return base64_encode((string) json_encode(get_object_vars($this)));
     }
 }

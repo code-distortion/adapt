@@ -13,10 +13,10 @@ interface BuildInterface
     /**
      * Constructor.
      *
-     * @param DIContainer $di     The dependency-injection container to use.
-     * @param ConfigDTO   $config A DTO containing the settings to use.
+     * @param DIContainer $di        The dependency-injection container to use.
+     * @param ConfigDTO   $configDTO A DTO containing the settings to use.
      */
-    public function __construct(DIContainer $di, ConfigDTO $config);
+    public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
     /**
      * Check if this database type can be built remotely.
@@ -54,18 +54,4 @@ interface BuildInterface
      * @return void
      */
     public function seed($seeders);
-
-    /**
-     * Determine if a transaction can (and should) be used on this database.
-     *
-     * @return boolean
-     */
-    public function isTransactionable(): bool;
-
-    /**
-     * Start the transaction that the test will be encapsulated in.
-     *
-     * @return void
-     */
-    public function applyTransaction();
 }

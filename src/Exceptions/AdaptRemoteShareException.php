@@ -20,9 +20,9 @@ class AdaptRemoteShareException extends AdaptException
     /**
      * Thrown when the local and remote Adapt installations use different session drivers.
      *
+     * @param string $localSessionDriver  The local session-driver.
+     * @param string $callerSessionDriver The caller's session-driver.
      * @return self
-     * @param string $localSessionDriver
-     * @param string $callerSessionDriver
      */
     public static function sessionDriverMismatch($localSessionDriver, $callerSessionDriver): self
     {
@@ -59,6 +59,6 @@ class AdaptRemoteShareException extends AdaptException
      */
     public static function couldNotReadResolvedSettingsDTO(): self
     {
-        return new self("The resolved-settings could not be read");
+        return new self("The remote-build response could not be read");
     }
 }

@@ -77,8 +77,9 @@ class RemoteShareMiddleware
     /**
      * Read a header's raw value from the request.
      *
-     * @param Request $request The request object.
-     * @return array<string,string>|null
+     * @param Request $request    The request object.
+     * @param string  $headerName The name of the header to read.
+     * @return string
      */
     private function readHeaderValue(Request $request, string $headerName): string
     {

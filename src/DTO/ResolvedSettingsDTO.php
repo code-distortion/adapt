@@ -5,6 +5,9 @@ namespace CodeDistortion\Adapt\DTO;
 use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 
+/**
+ * A DTO to record the various inputs and settings used by Adapt when building a database.
+ */
 class ResolvedSettingsDTO
 {
     use DTOBuildTrait;
@@ -22,7 +25,7 @@ class ResolvedSettingsDTO
     /** @var string The database connection used. */
     public $connection;
 
-    /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
+    /** @var string The database driver to use when building the database ("mysql", "sqlite" etc). */
     public $driver;
 
     /** @var string|null The database host (if relevant). */
@@ -39,8 +42,14 @@ class ResolvedSettingsDTO
     /** @var string|null The remote Adapt installation to send "build" requests to. */
     public $remoteBuildUrl;
 
-    /** @var boolean Whether snapshots are turned on or not. */
-    public $snapshotsEnabled;
+    /** @var string|null The type of snapshots being used, depending on whether the database is reused or not. */
+    public $resolvedSnapshotType;
+
+    /** @var string|null The type of snapshots being used, when reusing the database. */
+    public $reuseDBSnapshotType;
+
+    /** @var string|null The type of snapshots being used, when NOT reusing the database. */
+    public $notReuseDBSnapshotType;
 
     /** @var string The directory to store database snapshots in. */
     public $storageDir;
@@ -57,7 +66,7 @@ class ResolvedSettingsDTO
     /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public $seeders;
 
-    /** @var boolean When turned on, databases will be created for each scenario (based on migrations and seeders etc). */
+    /** @var boolean When turned on, databases are created for each scenario (based on migrations and seeders etc). */
     public $usingScenarios;
 
     /** @var string|null The calculated build-hash. */
@@ -75,8 +84,17 @@ class ResolvedSettingsDTO
     /** @var string|null The session-driver being used. */
     public $sessionDriver;
 
-    /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
-    public $databaseIsReusable;
+    /** @var boolean When turned on, transactions will be used to allow the database to be reused. */
+    public $transactionReusable;
+
+    /** @var boolean When turned on, journaling will be used to allow the database to be reused. */
+    public $journalReusable;
+
+    /** @var boolean When turned on, the database structure and content will be checked after each test. */
+    public $verifyDatabase;
+
+    /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
+    public $forceRebuild;
 
 
 
@@ -153,6 +171,40 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Specify the url to send "remote-build" requests to.
+     *
+     * @param boolean     $builtRemotely  Whether the database was built remotely or not.
+     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @return static
+     */
+    public function builtRemotely($builtRemotely, $remoteBuildUrl = null): self
+    {
+        $this->builtRemotely = $builtRemotely;
+        $this->remoteBuildUrl = $builtRemotely ? $remoteBuildUrl : null;
+        return $this;
+    }
+
+    /**
+     * Set the type of snapshots being used.
+     *
+     * @param string|null $resolvedSnapshotType   The type of snapshots being used, depending on whether the database is
+     *                                            reused or not.
+     * @param string|null $reuseDBSnapshotType    The type of snapshots being used, when reusing the database.
+     * @param string|null $notReuseDBSnapshotType The type of snapshots being used, when NOT reusing the database.
+     * @return static
+     */
+    public function snapshotType(
+        $resolvedSnapshotType,
+        $reuseDBSnapshotType,
+        $notReuseDBSnapshotType
+    ): self {
+        $this->resolvedSnapshotType = $resolvedSnapshotType;
+        $this->reuseDBSnapshotType = $reuseDBSnapshotType;
+        $this->notReuseDBSnapshotType = $notReuseDBSnapshotType;
+        return $this;
+    }
+
+    /**
      * Set the directory to store database snapshots in.
      *
      * @param string $storageDir The storage directory to use.
@@ -203,28 +255,25 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Specify the url to send "build" requests to.
+     * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean     $builtRemotely  Whether the database was built remotely or not.
-     * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
+     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
+     * @param string|null $buildHash      The calculated build-hash.
+     * @param string|null $snapshotHash   The calculated snapshot-hash.
+     * @param string|null $scenarioHash   The calculated scenario-hash.
      * @return static
      */
-    public function builtRemotely($builtRemotely, $remoteBuildUrl = null): self
-    {
-        $this->builtRemotely = $builtRemotely;
-        $this->remoteBuildUrl = $remoteBuildUrl;
-        return $this;
-    }
+    public function scenarioTestDBs(
+        $usingScenarios,
+        $buildHash,
+        $snapshotHash,
+        $scenarioHash
+    ): self {
 
-    /**
-     * Turn the snapshots-enabled setting on (or off).
-     *
-     * @param boolean $snapshotsEnabled Whether snapshots are enabled or not.
-     * @return static
-     */
-    public function snapshotsEnabled($snapshotsEnabled): self
-    {
-        $this->snapshotsEnabled = $snapshotsEnabled;
+        $this->usingScenarios = $usingScenarios;
+        $this->buildHash = $this->usingScenarios ? $buildHash : null;
+        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
+        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
         return $this;
     }
 
@@ -253,39 +302,54 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Turn the reusable-database setting on (or off).
+     * Turn the transaction-reusable setting on (or off).
      *
-     * @param boolean $databaseIsReusable Is the database reusable?.
+     * @param boolean $transactionReusable Are transactions going to be used to allow reuse?.
      * @return static
      */
-    public function databaseIsReusable($databaseIsReusable): self
+    public function transactionReusable($transactionReusable): self
     {
-        $this->databaseIsReusable = $databaseIsReusable;
+        $this->transactionReusable = $transactionReusable;
         return $this;
     }
 
     /**
-     * Turn the scenario-test-dbs setting on (or off).
+     * Turn the journal-reusable setting on (or off).
      *
-     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
-     * @param string|null $buildHash      The calculated build-hash.
-     * @param string|null $snapshotHash   The calculated snapshot-hash.
-     * @param string|null $scenarioHash   The calculated scenario-hash.
+     * @param boolean $journalReusable Are transactions going to be used to allow reuse?.
      * @return static
      */
-    public function scenarioTestDBs(
-        $usingScenarios,
-        $buildHash,
-        $snapshotHash,
-        $scenarioHash
-    ): self {
-
-        $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $this->usingScenarios ? $buildHash : null;
-        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
-        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
+    public function journalReusable($journalReusable): self
+    {
+        $this->journalReusable = $journalReusable;
         return $this;
     }
+
+    /**
+     * Turn the database verification setting on (or off).
+     *
+     * @param boolean $verifyDatabase Perform a check of the db structure and content after each test?.
+     * @return static
+     */
+    public function verifyDatabase($verifyDatabase): self
+    {
+        $this->verifyDatabase = $verifyDatabase;
+        return $this;
+    }
+
+    /**
+     * Turn the reusable-database setting on (or off).
+     *
+     * @param boolean $forceRebuild Was the database forced to be rebuilt?.
+     * @return static
+     */
+    public function forceRebuild($forceRebuild): self
+    {
+        $this->forceRebuild = $forceRebuild;
+        return $this;
+    }
+
+
 
 
 
@@ -317,7 +381,7 @@ class ResolvedSettingsDTO
      */
     public function buildPayload(): string
     {
-        return json_encode(get_object_vars($this));
+        return (string) json_encode(get_object_vars($this));
     }
 
 
@@ -331,7 +395,13 @@ class ResolvedSettingsDTO
     {
         $remoteExtra = $this->builtRemotely ? ' (remote)' : '';
 
-        $storageDir = $this->snapshotsEnabled
+        $snapshotsEnabled =
+            $this->renderBoolean((bool) $this->resolvedSnapshotType)
+            . ($this->resolvedSnapshotType
+                ? ' - ' . $this->escapeString($this->resolvedSnapshotType)
+                : '');
+
+        $storageDir = $this->resolvedSnapshotType
             ? $this->escapeString($this->storageDir) . $remoteExtra
             : null;
 
@@ -352,25 +422,33 @@ class ResolvedSettingsDTO
 
         $isBrowserTest = $this->renderBoolean($this->isBrowserTest, "Yes (session-driver: \"$this->sessionDriver\")");
 
+        $reuseTypes = array_filter([
+            $this->transactionReusable ? 'transaction' : '',
+            $this->journalReusable ? 'journal' : '',
+        ]);
         $isReusable = $this->renderBoolean(
-            $this->databaseIsReusable,
-            'Yes',
+            (bool) count($reuseTypes),
+            'Yes - ' . implode(', ', $reuseTypes),
             'No, it will be rebuilt for each test'
         );
 
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName, 'n/a'),
             'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
-            'Snapshots enabled?' => $this->renderBoolean($this->snapshotsEnabled),
+            'Snapshots enabled?' => $snapshotsEnabled,
+            '- When reusing db?' => $this->escapeString($this->reuseDBSnapshotType, 'No'),
+            '- When not reusing db?' => $this->escapeString($this->notReuseDBSnapshotType, 'No'),
             'Snapshot storage dir:' => $storageDir,
             $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
             'Migrations:' => $migrations,
             $seedersTitle => $seeders,
             'Is a browser-test?' => $isBrowserTest,
-            'Is reusable?' => ' ',
-            '- Using transactions:' => $isReusable,
+//            'Is reusable?' => $this->renderBoolean($this->databaseIsReusable),
+            'Is reusable?' => $isReusable,
+//            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
+            'Verify database?' => $this->renderBoolean($this->verifyDatabase),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            '- Build-hash:' => $this->escapeString($this->buildHash),
+            '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),
             '- Scenario-hash:' => $this->escapeString($this->scenarioHash),
         ]);
@@ -400,7 +478,7 @@ class ResolvedSettingsDTO
      */
     private function escapeString($value, $default = null)
     {
-        return mb_strlen($value)
+        return mb_strlen((string) $value)
             ? "\"$value\""
             : $default;
     }
@@ -418,9 +496,8 @@ class ResolvedSettingsDTO
         return $value ? $trueValue : $falseValue;
     }
 
-
     /**
-     * Render a list of things, or "None when empty".
+     * Render a list of things, or "None" when empty.
      *
      * @param string[] $things      The things to render.
      * @param string   $remoteExtra The text to add when being handled remotely.

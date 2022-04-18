@@ -7,7 +7,6 @@ use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
-use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to building a Laravel/SQLite database.
@@ -18,6 +17,8 @@ class LaravelSQLiteBuild implements BuildInterface
     use LaravelBuildTrait;
     use LaravelHelperTrait;
     use SQLiteHelperTrait;
+
+
 
     /**
      * Check if this database type can be built remotely.
@@ -36,6 +37,7 @@ class LaravelSQLiteBuild implements BuildInterface
      */
     public function isCompatibleWithBrowserTests(): bool
     {
+        // memory SQLite databases are only available to the current connection, and cannot be shared
         return !$this->isMemoryDatabase();
     }
 
@@ -47,10 +49,10 @@ class LaravelSQLiteBuild implements BuildInterface
     public function resetDB()
     {
         if ($this->databaseExists()) {
-            $this->wipeDBSQLite();
-        } else {
-            $this->createDB();
+            $this->dropDBSQLite();
         }
+
+        $this->createDB();
     }
 
     /**
@@ -62,15 +64,37 @@ class LaravelSQLiteBuild implements BuildInterface
     {
         return ($this->isMemoryDatabase()
             ? true
-            : $this->di->filesystem->fileExists((string) $this->config->database));
+            : $this->di->filesystem->fileExists((string) $this->configDTO->database));
     }
+
+//    /**
+//     * Wipe the database.
+//     *
+//     * @return void
+//     */
+//    private function wipeDBSQLite(): void
+//    {
+//        if ($this->isMemoryDatabase()) {
+//            return;
+//        }
+//
+//        $logTimer = $this->di->log->newTimer();
+//
+//        // make sure we've disconnected from the database first
+//        $this->di->db->purge();
+//
+//        $this->di->filesystem->unlink((string) $this->configDTO->database);
+//        $this->createDB();
+//
+//        $this->di->log->debug('Wiped the database', $logTimer);
+//    }
 
     /**
      * Wipe the database.
      *
      * @return void
      */
-    private function wipeDBSQLite()
+    private function dropDBSQLite()
     {
         if ($this->isMemoryDatabase()) {
             return;
@@ -81,10 +105,9 @@ class LaravelSQLiteBuild implements BuildInterface
         // make sure we've disconnected from the database first
         $this->di->db->purge();
 
-        $this->di->filesystem->unlink((string) $this->config->database);
-        $this->createDB();
+        $this->di->filesystem->unlink((string) $this->configDTO->database);
 
-        $this->di->log->debug('Wiped the database', $logTimer);
+        $this->di->log->debug('Removed the existing database', $logTimer);
     }
 
     /**
@@ -100,7 +123,7 @@ class LaravelSQLiteBuild implements BuildInterface
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->filesystem->touch((string) $this->config->database);
+        $this->di->filesystem->touch((string) $this->configDTO->database);
 
         $this->di->log->debug('Created the database', $logTimer);
     }
@@ -125,29 +148,5 @@ class LaravelSQLiteBuild implements BuildInterface
     public function seed($seeders)
     {
         $this->laravelSeed($seeders);
-    }
-
-    /**
-     * Determine if a transaction can (and should) be used on this database.
-     *
-     * @return boolean
-     */
-    public function isTransactionable(): bool
-    {
-        // the database connection is closed between tests,
-        // which causes :memory: databases to disappear,
-        // so transactions can't be used on them between tests
-        return !$this->isMemoryDatabase();
-    }
-
-    /**
-     * Start the transaction that the test will be encapsulated in.
-     *
-     * @return void
-     */
-    public function applyTransaction()
-    {
-        $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1");
     }
 }

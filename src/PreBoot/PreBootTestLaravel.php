@@ -5,12 +5,16 @@ namespace CodeDistortion\Adapt\PreBoot;
 use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelConfig;
 use CodeDistortion\Adapt\Support\LaravelEnv;
 use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
+use Throwable;
 
 /**
  * Pre-Bootstrap for Laravel tests.
@@ -31,10 +35,13 @@ class PreBootTestLaravel
     /** @var PropBagDTO The properties specified in the test-class. */
     private $propBag;
 
+    /** @var LogInterface The logger to use. */
+    private $log;
+
     /** @var callable The framework specific callback to set up the database transaction. */
     private $buildTransactionClosure;
 
-    /** @var callable The callback that uses databaseInit(), to let the Test customise the database build process. */
+    /** @var callable|null The callback that uses databaseInit(), to let the Test customise the database build process. */
     private $buildInitCallback;
 
     /** @var boolean Whether the current test is a browser test or not. */
@@ -74,27 +81,59 @@ class PreBootTestLaravel
      * Prepare and boot Adapt.
      *
      * @return void
+     * @throws Throwable When something goes wrong.
      */
     public function adaptSetUp()
     {
-        $this->prepareLaravelConfig();
+        // the logger needs Laravel's config settings to be built,
+        // so it needs to be built here instead of earlier in the constructor
+        // (as Laravel hadn't booted by that point)
+        $this->log = $this->newLog();
 
-        $this->adaptBootTestLaravel = $this->buildBootObject();
-        $this->adaptBootTestLaravel->run();
+        try {
+            $this->prepareLaravelConfig();
+
+            $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
+            $this->adaptBootTestLaravel->runBuildSteps();
+            $this->adaptBootTestLaravel->runPostBuildSteps();
+
+        } catch (Throwable $e) {
+            Exceptions::logException($this->log, $e, true);
+            throw $e;
+        }
     }
 
     /**
      * Perform any clean-up / checking once the test has finished.
      *
      * @return void
+     * @throws Throwable When something goes wrong.
      */
     public function adaptTearDown()
     {
         try {
-            $this->adaptBootTestLaravel->checkForCommittedTransactions();
+            $this->adaptBootTestLaravel->runPostTestSteps();
+        } catch (Throwable $e) {
+            Exceptions::logException($this->log, $e, true);
+            throw $e;
         } finally {
-            $this->adaptBootTestLaravel->postTestCleanUp();
+            $this->adaptBootTestLaravel->runPostTestCleanUp();
         }
+    }
+
+
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        return new LaravelLog(
+            (bool) $this->propBag->adaptConfig('log.stdout'),
+            (bool) $this->propBag->adaptConfig('log.laravel')
+        );
     }
 
 
@@ -115,7 +154,7 @@ class PreBootTestLaravel
      * Choose the database connection to use for this test, and set it as Laravel's default database connection.
      *
      * @return void
-     * @throws AdaptConfigException Thrown when the desired default connection doesn't exist.
+     * @throws AdaptConfigException When the desired default connection doesn't exist.
      */
     private function initLaravelDefaultConnection()
     {
@@ -124,6 +163,7 @@ class PreBootTestLaravel
         }
 
         $connection = $this->propBag->prop('defaultConnection');
+        $connection = is_string($connection) ? $connection : ''; // phpstan
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidDefaultConnection($connection);
         }
@@ -147,7 +187,7 @@ class PreBootTestLaravel
         }
 
         LaravelEnv::reloadEnv(
-            base_path(Settings::ENV_TESTING_FILE),
+            base_path(Settings::LARAVEL_ENV_TESTING_FILE),
             ['APP_ENV' => 'testing']
         );
 
@@ -177,7 +217,7 @@ class PreBootTestLaravel
      *
      * Gives priority the ones specified as props, but higher than that it gives priority to ones that start with "!".
      *
-     * @return array
+     * @return array<string, string>
      */
     private function parseRemapDBStrings(): array
     {
@@ -195,8 +235,8 @@ class PreBootTestLaravel
      * @param string|null  $remapString  The string to use.
      * @param boolean|null $getImportant Return "important" or "unimportant" ones? null for any.
      * @param boolean      $isConfig     Is this string from a config setting? (otherwise it's a test-class prop).
-     * @return array
-     * @throws AdaptConfigException Thrown when the string can't be interpreted.
+     * @return array<string, string>
+     * @throws AdaptConfigException When the string can't be interpreted.
      */
     private function parseRemapDBString($remapString, $getImportant, bool $isConfig): array
     {
@@ -218,8 +258,8 @@ class PreBootTestLaravel
                 $isImportant = (bool) $matches[1];
                 if ((is_null($getImportant)) || ($getImportant === $isImportant)) {
 
-                    $dest = $matches[2];
-                    $src = $matches[3];
+                    $dest = (string) $matches[2];
+                    $src = (string) $matches[3];
 
                     if (!config("database.connections.$dest")) {
                         throw AdaptConfigException::missingDestRemapConnection($dest, $isConfig);
@@ -242,11 +282,13 @@ class PreBootTestLaravel
     /**
      * Build the boot-test object.
      *
+     * @param LogInterface $log The logger to use.
      * @return BootTestInterface
      */
-    private function buildBootObject(): BootTestInterface
+    private function buildBootObject(LogInterface $log): BootTestInterface
     {
         return (new BootTestLaravel())
+            ->log($log)
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
@@ -264,7 +306,7 @@ class PreBootTestLaravel
      *
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException Thrown when the connection doesn't exist.
+     * @throws AdaptConfigException When the connection doesn't exist.
      */
     public function newBuilder($connection): DatabaseBuilder
     {
@@ -274,7 +316,7 @@ class PreBootTestLaravel
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function buildConnectionDBsList(): array
     {

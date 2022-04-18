@@ -23,9 +23,9 @@ class LaravelArtisan
     {
         // Laravel < 7 would update the config values
         // record the current values and replace afterwards
-        /** @var Repository $config */
-        $config = config();
-        $configValues = $config->all();
+        /** @var Repository $configDTO */
+        $configDTO = config();
+        $configValues = $configDTO->all();
 
         $return = Artisan::call($command, $parameters, $outputBuffer);
 

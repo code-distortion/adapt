@@ -14,7 +14,7 @@ class ConfigDTO
     use DTOBuildTrait;
 
     /**
-     * The ConfigDTO version. An exception will be thrown when there's a mis-match between installations of Adapt.
+     * The ConfigDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *
      * @var integer
      */
@@ -36,6 +36,9 @@ class ConfigDTO
     /** @var string|null The database driver to use when building the database ("mysql", "sqlite" etc). */
     public $driver;
 
+    /** @var string The name of the database before being altered. */
+    public $origDatabase;
+
     /** @var string|null The name of the database to use. */
     public $database;
 
@@ -52,8 +55,14 @@ class ConfigDTO
     /** @var string The prefix to add to database names. */
     public $databasePrefix;
 
+    /** @var boolean Turn the usage of build-hashes on or off. */
+    public $checkForSourceChanges;
+
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public $hashPaths;
+
+    /** @var string|null The build-hash if it has already been calculated - passed to remote Adapt installations. */
+    public $preCalculatedBuildHash;
 
 
     /** @var string[]|string[][] The files to import before the migrations are run. */
@@ -68,11 +77,20 @@ class ConfigDTO
     /** @var string|null The remote Adapt installation to send "build" requests to. */
     public $remoteBuildUrl;
 
-    /** @var boolean Is a browser test being run?. When true, this will turn off $reuseTestDBs and $scenarioTestDBs. */
+    /** @var boolean Is a browser test being run? If so, this will turn off transaction re-use. */
     public $isBrowserTest;
 
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public $isRemoteBuild;
+
+    /** @var boolean Whether the database is transactionable or not - a record of the setting based on the driver. */
+    public $dbIsTransactionable;
+
+    /** @var boolean Whether the database is journalable or not - a record of the setting based on the driver. */
+    public $dbIsJournalable;
+
+    /** @var boolean Whether the database is verifiable or not - a record of the setting based on the driver. */
+    public $dbIsVerifiable;
 
     /**
      * The session driver being used - will throw and exception when the remote version is different to
@@ -86,8 +104,14 @@ class ConfigDTO
     public $remoteCallerSessionDriver;
 
 
-    /** @var boolean When turned on, databases will be reused when possible instead of rebuilding them. */
-    public $reuseTestDBs;
+    /** @var boolean When turned on, databases will be reused using a transaction instead of rebuilding them. */
+    public $reuseTransaction;
+
+    /** @var boolean When turned on, databases will be reused using journaling instead of rebuilding them. */
+    public $reuseJournal;
+
+    /** @var boolean When turned on, the database structure and content will be checked after each test. */
+    public $verifyDatabase;
 
     /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
     public $scenarioTestDBs;
@@ -97,6 +121,11 @@ class ConfigDTO
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
     public $useSnapshotsWhenNotReusingDB;
+
+    /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
+    public $forceRebuild;
+
+
 
 
     /** @var string The path to the "mysql" executable. */
@@ -122,7 +151,7 @@ class ConfigDTO
      */
     public function __construct()
     {
-        $this->version(Settings::CONFIG_DTO_VERSION);
+        $this->dtoVersion(Settings::CONFIG_DTO_VERSION);
     }
 
 
@@ -130,12 +159,12 @@ class ConfigDTO
     /**
      * Set the ConfigDTO version.
      *
-     * @param integer $version The ConfigDTO version.
+     * @param integer $dtoVersion The ConfigDTO version.
      * @return static
      */
-    public function version($version): self
+    public function dtoVersion($dtoVersion): self
     {
-        $this->dtoVersion = $version;
+        $this->dtoVersion = $dtoVersion;
         return $this;
     }
 
@@ -202,6 +231,18 @@ class ConfigDTO
     }
 
     /**
+     * Set the name of the database before being altered.
+     *
+     * @param string $origDatabase The name of the original database.
+     * @return static
+     */
+    public function origDatabase($origDatabase): self
+    {
+        $this->origDatabase = $origDatabase;
+        return $this;
+    }
+
+    /**
      * Set the database to use.
      *
      * @param string|null $database The name of the database to use.
@@ -262,6 +303,18 @@ class ConfigDTO
     }
 
     /**
+     * Turn the usage of build-hashes on or off.
+     *
+     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @return static
+     */
+    public function checkForSourceChanges($checkForSourceChanges): self
+    {
+        $this->checkForSourceChanges = $checkForSourceChanges;
+        return $this;
+    }
+
+    /**
      * Set the list of directories that can invalidate test-databases and snapshots.
      *
      * @param string[] $hashPaths The files and directories to look through.
@@ -272,6 +325,20 @@ class ConfigDTO
         $this->hashPaths = $hashPaths;
         return $this;
     }
+
+    /**
+     * Set the pre-calculated build-hash - passed to remote Adapt installations.
+     *
+     * @param string|null $preCalculatedBuildHash The pre-calculated build-hash.
+     * @return static
+     */
+    public function preCalculatedBuildHash($preCalculatedBuildHash): self
+    {
+        $this->preCalculatedBuildHash = $preCalculatedBuildHash;
+        return $this;
+    }
+
+
 
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).
@@ -351,7 +418,7 @@ class ConfigDTO
     }
 
     /**
-     * Specify the url to send "build" requests to.
+     * Specify the url to send "remote-build" requests to.
      *
      * @param string|null $remoteBuildUrl The remote Adapt installation to send "build" requests to.
      * @return static
@@ -363,7 +430,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the is-browser-test setting on (or off).
+     * Turn the is-browser-test setting on or off.
      *
      * @param boolean $isBrowserTest Is this test a browser-test?.
      * @return static
@@ -375,7 +442,7 @@ class ConfigDTO
     }
 
     /**
-     * Turn the is-remote-build setting on (or off).
+     * Turn the is-remote-build setting on or off.
      *
      * @param boolean $isRemoteBuild Is this process building a db for another Adapt installation?.
      * @return static
@@ -383,6 +450,42 @@ class ConfigDTO
     public function isRemoteBuild($isRemoteBuild): self
     {
         $this->isRemoteBuild = $isRemoteBuild;
+        return $this;
+    }
+
+    /**
+     * Turn the db-is-transactionable setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbIsTransactionable Whether the database is transactionable or not.
+     * @return static
+     */
+    public function dbIsTransactionable($dbIsTransactionable): self
+    {
+        $this->dbIsTransactionable = $dbIsTransactionable;
+        return $this;
+    }
+
+    /**
+     * Turn the db-is-journalable setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbIsJournalable Whether the database is journalable or not.
+     * @return static
+     */
+    public function dbIsJournalable($dbIsJournalable): self
+    {
+        $this->dbIsJournalable = $dbIsJournalable;
+        return $this;
+    }
+
+    /**
+     * Turn the db-is-verifiable setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbIsVerifiable Whether the database is verifiable or not.
+     * @return static
+     */
+    public function dbIsVerifiable($dbIsVerifiable): self
+    {
+        $this->dbIsVerifiable = $dbIsVerifiable;
         return $this;
     }
 
@@ -413,33 +516,63 @@ class ConfigDTO
     /**
      * Set the types of cache to use.
      *
-     * @param boolean $reuseTestDBs    Reuse databases when possible (instead of rebuilding them)?.
-     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
+     * @param boolean $reuseTransaction Reuse databases with a transaction?.
+     * @param boolean $reuseJournal     Reuse databases with a journal?.
+     * @param boolean $verifyDatabase   Perform a check of the db structure and content after each test?.
+     * @param boolean $scenarioTestDBs  Create databases as needed for the database-scenario?.
      * @return static
      */
     public function cacheTools(
-        $reuseTestDBs,
+        $reuseTransaction,
+        $reuseJournal,
+        $verifyDatabase,
         $scenarioTestDBs
     ): self {
-        $this->reuseTestDBs = $reuseTestDBs;
+        $this->reuseTransaction = $reuseTransaction;
+        $this->reuseJournal = $reuseJournal;
+        $this->verifyDatabase = $verifyDatabase;
         $this->scenarioTestDBs = $scenarioTestDBs;
         return $this;
     }
 
     /**
-     * Turn the reuse-test-dbs setting on (or off).
+     * Turn the reuse-transaction setting on or off.
      *
-     * @param boolean $reuseTestDBs Reuse existing databases?.
+     * @param boolean $reuseTransaction Reuse databases with a transactions?.
      * @return static
      */
-    public function reuseTestDBs($reuseTestDBs): self
+    public function reuseTransaction($reuseTransaction): self
     {
-        $this->reuseTestDBs = $reuseTestDBs;
+        $this->reuseTransaction = $reuseTransaction;
         return $this;
     }
 
     /**
-     * Turn the scenario-test-dbs setting on (or off).
+     * Turn the reuse-journal setting on or off.
+     *
+     * @param boolean $reuseJournal Reuse databases with a journal?.
+     * @return static
+     */
+    public function reuseJournal($reuseJournal): self
+    {
+        $this->reuseJournal = $reuseJournal;
+        return $this;
+    }
+
+    /**
+     * Turn the verify-database setting on (or off).
+     *
+     * @param boolean $verifyDatabase Perform a check of the db structure and content after each test?.
+     * @return static
+     */
+    public function verifyDatabase($verifyDatabase): self
+    {
+        $this->verifyDatabase = $verifyDatabase;
+        return $this;
+    }
+
+    /**
+     * Turn the scenario-test-dbs setting on or off.
      *
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
@@ -465,6 +598,18 @@ class ConfigDTO
     ): self {
         $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
         $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
+        return $this;
+    }
+
+    /**
+     * Turn the force-rebuild setting on or off.
+     *
+     * @param boolean $forceRebuild Force the database to be rebuilt (or not).
+     * @return static
+     */
+    public function forceRebuild($forceRebuild): self
+    {
+        $this->forceRebuild = $forceRebuild;
         return $this;
     }
 
@@ -560,6 +705,263 @@ class ConfigDTO
 
 
     /**
+     * Check if initialisation is possible.
+     *
+     * @return boolean
+     */
+    public function shouldInitialise(): bool
+    {
+        return $this->connectionExists;
+    }
+
+    /**
+     * When building remotely & running browser tests, make sure the remote session.driver matches the local one.
+     *
+     * @return void
+     * @throws AdaptRemoteShareException When building remotely, is a browser test, and session.drivers don't match.
+     */
+    public function ensureThatSessionDriversMatch()
+    {
+        if (!$this->isRemoteBuild) {
+            return;
+        }
+
+        if (!$this->isBrowserTest) {
+            return;
+        }
+
+        if ($this->sessionDriver == $this->remoteCallerSessionDriver) {
+            return;
+        }
+
+        throw AdaptRemoteShareException::sessionDriverMismatch(
+            $this->sessionDriver,
+            (string) $this->remoteCallerSessionDriver
+        );
+    }
+
+    /**
+     * Resolve whether database re-use is allowed.
+     *
+     * @return boolean
+     */
+    public function reusingDB(): bool
+    {
+        return $this->shouldUseTransaction() || $this->shouldUseJournal();
+    }
+
+
+
+    /**
+     * Resolve whether transactions shall be used.
+     *
+     * @return boolean
+     */
+    public function shouldUseTransaction(): bool
+    {
+        return $this->canUseTransactions();
+    }
+
+    /**
+     * Resolve whether journaling shall be used.
+     *
+     * @return boolean
+     */
+    public function shouldUseJournal(): bool
+    {
+        // transactions are better so use them if they're enabled
+        return $this->canUseJournaling() && !$this->canUseTransactions();
+    }
+
+
+
+    /**
+     * Resolve whether transactions can be used for database re-use.
+     *
+     * @return boolean
+     */
+    public function canUseTransactions(): bool
+    {
+        if (!$this->connectionExists) {
+            return false;
+        }
+        if ($this->isBrowserTest) {
+            return false;
+        }
+        if (!$this->dbIsTransactionable) {
+            return false;
+        }
+        return $this->reuseTransaction;
+    }
+
+    /**
+     * Resolve whether journaling can be used for database re-use.
+     *
+     * @return boolean
+     */
+    public function canUseJournaling(): bool
+    {
+        if (!$this->connectionExists) {
+            return false;
+        }
+        if (!$this->dbIsJournalable) {
+            return false;
+        }
+        return $this->reuseJournal;
+    }
+
+
+
+    /**
+     * Resolve whether the database should be verified (in some way) or not.
+     *
+     * @return boolean
+     */
+    public function shouldVerifyDatabase(): bool
+    {
+        return $this->shouldVerifyStructure() || $this->shouldVerifyData();
+    }
+
+    /**
+     * Resolve whether the database structure should be verified or not.
+     *
+     * @return boolean
+     */
+    public function shouldVerifyStructure(): bool
+    {
+        if (!$this->dbIsVerifiable) {
+            return false;
+        }
+
+        return $this->verifyDatabase; // this setting is applied to both structure and content checking
+    }
+
+    /**
+     * Resolve whether the database content should be verified or not.
+     *
+     * @return boolean
+     */
+    public function shouldVerifyData(): bool
+    {
+        if (!$this->dbIsVerifiable) {
+            return false;
+        }
+
+        return $this->verifyDatabase; // this setting is applied to both structure and content checking
+    }
+
+
+
+    /**
+     * Resolve whether scenarioTestDBs is to be used.
+     *
+     * @return boolean
+     */
+    public function usingScenarioTestDBs(): bool
+    {
+        return $this->scenarioTestDBs;
+    }
+
+    /**
+     * Check if the database should be built remotely (instead of locally).
+     *
+     * @return boolean
+     */
+    public function shouldBuildRemotely(): bool
+    {
+        return mb_strlen((string) $this->remoteBuildUrl) > 0;
+    }
+
+    /**
+     * Resolve whether seeding is allowed.
+     *
+     * @return boolean
+     */
+    public function seedingIsAllowed(): bool
+    {
+        return $this->migrations !== false;
+    }
+
+    /**
+     * Resolve whether snapshots are enabled or not.
+     *
+     * @return boolean
+     */
+    public function snapshotsAreEnabled(): bool
+    {
+        return !is_null($this->snapshotType());
+    }
+
+    /**
+     * Check which type of snapshots are bing used.
+     *
+     * @return string|null
+     */
+    public function snapshotType()
+    {
+        $snapshotType = $this->reusingDB()
+            ? $this->useSnapshotsWhenReusingDB
+            : $this->useSnapshotsWhenNotReusingDB;
+
+        return in_array($snapshotType, ['afterMigrations', 'afterSeeders', 'both'], true)
+            ? $snapshotType
+            : null;
+    }
+
+    /**
+     * Derive if a snapshot should be taken after the migrations have been run.
+     *
+     * @return boolean
+     */
+    public function shouldTakeSnapshotAfterMigrations(): bool
+    {
+        if (!$this->snapshotsAreEnabled()) {
+            return false;
+        }
+
+        if ($this->migrations === false) {
+            return false;
+        }
+
+        // take into consideration when there are no seeders to run, but a snapshot should be taken after seeders
+        return count($this->pickSeedersToInclude())
+            ? in_array($this->snapshotType(), ['afterMigrations', 'both'], true)
+            : in_array($this->snapshotType(), ['afterMigrations', 'afterSeeders', 'both'], true);
+    }
+
+    /**
+     * Derive if a snapshot should be taken after the seeders have been run.
+     *
+     * @return boolean
+     */
+    public function shouldTakeSnapshotAfterSeeders(): bool
+    {
+        if (!$this->snapshotsAreEnabled()) {
+            return false;
+        }
+
+        if ($this->migrations === false) {
+            return false;
+        }
+
+        if (!$this->seedingIsAllowed()) {
+            return false;
+        }
+
+        // if there are no seeders, the snapshot will be the same as after migrations
+        // so this situation is included in shouldTakeSnapshotAfterMigrations(..) above
+        if (!count($this->pickSeedersToInclude())) {
+            return false;
+        }
+
+        return in_array($this->snapshotType(), ['afterSeeders', 'both'], true);
+    }
+
+
+
+
+
+    /**
      * Build a new ConfigDTO from the data given in a request to build the database remotely.
      *
      * @param string $payload The raw ConfigDTO data from the request.
@@ -593,6 +995,6 @@ class ConfigDTO
      */
     public function buildPayload(): string
     {
-        return json_encode(get_object_vars($this));
+        return (string) json_encode(get_object_vars($this));
     }
 }

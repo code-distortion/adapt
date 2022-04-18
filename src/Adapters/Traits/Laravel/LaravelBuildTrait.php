@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Database\Seeder;
 use Illuminate\Foundation\Application;
 use Throwable;
 
@@ -13,35 +12,52 @@ use Throwable;
  */
 trait LaravelBuildTrait
 {
+//    /**
+//     * Wipe the database.
+//     *
+//     * @return void
+//     */
+//    protected function wipeDB(): void
+//    {
+//        $logTimer = $this->di->log->newTimer();
+//
+//        $artisan = $this->di->artisan;
+//        if ($artisan->commandExists('db:wipe')) {
+//
+//            $this->di->artisan->call(
+//                'db:wipe',
+//                array_filter(
+//                    [
+//                        '--env' =>  'testing',
+//                        '--database' => $this->configDTO->connection,
+//                        '--drop-views' => true,
+//                        '--drop-types' => ($this->configDTO->driver == 'pgsql'),
+//                        '--force' => true,
+//                    ]
+//                )
+//            );
+//        } else {
+//            // @todo test dropAllTables when views exist, and Postgres Types exist
+//            $this->di->db->dropAllTables();
+//        }
+//
+//        $this->di->log->debug('Wiped the database', $logTimer);
+//    }
+
     /**
-     * Wipe the database.
+     * Drop the database.
      *
      * @return void
      */
-    protected function wipeDB()
+    protected function dropDB()
     {
         $logTimer = $this->di->log->newTimer();
 
-        $artisan = $this->di->artisan;
-        if ($artisan->commandExists('db:wipe')) {
-
-            $this->di->artisan->call(
-                'db:wipe',
-                array_filter(
-                    [
-                        '--database' => $this->config->connection,
-                        '--drop-views' => true,
-                        '--drop-types' => ($this->config->driver == 'pgsql'),
-                        '--force' => true,
-                    ]
-                )
-            );
-        } else {
-            // @todo test dropAllTables when views exist, and Postgres Types exist
-            $this->di->db->dropAllTables();
+        if (!$this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS `{$this->configDTO->database}`")) {
+            return;
         }
 
-        $this->di->log->debug('Wiped the database', $logTimer);
+        $this->di->log->debug('Dropped the existing database', $logTimer);
     }
 
     /**
@@ -49,7 +65,7 @@ trait LaravelBuildTrait
      *
      * @param string|null $migrationsPath The location of the migrations.
      * @return void
-     * @throws AdaptBuildException Thrown when the migrations couldn't be run.
+     * @throws AdaptBuildException When the migrations couldn't be run.
      */
     protected function laravelMigrate($migrationsPath)
     {
@@ -70,7 +86,8 @@ trait LaravelBuildTrait
             $this->di->artisan->call(
                 'migrate',
                 array_filter([
-                    '--database' => $this->config->connection,
+                    '--env' => 'testing',
+                    '--database' => $this->configDTO->connection,
                     '--force' => true,
                     '--path' => $migrationsPath,
                     '--realpath' => ($useRealPath ? true : null),
@@ -88,7 +105,7 @@ trait LaravelBuildTrait
      *
      * @param string[] $seeders The seeders to run.
      * @return void
-     * @throws AdaptBuildException Thrown when the seeder couldn't be run.
+     * @throws AdaptBuildException When the seeder couldn't be run.
      */
     protected function laravelSeed($seeders)
     {
@@ -103,7 +120,8 @@ trait LaravelBuildTrait
                     'db:seed',
                     array_filter(
                         [
-                            '--database' => $this->config->connection,
+                            '--env' => 'testing',
+                            '--database' => $this->configDTO->connection,
                             '--class' => $seeder,
                             '--no-interaction' => true,
                         ]
@@ -162,7 +180,7 @@ trait LaravelBuildTrait
     {
         $closure = $this->di->dbTransactionClosure;
         if (is_callable($closure)) {
-            $closure($this->config->connection);
+            $closure($this->configDTO->connection);
         }
     }
 

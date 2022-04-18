@@ -3,15 +3,23 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
-use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 
 /**
  * Bootstrap Adapt to build a database remotely.
  */
 interface BootRemoteBuildInterface
 {
+    /**
+     * Set the LogInterface to use.
+     *
+     * @param LogInterface $log The logger to use.
+     * @return static
+     */
+    public function log($log);
+
     /**
      * Ensure the storage-directory exists.
      *
@@ -23,8 +31,8 @@ interface BootRemoteBuildInterface
     /**
      * Create a new DatabaseBuilder object and set its initial values.
      *
-     * @param ConfigDTO $remoteConfig The config from the remote Adapt installation.
+     * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return DatabaseBuilder
      */
-    public function makeNewBuilder($remoteConfig): DatabaseBuilder;
+    public function makeNewBuilder($remoteConfigDTO): DatabaseBuilder;
 }

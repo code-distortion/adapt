@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.9.0] - 2022-04-18 
+
+### Added
+- Added **EXPERIMENTAL** *journaling* functionality for MySQL databases (needs documentation), a new way to re-use databases without using transactions
+- Added **EXPERIMENTAL** *database verification* functionality for MySQL databases (needs documentation). This checks the database structure and content after each test has run, to ensure it hasn't changed. This is designed to be used as a safety-check if desired when reusing databases using *journaling* (above). This can be turned on using the `verify_databases` config setting
+- Added a check to make sure the `.env.testing` file exists. Laravel falls back to using the `.env` values for its testing environment when `.env.testing` doesn't exist. This can cause unexpected results when wiping and re-building databases
+- Added the `check_for_source_changes` config option which allows the `look_for_changes_in` checking to be turned off
+- Added a check to see if Laravel's `--recreate-databases` option has been specified when parallel testing. If so, it throws an exception (as `php artisan adapt:remove` should be used instead)
+- Added the ability when building databases remotely, for the initial build-hash to be re-used, saving on it's re-calculation during each request
+- When a database has been built (or reused) remotely earlier in the test run, this database can now be re-used locally without needing to send extra http requests to build / check it again
+- Added the remote-build's error message, to the exception thrown locally when a remote-build fails
+
+### Changed
+- When existing databases need to be rebuilt, they're now dropped and re-created (instead of having their contents removed by internally running Laravel's `php artisan db:wipe`)
+- Tweaked the descriptions of config values
+- Improved logging content, and updated durations to be rendered in milliseconds, seconds and minutes
+- Renamed the remote-sharing cookie, which is used for sharing configuration settings between instances of Adapt (e.g. when browser testing), as it seems like it wasn't being passed anymore
+
+### Deprecated
+- The test-class property `reuseTestDBs` has been replaced with `$reuseTransaction`
+- The config `code_distortion.adapt.reuse_test_dbs` setting has been replaced with `code_distortion.adapt.reuse.transactions`
+- The Builder `reuseTestDBs()` and `noReuseTestDBs()` methods (that you might call in a test's `databaseInit(..)` method) have been replaced with `reuseTransaction()` and `noReuseTransaction()` 
+
+
+
 ## [0.8.0] - 2022-02-23
 
 ### Added
@@ -37,7 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added support for Laravel 9
-- Added new remote-building functionality (needs documentation)
+- Added **EXPERIMENTAL** *remote-building* functionality (needs documentation)
   - Added config setting: `remove_stale_things` (so the remote Adapt installation has a setting and can be told *not* to remove)
   - Added config setting: `remote_build_url`
   - Added test property: `$remoteBuildUrl`

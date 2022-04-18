@@ -14,7 +14,7 @@ trait SQLiteHelperTrait
      */
     protected function isMemoryDatabase()
     {
-        return $this->config->database == ':memory:';
+        return $this->configDTO->database == ':memory:';
     }
 
     /**
@@ -29,7 +29,7 @@ trait SQLiteHelperTrait
         if (count($temp) > 1) {
             array_pop($temp);
         }
-        return (string) implode('.', $temp);
+        return implode('.', $temp);
     }
 
     /**

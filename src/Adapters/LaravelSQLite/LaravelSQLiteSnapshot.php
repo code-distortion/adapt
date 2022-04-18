@@ -18,6 +18,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
     use SQLiteHelperTrait;
 
 
+
     /**
      * Determine if a snapshot can be made from this database.
      *
@@ -44,7 +45,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      * @param string  $path           The location of the snapshot file.
      * @param boolean $throwException Should an exception be thrown if the file doesn't exist?.
      * @return boolean
-     * @throws AdaptSnapshotException Thrown when the import fails.
+     * @throws AdaptSnapshotException When the import fails.
      */
     public function importSnapshot($path, $throwException = false): bool
     {
@@ -58,7 +59,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
             // exception on older versions
             $this->di->db->purge();
 
-            if (!$this->di->filesystem->copy($path, (string) $this->config->database)) {
+            if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
                 throw AdaptSnapshotException::importFailed($path);
             }
 
@@ -77,12 +78,12 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      *
      * @param string $path The location of the snapshot file.
      * @return void
-     * @throws AdaptSnapshotException Thrown when the snapshot export fails.
+     * @throws AdaptSnapshotException When the snapshot export fails.
      */
     public function takeSnapshot($path)
     {
-        if (!$this->di->filesystem->copy((string) $this->config->database, $path)) {
-            throw AdaptSnapshotException::SQLiteExportError((string) $this->config->database, $path);
+        if (!$this->di->filesystem->copy((string) $this->configDTO->database, $path)) {
+            throw AdaptSnapshotException::SQLiteExportError((string) $this->configDTO->database, $path);
         }
     }
 }

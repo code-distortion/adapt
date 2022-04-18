@@ -220,7 +220,7 @@ class SnapshotTest extends LaravelTestCase
                     'snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
                     'snapshot.database.80cb3b-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.80cb3b-be8b85f4827f-1.sqlite',
+                'expectedDatabase' => 'test-database.80cb3b-52980df80647-1.sqlite',
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
@@ -234,7 +234,7 @@ class SnapshotTest extends LaravelTestCase
                     'snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
                     'snapshot.database.80cb3b-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.80cb3b-be8b85f4827f-1.sqlite',
+                'expectedDatabase' => 'test-database.80cb3b-52980df80647-1.sqlite',
                 'removeAdaptStorageDir' => false,
                 'expectUsers' => ['imported-snapshot-after-seeders'],
             ],
@@ -248,7 +248,7 @@ class SnapshotTest extends LaravelTestCase
                     'snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
                     'snapshot.database.80cb3b-a34cd538e35f.sqlite',
                 ],
-                'expectedDatabase' => 'test-database.80cb3b-69625ed82d16-1.sqlite',
+                'expectedDatabase' => 'test-database.80cb3b-51555400d032-1.sqlite',
                 'removeAdaptStorageDir' => false,
                 'expectUsers' => ['imported-snapshot-before-seeders'],
             ],
@@ -260,7 +260,7 @@ class SnapshotTest extends LaravelTestCase
      *
      * @test
      * @dataProvider snapshotDataProvider
-     * @param ConfigDTO   $config                The ConfigDTO to use which instructs what and how to build.
+     * @param ConfigDTO   $configDTO             The ConfigDTO to use which instructs what and how to build.
      * @param string[]    $expectedSnapshots     The snapshot files expected to exist.
      * @param string|null $expectedDatabase      The database that's expected to exist (ignored when null).
      * @param boolean     $removeAdaptStorageDir Remove the adapt-storage directory from the scenario?.
@@ -268,7 +268,7 @@ class SnapshotTest extends LaravelTestCase
      * @return void
      */
     public function test_database_builder_takes_snapshots(
-        ConfigDTO $config,
+        ConfigDTO $configDTO,
         array $expectedSnapshots,
         $expectedDatabase,
         bool $removeAdaptStorageDir,
@@ -278,7 +278,7 @@ class SnapshotTest extends LaravelTestCase
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir, $removeAdaptStorageDir);
 
         // build the database
-        $this->newDatabaseBuilder($config)->execute();
+        $this->newDatabaseBuilder($configDTO)->execute();
 
         // look for the current database in the list, or ignore it
         $dbFile = null;
@@ -302,7 +302,7 @@ class SnapshotTest extends LaravelTestCase
 
         // check if the 'imported-snapshot' user is present
         foreach ($expectUsers as $user) {
-            $row = DB::connection($config->connection)
+            $row = DB::connection($configDTO->connection)
                 ->select("SELECT COUNT(*) AS total FROM `users` WHERE username = :user", ['user' => $user]);
             $this->assertSame(1, (int) $row[0]->total);
         }
@@ -324,30 +324,30 @@ class SnapshotTest extends LaravelTestCase
     {
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir, true);
 
-        $config = $this->newConfigDTO('sqlite')
+        $configDTO = $this->newConfigDTO('sqlite')
             ->snapshots('both', 'both')
             ->seeders([DatabaseSeeder::class]);
 
         // build the database
-        $this->newDatabaseBuilder($config)->execute();
+        $this->newDatabaseBuilder($configDTO)->execute();
 
 
 
         // find the snapshot files
-        $snapshotFiles = collect((array) scandir($this->wsAdaptStorageDir))->filter(function ($path) use ($config) {
-            return preg_match('/^'.preg_quote($config->snapshotPrefix).'/', $path);
+        $snapshotFiles = collect((array) scandir($this->wsAdaptStorageDir))->filter(function ($path) use ($configDTO) {
+            return preg_match('/^'.preg_quote($configDTO->snapshotPrefix).'/', $path);
         });
 
         foreach ($snapshotFiles as $snapshotFile) {
 
-            DB::connection($config->connection)->disconnect();
-            config([
-                'database.connections.' . $config->connection . '.database' => "$this->wsAdaptStorageDir/$snapshotFile"
-            ]);
+            DB::connection($configDTO->connection)->disconnect();
+            $key = 'database.connections.' . $configDTO->connection . '.database';
+            config([$key => "$this->wsAdaptStorageDir/$snapshotFile"]);
 
-            $userCount = DB::connection($config->connection)->select("SELECT COUNT(*) AS total FROM `users`")[0]->total;
+            $rows = DB::connection($configDTO->connection)->select("SELECT COUNT(*) AS total FROM `users`");
+            $userCount = $rows[0]->total;
 
-            DB::connection($config->connection)->insert(
+            DB::connection($configDTO->connection)->insert(
                 "INSERT INTO `users` (`username`) VALUES (:username)",
                 ['username' => $userCount ? 'imported-snapshot-after-seeders' : 'imported-snapshot-before-seeders']
             );

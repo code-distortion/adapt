@@ -3,7 +3,10 @@
 namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -11,6 +14,7 @@ use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
@@ -131,6 +135,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function getMiddlewareGroups(): array
     {
+        /** @var HttpKernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
         return method_exists($httpKernel, 'getMiddlewareGroups')
             ? array_keys($httpKernel->getMiddlewareGroups())
@@ -172,44 +177,110 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
 
 
+
+
     /**
      * Build a test-database for a remote installation of Adapt.
      *
      * @param Request $request The request object.
-     * @return Response
+     * @return ResponseFactory|Response
      */
-    private function handleBuildRequest(Request $request): Response
+    private function handleBuildRequest(Request $request)
     {
-        LaravelSupport::runFromBasePathDir();
-        LaravelSupport::useTestingConfig();
-
+        $log = null;
         try {
 
-            $builder = $this->makeNewBuilder($request->input('configDTO'));
-            $builder->execute();
-            $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
+            LaravelSupport::runFromBasePathDir();
+            LaravelSupport::useTestingConfig();
+            $log = $this->newLog();
 
-            return response($resolvedSettingsDTO->buildPayload());
+            return $this->executeBuilder($request, $log);
 
         } catch (Throwable $e) {
-
-            $exceptionClass = Exceptions::resolveExceptionClass($e);
-            return response("$exceptionClass: {$e->getMessage()}", 500);
+            return $this->handleException($e, $log);
         }
     }
 
     /**
-     * Take the config data (from the request), build the Builder based on it, and execute it.
+     * Build a new Log instance.
      *
-     * @param string $rawValue The raw configDTO data, from the request.
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        $useLaravelLog = (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
+
+        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
+        return new LaravelLog(false, $useLaravelLog);
+    }
+
+    /**
+     * Create a DatabaseBuilder, execute it, and build the response to return.
+     *
+     * @param Request      $request The request object.
+     * @param LogInterface $log     The logger to use.
+     * @return ResponseFactory|Response
+     * @throws AdaptBootException When the ConfigDTO can't be built from its payload.
+     */
+    private function executeBuilder(Request $request, LogInterface $log)
+    {
+        $payload = $request->input('configDTO');
+        $payload = is_string($payload) ? $payload : ''; // phpstan
+
+        $configDTO = $this->buildConfigDTO($payload);
+        if (!$configDTO) {
+            throw AdaptBootException::couldNotReadRemoteConfiguration();
+        }
+
+        $builder = $this->makeBuilder($configDTO, $log);
+        $builder->execute();
+
+        $resolvedSettingsDTO = $builder->getResolvedSettingsDTO();
+        return response(
+            $resolvedSettingsDTO ? $resolvedSettingsDTO->buildPayload() : null
+        );
+    }
+
+    /**
+     * Build the ConfigDTO to use based on the payload passed by the caller.
+     *
+     * @param string $payload The raw ConfigDTO data from the request.
+     * @return ConfigDTO|null
+     */
+    private function buildConfigDTO(string $payload)
+    {
+        return ConfigDTO::buildFromPayload($payload);
+    }
+
+    /**
+     * Create a new build to use.
+     *
+     * @param ConfigDTO    $configDTO The ConfigDTO passed by the caller.
+     * @param LogInterface $log       The logger to use.
      * @return DatabaseBuilder
      */
-    private function makeNewBuilder(string $rawValue): DatabaseBuilder
+    private function makeBuilder(ConfigDTO $configDTO, LogInterface $log): DatabaseBuilder
     {
-        $remoteConfigDTO = ConfigDTO::buildFromPayload($rawValue);
-
         return (new BootRemoteBuildLaravel())
+            ->log($log)
             ->ensureStorageDirExists()
-            ->makeNewBuilder($remoteConfigDTO);
+            ->makeNewBuilder($configDTO);
+    }
+
+    /**
+     * Handle an exception.
+     *
+     * @param Throwable         $e   The exception that occurred.
+     * @param LogInterface|null $log The logger to use.
+     * @return ResponseFactory|Response
+     */
+    private function handleException(Throwable $e, $log)
+    {
+        if ($log) {
+            Exceptions::logException($log, $e, true);
+        }
+
+        $exceptionClass = Exceptions::readableExceptionClass($e);
+        return response("$exceptionClass: {$e->getMessage()}", 500);
     }
 }

@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Application;
 
 /**
  * Command to list the Adapt snapshot and test-databases.
@@ -38,14 +39,16 @@ class AdaptListCachesCommand extends Command
      */
     public function handle()
     {
-        if (!app()->environment('testing')) {
+        /** @var Application $app */
+        $app = app();
+        if (!$app->environment('testing')) {
             LaravelSupport::useTestingConfig();
         }
 
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
-            $this->info('There are no caches.');
+            $this->info('There are no databases or snapshot files.');
             $this->info('');
             return;
         }

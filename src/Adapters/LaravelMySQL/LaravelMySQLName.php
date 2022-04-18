@@ -16,6 +16,7 @@ class LaravelMySQLName implements NameInterface
     use LaravelHelperTrait;
 
 
+
     /**
      * Build a scenario database name.
      *
@@ -23,12 +24,12 @@ class LaravelMySQLName implements NameInterface
      *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
      *                           transactions and isBrowserTest.
      * @return string
-     * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
+     * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
      */
     public function generateScenarioDBName($dbNameHash): string
     {
         $dbNameHash = str_replace('-', '_', $dbNameHash);
-        $database = $this->config->databasePrefix . $this->origDBName() . '_' . $dbNameHash;
+        $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameHash;
         $this->validateDBName($database);
         return $database;
     }
@@ -42,9 +43,9 @@ class LaravelMySQLName implements NameInterface
      */
     public function generateSnapshotPath($snapshotHash): string
     {
-        $filename = $this->config->snapshotPrefix . $this->origDBName() . '.' . $snapshotHash . '.mysql';
+        $filename = $this->configDTO->snapshotPrefix . $this->configDTO->origDatabase . '.' . $snapshotHash . '.mysql';
         $filename = str_replace('_', '-', $filename);
-        return $this->config->storageDir . '/' . $filename;
+        return $this->configDTO->storageDir . '/' . $filename;
     }
 
     /**
@@ -52,7 +53,7 @@ class LaravelMySQLName implements NameInterface
      *
      * @param string $database The database name to check.
      * @return void
-     * @throws AdaptLaravelMySQLAdapterException Thrown when the database name is invalid.
+     * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
      */
     private function validateDBName(string $database)
     {
