@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\VerifierInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptVerificationException;
 use CodeDistortion\Adapt\Support\Settings;
+use CodeDistortion\Adapt\Support\StringSupport;
 use stdClass;
 
 /**
@@ -219,7 +220,9 @@ class LaravelMySQLVerifier implements VerifierInterface
      */
     private function generateStructureHash(string $table, bool $forceRefresh = false): string
     {
-        return md5($this->getCreateTableQuery($table, $forceRefresh));
+        $query = $this->getCreateTableQuery($table, $forceRefresh);
+        $query = $this->removeAutoIncrementFromCreateTableQuery($query);
+        return md5($query);
     }
 
     /**
@@ -237,6 +240,31 @@ class LaravelMySQLVerifier implements VerifierInterface
         }
 
         return $this->createTableQueries[$table];
+    }
+
+    /**
+     * Remove the "AUTO_INCREMENT=xxx" part from a CREATE TABLE query.
+     *
+     * @param string $query The CREATE TABLE query to alter.
+     * @return string
+     */
+    private function removeAutoIncrementFromCreateTableQuery(string $query): string
+    {
+        $matched = preg_match(
+            '/\) ENGINE=[^\n]+[^\n]*( AUTO_INCREMENT=[0-9]+ )[^\n]*$/',
+            $query,
+            $matches
+        );
+
+        if (!$matched) {
+            return $query;
+        }
+
+        $lastPart = $matches[0];
+        $autoIncrement = $matches[1]; // e.g. " AUTO_INCREMENT=100 "
+        $newLastPart = str_replace($autoIncrement, ' ', $lastPart);
+
+        return StringSupport::strReplaceLast($lastPart, $newLastPart, $query);
     }
 
 

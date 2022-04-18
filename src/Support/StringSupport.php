@@ -77,4 +77,27 @@ class StringSupport
         }
         return 'later on';
     }
+
+    /**
+     * Perform a str_replace(..) but only for the last occurrence.
+     *
+     * @param string $search  The string to search for.
+     * @param string $replace The string to replace it with.
+     * @param string $subject The string to search through.
+     * @return string
+     */
+    public static function strReplaceLast($search, $replace, $subject): string
+    {
+        $pos = mb_strpos(strrev($subject), strrev($search));
+        $pos += mb_strlen($search);
+        $pos = mb_strlen($subject) - $pos;
+
+        $start = mb_substr($subject, 0, $pos);
+        $end = mb_substr($subject, $pos);
+
+        // perform the replacement only in the last portion of the string
+        $end = str_replace($search, $replace, $end);
+
+        return "$start$end";
+    }
 }

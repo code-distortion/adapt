@@ -165,7 +165,6 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      */
     public function test_structure_and_data_setup(ConfigDTO $configDTO, ExpectedOutcomeDTO $expectedOutcome)
     {
-
         $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
 
         // build the database
