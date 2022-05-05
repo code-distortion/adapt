@@ -353,7 +353,7 @@ You won't need to clear old databases and snapshot files as Adapt does this auto
 To carry out the different types of caching that this package uses, you may need to address the following:
 
 - When connecting to your database server, the user your code connects with needs to have **permission to create and drop databases**.
-- The user your tests run as needs to have **write-access to the filesystem** to store snapshot sql-dumps or sqlite files.
+- The user your tests run as needs to have **write-access to the filesystem** to store snapshot sql-dumps or SQLite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
 - If you have several projects using Adapt that use the same database server, you should give each one a unique `project_name` config value to stop them from interfering with each other's test-databases.
 - If you see databases with names like "*test_your_database_name_17bd3c_d266ab43ac75*", don't worry! These are the ["scenario" databases](#creation-of-scenario-databases). Leave them to get the speed benefit of reusing them (but you can safely delete them).
@@ -443,7 +443,7 @@ class MyFeatureTest extends TestCase
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
      *
-     * NOTE: pre_migration_imports aren't available for sqlite :memory:
+     * NOTE: pre_migration_imports aren't available for SQLite :memory:
      * databases.
      *
      * @var array<string, string>|array<string, string[]>
@@ -478,7 +478,7 @@ class MyFeatureTest extends TestCase
      * others.
      *
      * e.g. overwrite the "mysql" connection with the "sqlite" connection's
-     * details so sqlite is used instead.
+     * details so SQLite is used instead.
      *
      * @var string
      */
