@@ -2,8 +2,11 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use CodeDistortion\Adapt\DTO\RemoteShareDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
 /**
  * Provides extra miscellaneous Laravel related support functionality.
@@ -172,5 +175,52 @@ class LaravelSupport
         } catch (BindingResolutionException $e) {
             return null;
         }
+    }
+
+
+
+
+
+    /**
+     * Build a RemoteShareDTO from the header or cookie in a Request.
+     *
+     * @param Request $request
+     * @return RemoteShareDTO|null
+     * @throws AdaptRemoteShareException When the
+     */
+    public static function buildRemoteShareDTOFromRequest(Request $request): ?RemoteShareDTO
+    {
+        $shareHeaderValue = static::readHeaderValue($request, Settings::REMOTE_SHARE_KEY);
+        $shareCookieValue = static::readCookieValue($request, Settings::REMOTE_SHARE_KEY);
+
+        return RemoteShareDTO::buildFromPayload($shareHeaderValue)
+            ?? RemoteShareDTO::buildFromPayload($shareCookieValue)
+            ?? null;
+    }
+
+    /**
+     * Read a cookie's raw value from the request.
+     *
+     * @param Request $request    The request to rook in.
+     * @param string  $cookieName The cookie to look for.
+     * @return string
+     */
+    public static function readCookieValue(Request $request, string $cookieName): string
+    {
+        $value = $request->cookie($cookieName);
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * Read a header's raw value from the request.
+     *
+     * @param Request $request    The request object.
+     * @param string  $headerName The name of the header to read.
+     * @return string
+     */
+    private static function readHeaderValue(Request $request, string $headerName): string
+    {
+        $value = $request->headers->get($headerName);
+        return is_string($value) ? $value : '';
     }
 }

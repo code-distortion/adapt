@@ -91,12 +91,12 @@ class RemoteShareDTO
 
         $json = base64_decode($payload, true);
         if (!is_string($json)) {
-            throw AdaptRemoteShareException::couldNotReadConfigDTO();
+            throw AdaptRemoteShareException::couldNotReadRemoteShareDTO();
         }
 
         $values = json_decode($json, true);
         if (!is_array($values)) {
-            throw AdaptRemoteShareException::couldNotReadConfigDTO();
+            throw AdaptRemoteShareException::couldNotReadRemoteShareDTO();
         }
 
         $remoteShareDTO = static::buildFromArray($values);

@@ -38,13 +38,10 @@ class RemoteShareMiddleware
             return $next($request);
         }
 
-        $shareHeaderValue = $this->readHeaderValue($request, Settings::REMOTE_SHARE_KEY);
-        $shareCookieValue = $this->readCookieValue($request, Settings::REMOTE_SHARE_KEY);
+        $remoteShareDTO = LaravelSupport::buildRemoteShareDTOFromRequest($request);
+        $shareCookieValue = LaravelSupport::readCookieValue($request, Settings::REMOTE_SHARE_KEY);
 
-        $used = $this->useTemporaryConfig($shareHeaderValue)
-            ?: $this->useTemporaryConfig($shareCookieValue)
-            ?: $this->useConnectionDBs($shareHeaderValue)
-            ?: $this->useConnectionDBs($shareCookieValue);
+        $used = $this->useTemporaryConfig($remoteShareDTO) ?: $this->useConnectionDBs($remoteShareDTO);
 
         // make it look like the cookie never existed
         $request->cookies->remove(Settings::REMOTE_SHARE_KEY);
@@ -61,44 +58,19 @@ class RemoteShareMiddleware
 
 
 
-    /**
-     * Read a cookie's raw value from the request.
-     *
-     * @param Request $request    The request to rook in.
-     * @param string  $cookieName The cookie to look for.
-     * @return string
-     */
-    private function readCookieValue(Request $request, string $cookieName): string
-    {
-        $value = $request->cookie($cookieName);
-        return is_string($value) ? $value : '';
-    }
 
-    /**
-     * Read a header's raw value from the request.
-     *
-     * @param Request $request    The request object.
-     * @param string  $headerName The name of the header to read.
-     * @return string
-     */
-    private function readHeaderValue(Request $request, string $headerName): string
-    {
-        $value = $request->headers->get($headerName);
-        return is_string($value) ? $value : '';
-    }
 
 
 
     /**
      * Load the temporary config file the cookie or header points to.
      *
-     * @param string $rawValue The remote-share raw value passed in the request.
+     * @param RemoteShareDTO|null $remoteShareDTO The RemoteShareDTO, built from the request.
      * @return boolean
      * @throws AdaptBrowserTestException When there was a problem loading the temporary config.
      */
-    private function useTemporaryConfig(string $rawValue): bool
+    private function useTemporaryConfig(?RemoteShareDTO $remoteShareDTO): bool
     {
-        $remoteShareDTO = RemoteShareDTO::buildFromPayload($rawValue);
         if (!$remoteShareDTO) {
             return false;
         }
@@ -148,17 +120,16 @@ class RemoteShareMiddleware
      *
      * Loads Laravel's testing config, and overwrites the connections' databases if present.
      *
-     * @param string $rawValue The remote-share raw value passed in the request.
+     * @param RemoteShareDTO|null $remoteShareDTO The RemoteShareDTO, built from the request.
      * @return boolean
      */
-    private function useConnectionDBs(string $rawValue): bool
+    private function useConnectionDBs(?RemoteShareDTO $remoteShareDTO): bool
     {
-        $remoteShareDTO = RemoteShareDTO::buildFromPayload($rawValue);
         if (!$remoteShareDTO) {
             return false;
         }
 
-        LaravelSupport::useTestingConfig();
+//        LaravelSupport::useTestingConfig(); // already called in the AdaptLaravelServiceProvider
         LaravelSupport::useConnectionDatabases($remoteShareDTO->connectionDBs);
 
         return true;
@@ -180,7 +151,7 @@ class RemoteShareMiddleware
             return;
         }
 
-        if ((!is_string($cookieValue)) || (!mb_strlen($cookieValue))) {
+        if (!mb_strlen($cookieValue)) {
             return;
         }
 

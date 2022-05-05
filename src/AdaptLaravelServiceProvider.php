@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
+use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -53,6 +54,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $this->initialiseCommands();
         $this->initialiseMiddleware();
         $this->initialiseRoutes($router);
+        $this->detectAdaptRequest(request());
     }
 
 
@@ -263,5 +265,28 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
         $exceptionClass = Exceptions::readableExceptionClass($e);
         return response("$exceptionClass: {$e->getMessage()}", 500);
+    }
+
+
+
+
+    /**
+     * Detect if the request is from an external instance of Adapt.
+     *
+     * This is done here in the service-provider so the "testing" environment can be set sooner than when the
+     * middleware runs. (this is done because things like Telescope seem to force a connection to the .env database
+     * before the middleware runs).
+     *
+     * @param Request $request The request to inspect.
+     * @return void
+     * @throws AdaptRemoteShareException Thrown if the remote-share header/cookie is present but invalid.
+     */
+    private function detectAdaptRequest(Request $request): void
+    {
+        if (!LaravelSupport::buildRemoteShareDTOFromRequest($request)) {
+            return;
+        }
+
+        LaravelSupport::useTestingConfig();
     }
 }
