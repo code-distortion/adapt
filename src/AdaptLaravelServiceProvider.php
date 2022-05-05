@@ -51,7 +51,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $this->initialiseConfig();
         $this->publishConfig();
         $this->initialiseCommands();
-        $this->initialiseMiddleware($router);
+        $this->initialiseMiddleware();
         $this->initialiseRoutes($router);
     }
 
@@ -111,10 +111,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
     /**
      * Initialise the middleware.
      *
-     * @param Router $router Laravel's router.
      * @return void
      */
-    protected function initialiseMiddleware(Router $router): void
+    protected function initialiseMiddleware(): void
     {
         if ($this->app->runningInConsole()) {
             return;
@@ -123,23 +122,9 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        foreach ($this->getMiddlewareGroups() as $middlewareGroup) {
-            $router->prependMiddlewareToGroup($middlewareGroup, RemoteShareMiddleware::class);
-        }
-    }
-
-    /**
-     * Generate the list of Laravel's middleware groups.
-     *
-     * @return string[]
-     */
-    private function getMiddlewareGroups(): array
-    {
         /** @var HttpKernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
-        return method_exists($httpKernel, 'getMiddlewareGroups')
-            ? array_keys($httpKernel->getMiddlewareGroups())
-            : ['web', 'api'];
+        $httpKernel->prependMiddleware(RemoteShareMiddleware::class);
     }
 
 
