@@ -420,7 +420,10 @@ class ResolvedSettingsDTO
 
         $seedersTitle = $this->isSeedingAllowed && count($this->seeders) == 1 ? 'Seeder:' : 'Seeders:';
 
-        $isBrowserTest = $this->renderBoolean($this->isBrowserTest, "Yes (session-driver: \"$this->sessionDriver\")");
+        $isBrowserTest = $this->renderBoolean(
+            $this->isBrowserTest,
+            "Yes - NOTE: the session-driver is \"$this->sessionDriver\""
+        );
 
         $reuseTypes = array_filter([
             $this->transactionReusable ? 'transaction' : '',
@@ -446,7 +449,7 @@ class ResolvedSettingsDTO
 //            'Is reusable?' => $this->renderBoolean($this->databaseIsReusable),
             'Is reusable?' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
-            'Verify database?' => $this->renderBoolean($this->verifyDatabase),
+            'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
             '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),

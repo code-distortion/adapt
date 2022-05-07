@@ -16,7 +16,7 @@ trait LogTrait
      */
     private function logTitle()
     {
-        $prepLine = "Preparing the \"{$this->configDTO->connection}\" database";
+        $prepLine = "Preparing the database for connection \"{$this->configDTO->connection}\"";
         if ($this->configDTO->shouldBuildRemotely()) {
             $prepLine .= " remotely";
         } elseif ($this->configDTO->isRemoteBuild) {

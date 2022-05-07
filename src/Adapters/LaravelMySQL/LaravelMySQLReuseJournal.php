@@ -343,7 +343,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
 
         $message = $madeChanges
             ? "Used the journal to reverse changes to database \"{$this->configDTO->database}\""
-            : "There weren't any journaled changes to reverse for \"{$this->configDTO->database}\"";
+            : "There aren't any journaled changes to reverse for \"{$this->configDTO->database}\"";
         $this->di->log->debug($message, $logTimer, $newLineAfter);
     }
 

@@ -75,7 +75,7 @@ trait LaravelAdapt
      * NOTE: It's important that these dumps don't contain output from seeders
      * if those seeders are to be run by Adapt as needed afterwards.
      *
-     * NOTE: pre_migration_imports aren't available for sqlite :memory:
+     * NOTE: pre_migration_imports aren't available for SQLite :memory:
      * databases.
      *
      * @var array<string, string>|array<string, string[]>
@@ -110,7 +110,7 @@ trait LaravelAdapt
      * others.
      *
      * e.g. overwrite the "mysql" connection with the "sqlite" connection's
-     * details so sqlite is used instead.
+     * details so SQLite is used instead.
      *
      * @var string
      */
