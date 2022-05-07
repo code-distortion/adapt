@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.9.2] - 2022-05-07
+
+### Fixed
+- Improved the way the service-provider registers the RemoteShareMiddelware - it's now applied it globally, instead of being added to each middleware group
+- Updated the service-provider to detect requests from external instances of Adapt (instead of waiting for the middleware to run this check). When detected, it gets Laravel to use the testing environment
+
+
+
 ## [0.9.1] - 2022-04-19
 
 ### Fixed
