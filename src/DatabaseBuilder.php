@@ -426,7 +426,7 @@ class DatabaseBuilder
             return false;
         }
 
-        return $this->dbAdapter()->reuseTransaction->dbIsCleanForReuse(
+        return $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
             $buildHash,
             $scenarioHash,
             $this->configDTO->projectName,
@@ -475,7 +475,7 @@ class DatabaseBuilder
         bool $willVerify
     ): void {
 
-        $this->dbAdapter()->reuseTransaction->writeReuseMetaData(
+        $this->dbAdapter()->reuseMetaData->writeReuseMetaData(
             $this->origDBName(),
             $this->hasher->getBuildHash(),
             $this->hasher->currentSnapshotHash(),
@@ -686,7 +686,7 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuseTransaction->removeReuseMetaTable(); // remove the meta-table for the snapshot
+        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
 
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);

@@ -40,7 +40,7 @@ trait ConfigAdapterAndDriverTrait
 
         $adapterClass = $this->availableDBAdapters[$framework][$driver];
         /** @var DBAdapter $dbAdapter */
-        $dbAdapter = new $adapterClass($this->di, $this->configDTO, $this->hasher);
+        $dbAdapter = new $adapterClass($this->di, $this->configDTO);
         $this->dbAdapter = $dbAdapter;
 
         return $this->dbAdapter;
