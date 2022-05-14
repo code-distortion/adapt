@@ -24,23 +24,17 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string  $origDBName          The name of the database that this test-database is for.
-     * @param string  $buildHash           The current build-hash.
-     * @param string  $snapshotHash        The current snapshot-hash.
-     * @param string  $scenarioHash        The current scenario-hash.
-     * @param boolean $transactionReusable Whether this database can be reused because of a transaction or not.
-     * @param boolean $journalReusable     Whether this database can be reused because of journaling or not.
-     * @param boolean $willVerify          Whether this database will be verified or not.
+     * @param string $origDBName   The name of the database that this test-database is for.
+     * @param string $buildHash    The current build-hash.
+     * @param string $snapshotHash The current snapshot-hash.
+     * @param string $scenarioHash The current scenario-hash.
      * @return void
      */
-    public function writeReuseMetaData(
+    public function createReuseMetaDataTable(
         string $origDBName,
         string $buildHash,
         string $snapshotHash,
-        string $scenarioHash,
-        bool $transactionReusable,
-        bool $journalReusable,
-        bool $willVerify
+        string $scenarioHash
     ): void {
 
         $this->removeReuseMetaTable();
@@ -94,9 +88,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
                 'buildHash' => $buildHash,
                 'snapshotHash' => $snapshotHash,
                 'scenarioHash' => $scenarioHash,
-                'transactionReusable' => $transactionReusable ? 1 : null,
-                'journalReusable' => $journalReusable ? 1 : null,
-                'validationPassed' => $willVerify ? 1 : null,
+                'transactionReusable' => null,
+                'journalReusable' => null,
+                'validationPassed' => null,
                 'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
             ]
         );

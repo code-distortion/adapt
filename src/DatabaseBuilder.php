@@ -395,7 +395,7 @@ class DatabaseBuilder
                 $this->buildDBFresh();
             }
 
-            $this->writeBlankReuseMetaData();
+            $this->createReuseMetaDataTable();
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -450,39 +450,17 @@ class DatabaseBuilder
 //    }
 
     /**
-     * Create the re-use meta-data table - with blank settings.
-     *
-     * @return void
-     */
-    private function writeBlankReuseMetaData()
-    {
-        $this->writeReuseMetaData($this->hasher->currentScenarioHash(), false, false, false);
-    }
-
-    /**
      * Create the re-use meta-data table.
      *
-     * @param string  $scenarioHash        The current scenario hash.
-     * @param boolean $transactionReusable Whether this database can be reused because of a transaction or not.
-     * @param boolean $journalReusable     Whether this database can be reused because of journaling or not.
-     * @param boolean $willVerify          Whether this database will be verified or not.
      * @return void
      */
-    private function writeReuseMetaData(
-        string $scenarioHash,
-        bool $transactionReusable,
-        bool $journalReusable,
-        bool $willVerify
-    ): void {
-
-        $this->dbAdapter()->reuseMetaData->writeReuseMetaData(
+    private function createReuseMetaDataTable()
+    {
+        $this->dbAdapter()->reuseMetaData->createReuseMetaDataTable(
             $this->origDBName(),
             $this->hasher->getBuildHash(),
             $this->hasher->currentSnapshotHash(),
-            $scenarioHash,
-            $transactionReusable,
-            $journalReusable,
-            $willVerify
+            $this->hasher->currentScenarioHash()
         );
     }
 
@@ -499,7 +477,7 @@ class DatabaseBuilder
             $this->dbAdapter()->build->resetDB();
             // put the meta-table there straight away (even though it hasn't been built yet)
             // so another instance will identify that this database is an Adapt one
-            $this->writeBlankReuseMetaData();
+            $this->createReuseMetaDataTable();
         }
 
         ($this->configDTO->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())
@@ -540,7 +518,7 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             $this->dbAdapter()->build->resetDB();
-            $this->writeBlankReuseMetaData(); // put the meta-table there straight away
+            $this->createReuseMetaDataTable(); // put the meta-table there straight away
         }
 
         $this->importPreMigrationImports();
@@ -692,7 +670,7 @@ class DatabaseBuilder
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
         // put the meta-table back
-        $this->writeBlankReuseMetaData();
+        $this->createReuseMetaDataTable();
 
         $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }

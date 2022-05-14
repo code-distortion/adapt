@@ -28,19 +28,13 @@ interface ReuseMetaDataTableInterface
      * @param string  $buildHash           The current build-hash.
      * @param string  $snapshotHash        The current snapshot-hash.
      * @param string  $scenarioHash        The current scenario-hash.
-     * @param boolean $transactionReusable Whether this database can be reused because of a transaction or not.
-     * @param boolean $journalReusable     Whether this database can be reused because of journaling or not.
-     * @param boolean $willVerify          Whether this database will be verified or not.
      * @return void
      */
-    public function writeReuseMetaData(
+    public function createReuseMetaDataTable(
         string $origDBName,
         string $buildHash,
         string $snapshotHash,
-        string $scenarioHash,
-        bool $transactionReusable,
-        bool $journalReusable,
-        bool $willVerify
+        string $scenarioHash
     ): void;
 
     /**
