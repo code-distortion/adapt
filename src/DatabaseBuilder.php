@@ -119,7 +119,6 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         $this->onlyExecuteOnce();
-//        $this->primeTheBuildHash();
         $this->prePreparationChecks();
         $this->prepareDB();
 
@@ -163,21 +162,6 @@ class DatabaseBuilder
 
 
 
-//    /**
-//     * Pre-generate the build-hash, so the "Generated the build-hash" log line appears before the rest of the logs.
-//     *
-//     * @return void
-//     */
-//    private function primeTheBuildHash(): void
-//    {
-//        $resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
-//        if ($resolvedSettingsDTO) {
-//            $this->hasher->buildHashWasPreCalculated($resolvedSettingsDTO->buildHash);
-//        } elseif (!$this->configDTO->shouldBuildRemotely()) {
-//            $this->hasher->getBuildHash();
-//        }
-//    }
-
     /**
      * Perform any checks that that need to happen before building a database.
      *
@@ -201,7 +185,6 @@ class DatabaseBuilder
 
         $reusedLocally = $this->reuseRemotelyBuiltDBLocallyIfPossible();
         if ($reusedLocally) {
-//            $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database", $logTimer);
             return;
         }
 
@@ -314,7 +297,6 @@ class DatabaseBuilder
             $this->logHttpRequestWasSaved($database);
 
             if (!$this->configDTO->shouldInitialise()) {
-//                $this->configDTO->database($database);
                 $this->di->log->debug("Not using connection \"$connection\" locally");
                 return;
             }
@@ -433,21 +415,6 @@ class DatabaseBuilder
             $database
         );
     }
-
-//    /**
-//     * Create the re-use meta-data table - with the current settings.
-//     *
-//     * @return void
-//     */
-//    private function writeCurrentReuseMetaData()
-//    {
-//        $this->writeReuseMetaData(
-//            $this->hasher->currentScenarioHash(),
-//            $this->configDTO->shouldUseTransactions(),
-//            $this->configDTO->shouldUseJournal(),
-//            $this->configDTO->shouldVerifyDatabase()
-//        );
-//    }
 
     /**
      * Create the re-use meta-data table.
@@ -849,8 +816,7 @@ class DatabaseBuilder
             $this->configDTO->connection,
             $url,
             $response,
-            $e,
-            $this->di->log->someLoggingIsOn()
+            $e
         );
     }
 

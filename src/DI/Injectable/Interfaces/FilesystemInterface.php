@@ -40,14 +40,6 @@ interface FilesystemInterface
     public function isFile(string $path): bool;
 
     /**
-     * Check whether the given path is a directory.
-     *
-     * @param string $path The path to check.
-     * @return boolean
-     */
-//    public function isDir(string $path): bool;
-
-    /**
      * Touch the given file.
      *
      * @param string $path The path to touch.

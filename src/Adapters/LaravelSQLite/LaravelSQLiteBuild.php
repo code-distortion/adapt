@@ -62,32 +62,8 @@ class LaravelSQLiteBuild implements BuildInterface
      */
     private function databaseExists(): bool
     {
-        return ($this->isMemoryDatabase()
-            ? true
-            : $this->di->filesystem->fileExists((string) $this->configDTO->database));
+        return $this->isMemoryDatabase() || $this->di->filesystem->fileExists((string)$this->configDTO->database);
     }
-
-//    /**
-//     * Wipe the database.
-//     *
-//     * @return void
-//     */
-//    private function wipeDBSQLite(): void
-//    {
-//        if ($this->isMemoryDatabase()) {
-//            return;
-//        }
-//
-//        $logTimer = $this->di->log->newTimer();
-//
-//        // make sure we've disconnected from the database first
-//        $this->di->db->purge();
-//
-//        $this->di->filesystem->unlink((string) $this->configDTO->database);
-//        $this->createDB();
-//
-//        $this->di->log->debug('Wiped the database', $logTimer);
-//    }
 
     /**
      * Wipe the database.

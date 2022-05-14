@@ -184,14 +184,14 @@ class LaravelSupport
     /**
      * Build a RemoteShareDTO from the header or cookie in a Request.
      *
-     * @param Request $request
+     * @param Request $request The request to look in.
      * @return RemoteShareDTO|null
-     * @throws AdaptRemoteShareException When the
+     * @throws AdaptRemoteShareException When the RemoteShareDTO version doesn't match.
      */
     public static function buildRemoteShareDTOFromRequest(Request $request): ?RemoteShareDTO
     {
-        $shareHeaderValue = static::readHeaderValue($request, Settings::REMOTE_SHARE_KEY);
-        $shareCookieValue = static::readCookieValue($request, Settings::REMOTE_SHARE_KEY);
+        $shareHeaderValue = self::readHeaderValue($request, Settings::REMOTE_SHARE_KEY);
+        $shareCookieValue = self::readCookieValue($request, Settings::REMOTE_SHARE_KEY);
 
         return RemoteShareDTO::buildFromPayload($shareHeaderValue)
             ?? RemoteShareDTO::buildFromPayload($shareCookieValue)
@@ -201,7 +201,7 @@ class LaravelSupport
     /**
      * Read a cookie's raw value from the request.
      *
-     * @param Request $request    The request to rook in.
+     * @param Request $request    The request to look in.
      * @param string  $cookieName The cookie to look for.
      * @return string
      */

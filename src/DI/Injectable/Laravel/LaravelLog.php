@@ -145,23 +145,6 @@ class LaravelLog implements LogInterface
     private function buildMessage(string $message, int $timerRef = null, bool $newLineAfter = false): string
     {
         return $message . $this->formatTime($timerRef) . ($newLineAfter ? PHP_EOL : '');
-
-//        $caller = debug_backtrace()[2];
-//        $temp = explode('\\', $caller['class']);
-//        $class = array_pop($temp);
-//        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
-    }
-
-
-
-    /**
-     * Check to see if some logging is on.
-     *
-     * @return boolean
-     */
-    public function someLoggingIsOn(): bool
-    {
-        return $this->stdout || $this->laravel;
     }
 
 
@@ -169,13 +152,14 @@ class LaravelLog implements LogInterface
     /**
      * Add the array keys to the values, padded based on the length of the longest key.
      *
-     * @param array<string, string> $lines The lines to process.
+     * @param array<integer|string, string> $lines The lines to process.
      * @return string[]
      */
     public function padList(array $lines): array
     {
         $maxLength = 0;
         foreach (array_keys($lines) as $key) {
+            $key = is_string($key) ? $key : ''; // don't show integer keys
             $maxLength = max($maxLength, mb_strlen($key));
         }
 
@@ -185,6 +169,7 @@ class LaravelLog implements LogInterface
             $partialLines = explode("\n", $line);
             $count = 0;
             foreach ($partialLines as $partialLine) {
+                $key = is_string($key) ? $key : ''; // don't show integer keys
                 $tempKey = $count++ == 0 ? $key : '';
                 $newLines[] = str_pad($tempKey, $maxLength + 1, ' ', STR_PAD_RIGHT) . $partialLine;
             }

@@ -55,11 +55,6 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->createVerificationTable();
         $this->populateVerificationTable($createStructureHash, $createDataHash);
 
-//        $list = $this->readableList([
-//            $createStructureHash ? 'structure-hashes' : '',
-//            $createDataHash ? 'data-hashes' : '',
-//        ]);
-//        $this->di->log->debug("Set up the verification table ($list)", $logTimer);
         $this->di->log->debug("Set up database verification", $logTimer);
     }
 
@@ -443,11 +438,6 @@ class LaravelMySQLVerifier implements VerifierInterface
     private function resolvePrimaryKey(string $table): array
     {
         $fields = $this->readPrimaryKeyIndex($table) ?? $this->readFirstUniqueIndex($table);
-
-//        if (is_null($fields)) {
-//            throw new Exception("Table \"$table\" doesn't have a primary-key");
-//        }
-
         return $fields ?? [];
     }
 

@@ -298,7 +298,7 @@ class Hasher
             'preMigrationImports' => $this->configDTO->preMigrationImports,
             'migrations' => $this->configDTO->migrations,
             'seeders' => $seeders,
-//            'hasAppliedJournaling' => $hasAppliedJournaling, // @todo
+//            'hasAppliedJournaling' => $hasAppliedJournaling, // todo - if journal tables are included in snapshots
         ]));
     }
 
@@ -331,7 +331,7 @@ class Hasher
             'snapshotHash' => $this->generateSnapshotHash($seeders),
             'usingScenarios' => $this->configDTO->scenarioTestDBs,
             'projectName' => $this->configDTO->projectName,
-//            'connection' => $this->configDTO->connection,
+//            'connection' => $this->configDTO->connection, // not included, so that multiple connections can share
             'origDatabase' => $this->configDTO->origDatabase,
             'isBrowserTest' => $this->configDTO->isBrowserTest,
             'reuseTransaction' => $this->configDTO->shouldUseTransaction(),

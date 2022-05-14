@@ -28,7 +28,7 @@ trait CheckLaravelHashPathsTrait
                 continue;
             }
 
-            // realpath return null when the file doesn't exist
+            // realpath returns null when the file doesn't exist
             if ($filesystem->realpath($path)) {
                 continue;
             }

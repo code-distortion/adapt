@@ -81,7 +81,7 @@ class RemoteShareDTO
      *
      * @param string $payload The raw RemoteShareDTO data from the request.
      * @return self|null
-     * @throws AdaptRemoteShareException When the version doesn't match.
+     * @throws AdaptRemoteShareException When the payload couldn't be interpreted or the version doesn't match.
      */
     public static function buildFromPayload(string $payload): ?self
     {

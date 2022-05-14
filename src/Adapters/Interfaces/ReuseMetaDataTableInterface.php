@@ -24,10 +24,10 @@ interface ReuseMetaDataTableInterface
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string  $origDBName          The name of the database that this test-database is for.
-     * @param string  $buildHash           The current build-hash.
-     * @param string  $snapshotHash        The current snapshot-hash.
-     * @param string  $scenarioHash        The current scenario-hash.
+     * @param string $origDBName   The name of the database that this test-database is for.
+     * @param string $buildHash    The current build-hash.
+     * @param string $snapshotHash The current snapshot-hash.
+     * @param string $scenarioHash The current scenario-hash.
      * @return void
      */
     public function createReuseMetaDataTable(

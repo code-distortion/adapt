@@ -58,17 +58,6 @@ class Filesystem implements FilesystemInterface
     }
 
     /**
-     * Check whether the given path is a directory.
-     *
-     * @param string $path The path to check.
-     * @return boolean
-     */
-//    public function isDir(string $path): bool
-//    {
-//        return is_dir($path);
-//    }
-
-    /**
      * Touch the given file.
      *
      * @param string $path The path to touch.

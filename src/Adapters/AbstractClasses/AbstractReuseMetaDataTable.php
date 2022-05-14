@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Adapters\AbstractClasses;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseMetaDataTableInterface;
+use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
@@ -13,6 +14,10 @@ use Throwable;
  */
 abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
 {
+    use InjectTrait;
+
+
+
     /**
      * Load the reuse details from the meta-data table.
      *

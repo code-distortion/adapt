@@ -8,7 +8,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Throwable;
 
 /**
- * Methods relating to the set up of the storage directory.
+ * Methods relating to the setup of the storage directory.
  */
 class StorageDir
 {

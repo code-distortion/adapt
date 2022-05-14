@@ -80,6 +80,8 @@ class RemoteShareMiddleware
         }
 
         if (!(new Filesystem())->fileExists($remoteShareDTO->tempConfigPath)) {
+            // don't throw, the config details might have been passed from a remote Adapt instance
+            // and the config file won't exist here, which is fine
 //            throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
             return false;
         }

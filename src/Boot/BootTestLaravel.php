@@ -190,7 +190,6 @@ class BootTestLaravel extends BootTestAbstract
         $pb = $this->propBag;
 
         // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
-//        $reuseTransaction = $pb->adaptConfig('reuse.transactions', 'reuseTransaction');
         $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;

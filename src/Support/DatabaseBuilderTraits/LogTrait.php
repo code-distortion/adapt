@@ -45,11 +45,6 @@ trait LogTrait
             $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderResolvedDatabaseSettings() : []
         );
         $this->di->log->logBox($lines, 'Resolved Database');
-
-//        $this->di->log->debug('Build Settings:');
-//        foreach ($lines as $line) {
-//            $this->di->log->debug($line);
-//        }
     }
 
     /**

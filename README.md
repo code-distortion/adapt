@@ -147,6 +147,8 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 - Step 2 - Run your tests like normal:
 
   ``` bash
+  php artisan test
+  # or
   php artisan test --parallel
   ```
 

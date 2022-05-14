@@ -4,8 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractReuseMetaDataTable;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseMetaDataTableInterface;
-use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelTransactionsTrait;
 use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
@@ -16,11 +14,6 @@ use stdClass;
  */
 class LaravelMySQLReuseMetaDataTable extends AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
 {
-    use InjectTrait;
-    use LaravelTransactionsTrait;
-
-
-
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *

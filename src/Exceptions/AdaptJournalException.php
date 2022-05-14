@@ -80,6 +80,7 @@ class AdaptJournalException extends AdaptException
     public static function cannotCreateJournalTrigger(string $table, ?Throwable $previousException = null): self
     {
         $message = "A trigger for the table \"$table\" could not be created";
+
         return $previousException
             ? new self($message, 0, $previousException)
             : new self($message);
@@ -110,6 +111,7 @@ class AdaptJournalException extends AdaptException
     public static function couldNotReverseJournal(string $table, Throwable $previousException): self
     {
         $message = "An error occurred while using the journal to reverse changes to table \"$table\"";
+
         return new self($message, 0, $previousException);
     }
 }
