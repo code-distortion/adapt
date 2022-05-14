@@ -389,16 +389,18 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Generate a list of the tables that exist from the database.
      *
-     * (Excludes all Adapt tables).
+     * (Excludes views and Adapt meta-tables).
      *
      * @return string[]
      */
     private function readTableList(): array
     {
-        $rows = $this->di->db->select("SHOW TABLES");
+        $rows = $this->di->db->select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
 
         $tables = [];
         foreach ($rows as $row) {
+
+            unset($row->Table_type);
 
             $vars = get_object_vars($row);
             $table = reset($vars);
@@ -419,7 +421,7 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Get a table's primary-key.
      *
-     * Note: the return values is an array, which may contain more than one field.
+     * Note: the return value is an array, which may contain more than one field.
      * Note: may return the first "unique" key instead if a primary-key doesn't exist.
      *
      * @param string $table The table to get the primary-key for.
