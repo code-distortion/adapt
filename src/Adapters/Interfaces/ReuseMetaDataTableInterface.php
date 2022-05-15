@@ -55,17 +55,17 @@ interface ReuseMetaDataTableInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string $buildHash    The current build-hash.
-     * @param string $scenarioHash The current scenario-hash.
-     * @param string $projectName  The project-name.
-     * @param string $database     The database being built.
+     * @param string      $buildHash    The current build-hash.
+     * @param string      $scenarioHash The current scenario-hash.
+     * @param string|null $projectName  The project-name.
+     * @param string      $database     The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
     public function dbIsCleanForReuse(
         string $buildHash,
         string $scenarioHash,
-        string $projectName,
+        ?string $projectName,
         string $database
     ): bool;
 }

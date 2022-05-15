@@ -39,7 +39,7 @@ abstract class AbstractFind implements FindInterface
             return null;
         }
 
-        if ($reuseInfo->project_name != $this->configDTO->projectName) {
+        if ($reuseInfo->project_name !== $this->configDTO->projectName) {
             return null;
         }
 

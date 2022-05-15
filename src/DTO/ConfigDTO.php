@@ -20,8 +20,8 @@ class ConfigDTO
      */
     public int $dtoVersion;
 
-    /** @var string The name of the current project. */
-    public string $projectName;
+    /** @var string|null The name of the current project. */
+    public ?string $projectName;
 
     /** @var string The name of the current test. */
     public string $testName;
@@ -171,10 +171,10 @@ class ConfigDTO
     /**
      * Set the project-name.
      *
-     * @param string $projectName The name of this project.
+     * @param string|null $projectName The name of this project.
      * @return static
      */
-    public function projectName(string $projectName): self
+    public function projectName(?string $projectName): self
     {
         $this->projectName = $projectName;
         return $this;
