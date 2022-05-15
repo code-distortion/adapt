@@ -7,6 +7,7 @@ use DirectoryIterator;
 use IteratorIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 /**
  * Injectable class to abstract interaction with the filesystem.
@@ -207,6 +208,7 @@ class Filesystem implements FilesystemInterface
 
         $files = [];
         foreach ($fileIterator as $file) {
+            /** @var SplFileInfo $file */
             if (is_file($file->getPathname())) {
                 $files[] = $file->getPathname();
             }

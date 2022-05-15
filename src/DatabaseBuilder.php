@@ -335,7 +335,9 @@ class DatabaseBuilder
 
         $reused = $this->buildOrReuseDBLocally($forceRebuild);
 
-        $this->resolvedSettingsDTO->databaseWasReused($reused);
+        if ($this->resolvedSettingsDTO) { // for phpstan
+            $this->resolvedSettingsDTO->databaseWasReused($reused);
+        }
     }
 
     /**
@@ -750,7 +752,8 @@ class DatabaseBuilder
 
         $this->logTheUsedSettings();
         $this->useDatabase($database);
-        if ($this->resolvedSettingsDTO->databaseWasReused) {
+
+        if ($this->resolvedSettingsDTO && $this->resolvedSettingsDTO->databaseWasReused) {
             $this->di->log->debug("Reusing the existing \"$database\" database 😎");
         }
     }

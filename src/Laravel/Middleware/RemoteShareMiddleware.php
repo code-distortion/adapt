@@ -8,6 +8,7 @@ use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -109,10 +110,13 @@ class RemoteShareMiddleware
      */
     private function replaceWholeConfig(array $configData): void
     {
-        foreach (array_keys(Config::all()) as $index) {
-            Config::offsetUnset($index);
+        /** @var Repository $config */
+        $config = config();
+
+        foreach (array_keys($config->all()) as $index) {
+            $config->offsetUnset($index);
         }
-        Config::set($configData);
+        $config->set($configData);
     }
 
 

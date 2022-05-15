@@ -16,6 +16,7 @@ use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
@@ -54,7 +55,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $this->initialiseCommands();
         $this->initialiseMiddleware();
         $this->initialiseRoutes($router);
-        $this->detectAdaptRequest(request());
+
+        /** @var Request $request */
+        $request = request(); // request is obtained this way because older versions of Laravel don't inject it
+        $this->detectAdaptRequest($request);
     }
 
 
@@ -124,7 +128,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             return;
         }
 
-        /** @var HttpKernel $httpKernel */
+        /** @var Kernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
         $httpKernel->prependMiddleware(RemoteShareMiddleware::class);
     }

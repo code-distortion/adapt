@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\CachesConfiguration;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
@@ -27,13 +28,15 @@ class LaravelConfig
      */
     public static function reloadConfig(): void
     {
-        $origConfig = config()->all();
+        /** @var Repository $config */
+        $config = config();
+        $origConfigValues = $config->all();
 
         self::reloadPublishedConfigs();
 
-        self::loadConfigsAddedByServiceProviders($origConfig);
+        self::loadConfigsAddedByServiceProviders($origConfigValues);
 
-        self::addLeftOverMissingConfigs($origConfig);
+        self::addLeftOverMissingConfigs($origConfigValues);
 
         self::updateLoggerEnvironment();
     }
@@ -57,11 +60,12 @@ class LaravelConfig
      *
      * Because reloading the config above skips the service-provider config files, load them here.
      *
-     * @param array $origConfig The original config values.
+     * @param mixed[] $origConfigValues The original config values.
      * @return void
      */
-    private static function loadConfigsAddedByServiceProviders(array $origConfig)
+    private static function loadConfigsAddedByServiceProviders(array $origConfigValues)
     {
+        /** @var array<string, array<string, string>> $publishGroups */
         $publishGroups = self::readStaticPrivateProperty(ServiceProvider::class, 'publishGroups');
 
         /** @var Application $app */
@@ -84,7 +88,7 @@ class LaravelConfig
                 $configName = str_replace('\\/', '.', $configName);
 
                 // only add it if it used to exist before
-                if (array_key_exists($configName, $origConfig)) {
+                if (array_key_exists($configName, $origConfigValues)) {
                     self::mergeConfigFrom($srcPath, $configName);
                 }
             }
@@ -105,12 +109,14 @@ class LaravelConfig
         $app = app();
 
         if (!($app instanceof CachesConfiguration && $app->configurationIsCached())) {
-            $config = $app->make('config');
 
-            $config->set(
-                $key,
-                array_merge(require $path, $config->get($key, []))
-            );
+            /** @var Repository $config */
+            $config = config();
+
+            /** @var mixed[] $value */
+            $value = $config->get($key, []);
+
+            $config->set($key, array_merge(require $path, $value));
         }
     }
 
@@ -119,13 +125,16 @@ class LaravelConfig
      *
      * e.g. tinker's config doesn't get re-populated and needs this.
      *
-     * @param array $origConfig The original config values.
+     * @param mixed[] $origConfigValues The original config values.
      * @return void
      */
-    protected static function addLeftOverMissingConfigs(array $origConfig): void
+    protected static function addLeftOverMissingConfigs(array $origConfigValues): void
     {
-        foreach ($origConfig as $key => $values) {
-            if (!config()->has($key)) {
+        /** @var Repository $config */
+        $config = config();
+
+        foreach ($origConfigValues as $key => $values) {
+            if (!$config->has($key)) {
                 config([$key => $values]);
             }
         }

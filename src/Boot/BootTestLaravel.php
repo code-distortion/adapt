@@ -22,6 +22,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\ParallelTesting;
 use Laravel\Dusk\Browser;
@@ -359,8 +360,11 @@ class BootTestLaravel extends BootTestAbstract
         $filename = "config.$dateTime.$rand.php";
         $path = "{$this->storageDir()}/$filename";
 
+        /** @var Repository $config */
+        $config = config();
+
         $content = '<?php' . PHP_EOL
-            . 'return ' . var_export(Config::all(), true) . ';'
+            . 'return ' . var_export($config->all(), true) . ';'
             . PHP_EOL;
 
         if (!(new Filesystem())->writeFile($path, 'w', $content)) {
