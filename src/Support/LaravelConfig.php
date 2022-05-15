@@ -104,12 +104,13 @@ class LaravelConfig
         /** @var Application $app */
         $app = app();
 
-        if (! ($app instanceof CachesConfiguration && $app->configurationIsCached())) {
+        if (!($app instanceof CachesConfiguration && $app->configurationIsCached())) {
             $config = $app->make('config');
 
-            $config->set($key, array_merge(
-                require $path, $config->get($key, [])
-            ));
+            $config->set(
+                $key,
+                array_merge(require $path, $config->get($key, []))
+            );
         }
     }
 

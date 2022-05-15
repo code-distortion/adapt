@@ -122,7 +122,7 @@ class DatabaseBuilder
         $this->prePreparationChecks();
         $this->prepareDB();
 
-        $this->di->log->debug('Total preparation time', $logTimer, true);
+        $this->di->log->debug("Total preparation time for database \"{$this->configDTO->database}\"", $logTimer, true);
 
         return $this;
     }
@@ -194,7 +194,7 @@ class DatabaseBuilder
 
         $this->configDTO->shouldBuildRemotely()
             ? $this->buildDBRemotely($forceRebuild, $logTimer)
-            : $this->buildDBLocally($forceRebuild, $logTimer);
+            : $this->buildDBLocally($forceRebuild);
     }
 
 
@@ -303,6 +303,7 @@ class DatabaseBuilder
 
             $this->logTheUsedSettings();
             $this->useDatabase($database);
+            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -317,11 +318,10 @@ class DatabaseBuilder
      * Perform the process of building (or reuse an existing) database - locally.
      *
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
-     * @param integer $logTimer     The timer, started a little earlier.
      * @return void
      * @throws AdaptConfigException When building failed.
      */
-    private function buildDBLocally(bool $forceRebuild, int $logTimer): void
+    private function buildDBLocally(bool $forceRebuild): void
     {
         $this->initialise();
 
@@ -333,7 +333,9 @@ class DatabaseBuilder
 
         $this->pickDatabaseNameAndUse();
 
-        $this->buildOrReuseDBLocally($forceRebuild, $logTimer);
+        $reused = $this->buildOrReuseDBLocally($forceRebuild);
+
+        $this->resolvedSettingsDTO->databaseWasReused($reused);
     }
 
     /**
@@ -358,11 +360,10 @@ class DatabaseBuilder
      * Build or reuse an existing database - locally.
      *
      * @param boolean $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
-     * @param integer $logTimer     The timer, started a little earlier.
-     * @return void
+     * @return boolean Returns true if the database was reused.
      * @throws Throwable When the database couldn't be used.
      */
-    private function buildOrReuseDBLocally(bool $forceRebuild, int $logTimer): void
+    private function buildOrReuseDBLocally(bool $forceRebuild): bool
     {
         try {
             $canReuse = !$forceRebuild && $this->canReuseDB(
@@ -372,12 +373,14 @@ class DatabaseBuilder
             );
 
             if ($canReuse) {
-                $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database", $logTimer);
+                $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database 😎");
             } else {
                 $this->buildDBFresh();
             }
 
             $this->createReuseMetaDataTable();
+
+            return $canReuse;
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -734,8 +737,8 @@ class DatabaseBuilder
         $connection = $this->resolvedSettingsDTO->connection;
         $database = (string) $this->resolvedSettingsDTO->database;
 
-        $message = $this->configDTO->reusingDB()
-            ? "Database \"$database\" was built or reused. Remote preparation time"
+        $message = $this->resolvedSettingsDTO->databaseWasReused
+            ? "Database \"$database\" was reused. Remote preparation time"
             : "Database \"$database\" was built. Remote preparation time";
         $this->di->log->debug($message, $logTimer);
 
@@ -747,6 +750,9 @@ class DatabaseBuilder
 
         $this->logTheUsedSettings();
         $this->useDatabase($database);
+        if ($this->resolvedSettingsDTO->databaseWasReused) {
+            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+        }
     }
 
     /**
@@ -1016,7 +1022,8 @@ class DatabaseBuilder
                 $canHash ? $this->hasher->getBuildHash() : null,
                 $canHash ? $this->hasher->currentSnapshotHash() : null,
                 $canHash ? $this->hasher->currentScenarioHash() : null
-            );
+            )
+            ->databaseWasReused(true);
     }
 
     /**

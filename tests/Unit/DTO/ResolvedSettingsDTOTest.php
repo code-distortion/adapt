@@ -198,6 +198,11 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 'method' => 'forceRebuild',
                 'params' => ['forceRebuild' => true],
             ],
+
+            'databaseWasReused' => [
+                'method' => 'databaseWasReused',
+                'params' => ['databaseWasReused' => true],
+            ],
         ];
     }
 

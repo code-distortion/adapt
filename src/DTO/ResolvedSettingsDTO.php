@@ -96,6 +96,9 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public bool $forceRebuild;
 
+    /** @var boolean Whether the database was reused or not (for logging). */
+    public bool $databaseWasReused;
+
 
 
     /**
@@ -346,6 +349,18 @@ class ResolvedSettingsDTO
     public function forceRebuild(bool $forceRebuild): self
     {
         $this->forceRebuild = $forceRebuild;
+        return $this;
+    }
+
+    /**
+     * Record whether the database was reused or not.
+     *
+     * @param boolean $databaseWasReused Whether the database was reused or not.
+     * @return static
+     */
+    public function databaseWasReused(bool $databaseWasReused): self
+    {
+        $this->databaseWasReused = $databaseWasReused;
         return $this;
     }
 
