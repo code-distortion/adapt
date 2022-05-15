@@ -36,14 +36,17 @@ trait LogTrait
      */
     private function logTheUsedSettings(): void
     {
-        $lines = $this->di->log->padList(
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderBuildSettings() : []
-        );
-        $this->di->log->logBox($lines, 'Build Settings');
+        if (!$this->resolvedSettingsDTO) {
+            return;
+        }
 
-        $lines = $this->di->log->padList(
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderResolvedDatabaseSettings() : []
-        );
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSources());
+        $this->di->log->logBox($lines, 'Build Sources');
+
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildEnvironmentSettings());
+        $this->di->log->logBox($lines, 'Build Environment');
+
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
         $this->di->log->logBox($lines, 'Resolved Database');
     }
 
