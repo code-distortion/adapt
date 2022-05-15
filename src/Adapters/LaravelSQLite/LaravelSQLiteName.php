@@ -28,11 +28,13 @@ class LaravelSQLiteName implements NameInterface
      */
     public function generateScenarioDBName(string $dbNameHash): string
     {
-        if ($this->isMemoryDatabase()) {
-            return $this->configDTO->origDatabase; // ":memory:"
+        $database = $this->configDTO->origDatabase;
+        if ($this->isMemoryDatabase($database)) {
+            return $database; // ":memory:"
         }
+
         $dbNameHash = str_replace('_', '-', $dbNameHash);
-        $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
+        $filename = $this->pickBaseFilename($database);
         $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
         return $this->configDTO->storageDir . '/' . $filename;
     }
