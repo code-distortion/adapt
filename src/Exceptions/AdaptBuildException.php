@@ -35,7 +35,9 @@ class AdaptBuildException extends AdaptException
      */
     public static function databaseOwnedByAnotherProject(string $databaseName, string $projectName): self
     {
-        return new self("Could not re-use database \"$databaseName\" as it is owned by project \"$projectName\"");
+        return new self(
+            "Could not re-use database \"$databaseName\" as it is owned by another project \"$projectName\""
+        );
     }
 
     /**

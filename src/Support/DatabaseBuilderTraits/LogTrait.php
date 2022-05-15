@@ -54,13 +54,14 @@ trait LogTrait
      * Log the fact that the remotely-built database is being reused before sending the http request.
      *
      * @param string $database The database being reused.
+     * @param integer $logTimer The timer, started a little earlier.
      * @return void
      */
-    private function logHttpRequestWasSaved(string $database): void
+    private function logHttpRequestWasSaved(string $database, int $logTimer): void
     {
         $this->di->log->debug(
-            "Database \"$database\" was already prepared remotely, "
-            . "and can be reused without sending another request"
+            "Database \"$database\" was already prepared remotely, and can be reused without sending another request",
+            $logTimer
         );
     }
 }

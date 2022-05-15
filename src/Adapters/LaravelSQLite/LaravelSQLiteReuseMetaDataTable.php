@@ -84,9 +84,19 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
                 'transactionReusable' => null,
                 'journalReusable' => null,
                 'validationPassed' => null,
-                'lastUsed' => (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+                'lastUsed' => $this->nowUtcString(),
             ]
         );
+    }
+
+    /**
+     * Update the last-used field in the meta-table.
+     *
+     * @return void
+     */
+    public function updateMetaTableLastUsed(): void
+    {
+        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `last_used` = ?", [$this->nowUtcString()]);
     }
 
     /**
@@ -108,5 +118,16 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
     {
         $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
         return $rows[0] ?? null;
+    }
+
+    /**
+     * Render the current time in UTC as a string.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    private function nowUtcString(): string
+    {
+        return (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s');
     }
 }

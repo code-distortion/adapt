@@ -183,7 +183,7 @@ class DatabaseBuilder
     {
         $logTimer = $this->di->log->newTimer();
 
-        $reusedLocally = $this->reuseRemotelyBuiltDBLocallyIfPossible();
+        $reusedLocally = $this->reuseRemotelyBuiltDBLocallyIfPossible($logTimer);
         if ($reusedLocally) {
             return;
         }
@@ -206,14 +206,15 @@ class DatabaseBuilder
      *
      * (This avoids needing to make a remote request to build when the hashes have already been calculated).
      *
+     * @param integer $logTimer The timer, started a little earlier.
      * @return boolean|null Null = irrelevant (just build it), false = it exists but can't be reused (force-rebuild).
      */
-    private function reuseRemotelyBuiltDBLocallyIfPossible(): ?bool
+    private function reuseRemotelyBuiltDBLocallyIfPossible(int $logTimer): ?bool
     {
         $reuseLocally = $this->checkLocallyIfRemotelyBuiltDBCanBeReused();
 
         if ($reuseLocally) {
-            $this->reuseRemotelyBuiltDB();
+            $this->reuseRemotelyBuiltDB($logTimer);
         }
 
         return $reuseLocally;
@@ -244,7 +245,7 @@ class DatabaseBuilder
             $return = $this->canReuseDB(
                 (string) $resolvedSettingsDTO->buildHash,
                 (string) $resolvedSettingsDTO->scenarioHash,
-                (string) $resolvedSettingsDTO->database,
+                (string) $resolvedSettingsDTO->database
             );
 
             // restore it back so it can be officially changed later
@@ -274,10 +275,11 @@ class DatabaseBuilder
     /**
      * Reuse the database that was built remotely.
      *
+     * @param integer $logTimer The timer, started a little earlier.
      * @return void
      * @throws Throwable When something goes wrong.
      */
-    private function reuseRemotelyBuiltDB(): void
+    private function reuseRemotelyBuiltDB(int $logTimer): void
     {
         try {
 
@@ -294,7 +296,7 @@ class DatabaseBuilder
             $this->hasher->buildHashWasPreCalculated($buildHash);
 
             $this->logTitle();
-            $this->logHttpRequestWasSaved($database);
+            $this->logHttpRequestWasSaved($database, $logTimer);
 
             if (!$this->configDTO->shouldInitialise()) {
                 $this->di->log->debug("Not using connection \"$connection\" locally");
@@ -304,6 +306,7 @@ class DatabaseBuilder
             $this->logTheUsedSettings();
             $this->useDatabase($database);
             $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+            $this->updateMetaTableLastUsed();
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -367,20 +370,28 @@ class DatabaseBuilder
      */
     private function buildOrReuseDBLocally(bool $forceRebuild): bool
     {
+//        $this->di->log->debug("Preparing database \"{$this->configDTO->database}\"…");
+
         try {
+            $logTimer = $this->di->log->newTimer();
+
+            $database = (string) $this->configDTO->database;
             $canReuse = !$forceRebuild && $this->canReuseDB(
                 $this->hasher->getBuildHash(),
                 $this->hasher->currentScenarioHash(),
-                (string) $this->configDTO->database,
+                $database
             );
 
+            $canReuse
+                ? $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer)
+                : $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
+
             if ($canReuse) {
-                $this->di->log->debug("Reusing the existing \"{$this->configDTO->database}\" database 😎");
+                $this->updateMetaTableLastUsed();
             } else {
                 $this->buildDBFresh();
+                $this->createReuseMetaDataTable();
             }
-
-            $this->createReuseMetaDataTable();
 
             return $canReuse;
 
@@ -405,6 +416,8 @@ class DatabaseBuilder
         string $database
     ): bool {
 
+        $logTimer = $this->di->log->newTimer();
+
         if (!$this->configDTO->reusingDB()) {
             return false;
         }
@@ -426,14 +439,32 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function createReuseMetaDataTable()
+    private function createReuseMetaDataTable(): void
     {
+        $logTimer = $this->di->log->newTimer();
+
         $this->dbAdapter()->reuseMetaData->createReuseMetaDataTable(
             $this->origDBName(),
             $this->hasher->getBuildHash(),
             $this->hasher->currentSnapshotHash(),
             $this->hasher->currentScenarioHash()
         );
+
+        $this->di->log->debug("Set up re-use meta-data", $logTimer);
+    }
+
+    /**
+     * Update the last-used field in the meta-table.
+     *
+     * @return void
+     */
+    private function updateMetaTableLastUsed(): void
+    {
+        $logTimer = $this->di->log->newTimer();
+
+        $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
+
+        $this->di->log->debug("Updated re-use meta-data", $logTimer);
     }
 
     /**
@@ -443,18 +474,60 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->di->log->debug("Building database \"{$this->configDTO->database}\"…");
+        $this->resetDBIfSnapshotsFilesAreNotSimplyCopied();
 
-        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->dbAdapter()->build->resetDB();
-            // put the meta-table there straight away (even though it hasn't been built yet)
-            // so another instance will identify that this database is an Adapt one
-            $this->createReuseMetaDataTable();
-        }
-
-        ($this->configDTO->snapshotsAreEnabled()) && ($this->dbAdapter()->snapshot->isSnapshottable())
+        $this->canUseSnapshots()
             ? $this->buildDBFromSnapshot()
             : $this->buildDBFromScratch();
+    }
+
+    /**
+     * Check if snapshots can be used here.
+     *
+     * @return boolean
+     * @throws AdaptConfigException
+     */
+    private function canUseSnapshots(): bool
+    {
+        return $this->configDTO->snapshotsAreEnabled() && $this->dbAdapter()->snapshot->isSnapshottable();
+    }
+
+    /**
+     * Reset the database ready to build into - only when snapshot files are simply copied.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function resetDBIfSnapshotFilesAreSimplyCopied(): void
+    {
+        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            $this->resetDB();
+        }
+    }
+
+    /**
+     * Reset the database ready to build into - only when snapshot files are NOT simply copied.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function resetDBIfSnapshotsFilesAreNotSimplyCopied(): void
+    {
+        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            $this->resetDB();
+        }
+    }
+
+    /**
+     * Reset the database ready to build into.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function resetDB(): void
+    {
+        $this->dbAdapter()->build->resetDB();
+//        $this->createReuseMetaDataTable();
     }
 
     /**
@@ -488,10 +561,7 @@ class DatabaseBuilder
     {
         // the db may have been reset above in buildDBFresh(),
         // if it wasn't, do it now to make sure it exists and is empty
-        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->dbAdapter()->build->resetDB();
-            $this->createReuseMetaDataTable(); // put the meta-table there straight away
-        }
+        $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
         $this->importPreMigrationImports();
         $this->migrate();
@@ -627,22 +697,18 @@ class DatabaseBuilder
      */
     private function takeDBSnapshot(array $seeders): void
     {
-        if (!$this->configDTO->snapshotsAreEnabled()) {
-            return;
-        }
-        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+        if (!$this->canUseSnapshots()) {
             return;
         }
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
+//        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
 
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
-        // put the meta-table back
-        $this->createReuseMetaDataTable();
+//        $this->createReuseMetaDataTable(); // put the meta-table back
 
         $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }

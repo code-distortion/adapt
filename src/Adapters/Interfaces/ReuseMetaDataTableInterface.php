@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Adapters\Interfaces;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to managing reuse meta-data.
@@ -36,6 +37,13 @@ interface ReuseMetaDataTableInterface
         string $snapshotHash,
         string $scenarioHash
     ): void;
+
+    /**
+     * Update the last-used field in the meta-table.
+     *
+     * @return void
+     */
+    public function updateMetaTableLastUsed(): void;
 
     /**
      * Remove the re-use meta-data table.
