@@ -39,6 +39,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->initialiseConfig();
     }
 
     /**
@@ -49,7 +50,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     public function boot(Router $router): void
     {
-        $this->initialiseConfig();
         $this->publishConfig();
         $this->initialiseCommands();
         $this->initialiseMiddleware();
