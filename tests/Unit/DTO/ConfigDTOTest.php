@@ -194,9 +194,46 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['isRemoteBuild' => true],
             ],
 
-            'dbIsTransactionable' => [
-                'method' => 'dbIsTransactionable',
-                'params' => ['dbIsTransactionable' => true],
+            'dbAdapterSupport' => [
+                'method' => 'dbAdapterSupport',
+                'params' => [
+                    'dbSupportsReUse' => true,
+                    'dbSupportsSnapshots' => true,
+                    'dbSupportsScenarios' => true,
+                    'dbSupportsTransactions' => true,
+                    'dbSupportsJournaling' => true,
+                    'dbSupportsVerification' => true,
+                 ],
+            ],
+
+            'dbSupportsReUse' => [
+                'method' => 'dbSupportsReUse',
+                'params' => ['dbSupportsReUse' => true],
+            ],
+
+            'dbSupportsSnapshots' => [
+                'method' => 'dbSupportsSnapshots',
+                'params' => ['dbSupportsSnapshots' => true],
+            ],
+
+            'dbSupportsScenarios' => [
+                'method' => 'dbSupportsScenarios',
+                'params' => ['dbSupportsScenarios' => true],
+            ],
+
+            'dbSupportsTransactions' => [
+                'method' => 'dbSupportsTransactions',
+                'params' => ['dbSupportsTransactions' => true],
+            ],
+
+            'dbSupportsJournaling' => [
+                'method' => 'dbSupportsJournaling',
+                'params' => ['dbSupportsJournaling' => true],
+            ],
+
+            'dbSupportsVerification' => [
+                'method' => 'dbSupportsVerification',
+                'params' => ['dbSupportsVerification' => true],
             ],
 
             'sessionDriver' => [
@@ -575,7 +612,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => true,
             ],
             [
@@ -583,7 +620,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => false, // off
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -591,7 +628,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => true, // true
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => true,
             ],
             [
@@ -599,7 +636,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => true, // true
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -607,7 +644,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => false, // false
+                'dbSupportsTransactions' => false, // false
                 'expectedCanUseTransactions' => false,
             ],
 
@@ -616,7 +653,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -624,7 +661,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => false, // off
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -632,7 +669,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => true, // true
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -640,7 +677,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => true, // true
-                'dbIsTransactionable' => true,
+                'dbSupportsTransactions' => true,
                 'expectedCanUseTransactions' => false,
             ],
             [
@@ -648,7 +685,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsTransactionable' => false, // false
+                'dbSupportsTransactions' => false, // false
                 'expectedCanUseTransactions' => false,
             ],
         ];
@@ -663,7 +700,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $connectionExists           Whether the connection exists or not.
      * @param boolean $isRemoteBuild              Is this process building a db for another Adapt installation?.
      * @param boolean $isBrowserTest              Is this test a browser-test?.
-     * @param boolean $dbIsTransactionable        Whether the database is transactionable or not.
+     * @param boolean $dbSupportsTransactions     Whether the database supports transactions or not.
      * @param boolean $expectedCanUseTransactions The expected canUseTransactions() result.
      * @return void
      */
@@ -672,7 +709,7 @@ class ConfigDTOTest extends PHPUnitTestCase
         bool $connectionExists,
         bool $isRemoteBuild,
         bool $isBrowserTest,
-        bool $dbIsTransactionable,
+        bool $dbSupportsTransactions,
         bool $expectedCanUseTransactions
     ): void {
 
@@ -682,8 +719,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists($connectionExists)
             ->isRemoteBuild($isRemoteBuild)
             ->isBrowserTest($isBrowserTest)
-            ->dbIsTransactionable($dbIsTransactionable) // todo update with "supportsScenarios"
-            ->dbIsJournalable(true);
+            ->dbSupportsReUse($dbSupportsTransactions)
+            ->dbSupportsTransactions($dbSupportsTransactions)
+            ->dbSupportsJournaling(true);
 
         $this->assertSame($expectedCanUseTransactions, $configDTO->canUseTransactions());
     }
@@ -703,7 +741,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => true,
             ],
             [
@@ -711,7 +749,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => false, // off
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => false,
             ],
             [
@@ -719,7 +757,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => true, // true
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => true,
             ],
             [
@@ -727,7 +765,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => true, // true
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => true, // journaling is allowed for browser tests
             ],
             [
@@ -735,7 +773,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => false, // false
+                'dbSupportsJournaling' => false, // false
                 'expectedCanUseJournaling' => false,
             ],
 
@@ -744,7 +782,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => false,
             ],
             [
@@ -752,7 +790,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => false, // off
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => false,
             ],
             [
@@ -760,7 +798,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => true, // true
                 'isBrowserTest' => false,
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => false,
             ],
             [
@@ -768,7 +806,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => true, // true
-                'dbIsJournalable' => true,
+                'dbSupportsJournaling' => true,
                 'expectedCanUseJournaling' => false,
             ],
             [
@@ -776,7 +814,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'connectionExists' => true,
                 'isRemoteBuild' => false,
                 'isBrowserTest' => false,
-                'dbIsJournalable' => false, // false
+                'dbSupportsJournaling' => false, // false
                 'expectedCanUseJournaling' => false,
             ],
         ];
@@ -791,7 +829,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $connectionExists         Whether the connection exists or not.
      * @param boolean $isRemoteBuild            Is this process building a db for another Adapt installation?.
      * @param boolean $isBrowserTest            Is this test a browser-test?.
-     * @param boolean $dbIsJournalable          Whether the database is journalable or not.
+     * @param boolean $dbSupportsJournaling     Whether the database supports journaling or not.
      * @param boolean $expectedCanUseJournaling The expected canUseJournaling() result.
      * @return void
      */
@@ -800,7 +838,7 @@ class ConfigDTOTest extends PHPUnitTestCase
         bool $connectionExists,
         bool $isRemoteBuild,
         bool $isBrowserTest,
-        bool $dbIsJournalable,
+        bool $dbSupportsJournaling,
         bool $expectedCanUseJournaling
     ): void {
 
@@ -810,8 +848,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists($connectionExists)
             ->isRemoteBuild($isRemoteBuild)
             ->isBrowserTest($isBrowserTest)
-            ->dbIsTransactionable(true)
-            ->dbIsJournalable($dbIsJournalable);
+            ->dbSupportsReUse(true)
+            ->dbSupportsTransactions(true)
+            ->dbSupportsJournaling($dbSupportsJournaling);
 
         $this->assertSame($expectedCanUseJournaling, $configDTO->canUseJournaling());
     }
@@ -883,8 +922,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists(true)
             ->isRemoteBuild(false)
             ->isBrowserTest(false)
-            ->dbIsTransactionable(true)
-            ->dbIsJournalable(true);
+            ->dbSupportsReUse(true)
+            ->dbSupportsTransactions(true)
+            ->dbSupportsJournaling(true);
 
         $this->assertSame($expectedShouldUseTransactions, $configDTO->shouldUseTransaction());
         $this->assertSame($expectedShouldUseJournaling, $configDTO->shouldUseJournal());
@@ -903,28 +943,28 @@ class ConfigDTOTest extends PHPUnitTestCase
         return [
             [
                 'verifyDatabase' => true,
-                'dbIsVerifiable' => true,
+                'dbSupportsVerification' => true,
                 'shouldVerifyStructure' => true,
                 'shouldVerifyData' => true,
                 'expectedShouldVerifyDatabase' => true,
             ],
             [
                 'verifyDatabase' => true,
-                'dbIsVerifiable' => false,
+                'dbSupportsVerification' => false,
                 'shouldVerifyStructure' => false,
                 'shouldVerifyData' => false,
                 'expectedShouldVerifyDatabase' => false,
             ],
             [
                 'verifyDatabase' => false,
-                'dbIsVerifiable' => true,
+                'dbSupportsVerification' => true,
                 'shouldVerifyStructure' => false,
                 'shouldVerifyData' => false,
                 'expectedShouldVerifyDatabase' => false,
             ],
             [
                 'verifyDatabase' => false,
-                'dbIsVerifiable' => false,
+                'dbSupportsVerification' => false,
                 'shouldVerifyStructure' => false,
                 'shouldVerifyData' => false,
                 'expectedShouldVerifyDatabase' => false,
@@ -938,7 +978,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @dataProvider databaseShouldVerifyDatabaseDataProvider
      * @param boolean $verifyDatabase               The "verify-database" setting.
-     * @param boolean $dbIsVerifiable               Whether the database is verifiable or not.
+     * @param boolean $dbSupportsVerification       Whether the database supports verification or not.
      * @param boolean $shouldVerifyStructure        The expected shouldVerifyStructure() result.
      * @param boolean $shouldVerifyData             The expected shouldVerifyData() result.
      * @param boolean $expectedShouldVerifyDatabase The expected shouldVerifyDatabase() result.
@@ -946,7 +986,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function test_should_verify_database(
         bool $verifyDatabase,
-        bool $dbIsVerifiable,
+        bool $dbSupportsVerification,
         bool $shouldVerifyStructure,
         bool $shouldVerifyData,
         bool $expectedShouldVerifyDatabase
@@ -954,7 +994,7 @@ class ConfigDTOTest extends PHPUnitTestCase
 
         $configDTO = (new ConfigDTO())
             ->verifyDatabase($verifyDatabase)
-            ->dbIsVerifiable($dbIsVerifiable);
+            ->dbSupportsVerification($dbSupportsVerification);
 
         $this->assertSame($shouldVerifyStructure, $configDTO->shouldVerifyStructure());
         $this->assertSame($shouldVerifyData, $configDTO->shouldVerifyData());
@@ -1257,8 +1297,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists(true)
             ->isRemoteBuild(false)
             ->isBrowserTest(false)
-            ->dbIsTransactionable(true)
-            ->dbIsJournalable(true)
+            ->dbSupportsReUse(true)
+            ->dbSupportsTransactions(true)
+            ->dbSupportsJournaling(true)
             ->reuseTransaction(true)
             ->reuseJournal(true);
     }
@@ -1274,8 +1315,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists(true)
             ->isRemoteBuild(false)
             ->isBrowserTest(false)
-            ->dbIsTransactionable(true)
-            ->dbIsJournalable(true)
+            ->dbSupportsReUse(true)
+            ->dbSupportsTransactions(true)
+            ->dbSupportsJournaling(true)
             ->reuseTransaction(false)
             ->reuseJournal(false);
     }

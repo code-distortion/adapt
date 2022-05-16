@@ -163,9 +163,9 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 ],
                 'outcome' => [
                     'usingScenarios' => false,
-                    'buildHash' => null,
-                    'snapshotHash' => null,
-                    'scenarioHash' => null,
+                    'buildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    'snapshotHash' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                    'scenarioHash' => 'cccccccccccccccccccccccccccccccc',
                 ],
             ],
 
