@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
 
 /**
@@ -13,23 +12,25 @@ use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
 class LaravelMySQLName implements NameInterface
 {
     use InjectTrait;
-    use LaravelHelperTrait;
 
 
 
     /**
      * Build a scenario database name.
      *
-     * @param string $dbNameHash The current db-name-hash based on the database-building file content,
-     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
-     *                           transactions and isBrowserTest.
+     * @param boolean     $usingScenarios Whether scenarios are being used or not.
+     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
      * @return string
      * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
      */
-    public function generateScenarioDBName($dbNameHash): string
+    public function generateDBName($usingScenarios, $dbNameHashPart): string
     {
-        $dbNameHash = str_replace('-', '_', $dbNameHash);
-        $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameHash;
+        if (!$usingScenarios) {
+            return $this->configDTO->origDatabase;
+        }
+
+        $dbNameHashPart = str_replace('-', '_', (string) $dbNameHashPart);
+        $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameHashPart;
         $this->validateDBName($database);
         return $database;
     }
@@ -37,13 +38,13 @@ class LaravelMySQLName implements NameInterface
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
+     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
      * @return string
      */
-    public function generateSnapshotPath($snapshotHash): string
+    public function generateSnapshotPath($snapshotFilenameHashPart): string
     {
-        $filename = $this->configDTO->snapshotPrefix . $this->configDTO->origDatabase . '.' . $snapshotHash . '.mysql';
+        $prefix = $this->configDTO->snapshotPrefix;
+        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.mysql';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }

@@ -92,7 +92,7 @@ trait DatabaseBuilderTestTrait
             ->testName('A test')
             ->connection($connection)
             ->connectionExists(true)
-            ->origDatabase($this->wsDatabaseDir . '/database.sqlite')
+            ->origDatabase('database.sqlite')
 //            ->database('test_db')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
@@ -114,6 +114,14 @@ trait DatabaseBuilderTestTrait
                 false,
                 'database',
                 null
+            )
+            ->dbAdapterSupport(
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
             )
             ->cacheTools(true, false, false, true)
             ->snapshots(false, 'afterMigrations')

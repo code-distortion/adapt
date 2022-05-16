@@ -167,28 +167,6 @@ class LaravelDB
         return DB::connection($this->connection)->getPDO()->exec($query);
     }
 
-//    /**
-//     * Drop all the tables from the current database.
-//     *
-//     * @return void
-//     */
-//    public function dropAllTables(): void
-//    {
-//        // @todo make this works for database types other than mysql
-//        // @todo make sure this works with views
-////        if (mysql) { ...
-//        $tables = [];
-//        foreach (DB::connection($this->connection)->select("SHOW TABLES") as $row) {
-//            $tables[] = array_values(get_object_vars($row))[0];
-//        }
-//
-//        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 0");
-//        foreach ($tables as $table) {
-//            DB::connection($this->connection)->statement("DROP TABLE `" . $table . "`");
-//        }
-//        DB::connection($this->connection)->statement("SET FOREIGN_KEY_CHECKS = 1");
-//    }
-
     /**
      * Disconnect from the database.
      *

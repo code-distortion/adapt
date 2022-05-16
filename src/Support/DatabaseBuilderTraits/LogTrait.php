@@ -36,33 +36,32 @@ trait LogTrait
      */
     private function logTheUsedSettings()
     {
-        $lines = $this->di->log->padList(
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderBuildSettings() : []
-        );
-        $this->di->log->logBox($lines, 'Build Settings');
+        if (!$this->resolvedSettingsDTO) {
+            return;
+        }
 
-        $lines = $this->di->log->padList(
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->renderResolvedDatabaseSettings() : []
-        );
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSources());
+        $this->di->log->logBox($lines, 'Build Sources');
+
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildEnvironmentSettings());
+        $this->di->log->logBox($lines, 'Build Environment');
+
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
         $this->di->log->logBox($lines, 'Resolved Database');
-
-//        $this->di->log->debug('Build Settings:');
-//        foreach ($lines as $line) {
-//            $this->di->log->debug($line);
-//        }
     }
 
     /**
      * Log the fact that the remotely-built database is being reused before sending the http request.
      *
-     * @param string $database The database being reused.
+     * @param string  $database The database being reused.
+     * @param integer $logTimer The timer, started a little earlier.
      * @return void
      */
-    private function logHttpRequestWasSaved(string $database)
+    private function logHttpRequestWasSaved(string $database, int $logTimer)
     {
         $this->di->log->debug(
-            "Database \"$database\" was already prepared remotely, "
-            . "and can be reused without sending another request"
+            "Database \"$database\" was already prepared remotely, and can be reused without sending another request",
+            $logTimer
         );
     }
 }

@@ -14,7 +14,7 @@ trait SQLiteHelperTrait
      */
     protected function isMemoryDatabase()
     {
-        return $this->configDTO->database == ':memory:';
+        return $this->configDTO->origDatabase == ':memory:';
     }
 
     /**

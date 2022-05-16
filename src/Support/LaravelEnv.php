@@ -59,10 +59,6 @@ class LaravelEnv
             $repository->set($name, $value);
         }
 
-//        $_SERVER = $origServer;
-//        $_ENV = $origEnv;
-//        GetenvSupport::replaceGetenv($origGetenv);
-
         $_SERVER = array_merge($origServer, $values);
         $_ENV = array_merge($origEnv, $values);
         GetenvSupport::replaceGetenv(array_merge($origGetenv, $values));

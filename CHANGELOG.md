@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.10.0] - 2022-05-17
+
+### Added
+- Disabled foreign-id checks in MySQL when reverting journaled changes
+- Updated the MySQL journaling code to ignore views when looking for tables to watch
+- Updated the MySQL verification code to ignore views when looking for tables to check
+
+### Fixed
+- Fixed a bug that stopped the `adapt:list` and `adapt:remove` commands from working when the config isn't published
+- Fixed a bug stopping SQLite databases from being used when scenarios were enabled
+
+### Changed
+- Improved logging output
+- Improvements to the way SQLite :memory: databases are handled
+
+### Changed (breaking)
+- Updated the SQLite code to require that database filenames don't contain a directory part, just the filename. Now these databases are put into Adapt's `/database/adapt-test-storage` directory automatically - to include them in the housekeeping
+
+
+
 ## [0.9.2] - 2022-05-07
 
 ### Fixed

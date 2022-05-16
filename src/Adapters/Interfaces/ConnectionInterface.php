@@ -19,6 +19,7 @@ interface ConnectionInterface
     public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
+
     /**
      * Set this builder's database connection as the default one.
      *

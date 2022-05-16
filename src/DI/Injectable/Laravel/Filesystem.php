@@ -7,6 +7,7 @@ use DirectoryIterator;
 use IteratorIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 /**
  * Injectable class to abstract interaction with the filesystem.
@@ -56,17 +57,6 @@ class Filesystem implements FilesystemInterface
     {
         return is_file($path);
     }
-
-    /**
-     * Check whether the given path is a directory.
-     *
-     * @param string $path The path to check.
-     * @return boolean
-     */
-//    public function isDir(string $path): bool
-//    {
-//        return is_dir($path);
-//    }
 
     /**
      * Touch the given file.
@@ -218,6 +208,7 @@ class Filesystem implements FilesystemInterface
 
         $files = [];
         foreach ($fileIterator as $file) {
+            /** @var SplFileInfo $file */
             if (is_file($file->getPathname())) {
                 $files[] = $file->getPathname();
             }

@@ -15,7 +15,7 @@ class LaravelSQLiteReuseJournal extends LaravelMySQLReuseJournal implements Reus
      *
      * @return boolean
      */
-    public function isJournalable(): bool
+    public function supportsJournaling(): bool
     {
         return false;
     }

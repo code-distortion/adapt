@@ -157,7 +157,6 @@ class DatabaseMetaInfo
             $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
             if ($canPurge) {
                 $purgeMessage = $purgeAfter > $nowUTC
-//                    ? ' - Stale (automatic removal: ' . Str::vagueReadableInterval($nowUTC->diff($purgeAfter)) . ')'
                     ? ' - Stale (will be removed automatically in a while)'
                     : ' - Stale (will be removed automatically during the next test-run)';
             } else {

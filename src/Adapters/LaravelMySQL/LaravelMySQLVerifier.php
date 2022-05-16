@@ -34,7 +34,7 @@ class LaravelMySQLVerifier implements VerifierInterface
      *
      * @return boolean
      */
-    public function isVerifiable(): bool
+    public function suppertsVerification(): bool
     {
         return true;
     }
@@ -55,11 +55,6 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->createVerificationTable();
         $this->populateVerificationTable($createStructureHash, $createDataHash);
 
-//        $list = $this->readableList([
-//            $createStructureHash ? 'structure-hashes' : '',
-//            $createDataHash ? 'data-hashes' : '',
-//        ]);
-//        $this->di->log->debug("Set up the verification table ($list)", $logTimer);
         $this->di->log->debug("Set up database verification", $logTimer);
     }
 
@@ -389,16 +384,18 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Generate a list of the tables that exist from the database.
      *
-     * (Excludes all Adapt tables).
+     * (Excludes views and Adapt meta-tables).
      *
      * @return string[]
      */
     private function readTableList(): array
     {
-        $rows = $this->di->db->select("SHOW TABLES");
+        $rows = $this->di->db->select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
 
         $tables = [];
         foreach ($rows as $row) {
+
+            unset($row->Table_type);
 
             $vars = get_object_vars($row);
             $table = reset($vars);
@@ -419,7 +416,7 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Get a table's primary-key.
      *
-     * Note: the return values is an array, which may contain more than one field.
+     * Note: the return value is an array, which may contain more than one field.
      * Note: may return the first "unique" key instead if a primary-key doesn't exist.
      *
      * @param string $table The table to get the primary-key for.
@@ -441,11 +438,6 @@ class LaravelMySQLVerifier implements VerifierInterface
     private function resolvePrimaryKey(string $table): array
     {
         $fields = $this->readPrimaryKeyIndex($table) ?? $this->readFirstUniqueIndex($table);
-
-//        if (is_null($fields)) {
-//            throw new Exception("Table \"$table\" doesn't have a primary-key");
-//        }
-
         return $fields ?? [];
     }
 

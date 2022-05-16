@@ -115,7 +115,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 // yes, a remote database is being built here now, locally
                 config("session.driver"),
                 $remoteConfigDTO->sessionDriver
-            )->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarioTestDBs)->snapshots($remoteConfigDTO->useSnapshotsWhenReusingDB, $remoteConfigDTO->useSnapshotsWhenNotReusingDB)
+            )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarioTestDBs)->snapshots($remoteConfigDTO->useSnapshotsWhenReusingDB, $remoteConfigDTO->useSnapshotsWhenNotReusingDB)
             ->forceRebuild($remoteConfigDTO->forceRebuild)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 

@@ -35,7 +35,7 @@ trait LaravelConnectionTrait
         if ($applyLogging) {
 
             $message = config("database.connections.$connection.database") == $database
-                ? "Using connection \"$connection\"'s original database \"$database\""
+                ? "Leaving the database for connection \"$connection\" unchanged as \"$database\""
                 : "Changed the database for connection \"$connection\" to \"$database\"";
 
             $this->di->log->debug($message);

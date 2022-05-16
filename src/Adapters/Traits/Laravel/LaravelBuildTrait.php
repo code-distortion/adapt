@@ -12,38 +12,6 @@ use Throwable;
  */
 trait LaravelBuildTrait
 {
-//    /**
-//     * Wipe the database.
-//     *
-//     * @return void
-//     */
-//    protected function wipeDB(): void
-//    {
-//        $logTimer = $this->di->log->newTimer();
-//
-//        $artisan = $this->di->artisan;
-//        if ($artisan->commandExists('db:wipe')) {
-//
-//            $this->di->artisan->call(
-//                'db:wipe',
-//                array_filter(
-//                    [
-//                        '--env' =>  'testing',
-//                        '--database' => $this->configDTO->connection,
-//                        '--drop-views' => true,
-//                        '--drop-types' => ($this->configDTO->driver == 'pgsql'),
-//                        '--force' => true,
-//                    ]
-//                )
-//            );
-//        } else {
-//            // @todo test dropAllTables when views exist, and Postgres Types exist
-//            $this->di->db->dropAllTables();
-//        }
-//
-//        $this->di->log->debug('Wiped the database', $logTimer);
-//    }
-
     /**
      * Drop the database.
      *

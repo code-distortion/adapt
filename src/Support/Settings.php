@@ -45,15 +45,11 @@ class Settings
 
 
 
-    /**
-     * Included when preparing a database remotely between Adapt installations. Mismatches cause an exception.
-     *
-     * @var integer
-     */
-    const CONFIG_DTO_VERSION = 2;
+    /** @var integer Included when prepping a db remotely between Adapt installations. Mismatch causes an exception. */
+    const CONFIG_DTO_VERSION = 3;
 
-    /** @var integer Included in the remote-share payload between Adapt installations. Mismatches cause an exception. */
-    const REMOTE_SHARE_DTO_VERSION = 2;
+    /** @var integer Included in the remote-share payload between Adapt installations. Mismatch causes an exception. */
+    const REMOTE_SHARE_DTO_VERSION = 3;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
     const REMOTE_SHARE_KEY = 'adapt-remote-share';
@@ -110,7 +106,7 @@ class Settings
     /**
      * Get a recently resolved ResolvedSettingsDTO.
      *
-     * @param string $currentScenarioHash The scenario-hash to return for.
+     * @param string|null $currentScenarioHash The scenario-hash to return for.
      * @return ResolvedSettingsDTO|null
      */
     public static function getResolvedSettingsDTO($currentScenarioHash)
@@ -121,7 +117,7 @@ class Settings
     /**
      * Store recently resolved ResolvedSettingsDTO for reference later.
      *
-     * @param string              $currentScenarioHash The scenario-hash to store this against.
+     * @param string|null         $currentScenarioHash The scenario-hash to store this against.
      * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
      * @return void
      */

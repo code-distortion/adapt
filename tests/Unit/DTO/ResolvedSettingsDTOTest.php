@@ -163,9 +163,9 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 ],
                 'outcome' => [
                     'usingScenarios' => false,
-                    'buildHash' => null,
-                    'snapshotHash' => null,
-                    'scenarioHash' => null,
+                    'buildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    'snapshotHash' => 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                    'scenarioHash' => 'cccccccccccccccccccccccccccccccc',
                 ],
             ],
 
@@ -197,6 +197,11 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
             'forceRebuild' => [
                 'method' => 'forceRebuild',
                 'params' => ['forceRebuild' => true],
+            ],
+
+            'databaseWasReused' => [
+                'method' => 'databaseWasReused',
+                'params' => ['databaseWasReused' => true],
             ],
         ];
     }

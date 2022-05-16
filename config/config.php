@@ -15,7 +15,7 @@ return [
      |
      */
 
-    'project_name' => env('ADAPT_PROJECT_NAME', ''),
+    'project_name' => env('ADAPT_PROJECT_NAME'),
 
     /*
      |--------------------------------------------------------------------------

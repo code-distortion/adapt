@@ -83,11 +83,15 @@ class Hasher
     /**
      * Generate the build-hash part for snapshot filenames.
      *
+     * @param boolean $useBuildHash Use the current build-hash (if available).
      * @return string
      */
-    public function getBuildHashFilenamePart(): string
+    public function getBuildHashFilenamePart($useBuildHash = true): string
     {
-        $buildHash = $this->getBuildHash() ?: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+        $buildHash = $useBuildHash && $this->getBuildHash()
+            ? $this->getBuildHash()
+            : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+
         return mb_substr($buildHash, 0, 6);
     }
 
@@ -96,11 +100,15 @@ class Hasher
     /**
      * Resolve the current build-hash.
      *
-     * @return string
+     * @return string|null
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    public function getBuildHash(): string
+    public function getBuildHash()
     {
+        if (!$this->configDTO->checkForSourceChanges || !$this->configDTO->dbSupportsReUse) {
+            return null;
+        }
+
         return self::$buildHash = self::$buildHash ?? $this->generateBuildHash();
     }
 
@@ -110,15 +118,11 @@ class Hasher
      * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "x" part.
      * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "x" part.
      *
-     * @return string
+     * @return string|null
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    private function generateBuildHash(): string
+    private function generateBuildHash()
     {
-        if (!$this->configDTO->checkForSourceChanges) {
-            return '';
-        }
-
         $logTimer = $this->di->log->newTimer();
 
         $paths = $this->buildListOfBuildFiles();
@@ -274,9 +278,9 @@ class Hasher
     /**
      * Resolve the current snapshot scenario-hash.
      *
-     * @return string
+     * @return string|null
      */
-    public function currentSnapshotHash(): string
+    public function currentSnapshotHash()
     {
         return $this->currentSnapshotHash = $this->currentSnapshotHash ?? $this->generateSnapshotHash($this->configDTO->pickSeedersToInclude());
     }
@@ -290,15 +294,19 @@ class Hasher
      * the current pre-migration-imports, current migrations and current seeders.
      *
      * @param string[] $seeders The seeders that will be run.
-     * @return string
+     * @return string|null
      */
-    private function generateSnapshotHash(array $seeders): string
+    private function generateSnapshotHash(array $seeders)
     {
+        if (!$this->configDTO->dbSupportsSnapshots) {
+            return null;
+        }
+
         return md5(serialize([
             'preMigrationImports' => $this->configDTO->preMigrationImports,
             'migrations' => $this->configDTO->migrations,
             'seeders' => $seeders,
-//            'hasAppliedJournaling' => $hasAppliedJournaling, // @todo
+//            'hasAppliedJournaling' => $hasAppliedJournaling, // todo - if journal tables are included in snapshots
         ]));
     }
 
@@ -307,9 +315,9 @@ class Hasher
     /**
      * Resolve the current scenario-hash.
      *
-     * @return string
+     * @return string|null
      */
-    public function currentScenarioHash(): string
+    public function currentScenarioHash()
     {
         return $this->currentScenarioHash = $this->currentScenarioHash ?? $this->generateScenarioHash($this->configDTO->pickSeedersToInclude());
     }
@@ -323,15 +331,19 @@ class Hasher
      * is-browser-test setting, database reusability (transaction and journal) settings, and verification setting.
      *
      * @param string[] $seeders The seeders that will be run.
-     * @return string
+     * @return string|null
      */
-    private function generateScenarioHash(array $seeders): string
+    private function generateScenarioHash(array $seeders)
     {
+        if (!$this->configDTO->usingScenarioTestDBs()) {
+            return null;
+        }
+
         return md5(serialize([
             'snapshotHash' => $this->generateSnapshotHash($seeders),
             'usingScenarios' => $this->configDTO->scenarioTestDBs,
             'projectName' => $this->configDTO->projectName,
-//            'connection' => $this->configDTO->connection,
+//            'connection' => $this->configDTO->connection, // not included, so that multiple connections can share
             'origDatabase' => $this->configDTO->origDatabase,
             'isBrowserTest' => $this->configDTO->isBrowserTest,
             'reuseTransaction' => $this->configDTO->shouldUseTransaction(),
@@ -351,11 +363,20 @@ class Hasher
      */
     public function filenameHasBuildHash($filename): bool
     {
-        $buildHashPart = $this->getBuildHashFilenamePart();
-        return (bool) preg_match(
-            '/^.+\.' . preg_quote($buildHashPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
-            $filename
-        );
+        // let the filename match the current build-hash, and also the null build-hash
+        $buildHashParts = [$this->getBuildHashFilenamePart(), $this->getBuildHashFilenamePart(false)];
+        foreach ($buildHashParts as $buildHashPart) {
+
+            $matched = (bool) preg_match(
+                '/^.+\.' . preg_quote($buildHashPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
+                $filename
+            );
+
+            if ($matched) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -368,7 +389,7 @@ class Hasher
     {
         return $this->joinNameParts([
             $this->getBuildHashFilenamePart(),
-            mb_substr($this->generateSnapshotHash($seeders), 0, 12),
+            mb_substr((string) $this->generateSnapshotHash($seeders), 0, 12),
         ]);
     }
 
@@ -385,7 +406,7 @@ class Hasher
     {
         return $this->joinNameParts([
             $this->getBuildHashFilenamePart(),
-            mb_substr($this->generateScenarioHash($seeders), 0, 12),
+            mb_substr((string) $this->generateScenarioHash($seeders), 0, 12),
             $databaseModifier,
         ]);
     }

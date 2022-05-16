@@ -10,6 +10,20 @@ use Throwable;
 class AdaptBuildException extends AdaptException
 {
     /**
+     * The SQLite database name contains directory parts.
+     *
+     * @param string $databaseName The database that was to be used.
+     * @return self
+     */
+    public static function SQLiteDatabaseNameContainsDirectoryParts($databaseName): self
+    {
+        return new self(
+            "The SQLite database name \"$databaseName\" is invalid. "
+            . "When using Adapt, please use only a filename (without a directory)"
+        );
+    }
+
+    /**
      * The db user doesn't have permission to access the database.
      *
      * @param Throwable $previousException The original exception.
@@ -27,6 +41,18 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
+     * Could not create the database.
+     *
+     * @param string    $databaseName      The database that was to be used.
+     * @param Throwable $previousException The original exception.
+     * @return self
+     */
+    public static function couldNotCreateDatabase($databaseName, $previousException): self
+    {
+        return new self("Failed to create database \"$databaseName\"", 0, $previousException);
+    }
+
+    /**
      * Could not reuse a database - it's owned by another project.
      *
      * @param string $databaseName The database that was to be used.
@@ -35,7 +61,9 @@ class AdaptBuildException extends AdaptException
      */
     public static function databaseOwnedByAnotherProject($databaseName, $projectName): self
     {
-        return new self("Could not re-use database \"$databaseName\" as it is owned by project \"$projectName\"");
+        return new self(
+            "Could not re-use database \"$databaseName\" as it is owned by another project \"$projectName\""
+        );
     }
 
     /**

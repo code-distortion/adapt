@@ -43,7 +43,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      *
      * @return boolean
      */
-    public function isSnapshottable(): bool
+    public function supportsSnapshots(): bool
     {
         return true;
     }

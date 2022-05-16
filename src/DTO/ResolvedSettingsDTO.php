@@ -14,7 +14,7 @@ class ResolvedSettingsDTO
 
 
 
-    /** @var string The name of the current project. */
+    /** @var string|null The name of the current project. */
     public $projectName;
 
     /** @var string The name of the current test. */
@@ -96,12 +96,15 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public $forceRebuild;
 
+    /** @var boolean Whether the database was reused or not (for logging). */
+    public $databaseWasReused;
+
 
 
     /**
      * Set the project-name.
      *
-     * @param string $projectName The name of this project.
+     * @param string|null $projectName The name of this project.
      * @return static
      */
     public function projectName($projectName): self
@@ -271,9 +274,9 @@ class ResolvedSettingsDTO
     ): self {
 
         $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $this->usingScenarios ? $buildHash : null;
-        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
-        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
+        $this->buildHash = $buildHash;
+        $this->snapshotHash = $snapshotHash;
+        $this->scenarioHash = $scenarioHash;
         return $this;
     }
 
@@ -349,6 +352,18 @@ class ResolvedSettingsDTO
         return $this;
     }
 
+    /**
+     * Record whether the database was reused or not.
+     *
+     * @param boolean $databaseWasReused Whether the database was reused or not.
+     * @return static
+     */
+    public function databaseWasReused($databaseWasReused): self
+    {
+        $this->databaseWasReused = $databaseWasReused;
+        return $this;
+    }
+
 
 
 
@@ -358,7 +373,7 @@ class ResolvedSettingsDTO
      *
      * @param string $payload The raw ResolvedSettingsDTO data from the response.
      * @return self
-     * @throws AdaptRemoteShareException When the version doesn't match.
+     * @throws AdaptRemoteShareException When the payload couldn't be interpreted.
      */
     public static function buildFromPayload($payload): self
     {
@@ -391,35 +406,51 @@ class ResolvedSettingsDTO
      *
      * @return array<string, string>
      */
-    public function renderBuildSettings(): array
+    public function renderBuildSources(): array
     {
         $remoteExtra = $this->builtRemotely ? ' (remote)' : '';
 
-        $snapshotsEnabled =
-            $this->renderBoolean((bool) $this->resolvedSnapshotType)
-            . ($this->resolvedSnapshotType
-                ? ' - ' . $this->escapeString($this->resolvedSnapshotType)
-                : '');
+        $snapshotsEnabled = $this->resolvedSnapshotType
+            ? "Yes - \"$this->resolvedSnapshotType\"" . $remoteExtra
+            : 'No';
 
         $storageDir = $this->resolvedSnapshotType
             ? $this->escapeString($this->storageDir) . $remoteExtra
             : null;
 
-        $migrations = is_bool($this->migrations)
-            ? ($this->migrations ? 'Yes' : 'No')
-            : "\"" . $this->migrations . "\"";
-        $migrations .= $remoteExtra;
-
-        $seeders = $this->isSeedingAllowed
-            ? $this->renderList($this->seeders, $remoteExtra)
-            : 'n/a';
-
         $preMigrationImportsTitle = count($this->preMigrationImports) == 1
             ? 'Pre-migration import:'
             : 'Pre-migration imports:';
 
-        $seedersTitle = $this->isSeedingAllowed && count($this->seeders) == 1 ? 'Seeder:' : 'Seeders:';
+        $migrations = is_bool($this->migrations)
+            ? ($this->migrations ? 'Yes' : 'No')
+            : "\"$this->migrations\"";
+        $migrations .= $remoteExtra;
 
+        $seedersTitle = $this->isSeedingAllowed && count($this->seeders) == 1 ? 'Seeder:' : 'Seeders:';
+        $seeders = $this->isSeedingAllowed
+            ? $this->renderList($this->seeders, $remoteExtra)
+            : 'n/a';
+
+        return array_filter([
+            'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
+            $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
+            'Migrations:' => $migrations,
+            $seedersTitle => $seeders,
+            'Snapshots enabled?' => $snapshotsEnabled,
+            'Storage dir:' => $storageDir,
+        ]);
+    }
+
+
+
+    /**
+     * Render the "build-environment" settings ready to be logged.
+     *
+     * @return array<string, string>
+     */
+    public function renderBuildEnvironmentSettings(): array
+    {
         $isBrowserTest = $this->renderBoolean(
             $this->isBrowserTest,
             "Yes - NOTE: the session-driver is \"$this->sessionDriver\""
@@ -436,24 +467,15 @@ class ResolvedSettingsDTO
         );
 
         return array_filter([
-            'Project name:' => $this->escapeString($this->projectName, 'n/a'),
-            'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
-            'Snapshots enabled?' => $snapshotsEnabled,
-            '- When reusing db?' => $this->escapeString($this->reuseDBSnapshotType, 'No'),
-            '- When not reusing db?' => $this->escapeString($this->notReuseDBSnapshotType, 'No'),
-            'Snapshot storage dir:' => $storageDir,
-            $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
-            'Migrations:' => $migrations,
-            $seedersTitle => $seeders,
-            'Is a browser-test?' => $isBrowserTest,
-//            'Is reusable?' => $this->renderBoolean($this->databaseIsReusable),
-            'Is reusable?' => $isReusable,
+            'Project name:' => $this->escapeString($this->projectName),
+            'Database is reusable?' => $isReusable,
+            'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
+            'For a browser-test?' => $isBrowserTest,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
-            'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
-            '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),
-            '- Scenario-hash:' => $this->escapeString($this->scenarioHash),
+            'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
+            'Snapshot-hash:' => $this->escapeString($this->snapshotHash, 'n/a'),
+            'Scenario-hash:' => $this->escapeString($this->scenarioHash, 'n/a'),
         ]);
     }
 

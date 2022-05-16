@@ -23,15 +23,7 @@ class AdaptRemoveCachesCommand extends Command
     /** @var string The console command description. */
     protected $description = 'Remove Adapt\'s test-databases and snapshot files';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
+
 
     /**
      * Execute the console command.

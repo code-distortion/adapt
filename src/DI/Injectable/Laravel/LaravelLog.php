@@ -145,23 +145,6 @@ class LaravelLog implements LogInterface
     private function buildMessage(string $message, int $timerRef = null, bool $newLineAfter = false): string
     {
         return $message . $this->formatTime($timerRef) . ($newLineAfter ? PHP_EOL : '');
-
-//        $caller = debug_backtrace()[2];
-//        $temp = explode('\\', $caller['class']);
-//        $class = array_pop($temp);
-//        return $class . '::' . $caller['function'] . '(): ' . $message . $this->formatTime($timerRef);
-    }
-
-
-
-    /**
-     * Check to see if some logging is on.
-     *
-     * @return boolean
-     */
-    public function someLoggingIsOn(): bool
-    {
-        return $this->stdout || $this->laravel;
     }
 
 

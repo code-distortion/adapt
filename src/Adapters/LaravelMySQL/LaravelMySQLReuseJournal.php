@@ -27,14 +27,12 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
 
 
 
-
-
     /**
      * Determine if a journal can be used on this database (for database re-use).
      *
      * @return boolean
      */
-    public function isJournalable(): bool
+    public function supportsJournaling(): bool
     {
         return true;
     }
@@ -359,9 +357,14 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
             return false;
         }
 
+        $foreignKeyChecksOn = $this->isForeignKeyChecksOn();
+        $this->disableForeignKeyChecks($foreignKeyChecksOn);
+
         foreach ($tables as $table) {
             $this->undoTableChanges($table);
         }
+
+        $this->enableForeignKeyChecks($foreignKeyChecksOn);
 
         $this->resetChangeTrackerTable();
 
@@ -382,6 +385,47 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
             $tables[] = $row->table;
         }
         return $tables;
+    }
+
+    /**
+     * Check if the foreign_key_checks setting is currently on.
+     *
+     * @return boolean
+     */
+    private function isForeignKeyChecksOn(): bool
+    {
+        $rows = $this->di->db->select("SELECT @@SESSION.foreign_key_checks AS foreign_key_checks");
+        return (bool) $rows[0]->foreign_key_checks;
+    }
+
+    /**
+     * Disable MySQL's foreign_key_checks setting.
+     *
+     * @param boolean $performUpdate Should the change actually be applied?.
+     * @return void
+     */
+    private function disableForeignKeyChecks(bool $performUpdate)
+    {
+        if (!$performUpdate) {
+            return;
+        }
+
+        $this->di->db->statement("SET FOREIGN_KEY_CHECKS = 0");
+    }
+
+    /**
+     * Enable MySQL's foreign_key_checks setting.
+     *
+     * @param boolean $performUpdate Should the change actually be applied?.
+     * @return void
+     */
+    private function enableForeignKeyChecks(bool $performUpdate)
+    {
+        if (!$performUpdate) {
+            return;
+        }
+
+        $this->di->db->statement("SET FOREIGN_KEY_CHECKS = 1");
     }
 
     /**

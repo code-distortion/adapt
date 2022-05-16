@@ -22,6 +22,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\ParallelTesting;
 use Laravel\Dusk\Browser;
@@ -190,7 +191,6 @@ class BootTestLaravel extends BootTestAbstract
         $pb = $this->propBag;
 
         // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
-//        $reuseTransaction = $pb->adaptConfig('reuse.transactions', 'reuseTransaction');
         $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
@@ -208,7 +208,7 @@ class BootTestLaravel extends BootTestAbstract
             ->databasePrefix('')
             ->checkForSourceChanges($pb->adaptConfig('check_for_source_changes'))
             ->hashPaths($this->checkLaravelHashPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildHash(null)->buildSettings($pb->adaptConfig('pre_migration_imports', 'preMigrationImports'), $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), false, $pb->config('session.driver'), null)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
+            ->preCalculatedBuildHash(null)->buildSettings($pb->adaptConfig('pre_migration_imports', 'preMigrationImports'), $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
             ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings($pb->adaptConfig('database.mysql.executables.mysql'), $pb->adaptConfig('database.mysql.executables.mysqldump'))->postgresSettings($pb->adaptConfig('database.pgsql.executables.psql'), $pb->adaptConfig('database.pgsql.executables.pg_dump'))
             ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds', null, Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
@@ -328,8 +328,11 @@ class BootTestLaravel extends BootTestAbstract
         $filename = "config.$dateTime.$rand.php";
         $path = "{$this->storageDir()}/$filename";
 
+        /** @var Repository $config */
+        $config = config();
+
         $content = '<?php' . PHP_EOL
-            . 'return ' . var_export(Config::all(), true) . ';'
+            . 'return ' . var_export($config->all(), true) . ';'
             . PHP_EOL;
 
         if (!(new Filesystem())->writeFile($path, 'w', $content)) {

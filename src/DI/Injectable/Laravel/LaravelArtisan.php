@@ -21,8 +21,8 @@ class LaravelArtisan
      */
     public function call($command, $parameters = [], $outputBuffer = null): int
     {
-        // Laravel < 7 would update the config values
-        // record the current values and replace afterwards
+        // Laravel < 7 would update the config values when calling an artisan command
+        // so record the current values before, and replace afterwards
         /** @var Repository $configDTO */
         $configDTO = config();
         $configValues = $configDTO->all();

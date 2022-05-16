@@ -18,6 +18,29 @@ interface BuildInterface
      */
     public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
+
+
+    /**
+     * Check if this database will disappear after use.
+     *
+     * @return boolean
+     */
+    public function databaseIsEphemeral(): bool;
+
+    /**
+     * Check if this database type supports database re-use.
+     *
+     * @return boolean
+     */
+    public function supportsReuse(): bool;
+
+    /**
+     * Check if this database type supports the use of scenario-databases.
+     *
+     * @return boolean
+     */
+    public function supportsScenarios(): bool;
+
     /**
      * Check if this database type can be built remotely.
      *

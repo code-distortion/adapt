@@ -35,12 +35,15 @@ class AdaptSnapshotException extends AdaptException
     /**
      * Could not import a snapshot file.
      *
-     * @param string $path The path of the file being imported.
+     * @param string         $path              The path of the file being imported.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function importFailed($path): self
+    public static function importFailed($path, $previousException = null): self
     {
-        return new self('The import of "' . $path . '" failed');
+        return $previousException
+            ? new self("The import of \"$path\" failed", 0, $previousException)
+            : new self("The import of \"$path\" failed");
     }
 
     /**
@@ -52,8 +55,8 @@ class AdaptSnapshotException extends AdaptException
     public static function mysqlClientNotPresent($path): self
     {
         return new self(
-            'The mysql client "' . $path . '" executable isn\'t available to use '
-            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
+            "The mysql client \"$path\" executable isn't available to use "
+            . "(please check the " . Settings::LARAVEL_CONFIG_NAME . ".database.mysql config settings)"
         );
     }
 
@@ -66,8 +69,8 @@ class AdaptSnapshotException extends AdaptException
     public static function mysqldumpNotPresent($path): self
     {
         return new self(
-            'The mysqldump executable "' . $path . '" isn\'t available to use '
-            . '(please check the ' . Settings::LARAVEL_CONFIG_NAME . '.database.mysql config settings)'
+            "The mysqldump executable \"$path\" isn't available to use "
+            . "(please check the " . Settings::LARAVEL_CONFIG_NAME . ".database.mysql config settings)"
         );
     }
 
@@ -80,7 +83,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function mysqlImportError($path, $returnVal): self
     {
-        return new self('Could not import database from "' . $path . '" - the mysql return value was: ' . $returnVal);
+        return new self("Could not import database from \"$path\" - the mysql return value was: $returnVal");
     }
 
     /**
@@ -92,7 +95,7 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function mysqlExportError($path, $returnVal): self
     {
-        return new self('Could not export database to "' . $path . '" - the mysqldump return value was: ' . $returnVal);
+        return new self("Could not export database to \"$path\" - the mysqldump return value was: $returnVal");
     }
 
     /**
@@ -117,13 +120,20 @@ class AdaptSnapshotException extends AdaptException
     /**
      * The MySQL client gave an error while exporting - when renaming the temp file.
      *
-     * @param string $srcPath  The path to the file being renamed.
-     * @param string $destPath The path to be changed to.
+     * @param string         $srcPath           The path to the file being renamed.
+     * @param string         $destPath          The path to be changed to.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function SQLiteExportError($srcPath, $destPath): self
-    {
-        return new self("Could not export (copy) SQLite file from $srcPath to $destPath");
+    public static function SQLiteExportError(
+        $srcPath,
+        $destPath,
+        $previousException = null
+    ): self {
+
+        return $previousException
+            ? new self("Could not export (copy) SQLite file from $srcPath to $destPath", 0, $previousException)
+            : new self("Could not export (copy) SQLite file from $srcPath to $destPath");
     }
 
     /**
@@ -135,6 +145,6 @@ class AdaptSnapshotException extends AdaptException
      */
     public static function importsNotAllowed($driver, $database): self
     {
-        return new self('Sorry, database imports aren\'t available for ' . $database . ' ' . $driver . ' databases');
+        return new self("Sorry, database imports aren't available for $database $driver databases");
     }
 }
