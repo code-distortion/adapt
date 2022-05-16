@@ -5,7 +5,6 @@ namespace CodeDistortion\Adapt\Adapters\Interfaces;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
-use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to managing reuse meta-data.

@@ -5,7 +5,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 
 /**
@@ -15,7 +14,6 @@ class LaravelSQLiteBuild implements BuildInterface
 {
     use InjectTrait;
     use LaravelBuildTrait;
-    use LaravelHelperTrait;
     use SQLiteHelperTrait;
 
 
@@ -37,7 +35,7 @@ class LaravelSQLiteBuild implements BuildInterface
      */
     public function isCompatibleWithBrowserTests(): bool
     {
-        // memory SQLite databases are only available to the current connection, and cannot be shared
+        // memory SQLite databases are only available to the current connection, and cannot be shared or reused
         return !$this->isMemoryDatabase();
     }
 

@@ -13,7 +13,6 @@ use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 class LaravelSQLiteName implements NameInterface
 {
     use InjectTrait;
-    use LaravelHelperTrait;
     use SQLiteHelperTrait;
 
 

@@ -416,8 +416,6 @@ class DatabaseBuilder
         string $database
     ): bool {
 
-        $logTimer = $this->di->log->newTimer();
-
         if (!$this->configDTO->reusingDB()) {
             return false;
         }

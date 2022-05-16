@@ -19,6 +19,8 @@ interface VerifierInterface
      */
     public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
+
+
     /**
      * Determine whether this database can be verified or not (for checking of database structure and content).
      *

@@ -14,7 +14,6 @@ use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 class LaravelSQLiteSnapshot implements SnapshotInterface
 {
     use InjectTrait;
-    use LaravelHelperTrait;
     use SQLiteHelperTrait;
 
 

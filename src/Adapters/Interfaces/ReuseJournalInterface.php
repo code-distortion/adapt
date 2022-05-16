@@ -20,6 +20,8 @@ interface ReuseJournalInterface
      */
     public function __construct(DIContainer $di, ConfigDTO $configDTO, VerifierInterface $verifier);
 
+
+
     /**
      * Determine if a journal can be used on this database (for database re-use).
      *

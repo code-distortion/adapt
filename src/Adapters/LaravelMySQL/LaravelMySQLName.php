@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
 
 /**
@@ -13,7 +12,6 @@ use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
 class LaravelMySQLName implements NameInterface
 {
     use InjectTrait;
-    use LaravelHelperTrait;
 
 
 

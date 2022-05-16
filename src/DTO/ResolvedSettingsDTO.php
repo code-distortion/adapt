@@ -469,7 +469,7 @@ class ResolvedSettingsDTO
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
             'For a browser-test?' => $isBrowserTest,
-            'Is reusable?' => $isReusable,
+            'Database is reusable?' => $isReusable,
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
             '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),

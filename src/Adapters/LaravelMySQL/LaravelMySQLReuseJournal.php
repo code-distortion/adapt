@@ -27,8 +27,6 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
 
 
 
-
-
     /**
      * Determine if a journal can be used on this database (for database re-use).
      *

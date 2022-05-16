@@ -20,6 +20,7 @@ interface SnapshotInterface
     public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
+
     /**
      * Determine if a snapshot can be made from this database.
      *

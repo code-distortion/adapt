@@ -20,6 +20,7 @@ interface NameInterface
     public function __construct(DIContainer $di, ConfigDTO $configDTO);
 
 
+
     /**
      * Build a scenario database name.
      *
