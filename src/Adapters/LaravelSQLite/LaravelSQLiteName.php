@@ -4,8 +4,8 @@ namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 
 /**
  * Database-adapter methods related to naming Laravel/SQLite database things.
@@ -16,39 +16,47 @@ class LaravelSQLiteName implements NameInterface
     use SQLiteHelperTrait;
 
 
-
     /**
      * Build a scenario database name.
      *
-     * @param string $dbNameHash The current db-name-hash based on the database-building file content,
-     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
-     *                           transactions and isBrowserTest.
+     * @param boolean     $usingScenarios Whether scenarios are being used or not.
+     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
      * @return string
+     * @throws AdaptBuildException When the database name is invalid.
      */
-    public function generateScenarioDBName(string $dbNameHash): string
+    public function generateDBName(bool $usingScenarios, ?string $dbNameHashPart): string
     {
         $database = $this->configDTO->origDatabase;
-        if ($this->isMemoryDatabase($database)) {
+
+        if ($this->isMemoryDatabase()) {
             return $database; // ":memory:"
         }
 
-        $dbNameHash = str_replace('_', '-', $dbNameHash);
-        $filename = $this->pickBaseFilename($database);
-        $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameHash . '.sqlite';
+        if ((mb_strpos($database, '/')) || (mb_strpos($database, '\\'))) {
+            throw AdaptBuildException::SQLiteDatabaseNameContainsDirectoryParts($database);
+        }
+
+        if ($usingScenarios) {
+            $dbNameHashPart = str_replace('_', '-', (string) $dbNameHashPart);
+            $filename = $this->pickBaseFilename($database);
+            $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameHashPart . '.sqlite';
+        } else {
+            $filename = $database;
+        }
+
         return $this->configDTO->storageDir . '/' . $filename;
     }
 
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
+     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotHash): string
+    public function generateSnapshotPath(string $snapshotFilenameHashPart): string
     {
         $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
-        $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotHash . '.sqlite';
+        $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotFilenameHashPart . '.sqlite';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }

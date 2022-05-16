@@ -274,9 +274,9 @@ class ResolvedSettingsDTO
     ): self {
 
         $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $this->usingScenarios ? $buildHash : null;
-        $this->snapshotHash = $this->usingScenarios ? $snapshotHash : null;
-        $this->scenarioHash = $this->usingScenarios ? $scenarioHash : null;
+        $this->buildHash = $buildHash;
+        $this->snapshotHash = $snapshotHash;
+        $this->scenarioHash = $scenarioHash;
         return $this;
     }
 
@@ -468,14 +468,14 @@ class ResolvedSettingsDTO
 
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
-            'For a browser-test?' => $isBrowserTest,
             'Database is reusable?' => $isReusable,
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            '- Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
-            '- Snapshot-hash:' => $this->escapeString($this->snapshotHash),
-            '- Scenario-hash:' => $this->escapeString($this->scenarioHash),
+            'For a browser-test?' => $isBrowserTest,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
+            'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
+            'Snapshot-hash:' => $this->escapeString($this->snapshotHash),
+            'Scenario-hash:' => $this->escapeString($this->scenarioHash),
         ]);
     }
 

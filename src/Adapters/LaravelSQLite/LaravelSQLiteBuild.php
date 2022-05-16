@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use Throwable;
 
 /**
  * Database-adapter methods related to building a Laravel/SQLite database.
@@ -17,6 +19,17 @@ class LaravelSQLiteBuild implements BuildInterface
     use SQLiteHelperTrait;
 
 
+
+    /**
+     * Check if this database type supports the use of scenario-databases.
+     *
+     * @return boolean
+     */
+    public function supportsScenarios(): bool
+    {
+        // memory SQLite databases are only available to the current connection, and cannot be shared or reused
+        return !$this->isMemoryDatabase();
+    }
 
     /**
      * Check if this database type can be built remotely.
@@ -60,7 +73,7 @@ class LaravelSQLiteBuild implements BuildInterface
      */
     private function databaseExists(): bool
     {
-        return $this->isMemoryDatabase() || $this->di->filesystem->fileExists((string)$this->configDTO->database);
+        return $this->isMemoryDatabase() || $this->di->filesystem->fileExists((string) $this->configDTO->database);
     }
 
     /**
@@ -88,6 +101,7 @@ class LaravelSQLiteBuild implements BuildInterface
      * Create a new database.
      *
      * @return void
+     * @throws AdaptBuildException When the database couldn't be created.
      */
     private function createDB(): void
     {
@@ -97,7 +111,11 @@ class LaravelSQLiteBuild implements BuildInterface
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->filesystem->touch((string) $this->configDTO->database);
+        try {
+            $this->di->filesystem->touch((string) $this->configDTO->database);
+        } catch (Throwable $e) {
+            throw AdaptBuildException::couldNotCreateDatabase($this->configDTO->database, $e);
+        }
 
         $this->di->log->debug('Created the database', $logTimer);
     }

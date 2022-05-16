@@ -10,6 +10,20 @@ use Throwable;
 class AdaptBuildException extends AdaptException
 {
     /**
+     * The SQLite database name contains directory parts.
+     *
+     * @param string $databaseName The database that was to be used.
+     * @return self
+     */
+    public static function SQLiteDatabaseNameContainsDirectoryParts(string $databaseName): self
+    {
+        return new self(
+            "The SQLite database name \"$databaseName\" is invalid. "
+            . "When using Adapt, please use only a filename (without a directory)"
+        );
+    }
+
+    /**
      * The db user doesn't have permission to access the database.
      *
      * @param Throwable $previousException The original exception.
@@ -24,6 +38,18 @@ class AdaptBuildException extends AdaptException
             0,
             $previousException
         );
+    }
+
+    /**
+     * Could not create the database.
+     *
+     * @param string    $databaseName      The database that was to be used.
+     * @param Throwable $previousException The original exception.
+     * @return self
+     */
+    public static function couldNotCreateDatabase(string $databaseName, Throwable $previousException): self
+    {
+        return new self("Failed to create database \"$databaseName\"", 0, $previousException);
     }
 
     /**

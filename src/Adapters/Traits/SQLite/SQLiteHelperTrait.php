@@ -10,12 +10,11 @@ trait SQLiteHelperTrait
     /**
      * Check if a memory database will be used or not.
      *
-     * @param string|null $name The database name, otherwise it's picked from the ConfigDTO.
      * @return boolean
      */
-    protected function isMemoryDatabase(?string $name = null)
+    protected function isMemoryDatabase()
     {
-        return ($name ?? $this->configDTO->database) == ':memory:';
+        return $this->configDTO->origDatabase == ':memory:';
     }
 
     /**

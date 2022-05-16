@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use Throwable;
 
 /**
  * Database-adapter methods related to managing Laravel/SQLite database snapshots.
@@ -58,8 +59,12 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
             // exception on older versions
             $this->di->db->purge();
 
-            if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
-                throw AdaptSnapshotException::importFailed($path);
+            try {
+                if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
+                    throw AdaptSnapshotException::importFailed($path);
+                }
+            } catch (Throwable $e) {
+                throw AdaptSnapshotException::importFailed($path, $e);
             }
 
             return true;
@@ -81,8 +86,12 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      */
     public function takeSnapshot(string $path): void
     {
-        if (!$this->di->filesystem->copy((string) $this->configDTO->database, $path)) {
-            throw AdaptSnapshotException::SQLiteExportError((string) $this->configDTO->database, $path);
+        try {
+            if (!$this->di->filesystem->copy((string) $this->configDTO->database, $path)) {
+                throw AdaptSnapshotException::SQLiteExportError((string) $this->configDTO->database, $path);
+            }
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::SQLiteExportError((string) $this->configDTO->database, $path, $e);
         }
     }
 }

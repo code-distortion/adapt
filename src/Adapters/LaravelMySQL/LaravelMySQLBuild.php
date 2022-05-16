@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelBuildTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use Throwable;
 
 /**
  * Database-adapter methods related to building a Laravel/MySQL database.
@@ -17,6 +19,16 @@ class LaravelMySQLBuild implements BuildInterface
     use LaravelHelperTrait;
 
 
+
+    /**
+     * Check if this database type supports the use of scenario-databases.
+     *
+     * @return boolean
+     */
+    public function supportsScenarios(): bool
+    {
+        return true;
+    }
 
     /**
      * Check if this database type can be built remotely.
@@ -56,19 +68,26 @@ class LaravelMySQLBuild implements BuildInterface
      * Create a new database.
      *
      * @return void
+     * @throws AdaptBuildException When the database couldn't be created.
      */
     private function createDB(): void
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->di->db->newPDO()->createDatabase(
-            sprintf(
-                'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
-                $this->configDTO->database,
-                $this->conVal('charset', 'utf8mb4'),
-                $this->conVal('collation', 'utf8mb4_unicode_ci')
-            )
-        );
+        try {
+
+            $this->di->db->newPDO()->createDatabase(
+                sprintf(
+                    'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
+                    $this->configDTO->database,
+                    $this->conVal('charset', 'utf8mb4'),
+                    $this->conVal('collation', 'utf8mb4_unicode_ci')
+                )
+            );
+
+        } catch (Throwable $e) {
+            throw AdaptBuildException::couldNotCreateDatabase($this->configDTO->database, $e);
+        }
 
         $this->di->log->debug('Created a new database', $logTimer);
     }

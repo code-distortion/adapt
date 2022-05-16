@@ -24,20 +24,18 @@ interface NameInterface
     /**
      * Build a scenario database name.
      *
-     * @param string $dbNameHash The current db-name-hash based on the database-building file content,
-     *                           database-name-prefix, pre-migration-imports, migrations, seeder-settings, connection,
-     *                           transactions and isBrowserTest.
+     * @param boolean     $usingScenarios Whether scenarios are being used or not.
+     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
      * @return string
      * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
      */
-    public function generateScenarioDBName(string $dbNameHash): string;
+    public function generateDBName(bool $usingScenarios, ?string $dbNameHashPart): string;
 
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotHash The current snapshot-hash based on the database-building file content,
-     *                             database-name-prefix, pre-migration-imports, migrations and seeder-settings.
+     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotHash): string;
+    public function generateSnapshotPath(string $snapshotFilenameHashPart): string;
 }

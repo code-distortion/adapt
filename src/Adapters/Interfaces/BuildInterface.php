@@ -21,6 +21,13 @@ interface BuildInterface
 
 
     /**
+     * Check if this database type supports the use of scenario-databases.
+     *
+     * @return boolean
+     */
+    public function supportsScenarios(): bool;
+
+    /**
      * Check if this database type can be built remotely.
      *
      * @return boolean

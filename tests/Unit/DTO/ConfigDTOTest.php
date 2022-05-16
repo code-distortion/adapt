@@ -682,7 +682,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists($connectionExists)
             ->isRemoteBuild($isRemoteBuild)
             ->isBrowserTest($isBrowserTest)
-            ->dbIsTransactionable($dbIsTransactionable)
+            ->dbIsTransactionable($dbIsTransactionable) // todo update with "supportsScenarios"
             ->dbIsJournalable(true);
 
         $this->assertSame($expectedCanUseTransactions, $configDTO->canUseTransactions());
@@ -971,8 +971,18 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function test_using_scenario_test_dbs(): void
     {
-        $this->assertTrue((new ConfigDTO())->scenarioTestDBs(true)->usingScenarioTestDBs());
-        $this->assertFalse((new ConfigDTO())->scenarioTestDBs(false)->usingScenarioTestDBs());
+        $this->assertTrue(
+            (new ConfigDTO())->scenarioTestDBs(true)->dbSupportsScenarios(true)->usingScenarioTestDBs()
+        );
+        $this->assertFalse(
+            (new ConfigDTO())->scenarioTestDBs(true)->dbSupportsScenarios(false)->usingScenarioTestDBs()
+        );
+        $this->assertFalse(
+            (new ConfigDTO())->scenarioTestDBs(false)->dbSupportsScenarios(true)->usingScenarioTestDBs()
+        );
+        $this->assertFalse(
+            (new ConfigDTO())->scenarioTestDBs(false)->dbSupportsScenarios(false)->usingScenarioTestDBs()
+        );
     }
 
 

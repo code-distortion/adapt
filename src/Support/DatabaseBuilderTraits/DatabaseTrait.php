@@ -30,17 +30,24 @@ trait DatabaseTrait
      */
     private function pickDatabaseName(): string
     {
-        // return the original name
-        if (!$this->configDTO->usingScenarioTestDBs()) {
-            return $this->origDBName();
-        }
+        $dbNameHashPart = $this->configDTO->usingScenarioTestDBs() ? $this->generateDatabaseNameHashPart() : null;
 
-        // or generate a new name
-        $dbNameHash = $this->hasher->generateDatabaseNameHashPart(
+        return $this->dbAdapter()->name->generateDBName($this->configDTO->usingScenarioTestDBs(), $dbNameHashPart);
+    }
+
+    /**
+     * Generate a hash to use in the database name.
+     *
+     * Based on the source-files hash, extended-scenario hash.
+     *
+     * @return string
+     */
+    private function generateDatabaseNameHashPart(): string
+    {
+        return $this->hasher->generateDatabaseNameHashPart(
             $this->configDTO->pickSeedersToInclude(),
             $this->configDTO->databaseModifier
         );
-        return $this->dbAdapter()->name->generateScenarioDBName($dbNameHash);
     }
 
     /**

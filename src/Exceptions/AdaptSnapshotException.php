@@ -35,12 +35,15 @@ class AdaptSnapshotException extends AdaptException
     /**
      * Could not import a snapshot file.
      *
-     * @param string $path The path of the file being imported.
+     * @param string         $path              The path of the file being imported.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function importFailed(string $path): self
+    public static function importFailed(string $path, ?Throwable $previousException = null): self
     {
-        return new self("The import of \"$path\" failed");
+        return $previousException
+            ? new self("The import of \"$path\" failed", 0, $previousException)
+            : new self("The import of \"$path\" failed");
     }
 
     /**
@@ -117,13 +120,20 @@ class AdaptSnapshotException extends AdaptException
     /**
      * The MySQL client gave an error while exporting - when renaming the temp file.
      *
-     * @param string $srcPath  The path to the file being renamed.
-     * @param string $destPath The path to be changed to.
+     * @param string         $srcPath           The path to the file being renamed.
+     * @param string         $destPath          The path to be changed to.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function SQLiteExportError(string $srcPath, string $destPath): self
-    {
-        return new self("Could not export (copy) SQLite file from $srcPath to $destPath");
+    public static function SQLiteExportError(
+        string $srcPath,
+        string $destPath,
+        ?Throwable $previousException = null
+    ): self {
+
+        return $previousException
+            ? new self("Could not export (copy) SQLite file from $srcPath to $destPath", 0, $previousException)
+            : new self("Could not export (copy) SQLite file from $srcPath to $destPath");
     }
 
     /**

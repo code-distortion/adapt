@@ -99,6 +99,7 @@ class DatabaseBuilder
         $this->pickDriverClosure = $pickDriverClosure;
 
         // update $configDTO with some extra settings now that the driver is known
+        $this->configDTO->dbSupportsScenarios($this->dbAdapter()->build->supportsScenarios());
         $this->configDTO->dbIsTransactionable($this->dbAdapter()->reuseTransaction->isTransactionable());
         $this->configDTO->dbIsJournalable($this->dbAdapter()->reuseJournal->isJournalable());
         $this->configDTO->dbIsVerifiable($this->dbAdapter()->verifier->isVerifiable());
@@ -472,7 +473,7 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->resetDBIfSnapshotsFilesAreNotSimplyCopied();
+        $this->resetDBIfSnapshotsFilesAreNotSimplyCopied( );
 
         $this->canUseSnapshots()
             ? $this->buildDBFromSnapshot()
@@ -1056,7 +1057,7 @@ class DatabaseBuilder
     private function buildResolvedSettingsDTO(string $database): ResolvedSettingsDTO
     {
         $configDTO = $this->configDTO;
-        $canHash = $configDTO->usingScenarioTestDBs() && !$configDTO->shouldBuildRemotely();
+        $buildingLocally = !$configDTO->shouldBuildRemotely();
 
         return (new ResolvedSettingsDTO())
             ->projectName($configDTO->projectName)
@@ -1086,9 +1087,9 @@ class DatabaseBuilder
             ->forceRebuild($configDTO->forceRebuild)
             ->scenarioTestDBs(
                 $configDTO->usingScenarioTestDBs(),
-                $canHash ? $this->hasher->getBuildHash() : null,
-                $canHash ? $this->hasher->currentSnapshotHash() : null,
-                $canHash ? $this->hasher->currentScenarioHash() : null
+                $buildingLocally ? $this->hasher->getBuildHash() : null,
+                $buildingLocally ? $this->hasher->currentSnapshotHash() : null,
+                $buildingLocally && $configDTO->usingScenarioTestDBs() ? $this->hasher->currentScenarioHash() : null
             )
             ->databaseWasReused(true);
     }

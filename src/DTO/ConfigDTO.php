@@ -83,6 +83,9 @@ class ConfigDTO
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
+    /** @var boolean Whether the database supports scenarios or not - a record of the setting based on the driver. */
+    public bool $dbSupportsScenarios;
+
     /** @var boolean Whether the database is transactionable or not - a record of the setting based on the driver. */
     public bool $dbIsTransactionable;
 
@@ -450,6 +453,18 @@ class ConfigDTO
     public function isRemoteBuild(bool $isRemoteBuild): self
     {
         $this->isRemoteBuild = $isRemoteBuild;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-scenarios setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsScenarios Whether the database supports scenarios or not.
+     * @return static
+     */
+    public function dbSupportsScenarios(bool $dbSupportsScenarios): self
+    {
+        $this->dbSupportsScenarios = $dbSupportsScenarios;
         return $this;
     }
 
@@ -859,7 +874,7 @@ class ConfigDTO
      */
     public function usingScenarioTestDBs(): bool
     {
-        return $this->scenarioTestDBs;
+        return $this->dbSupportsScenarios && $this->scenarioTestDBs;
     }
 
     /**
