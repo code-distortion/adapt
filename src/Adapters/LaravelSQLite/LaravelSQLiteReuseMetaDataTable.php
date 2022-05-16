@@ -17,17 +17,17 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string $origDBName   The name of the database that this test-database is for.
-     * @param string $buildHash    The current build-hash.
-     * @param string $snapshotHash The current snapshot-hash.
-     * @param string $scenarioHash The current scenario-hash.
+     * @param string      $origDBName   The name of the database that this test-database is for.
+     * @param string|null $buildHash    The current build-hash.
+     * @param string|null $snapshotHash The current snapshot-hash.
+     * @param string|null $scenarioHash The current scenario-hash.
      * @return void
      */
     public function createReuseMetaDataTable(
         string $origDBName,
-        string $buildHash,
-        string $snapshotHash,
-        string $scenarioHash
+        ?string $buildHash,
+        ?string $snapshotHash,
+        ?string $scenarioHash
     ): void {
 
         $this->removeReuseMetaTable();
@@ -39,9 +39,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
             . "`project_name` varchar(255), "
             . "`reuse_table_version` varchar(16), "
             . "`orig_db_name` varchar(255) NOT NULL, "
-            . "`build_hash` varchar(32) NOT NULL, "
-            . "`snapshot_hash` varchar(32) NOT NULL, "
-            . "`scenario_hash` varchar(32) NOT NULL, "
+            . "`build_hash` varchar(32) NULL, "
+            . "`snapshot_hash` varchar(32) NULL, "
+            . "`scenario_hash` varchar(32) NULL, "
             . "`transaction_reusable` tinyint unsigned NULL, "
             . "`journal_reusable` tinyint unsigned NULL, "
             . "`validation_passed` tinyint unsigned NULL, "
@@ -124,7 +124,6 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
      * Render the current time in UTC as a string.
      *
      * @return string
-     * @throws \Exception
      */
     private function nowUtcString(): string
     {

@@ -21,6 +21,20 @@ interface BuildInterface
 
 
     /**
+     * Check if this database will disappear after use.
+     *
+     * @return boolean
+     */
+    public function databaseIsEphemeral(): bool;
+
+    /**
+     * Check if this database type supports database re-use.
+     *
+     * @return boolean
+     */
+    public function supportsReuse(): bool;
+
+    /**
      * Check if this database type supports the use of scenario-databases.
      *
      * @return boolean

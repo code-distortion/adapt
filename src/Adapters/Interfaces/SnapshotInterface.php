@@ -22,11 +22,11 @@ interface SnapshotInterface
 
 
     /**
-     * Determine if a snapshot can be made from this database.
+     * Determine if snapshots can be used with this database.
      *
      * @return boolean
      */
-    public function isSnapshottable(): bool;
+    public function supportsSnapshots(): bool;
 
     /**
      * Determine if snapshot files are simply copied when importing (e.g. for sqlite).

@@ -32,7 +32,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
      *
      * @return boolean
      */
-    public function isJournalable(): bool
+    public function supportsJournaling(): bool
     {
         return true;
     }

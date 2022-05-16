@@ -24,7 +24,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      *
      * @return boolean
      */
-    public function isSnapshottable(): bool
+    public function supportsSnapshots(): bool
     {
         return !$this->isMemoryDatabase();
     }

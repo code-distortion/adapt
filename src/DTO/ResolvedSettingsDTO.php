@@ -474,8 +474,8 @@ class ResolvedSettingsDTO
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
             'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
-            'Snapshot-hash:' => $this->escapeString($this->snapshotHash),
-            'Scenario-hash:' => $this->escapeString($this->scenarioHash),
+            'Snapshot-hash:' => $this->escapeString($this->snapshotHash, 'n/a'),
+            'Scenario-hash:' => $this->escapeString($this->scenarioHash, 'n/a'),
         ]);
     }
 

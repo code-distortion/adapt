@@ -106,10 +106,10 @@ class Settings
     /**
      * Get a recently resolved ResolvedSettingsDTO.
      *
-     * @param string $currentScenarioHash The scenario-hash to return for.
+     * @param string|null $currentScenarioHash The scenario-hash to return for.
      * @return ResolvedSettingsDTO|null
      */
-    public static function getResolvedSettingsDTO(string $currentScenarioHash): ?ResolvedSettingsDTO
+    public static function getResolvedSettingsDTO(?string $currentScenarioHash): ?ResolvedSettingsDTO
     {
         return Settings::$resolvedSettingsDTOs[$currentScenarioHash] ?? null;
     }
@@ -117,12 +117,12 @@ class Settings
     /**
      * Store recently resolved ResolvedSettingsDTO for reference later.
      *
-     * @param string              $currentScenarioHash The scenario-hash to store this against.
+     * @param string|null         $currentScenarioHash The scenario-hash to store this against.
      * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
      * @return void
      */
     public static function storeResolvedSettingsDTO(
-        string $currentScenarioHash,
+        ?string $currentScenarioHash,
         ResolvedSettingsDTO $resolvedSettingsDTO
     ): void {
         Settings::$resolvedSettingsDTOs[$currentScenarioHash] = $resolvedSettingsDTO;

@@ -99,10 +99,14 @@ class DatabaseBuilder
         $this->pickDriverClosure = $pickDriverClosure;
 
         // update $configDTO with some extra settings now that the driver is known
-        $this->configDTO->dbSupportsScenarios($this->dbAdapter()->build->supportsScenarios());
-        $this->configDTO->dbIsTransactionable($this->dbAdapter()->reuseTransaction->isTransactionable());
-        $this->configDTO->dbIsJournalable($this->dbAdapter()->reuseJournal->isJournalable());
-        $this->configDTO->dbIsVerifiable($this->dbAdapter()->verifier->isVerifiable());
+        $this->configDTO->dbAdapterSupport(
+            $this->dbAdapter()->build->supportsReuse(),
+            $this->dbAdapter()->snapshot->supportsSnapshots(),
+            $this->dbAdapter()->build->supportsScenarios(),
+            $this->dbAdapter()->reuseTransaction->supportsTransactions(),
+            $this->dbAdapter()->reuseJournal->supportsJournaling(),
+            $this->dbAdapter()->verifier->suppertsVerification(),
+        );
     }
 
 
@@ -244,9 +248,11 @@ class DatabaseBuilder
             $this->silentlyUseDatabase((string) $resolvedSettingsDTO->database);
 
             $return = $this->canReuseDB(
-                (string) $resolvedSettingsDTO->buildHash,
-                (string) $resolvedSettingsDTO->scenarioHash,
-                (string) $resolvedSettingsDTO->database
+                $resolvedSettingsDTO->buildHash,
+                $resolvedSettingsDTO->scenarioHash,
+                (string) $resolvedSettingsDTO->database,
+                false,
+                null
             );
 
             // restore it back so it can be officially changed later
@@ -377,15 +383,13 @@ class DatabaseBuilder
             $logTimer = $this->di->log->newTimer();
 
             $database = (string) $this->configDTO->database;
-            $canReuse = !$forceRebuild && $this->canReuseDB(
+            $canReuse = $this->canReuseDB(
                 $this->hasher->getBuildHash(),
                 $this->hasher->currentScenarioHash(),
-                $database
+                $database,
+                $forceRebuild,
+                $logTimer
             );
-
-            $canReuse
-                ? $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer)
-                : $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
 
             if ($canReuse) {
                 $this->updateMetaTableLastUsed();
@@ -406,16 +410,24 @@ class DatabaseBuilder
     /**
      * Check if the current database can be re-used.
      *
-     * @param string $buildHash    The current build-hash.
-     * @param string $scenarioHash The current scenario-hash.
-     * @param string $database     The current database to check.
+     * @param string|null  $buildHash    The current build-hash.
+     * @param string|null  $scenarioHash The current scenario-hash.
+     * @param string       $database     The current database to check.
+     * @param boolean      $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
+     * @param integer|null $logTimer     The timer, started a little earlier.
      * @return boolean
      */
     private function canReuseDB(
-        string $buildHash,
-        string $scenarioHash,
-        string $database
+        ?string $buildHash,
+        ?string $scenarioHash,
+        string $database,
+        bool $forceRebuild,
+        ?int $logTimer
     ): bool {
+
+        if ($forceRebuild) {
+            return false;
+        }
 
         if (!$this->configDTO->reusingDB()) {
             return false;
@@ -425,12 +437,25 @@ class DatabaseBuilder
             return false;
         }
 
-        return $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
+        $canReuse = $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
             $buildHash,
             $scenarioHash,
             $this->configDTO->projectName,
             $database
         );
+
+        if (!$logTimer) {
+            return $canReuse;
+        }
+        if (!$canReuse && !$this->di->db->currentDatabaseExists()) {
+            return $canReuse;
+        }
+
+        $canReuse
+            ? $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer)
+            : $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
+
+        return $canReuse;
     }
 
     /**
@@ -440,6 +465,11 @@ class DatabaseBuilder
      */
     private function createReuseMetaDataTable(): void
     {
+        // don't bother if the database simply disappears afterwards
+        if ($this->dbAdapter()->build->databaseIsEphemeral()) {
+            return;
+        }
+
         $logTimer = $this->di->log->newTimer();
 
         $this->dbAdapter()->reuseMetaData->createReuseMetaDataTable(
@@ -449,7 +479,9 @@ class DatabaseBuilder
             $this->hasher->currentScenarioHash()
         );
 
-        $this->di->log->debug("Set up re-use meta-data", $logTimer);
+        $this->configDTO->dbSupportsReUse
+            ? $this->di->log->debug("Set up re-use meta-data", $logTimer)
+            : $this->di->log->debug("Set up meta-data", $logTimer);
     }
 
     /**
@@ -473,7 +505,7 @@ class DatabaseBuilder
      */
     private function buildDBFresh(): void
     {
-        $this->resetDBIfSnapshotsFilesAreNotSimplyCopied( );
+        $this->resetDBIfSnapshotsFilesAreNotSimplyCopied();
 
         $this->canUseSnapshots()
             ? $this->buildDBFromSnapshot()
@@ -484,18 +516,16 @@ class DatabaseBuilder
      * Check if snapshots can be used here.
      *
      * @return boolean
-     * @throws AdaptConfigException
      */
     private function canUseSnapshots(): bool
     {
-        return $this->configDTO->snapshotsAreEnabled() && $this->dbAdapter()->snapshot->isSnapshottable();
+        return $this->configDTO->snapshotsAreEnabled() && $this->dbAdapter()->snapshot->supportsSnapshots();
     }
 
     /**
      * Reset the database ready to build into - only when snapshot files are simply copied.
      *
      * @return void
-     * @throws AdaptConfigException
      */
     private function resetDBIfSnapshotFilesAreSimplyCopied(): void
     {
@@ -508,7 +538,6 @@ class DatabaseBuilder
      * Reset the database ready to build into - only when snapshot files are NOT simply copied.
      *
      * @return void
-     * @throws AdaptConfigException
      */
     private function resetDBIfSnapshotsFilesAreNotSimplyCopied(): void
     {
@@ -521,7 +550,6 @@ class DatabaseBuilder
      * Reset the database ready to build into.
      *
      * @return void
-     * @throws AdaptConfigException
      */
     private function resetDB(): void
     {
@@ -586,7 +614,7 @@ class DatabaseBuilder
             return;
         }
 
-        if (!$this->dbAdapter()->snapshot->isSnapshottable()) {
+        if (!$this->dbAdapter()->snapshot->supportsSnapshots()) {
             throw AdaptSnapshotException::importsNotAllowed(
                 (string) $this->configDTO->driver,
                 (string) $this->configDTO->database
@@ -932,6 +960,10 @@ class DatabaseBuilder
      */
     public function buildDatabaseMetaInfos(): array
     {
+        if (!$this->configDTO->dbSupportsReUse) {
+            return [];
+        }
+
         return $this->dbAdapter()->find->findDatabases(
             $this->origDBName(),
             $this->hasher->getBuildHash()
@@ -1089,7 +1121,7 @@ class DatabaseBuilder
                 $configDTO->usingScenarioTestDBs(),
                 $buildingLocally ? $this->hasher->getBuildHash() : null,
                 $buildingLocally ? $this->hasher->currentSnapshotHash() : null,
-                $buildingLocally && $configDTO->usingScenarioTestDBs() ? $this->hasher->currentScenarioHash() : null
+                $buildingLocally ? $this->hasher->currentScenarioHash() : null
             )
             ->databaseWasReused(true);
     }

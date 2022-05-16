@@ -21,6 +21,26 @@ class LaravelMySQLBuild implements BuildInterface
 
 
     /**
+     * Check if this database will disappear after use.
+     *
+     * @return boolean
+     */
+    public function databaseIsEphemeral(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Check if this database type supports database re-use.
+     *
+     * @return boolean
+     */
+    public function supportsReuse(): bool
+    {
+        return true;
+    }
+
+    /**
      * Check if this database type supports the use of scenario-databases.
      *
      * @return boolean
@@ -86,7 +106,7 @@ class LaravelMySQLBuild implements BuildInterface
             );
 
         } catch (Throwable $e) {
-            throw AdaptBuildException::couldNotCreateDatabase($this->configDTO->database, $e);
+            throw AdaptBuildException::couldNotCreateDatabase((string) $this->configDTO->database, $e);
         }
 
         $this->di->log->debug('Created a new database', $logTimer);

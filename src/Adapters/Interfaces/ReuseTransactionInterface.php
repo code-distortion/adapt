@@ -25,7 +25,7 @@ interface ReuseTransactionInterface
      *
      * @return boolean
      */
-    public function isTransactionable(): bool;
+    public function supportsTransactions(): bool;
 
     /**
      * Start the transaction that the test will be encapsulated in.

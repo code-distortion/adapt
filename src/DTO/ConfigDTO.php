@@ -83,18 +83,6 @@ class ConfigDTO
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
-    /** @var boolean Whether the database supports scenarios or not - a record of the setting based on the driver. */
-    public bool $dbSupportsScenarios;
-
-    /** @var boolean Whether the database is transactionable or not - a record of the setting based on the driver. */
-    public bool $dbIsTransactionable;
-
-    /** @var boolean Whether the database is journalable or not - a record of the setting based on the driver. */
-    public bool $dbIsJournalable;
-
-    /** @var boolean Whether the database is verifiable or not - a record of the setting based on the driver. */
-    public bool $dbIsVerifiable;
-
     /**
      * The session driver being used - will throw and exception when the remote version is different to
      * $remoteCallerSessionDriver.
@@ -105,6 +93,26 @@ class ConfigDTO
 
     /** @var string|null The session driver being used in the caller Adapt installation. */
     public ?string $remoteCallerSessionDriver;
+
+
+
+    /** @var boolean Whether the db supports re-use or not - a record of the setting based on the driver. */
+    public bool $dbSupportsReUse;
+
+    /** @var boolean Whether the db supports snapshots or not - a record of the setting based on the driver. */
+    public bool $dbSupportsSnapshots;
+
+    /** @var boolean Whether the db supports scenarios or not - a record of the setting based on the driver. */
+    public bool $dbSupportsScenarios;
+
+    /** @var boolean Whether the db supports transactions or not - a record of the setting based on the driver. */
+    public bool $dbSupportsTransactions;
+
+    /** @var boolean Whether the db supports journaling or not - a record of the setting based on the driver. */
+    public bool $dbSupportsJournaling;
+
+    /** @var boolean Whether the db supports verification or not - a record of the setting based on the driver. */
+    public bool $dbSupportsVerification;
 
 
     /** @var boolean When turned on, databases will be reused using a transaction instead of rebuilding them. */
@@ -457,54 +465,6 @@ class ConfigDTO
     }
 
     /**
-     * Turn the db-supports-scenarios setting on or off - a record of the setting based on the driver.
-     *
-     * @param boolean $dbSupportsScenarios Whether the database supports scenarios or not.
-     * @return static
-     */
-    public function dbSupportsScenarios(bool $dbSupportsScenarios): self
-    {
-        $this->dbSupportsScenarios = $dbSupportsScenarios;
-        return $this;
-    }
-
-    /**
-     * Turn the db-is-transactionable setting on or off - a record of the setting based on the driver.
-     *
-     * @param boolean $dbIsTransactionable Whether the database is transactionable or not.
-     * @return static
-     */
-    public function dbIsTransactionable(bool $dbIsTransactionable): self
-    {
-        $this->dbIsTransactionable = $dbIsTransactionable;
-        return $this;
-    }
-
-    /**
-     * Turn the db-is-journalable setting on or off - a record of the setting based on the driver.
-     *
-     * @param boolean $dbIsJournalable Whether the database is journalable or not.
-     * @return static
-     */
-    public function dbIsJournalable(bool $dbIsJournalable): self
-    {
-        $this->dbIsJournalable = $dbIsJournalable;
-        return $this;
-    }
-
-    /**
-     * Turn the db-is-verifiable setting on or off - a record of the setting based on the driver.
-     *
-     * @param boolean $dbIsVerifiable Whether the database is verifiable or not.
-     * @return static
-     */
-    public function dbIsVerifiable(bool $dbIsVerifiable): self
-    {
-        $this->dbIsVerifiable = $dbIsVerifiable;
-        return $this;
-    }
-
-    /**
      * Set the session-driver.
      *
      * @param string $sessionDriver The session driver being used.
@@ -527,6 +487,111 @@ class ConfigDTO
         $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
         return $this;
     }
+
+
+
+    /**
+     * Turn the db-supports-re-use setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsReUse        Whether the database supports scenarios or not.
+     * @param boolean $dbSupportsSnapshots    Whether the database supports snapshots or not.
+     * @param boolean $dbSupportsScenarios    Whether the database supports scenarios or not.
+     * @param boolean $dbSupportsTransactions Whether the database supports transactions or not.
+     * @param boolean $dbSupportsJournaling   Whether the database supports journaling or not.
+     * @param boolean $dbSupportsVerification Whether the database supports verification or not.
+     * @return static
+     */
+    public function dbAdapterSupport(
+        bool $dbSupportsReUse,
+        bool $dbSupportsSnapshots,
+        bool $dbSupportsScenarios,
+        bool $dbSupportsTransactions,
+        bool $dbSupportsJournaling,
+        bool $dbSupportsVerification
+    ): self {
+
+        $this->dbSupportsReUse = $dbSupportsReUse;
+        $this->dbSupportsSnapshots = $dbSupportsSnapshots;
+        $this->dbSupportsScenarios = $dbSupportsScenarios;
+        $this->dbSupportsTransactions = $dbSupportsTransactions;
+        $this->dbSupportsJournaling = $dbSupportsJournaling;
+        $this->dbSupportsVerification = $dbSupportsVerification;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-re-use setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsReUse Whether the database supports scenarios or not.
+     * @return static
+     */
+    public function dbSupportsReUse(bool $dbSupportsReUse): self
+    {
+        $this->dbSupportsReUse = $dbSupportsReUse;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-snapshots setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsSnapshots Whether the database supports snapshots or not.
+     * @return static
+     */
+    public function dbSupportsSnapshots(bool $dbSupportsSnapshots): self
+    {
+        $this->dbSupportsSnapshots = $dbSupportsSnapshots;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-scenarios setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsScenarios Whether the database supports scenarios or not.
+     * @return static
+     */
+    public function dbSupportsScenarios(bool $dbSupportsScenarios): self
+    {
+        $this->dbSupportsScenarios = $dbSupportsScenarios;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-transactions setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsTransactions Whether the database supports transactions or not.
+     * @return static
+     */
+    public function dbSupportsTransactions(bool $dbSupportsTransactions): self
+    {
+        $this->dbSupportsTransactions = $dbSupportsTransactions;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-journaling setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsJournaling Whether the database supports journaling or not.
+     * @return static
+     */
+    public function dbSupportsJournaling(bool $dbSupportsJournaling): self
+    {
+        $this->dbSupportsJournaling = $dbSupportsJournaling;
+        return $this;
+    }
+
+    /**
+     * Turn the db-supports-verification setting on or off - a record of the setting based on the driver.
+     *
+     * @param boolean $dbSupportsVerification Whether the database supports verification or not.
+     * @return static
+     */
+    public function dbSupportsVerification(bool $dbSupportsVerification): self
+    {
+        $this->dbSupportsVerification = $dbSupportsVerification;
+        return $this;
+    }
+
+
 
     /**
      * Set the types of cache to use.
@@ -800,10 +865,13 @@ class ConfigDTO
         if (!$this->connectionExists) {
             return false;
         }
+        if (!$this->dbSupportsReUse) {
+            return false;
+        }
         if ($this->isBrowserTest) {
             return false;
         }
-        if (!$this->dbIsTransactionable) {
+        if (!$this->dbSupportsTransactions) {
             return false;
         }
         return $this->reuseTransaction;
@@ -819,7 +887,10 @@ class ConfigDTO
         if (!$this->connectionExists) {
             return false;
         }
-        if (!$this->dbIsJournalable) {
+        if (!$this->dbSupportsReUse) {
+            return false;
+        }
+        if (!$this->dbSupportsJournaling) {
             return false;
         }
         return $this->reuseJournal;
@@ -844,7 +915,7 @@ class ConfigDTO
      */
     public function shouldVerifyStructure(): bool
     {
-        if (!$this->dbIsVerifiable) {
+        if (!$this->dbSupportsVerification) {
             return false;
         }
 
@@ -858,7 +929,7 @@ class ConfigDTO
      */
     public function shouldVerifyData(): bool
     {
-        if (!$this->dbIsVerifiable) {
+        if (!$this->dbSupportsVerification) {
             return false;
         }
 

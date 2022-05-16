@@ -159,7 +159,6 @@ class LaravelLog implements LogInterface
     {
         $maxLength = 0;
         foreach (array_keys($lines) as $key) {
-            $key = is_string($key) ? $key : ''; // don't show integer keys
             $maxLength = max($maxLength, mb_strlen($key));
         }
 
@@ -169,7 +168,6 @@ class LaravelLog implements LogInterface
             $partialLines = explode("\n", $line);
             $count = 0;
             foreach ($partialLines as $partialLine) {
-                $key = is_string($key) ? $key : ''; // don't show integer keys
                 $tempKey = $count++ == 0 ? $key : '';
                 $newLines[] = str_pad($tempKey, $maxLength + 1, ' ', STR_PAD_RIGHT) . $partialLine;
             }

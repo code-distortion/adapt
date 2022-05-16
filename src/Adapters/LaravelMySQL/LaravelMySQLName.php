@@ -29,7 +29,7 @@ class LaravelMySQLName implements NameInterface
             return $this->configDTO->origDatabase;
         }
 
-        $dbNameHashPart = str_replace('-', '_', $dbNameHashPart);
+        $dbNameHashPart = str_replace('-', '_', (string) $dbNameHashPart);
         $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameHashPart;
         $this->validateDBName($database);
         return $database;
@@ -43,7 +43,8 @@ class LaravelMySQLName implements NameInterface
      */
     public function generateSnapshotPath(string $snapshotFilenameHashPart): string
     {
-        $filename = $this->configDTO->snapshotPrefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.mysql';
+        $prefix = $this->configDTO->snapshotPrefix;
+        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.mysql';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }

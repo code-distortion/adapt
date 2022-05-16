@@ -27,7 +27,7 @@ interface ReuseJournalInterface
      *
      * @return boolean
      */
-    public function isJournalable(): bool;
+    public function supportsJournaling(): bool;
 
     /**
      * Create journal tables and triggers to populate them, for each table.

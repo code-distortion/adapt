@@ -25,14 +25,14 @@ abstract class AbstractFind implements FindInterface
      * @param string        $connection The connection the database is within.
      * @param string        $name       The database's name.
      * @param stdClass|null $reuseInfo  The reuse info from the database.
-     * @param string        $buildHash  The current build-hash.
+     * @param string|null   $buildHash  The current build-hash.
      * @return DatabaseMetaInfo|null
      */
     protected function buildDatabaseMetaInfo(
         string $connection,
         string $name,
         ?stdClass $reuseInfo,
-        string $buildHash
+        ?string $buildHash
     ): ?DatabaseMetaInfo {
 
         if (!$reuseInfo) {
@@ -45,7 +45,7 @@ abstract class AbstractFind implements FindInterface
 
         $isValid = (
             $reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION
-            && $reuseInfo->build_hash == $buildHash
+            && (($reuseInfo->build_hash === $buildHash) || (is_null($reuseInfo->build_hash)))
         );
 
         $databaseMetaInfo = new DatabaseMetaInfo(

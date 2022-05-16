@@ -124,6 +124,14 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("session.driver"),
                 null,
             )
+            ->dbAdapterSupport(
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+            )
             ->cacheTools(
                 config("$c.reuse.transactions"),
                 config("$c.reuse.journals"),

@@ -21,6 +21,28 @@ class LaravelSQLiteBuild implements BuildInterface
 
 
     /**
+     * Check if this database will disappear after use.
+     *
+     * @return boolean
+     */
+    public function databaseIsEphemeral(): bool
+    {
+        // memory SQLite databases are only available to the current connection, and cannot be shared or reused
+        return $this->isMemoryDatabase();
+    }
+
+    /**
+     * Check if this database type supports database re-use.
+     *
+     * @return boolean
+     */
+    public function supportsReuse(): bool
+    {
+        // memory SQLite databases are only available to the current connection, and cannot be shared or reused
+        return !$this->isMemoryDatabase();
+    }
+
+    /**
      * Check if this database type supports the use of scenario-databases.
      *
      * @return boolean
@@ -114,7 +136,7 @@ class LaravelSQLiteBuild implements BuildInterface
         try {
             $this->di->filesystem->touch((string) $this->configDTO->database);
         } catch (Throwable $e) {
-            throw AdaptBuildException::couldNotCreateDatabase($this->configDTO->database, $e);
+            throw AdaptBuildException::couldNotCreateDatabase((string) $this->configDTO->database, $e);
         }
 
         $this->di->log->debug('Created the database', $logTimer);

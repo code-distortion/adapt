@@ -32,7 +32,7 @@ class LaravelSQLiteName implements NameInterface
             return $database; // ":memory:"
         }
 
-        if ((mb_strpos($database, '/')) || (mb_strpos($database, '\\'))) {
+        if ((mb_strpos($database, '/') !== false) || (mb_strpos($database, '\\') !== false)) {
             throw AdaptBuildException::SQLiteDatabaseNameContainsDirectoryParts($database);
         }
 

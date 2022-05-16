@@ -219,6 +219,14 @@ class BootTestLaravel extends BootTestAbstract
                 $pb->config('session.driver'),
                 null,
             )
+            ->dbAdapterSupport(
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+            )
             ->cacheTools(
                 $reuseTransaction,
                 $pb->adaptConfig('reuse.journals', 'reuseJournal'),

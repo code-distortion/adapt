@@ -28,16 +28,16 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string      $buildHash    The current build-hash.
-     * @param string      $scenarioHash The current scenario-hash.
+     * @param string|null $buildHash    The current build-hash.
+     * @param string|null $scenarioHash The current scenario-hash.
      * @param string|null $projectName  The project-name.
      * @param string      $database     The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
     public function dbIsCleanForReuse(
-        string $buildHash,
-        string $scenarioHash,
+        ?string $buildHash,
+        ?string $scenarioHash,
         ?string $projectName,
         string $database
     ): bool {
@@ -60,11 +60,11 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
             return false;
         }
 
-        if ($reuseInfo->build_hash != $buildHash) {
+        if ($reuseInfo->build_hash !== $buildHash) {
             return false;
         }
 
-        if ($reuseInfo->scenario_hash != $scenarioHash) {
+        if ($reuseInfo->scenario_hash !== $scenarioHash) {
             return false;
         }
 

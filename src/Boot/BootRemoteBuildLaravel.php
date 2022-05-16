@@ -113,6 +113,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 config("session.driver"),
                 $remoteConfigDTO->sessionDriver,
             )
+            ->dbAdapterSupport(
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+            )
             ->cacheTools(
                 $remoteConfigDTO->reuseTransaction,
                 $remoteConfigDTO->reuseJournal,

@@ -26,7 +26,7 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
      *
      * @return boolean
      */
-    public function isTransactionable(): bool
+    public function supportsTransactions(): bool
     {
         // the database connection is closed between tests,
         // which causes :memory: databases to disappear,

@@ -24,17 +24,17 @@ interface ReuseMetaDataTableInterface
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string $origDBName   The name of the database that this test-database is for.
-     * @param string $buildHash    The current build-hash.
-     * @param string $snapshotHash The current snapshot-hash.
-     * @param string $scenarioHash The current scenario-hash.
+     * @param string      $origDBName   The name of the database that this test-database is for.
+     * @param string|null $buildHash    The current build-hash.
+     * @param string|null $snapshotHash The current snapshot-hash.
+     * @param string|null $scenarioHash The current scenario-hash.
      * @return void
      */
     public function createReuseMetaDataTable(
         string $origDBName,
-        string $buildHash,
-        string $snapshotHash,
-        string $scenarioHash
+        ?string $buildHash,
+        ?string $snapshotHash,
+        ?string $scenarioHash
     ): void;
 
     /**
@@ -54,16 +54,16 @@ interface ReuseMetaDataTableInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string      $buildHash    The current build-hash.
-     * @param string      $scenarioHash The current scenario-hash.
+     * @param string|null $buildHash    The current build-hash.
+     * @param string|null $scenarioHash The current scenario-hash.
      * @param string|null $projectName  The project-name.
      * @param string      $database     The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
     public function dbIsCleanForReuse(
-        string $buildHash,
-        string $scenarioHash,
+        ?string $buildHash,
+        ?string $scenarioHash,
         ?string $projectName,
         string $database
     ): bool;

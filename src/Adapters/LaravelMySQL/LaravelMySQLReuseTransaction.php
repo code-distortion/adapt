@@ -24,7 +24,7 @@ class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
      *
      * @return boolean
      */
-    public function isTransactionable(): bool
+    public function supportsTransactions(): bool
     {
         return true;
     }
