@@ -15,7 +15,7 @@ class LaravelSQLiteVerifier extends LaravelMySQLVerifier implements VerifierInte
      *
      * @return boolean
      */
-    public function suppertsVerification(): bool
+    public function supportsVerification(): bool
     {
         return false;
     }

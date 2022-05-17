@@ -70,6 +70,8 @@ class LaravelMySQLBuild implements BuildInterface
         return true;
     }
 
+
+
     /**
      * Create the database if it doesn't exist, and wipe the database clean if it does.
      *

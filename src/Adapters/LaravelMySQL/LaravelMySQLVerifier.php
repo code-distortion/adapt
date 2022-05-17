@@ -34,7 +34,7 @@ class LaravelMySQLVerifier implements VerifierInterface
      *
      * @return boolean
      */
-    public function suppertsVerification(): bool
+    public function supportsVerification(): bool
     {
         return true;
     }

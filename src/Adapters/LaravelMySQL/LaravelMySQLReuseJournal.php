@@ -37,6 +37,8 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         return true;
     }
 
+
+
     /**
      * Create journal tables and triggers to populate them.
      *

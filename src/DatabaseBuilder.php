@@ -105,7 +105,7 @@ class DatabaseBuilder
             $this->dbAdapter()->build->supportsScenarios(),
             $this->dbAdapter()->reuseTransaction->supportsTransactions(),
             $this->dbAdapter()->reuseJournal->supportsJournaling(),
-            $this->dbAdapter()->verifier->suppertsVerification(),
+            $this->dbAdapter()->verifier->supportsVerification(),
         );
     }
 

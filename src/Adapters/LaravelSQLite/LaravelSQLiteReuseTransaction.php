@@ -34,6 +34,8 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
         return !$this->isMemoryDatabase();
     }
 
+
+
     /**
      * Start the transaction that the test will be encapsulated in.
      *

@@ -38,6 +38,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
     }
 
 
+
     /**
      * Determine if a snapshot can be made from this database.
      *
@@ -57,6 +58,8 @@ class LaravelMySQLSnapshot implements SnapshotInterface
     {
         return false;
     }
+
+
 
     /**
      * Try and import the specified snapshot file.

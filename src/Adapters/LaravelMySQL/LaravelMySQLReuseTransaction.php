@@ -29,6 +29,8 @@ class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
         return true;
     }
 
+
+
     /**
      * Start the transaction that the test will be encapsulated in.
      *
