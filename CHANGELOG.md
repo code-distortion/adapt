@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.10.1] - 2022-05-21
+
+### Added
+- Support for PostgreSQL
+
+### Fixed
+- Fixed a bug that stopped config files with a '.' in the filename to be re-initialised when reloading Laravel's config
+
+
+
 ## [0.10.0] - 2022-05-17
 
 ### Added
