@@ -30,4 +30,15 @@ class AdaptBootException extends AdaptException
     {
         return new self("Could not read the remote configuration details");
     }
+
+    /**
+     * The database name must be a string.
+     *
+     * @param string $database The database name.
+     * @return self
+     */
+    public static function databaseNameNotAString(string $database): self
+    {
+        return new self("The Database name \"$database\" is invalid");
+    }
 }

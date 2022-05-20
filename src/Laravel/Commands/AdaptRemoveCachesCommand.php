@@ -4,15 +4,12 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Console\Command;
-use Illuminate\Foundation\Application;
 use Throwable;
 
 /**
  * Command to delete the Adapt snapshot and test-databases.
  */
-class AdaptRemoveCachesCommand extends Command
+class AdaptRemoveCachesCommand extends AbstractAdaptCommand
 {
     use CommandFunctionalityTrait;
 
@@ -26,18 +23,12 @@ class AdaptRemoveCachesCommand extends Command
 
 
     /**
-     * Execute the console command.
+     * Carry out the console command work.
      *
      * @return void
      */
-    public function handle(): void
+    public function performHandleWork(): void
     {
-        /** @var Application $app */
-        $app = app();
-        if (!$app->environment('testing')) {
-            LaravelSupport::useTestingConfig();
-        }
-
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
@@ -54,6 +45,8 @@ class AdaptRemoveCachesCommand extends Command
         $this->deleteSnapshots($cacheListDTO);
         $this->info('');
     }
+
+
 
     /**
      * Get confirmation from the user before proceeding.

@@ -17,6 +17,7 @@ class Exec
      */
     public function run(string $command, &$output, &$returnVal)
     {
+        $command = "($command) 2>&1"; // redirect stderr to stdout
         return exec($command, $output, $returnVal);
     }
 
@@ -28,7 +29,8 @@ class Exec
      */
     public function commandRuns(string $command): bool
     {
-        exec($command . ' 2>/dev/null', $output, $returnVal); // suppress stderror
+        $command .= ' 2>/dev/null'; // suppress stderror
+        exec($command, $output, $returnVal);
         return $returnVal == 0;
     }
 }

@@ -4,7 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\Interfaces;
 
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
-use CodeDistortion\Adapt\Exceptions\AdaptLaravelMySQLAdapterException;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 
 /**
  * Database-adapter methods related to naming database things.
@@ -27,7 +27,7 @@ interface NameInterface
      * @param boolean     $usingScenarios Whether scenarios are being used or not.
      * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
      * @return string
-     * @throws AdaptLaravelMySQLAdapterException When the database name is invalid.
+     * @throws AdaptBuildException When the database name is invalid.
      */
     public function generateDBName(bool $usingScenarios, ?string $dbNameHashPart): string;
 

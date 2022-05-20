@@ -23,11 +23,20 @@ class Exceptions
     public static function logException(LogInterface $log, Throwable $e, bool $newLineAfter = false): void
     {
         if (is_a($e, AdaptRemoteBuildException::class)) {
-            $lines = $e->generateLinesForLog();
             $title = $e->generateTitleForLog();
+            $lines = $e->generateLinesForLog();
         } else {
-            $lines = array_filter([$e->getMessage()]);
+
             $title = 'An Exception Occurred - ' . Exceptions::readableExceptionClass($e);
+
+            $lines = array_filter(self::breakDownStringLinesIntoArray($e->getMessage()));
+
+            $e2 = $e;
+            while ($e2 = $e2->getPrevious()) {
+                $message = 'Previous Exception - ' . static::readableExceptionClass($e2) . PHP_EOL . $e2->getMessage();
+                $e2Lines = array_filter(self::breakDownStringLinesIntoArray($message));
+                $lines = array_merge($lines, [''], $e2Lines);
+            }
         }
 
         $log->logBox($lines, $title, 'error', $newLineAfter);
@@ -48,5 +57,17 @@ class Exceptions
 
         $temp = explode('\\', $exceptionClass);
         return array_pop($temp);
+    }
+
+    /**
+     * Break down a string of text with new lines into an array.
+     *
+     * @param string $string The string to break down.
+     * @return string[]
+     */
+    private static function breakDownStringLinesIntoArray(string $string): array
+    {
+        $temp = str_replace("\r", "\n", str_replace("\r\n", "\n", $string));
+        return explode("\n", $temp);
     }
 }

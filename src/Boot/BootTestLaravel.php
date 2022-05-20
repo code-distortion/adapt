@@ -182,6 +182,7 @@ class BootTestLaravel extends BootTestAbstract
      * @param string $connection The connection to use.
      * @param string $testName   The current test's name.
      * @return ConfigDTO
+     * @throws AdaptBootException When the database name isn't valid.
      */
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
@@ -195,12 +196,17 @@ class BootTestLaravel extends BootTestAbstract
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
 
+        $database = $pb->config("database.connections.$connection.database");
+        if (!mb_strlen($database)) {
+            throw AdaptBootException::databaseNameNotAString($database);
+        }
+
         return (new ConfigDTO())
             ->projectName($pb->adaptConfig('project_name'))
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->origDatabase($pb->config("database.connections.$connection.database"))
+            ->origDatabase($database)
 //            ->database($pb->adaptConfigString("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
@@ -462,7 +468,7 @@ class BootTestLaravel extends BootTestAbstract
                 }
             } catch (AdaptConfigException $e) {
                 // ignore exceptions caused because the database can't be connected to
-                // e.g. other connections that aren't intended to be used. e.g. 'pgsql', 'sqlsrv'
+                // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
             } catch (PDOException $e) {
                 // same as above
             }

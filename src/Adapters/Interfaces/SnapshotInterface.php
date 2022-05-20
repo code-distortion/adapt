@@ -38,12 +38,12 @@ interface SnapshotInterface
     /**
      * Try and import the specified snapshot file.
      *
-     * @param string  $path           The location of the snapshot file.
-     * @param boolean $throwException Should an exception be thrown if the file doesn't exist?.
+     * @param string  $path                      The location of the snapshot file.
+     * @param boolean $throwExceptionIfNotExists Should an exception be thrown if the file doesn't exist?.
      * @return boolean
      * @throws AdaptSnapshotException When the import fails.
      */
-    public function importSnapshot(string $path, bool $throwException = false): bool;
+    public function importSnapshot(string $path, bool $throwExceptionIfNotExists = false): bool;
 
     /**
      * Export the database to the specified snapshot file.

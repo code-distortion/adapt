@@ -4,7 +4,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\SnapshotInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
 use Throwable;
@@ -44,38 +43,34 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
     /**
      * Try and import the specified snapshot file.
      *
-     * @param string  $path           The location of the snapshot file.
-     * @param boolean $throwException Should an exception be thrown if the file doesn't exist?.
+     * @param string  $path                      The location of the snapshot file.
+     * @param boolean $throwExceptionIfNotExists Should an exception be thrown if the file doesn't exist?.
      * @return boolean
      * @throws AdaptSnapshotException When the import fails.
      */
-    public function importSnapshot(string $path, bool $throwException = false): bool
+    public function importSnapshot(string $path, bool $throwExceptionIfNotExists = false): bool
     {
-        try {
-            if (!$this->di->filesystem->fileExists($path)) {
-                throw AdaptSnapshotException::importFailed($path);
-            }
-
-            // disconnect to stop the
-            // "PDOException: SQLSTATE[HY000]: General error: 17 database schema has changed"
-            // exception on older versions
-            $this->di->db->purge();
-
-            try {
-                if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
-                    throw AdaptSnapshotException::importFailed($path);
-                }
-            } catch (Throwable $e) {
-                throw AdaptSnapshotException::importFailed($path, $e);
-            }
-
-            return true;
-
-        } catch (AdaptSnapshotException $e) {
-            if ($throwException) {
-                throw $e;
+        if (!$this->di->filesystem->fileExists($path)) {
+            if ($throwExceptionIfNotExists) {
+                throw AdaptSnapshotException::importFileDoesNotExist($path);
             }
             return false;
+        }
+
+        // disconnect to stop the
+        // "PDOException: SQLSTATE[HY000]: General error: 17 database schema has changed"
+        // exception on older versions
+        $this->di->db->purge();
+
+        try {
+            if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
+                throw AdaptSnapshotException::importFailed($path);
+            }
+            return true;
+        } catch (AdaptSnapshotException $e) {
+            throw $e; // just rethrow as is
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::importFailed($path, $e);
         }
     }
 

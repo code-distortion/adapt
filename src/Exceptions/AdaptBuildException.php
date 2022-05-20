@@ -2,6 +2,8 @@
 
 namespace CodeDistortion\Adapt\Exceptions;
 
+use CodeDistortion\Adapt\Support\StringSupport;
+use League\CommonMark\Node\StringContainerHelper;
 use Throwable;
 
 /**
@@ -41,15 +43,60 @@ class AdaptBuildException extends AdaptException
     }
 
     /**
-     * Could not create the database.
+     * Thrown when a MySQL database name is too long.
+     *
+     * @param string $database The name of the database.
+     * @return self
+     */
+    public static function yourMySQLDatabaseNameIsTooLongCouldYouChangeItThx(string $database): self
+    {
+        return new self(
+            "The database name \"$database\" is longer than MySQL's limit (64 characters). "
+            . "Please use a shorter database name"
+        );
+    }
+
+    /**
+     * Thrown when a PostgreSQL database name is too long.
+     *
+     * @param string $database The name of the database.
+     * @return self
+     */
+    public static function yourPostgreSQLDatabaseNameIsTooLongCouldYouChangeItThx(string $database): self
+    {
+        return new self(
+            "The database name \"$database\" is longer than PostgreSQL's limit (63 characters). "
+            . "Please use a shorter database name"
+        );
+    }
+
+    /**
+     * Could not drop the database.
      *
      * @param string    $databaseName      The database that was to be used.
      * @param Throwable $previousException The original exception.
      * @return self
      */
-    public static function couldNotCreateDatabase(string $databaseName, Throwable $previousException): self
+    public static function couldNotDropDatabase(string $databaseName, Throwable $previousException): self
     {
-        return new self("Failed to create database \"$databaseName\"", 0, $previousException);
+        return new self("Could not drop database \"$databaseName\"", 0, $previousException);
+    }
+
+    /**
+     * Could not create the database.
+     *
+     * @param string    $databaseName      The database that was to be used.
+     * @param string    $driver            The database driver being used.
+     * @param Throwable $previousException The original exception.
+     * @return self
+     */
+    public static function couldNotCreateDatabase(
+        string $databaseName,
+        string $driver,
+        Throwable $previousException
+    ): self {
+
+        return new self("Failed to create $driver database \"$databaseName\"", 0, $previousException);
     }
 
     /**
@@ -69,16 +116,17 @@ class AdaptBuildException extends AdaptException
     /**
      * Could not run the migrations.
      *
-     * @param Throwable $previousException The original exception.
+     * @param string|null $migrationsPath    The path the migrations are in.
+     * @param Throwable   $previousException The original exception.
      * @return self
      */
-    public static function migrationsFailed(Throwable $previousException): self
+    public static function migrationsFailed(?string $migrationsPath, Throwable $previousException): self
     {
-        return new self(
-            "An error occurred when running the migrations: \"{$previousException->getMessage()}\"",
-            0,
-            $previousException
-        );
+        $message = $migrationsPath
+            ? "An error occurred when running the migrations \"$migrationsPath\""
+            : "An error occurred when running the migrations";
+
+        return new self($message, 0, $previousException);
     }
 
     /**

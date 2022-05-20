@@ -138,7 +138,11 @@ class LaravelSQLiteBuild implements BuildInterface
         try {
             $this->di->filesystem->touch((string) $this->configDTO->database);
         } catch (Throwable $e) {
-            throw AdaptBuildException::couldNotCreateDatabase((string) $this->configDTO->database, $e);
+            throw AdaptBuildException::couldNotCreateDatabase(
+                (string) $this->configDTO->database,
+                (string) $this->configDTO->driver,
+                $e
+            );
         }
 
         $this->di->log->debug('Created the database', $logTimer);

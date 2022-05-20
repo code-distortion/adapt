@@ -118,10 +118,10 @@ class Hasher
      * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "x" part.
      * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "x" part.
      *
-     * @return string|null
+     * @return string
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    private function generateBuildHash(): ?string
+    private function generateBuildHash(): string
     {
         $logTimer = $this->di->log->newTimer();
 
@@ -356,7 +356,9 @@ class Hasher
 
 
     /**
-     * Check to see if the current build-hash is present in the filename
+     * Check to see if the current build-hash is present in the filename.
+     *
+     * e.g. "snapshot.db.ef7aa7-1e6855bc44ee.mysql".
      *
      * @param string $filename The prefix that needs to be found.
      * @return boolean

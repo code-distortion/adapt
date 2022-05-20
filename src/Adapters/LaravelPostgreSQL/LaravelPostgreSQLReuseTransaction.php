@@ -1,23 +1,21 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelTransactionsTrait;
-use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
 use Throwable;
 
 /**
- * Database-adapter methods related to managing Laravel/SQLite reuse through transactions.
+ * Database-adapter methods related to managing Laravel/PostgreSQL reuse through transactions.
  */
-class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
+class LaravelPostgreSQLReuseTransaction implements ReuseTransactionInterface
 {
     use InjectTrait;
     use LaravelTransactionsTrait;
-    use SQLiteHelperTrait;
 
 
 
@@ -28,10 +26,7 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
      */
     public function supportsTransactions(): bool
     {
-        // the database connection is closed between tests,
-        // which causes :memory: databases to disappear,
-        // so transactions can't be used on them between tests
-        return !$this->isMemoryDatabase();
+        return true;
     }
 
 
@@ -43,9 +38,9 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
      */
     public function applyTransaction(): void
     {
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 1");
+        $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = TRUE");
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
+        $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = FALSE");
     }
 
     /**
@@ -57,13 +52,13 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
     {
         try {
             $rows = $this->di->db->select(
-                "SELECT `transaction_reusable` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
+                "SELECT \"transaction_reusable\" FROM \"" . Settings::REUSE_TABLE . "\" LIMIT 1 OFFSET 0"
             );
 
             /** @var stdClass|null $reuseInfo */
             $reuseInfo = $rows[0] ?? null;
 
-            return ($reuseInfo->transaction_reusable ?? null) === 0;
+            return ($reuseInfo->transaction_reusable ?? null) === false;
 
         } catch (Throwable $e) {
             return false;

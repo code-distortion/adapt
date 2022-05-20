@@ -87,6 +87,7 @@ class RemoteShareMiddleware
             return false;
         }
 
+        $configData = null;
         try {
             $configData = require $remoteShareDTO->tempConfigPath;
         } catch (Throwable $e) {

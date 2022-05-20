@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\DI\Injectable\Laravel;
 
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use PDO;
 use stdClass;
 use Throwable;
@@ -9,10 +10,11 @@ use Throwable;
 /**
  * Injectable class to abstract interaction with the database in Laravel.
  */
-class LaravelPDO
+abstract class AbstractLaravelPDO
 {
     /** @var PDO The pdo connection to use. */
-    private PDO $pdo;
+    protected PDO $pdo;
+
 
 
     /**
@@ -37,31 +39,27 @@ class LaravelPDO
      * Create a new database.
      *
      * @param string $createQuery The query to run to create the database.
-     * @return boolean
+     * @return void
      */
-    public function createDatabase(string $createQuery): bool
+    public function createDatabase(string $createQuery): void
     {
-        try {
-            $this->pdo->exec($createQuery);
-            return true;
-        } catch (Throwable $e) {
-            return false;
-        }
+        $this->pdo->exec($createQuery);
     }
 
     /**
      * Drop a database.
      *
-     * @param string $dropQuery The query to run to remove the database.
-     * @return boolean
+     * @param string $dropQuery    The query to run to remove the database.
+     * @param string $databaseName The name of the database being dropped.
+     * @return void
+     * @throws AdaptBuildException When the database couldn't be dropped.
      */
-    public function dropDatabase(string $dropQuery): bool
+    public function dropDatabase(string $dropQuery, string $databaseName): void
     {
         try {
             $this->pdo->exec($dropQuery);
-            return true;
         } catch (Throwable $e) {
-            return false;
+            throw AdaptBuildException::couldNotDropDatabase($databaseName, $e);
         }
     }
 
@@ -70,20 +68,35 @@ class LaravelPDO
      *
      * @return string[]
      */
-    public function listDatabases(): array
+    abstract public function listDatabases(): array;
+
+    /**
+     * Return the list of existing databases.
+     *
+     * @param string $query The query to run to get the list.
+     * @param string $field The field to get from the results.
+     * @return string[]
+     */
+    protected function performListDatabases(string $query, string $field): array
     {
         try {
-            $pdoStatement = $this->pdo->query("SHOW DATABASES");
-            if ($pdoStatement) {
-                $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
-                if ($rows) {
-                    $databases = [];
-                    foreach ($rows as $row) {
-                        $databases[] = $row['Database'];
-                    }
-                    return $databases;
-                }
+
+            $pdoStatement = $this->pdo->query($query);
+            if (!$pdoStatement) {
+                return [];
             }
+
+            $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
+            if (!$rows) {
+                return [];
+            }
+
+            $databases = [];
+            foreach ($rows as $row) {
+                $databases[] = $row[$field];
+            }
+            return $databases;
+
         } catch (Throwable $e) {
         }
         return [];
@@ -98,14 +111,20 @@ class LaravelPDO
     public function fetchReuseTableInfo(string $query): ?stdClass
     {
         try {
+
             $pdoStatement = $this->pdo->query($query);
-            if ($pdoStatement) {
-                $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
-                if ($rows) {
-                    $row = reset($rows);
-                    return ($row ? (object) $row : null);
-                }
+            if (!$pdoStatement) {
+                return null;
             }
+
+            $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
+            if (!$rows) {
+                return null;
+            }
+
+            $row = reset($rows);
+            return ($row ? (object) $row : null);
+
         } catch (Throwable $e) {
         }
         return null;
@@ -120,6 +139,7 @@ class LaravelPDO
     public function size(string $getSizeQuery)
     {
         try {
+
             $pdoStatement = $this->pdo->query($getSizeQuery);
             if (!$pdoStatement) {
                 return false;

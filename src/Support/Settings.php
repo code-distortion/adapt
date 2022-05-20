@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Support;
 
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
+use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLSnapshot;
 use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 
 /**
@@ -99,6 +100,7 @@ class Settings
         Settings::$resolvedSettingsDTOs = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
+        LaravelPostgreSQLSnapshot::resetStaticProps();
     }
 
 

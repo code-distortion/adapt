@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Adapters\LaravelMySQLAdapter;
+use CodeDistortion\Adapt\Adapters\LaravelPostgreSQLAdapter;
 use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -56,7 +57,7 @@ class DatabaseBuilder
         'laravel' => [
             'mysql' => LaravelMySQLAdapter::class,
             'sqlite' => LaravelSQLiteAdapter::class,
-//            'pgsql' => LaravelPostgreSQLAdapter::class,
+            'pgsql' => LaravelPostgreSQLAdapter::class,
         ],
     ];
 
@@ -623,6 +624,7 @@ class DatabaseBuilder
 
         foreach ($preMigrationImports as $path) {
             $logTimer = $this->di->log->newTimer();
+            // will throw exception if the file doesn't exist
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
@@ -796,7 +798,7 @@ class DatabaseBuilder
             return false;
         }
 
-        $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
+        $this->di->filesystem->touch($snapshotPath); // so the stale grace-period starts again
 
         $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
@@ -1073,6 +1075,7 @@ class DatabaseBuilder
             }
             $previous = $previous->getPrevious();
         } while ($previous);
+
         return $e;
     }
 

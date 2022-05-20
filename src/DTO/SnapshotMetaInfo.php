@@ -159,8 +159,6 @@ class SnapshotMetaInfo
                 : ' - Stale (will be removed automatically during the next test-run)';
         }
 
-        return $this->path
-            . ' ' . Str::readableSize($this->getSize())
-            . $purgeMessage;
+        return $this->path . ' ' . Str::readableSize($this->getSize()) . $purgeMessage;
     }
 }

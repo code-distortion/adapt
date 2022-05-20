@@ -3,6 +3,8 @@
 namespace CodeDistortion\Adapt\Support;
 
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use PDOException;
@@ -44,7 +46,7 @@ trait CommandFunctionalityTrait
                 $cacheListDTO->databases((string) $connection, $builder->buildDatabaseMetaInfos());
             } catch (AdaptConfigException $e) {
                 // ignore exceptions caused because the database can't be connected to
-                // e.g. other connections that aren't intended to be used. e.g. 'pgsql', 'sqlsrv'
+                // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
             } catch (PDOException $e) {
                 // same as above
             }
@@ -63,5 +65,18 @@ trait CommandFunctionalityTrait
         $connection = LaravelSupport::configString('database.default');
         $builder = $bootCommandLaravel->makeNewBuilder($connection);
         $cacheListDTO->snapshots($builder->buildSnapshotMetaInfos());
+    }
+
+    /**
+     * Build a new Log instance.
+     *
+     * @return LogInterface
+     */
+    private function newLog(): LogInterface
+    {
+        return new LaravelLog(
+            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'),
+            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
+        );
     }
 }

@@ -5,8 +5,6 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractReuseMetaDataTable;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseMetaDataTableInterface;
 use CodeDistortion\Adapt\Support\Settings;
-use DateTime;
-use DateTimeZone;
 use stdClass;
 
 /**
@@ -118,15 +116,5 @@ class LaravelMySQLReuseMetaDataTable extends AbstractReuseMetaDataTable implemen
     {
         $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
         return $rows[0] ?? null;
-    }
-
-    /**
-     * Render the current time in UTC as a string.
-     *
-     * @return string
-     */
-    private function nowUtcString(): string
-    {
-        return (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s');
     }
 }

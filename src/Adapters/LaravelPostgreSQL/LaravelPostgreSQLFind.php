@@ -1,19 +1,17 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractFind;
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\AbstractLaravelPDO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Support\Settings;
-use PDO;
 use Throwable;
 
 /**
- * Database-adapter methods related to finding Laravel/MySQL databases.
+ * Database-adapter methods related to finding Laravel/PostgreSQL databases.
  */
-class LaravelMySQLFind extends AbstractFind implements FindInterface
+class LaravelPostgreSQLFind extends AbstractFind implements FindInterface
 {
     /**
      * Look for databases and build DatabaseMetaInfo objects for them.
@@ -28,16 +26,21 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
     {
         $databaseMetaInfos = [];
         $pdo = $this->di->db->newPDO();
-        foreach ($pdo->listDatabases() as $database) {
+        $databases = $pdo->listDatabases();
+        foreach ($databases as $database) {
 
-            $table = Settings::REUSE_TABLE;
+            try {
+                $table = Settings::REUSE_TABLE;
+                $pdo = $this->di->db->newPDO($database);
 
-            $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
-                $this->di->db->getConnection(),
-                $database,
-                $pdo->fetchReuseTableInfo("SELECT * FROM `$database`.`$table` LIMIT 0, 1"),
-                $buildHash
-            );
+                $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
+                    $this->di->db->getConnection(),
+                    $database,
+                    $pdo->fetchReuseTableInfo("SELECT * FROM \"$table\" LIMIT 1 OFFSET 0"),
+                    $buildHash
+                );
+            } catch (Throwable $e) {
+            }
         }
         return array_values(array_filter($databaseMetaInfos));
     }
@@ -53,7 +56,7 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
         $logTimer = $this->di->log->newTimer();
 
         $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
-        $pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`", $databaseMetaInfo->name);
+        $pdo->dropDatabase("DROP DATABASE IF EXISTS \"$databaseMetaInfo->name\"", $databaseMetaInfo->name);
 
         $this->di->log->debug(
             'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
@@ -71,11 +74,7 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
     protected function size(string $database): ?int
     {
         $pdo = $this->di->db->newPDO();
-        $size = $pdo->size(
-            "SELECT SUM(DATA_LENGTH + INDEX_LENGTH) AS size "
-            . "FROM INFORMATION_SCHEMA.TABLES "
-            . "WHERE TABLE_SCHEMA = '$database'"
-        );
+        $size = $pdo->size("SELECT pg_database_size('$database')");
         return is_integer($size) ? $size :  null;
     }
 }

@@ -5,14 +5,11 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Console\Command;
-use Illuminate\Foundation\Application;
 
 /**
  * Command to list the Adapt snapshot and test-databases.
  */
-class AdaptListCachesCommand extends Command
+class AdaptListCachesCommand extends AbstractAdaptCommand
 {
     use CommandFunctionalityTrait;
 
@@ -25,18 +22,12 @@ class AdaptListCachesCommand extends Command
 
 
     /**
-     * Execute the console command.
+     * Carry out the console command work.
      *
      * @return void
      */
-    public function handle(): void
+    public function performHandleWork(): void
     {
-        /** @var Application $app */
-        $app = app();
-        if (!$app->environment('testing')) {
-            LaravelSupport::useTestingConfig();
-        }
-
         $cacheListDTO = $this->getCacheList();
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
@@ -49,6 +40,8 @@ class AdaptListCachesCommand extends Command
         $this->listSnapshotPaths($cacheListDTO);
         $this->info('');
     }
+
+
 
     /**
      * List the databases found in the given CacheListDTO.

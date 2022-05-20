@@ -31,10 +31,7 @@ trait ConfigAdapterAndDriverTrait
         // build a new one...
         $driver = $this->pickDriver();
         $framework = $this->framework;
-        if (
-            (!isset($this->availableDBAdapters[$framework]))
-            || (!isset($this->availableDBAdapters[$framework][$driver]))
-        ) {
+        if (!($this->availableDBAdapters[$framework][$driver] ?? null)) {
             throw AdaptConfigException::unsupportedDriver($this->configDTO->connection, $driver);
         }
 
