@@ -82,6 +82,7 @@ trait LaravelAdapt
      */
 //    protected array $preMigrationImports = [
 //        'mysql' => ['database/dumps/mysql/my-database.sql'],
+//        'pgsql' => ['database/dumps/pgsql/my-database.sql'],
 //        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
 //    ];
 
@@ -168,6 +169,7 @@ trait LaravelAdapt
 //    {
 //        $preMigrationImports =  [
 //            'mysql' => ['database/dumps/mysql/my-database.sql'],
+//            'pgsql' => ['database/dumps/pgsql/my-database.sql'],
 //            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
 //        ];
 //
