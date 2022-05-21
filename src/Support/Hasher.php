@@ -84,12 +84,13 @@ class Hasher
      * Generate the build-hash part for snapshot filenames.
      *
      * @param boolean $useBuildHash Use the current build-hash (if available).
+     * @param boolean $force        Force the build-hash to be generated, even if it's turned off via the config.
      * @return string
      */
-    public function getBuildHashFilenamePart(bool $useBuildHash = true): string
+    public function getBuildHashFilenamePart(bool $useBuildHash = true, bool $force = false): string
     {
-        $buildHash = $useBuildHash && $this->getBuildHash()
-            ? $this->getBuildHash()
+        $buildHash = $useBuildHash && $this->getBuildHash($force)
+            ? $this->getBuildHash($force)
             : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
         return mb_substr($buildHash, 0, 6);
@@ -100,11 +101,16 @@ class Hasher
     /**
      * Resolve the current build-hash.
      *
+     * @param boolean $force Force the build-hash to be generated, even if it's turned off via the config.
      * @return string|null
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    public function getBuildHash(): ?string
+    public function getBuildHash(bool $force = false): ?string
     {
+        if ($force) {
+            return self::$buildHash ??= $this->generateBuildHash();
+        }
+
         if (!$this->configDTO->checkForSourceChanges || !$this->configDTO->dbSupportsReUse) {
             return null;
         }
@@ -366,7 +372,11 @@ class Hasher
     public function filenameHasBuildHash(string $filename): bool
     {
         // let the filename match the current build-hash, and also the null build-hash
-        $buildHashParts = [$this->getBuildHashFilenamePart(), $this->getBuildHashFilenamePart(false)];
+        $buildHashParts = [
+            $this->getBuildHashFilenamePart(true, true),
+            $this->getBuildHashFilenamePart(false)
+        ];
+
         foreach ($buildHashParts as $buildHashPart) {
 
             $matched = (bool) preg_match(
