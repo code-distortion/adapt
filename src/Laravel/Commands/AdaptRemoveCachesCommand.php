@@ -80,7 +80,10 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
 
         $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-            $this->warn('- Connection "' . $connection . '":');
+
+            $driver = reset($databaseMetaDTOs)->driver;
+            $this->warn("- Connection \"$connection\" (driver $driver):");
+
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
                 $this->warn('  - ' . $databaseMetaDTO->readable());
             }
@@ -128,7 +131,9 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $this->info('- Connection "' . $connection . '":');
+            $driver = reset($databaseMetaDTOs)->driver;
+            $this->info("- Connection \"$connection\" (driver $driver):");
+
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
 
                 $readable = null;
