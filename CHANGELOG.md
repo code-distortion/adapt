@@ -10,9 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Support for PostgreSQL
+- The database driver is now included in the list of databases when using adapt:list and adapt:remove
 
 ### Fixed
 - Fixed a bug that stopped config files with a '.' in the filename to be re-initialised when reloading Laravel's config
+- Updated logic so snapshot files won't be considered stale when the using a database that doesn't support reuse
 
 
 
