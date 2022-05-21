@@ -37,7 +37,6 @@ class StorageDir
             }
         } else {
 
-            $e = null;
             try {
                 $logTimer = $log->newTimer();
 
@@ -53,10 +52,11 @@ class StorageDir
                 }
                 $log->debug('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
             } catch (Throwable $e) {
+                throw AdaptConfigException::cannotCreateStorageDir($storageDir, $e);
             }
 
-            if (($e) || (!$filesystem->dirExists($storageDir))) {
-                throw AdaptConfigException::cannotCreateStorageDir($storageDir, $e);
+            if (!$filesystem->dirExists($storageDir)) {
+                throw AdaptConfigException::cannotCreateStorageDir($storageDir);
             }
         }
     }

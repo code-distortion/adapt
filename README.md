@@ -19,7 +19,7 @@ It's a drop-in replacement for Laravel's `RefreshDatabase`, `DatabaseMigrations`
 
 > The online-book [Fast Test-Databases](https://www.code-distortion.net/books/fast-test-databases/) explains the concepts this package uses in detail.
 
-> ***TIP:*** If you're using MySQL and Docker, I highly recommend [using a container where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
+> ***TIP:*** If you're using MySQL or PostgreSQL and Docker, I highly recommend [using a container where the database data is stored in a *memory filesystem*](https://www.code-distortion.net/books/fast-test-databases/#run-your-database-from-a-memory-filesystem).
 
 
 
@@ -74,7 +74,7 @@ Adapt is compatible with [PHPUnit](https://github.com/sebastianbergmann/phpunit)
 
 It works in conjunction with [ParaTest](https://github.com/paratestphp/paratest) and [Dusk](https://laravel.com/docs/9.x/dusk).
 
-The currently supported databases are: **MySQL**, **SQLite** and **SQLite :memory:**.
+The currently supported databases are: **MySQL**, **PostgreSQL**, **SQLite** and **SQLite :memory:**.
 
 
 
@@ -357,6 +357,7 @@ To carry out the different types of caching that this package uses, you may need
 - When connecting to your database server, the user your code connects with needs to have **permission to create and drop databases**.
 - The user your tests run as needs to have **write-access to the filesystem** to store snapshot sql-dumps or SQLite files.
 - When using MySQL, Adapt uses the `mysqldump` and `mysql` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.mysql` config section.
+- When using PostgreSQL, Adapt uses the `psql` and `pg_dump` executables to create and import snapshots. If these aren't in your system-path, you can specify their location in the `database.pgsql` config section.
 - If you have several projects using Adapt that use the same database server, you should give each one a unique `project_name` config value to stop them from interfering with each other's test-databases.
 - If you see databases with names like "*test_your_database_name_17bd3c_d266ab43ac75*", don't worry! These are the ["scenario" databases](#creation-of-scenario-databases). Leave them to get the speed benefit of reusing them (but you can safely delete them).
 - Adapt creates table/s in your test-databases with the prefix `____adapt` which holds meta-data used to manage the re-use process.
@@ -452,6 +453,7 @@ class MyFeatureTest extends TestCase
      */
     protected array $preMigrationImports = [
         'mysql' => ['database/dumps/mysql/my-database.sql'],
+        'pgsql' => ['database/dumps/pgsql/my-database.sql'],
         'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
     ];
 
@@ -538,6 +540,7 @@ class MyFeatureTest extends TestCase
     {
         $preMigrationImports =  [
             'mysql' => ['database/dumps/mysql/my-database.sql'],
+            'pgsql' => ['database/dumps/pgsql/my-database.sql'],
             'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
         ];
 

@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use Arr;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\CachesConfiguration;
 use Illuminate\Foundation\Application;
@@ -88,10 +89,26 @@ class LaravelConfig
                 $configName = str_replace('\\/', '.', $configName);
 
                 // only add it if it used to exist before
-                if (array_key_exists($configName, $origConfigValues)) {
+                if (self::arrayDotKeyExists($configName, $origConfigValues)) {
                     self::mergeConfigFrom($srcPath, $configName);
                 }
             }
+        }
+    }
+
+    /**
+     * Check if an array key exists using dot notation.
+     *
+     * @param string  $key   The key to check.
+     * @param mixed[] $array The array to check in.
+     * @return boolean
+     */
+    private static function arrayDotKeyExists(string $key, array $array): bool
+    {
+        try {
+            return Arr::has($array, $key);
+        } catch (Throwable $e) {
+            return array_has($array, $key);
         }
     }
 

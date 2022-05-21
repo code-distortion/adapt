@@ -12,6 +12,9 @@ use DateTimeZone;
  */
 class DatabaseMetaInfo
 {
+    /** @var string The Laravel driver used to access this database. */
+    public $driver;
+
     /** @var string The connection the database is within. */
     public $connection;
 
@@ -39,6 +42,7 @@ class DatabaseMetaInfo
 
 
     /**
+     * @param string        $driver          The Laravel driver used to access this database.
      * @param string        $connection      The connection the database is within.
      * @param string        $name            The database's name / path.
      * @param DateTime|null $accessDT        When the database was last accessed.
@@ -47,6 +51,7 @@ class DatabaseMetaInfo
      * @param integer       $graceSeconds    The number of seconds grace-period before stale ones are to be deleted.
      */
     public function __construct(
+        string $driver,
         string $connection,
         string $name,
         $accessDT,
@@ -54,6 +59,7 @@ class DatabaseMetaInfo
         callable $getSizeCallback,
         int $graceSeconds
     ) {
+        $this->driver = $driver;
         $this->connection = $connection;
         $this->name = $name;
         $this->isValid = $isValid;

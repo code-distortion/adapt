@@ -12,6 +12,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
@@ -97,16 +98,23 @@ class BootCommandLaravel extends BootCommandAbstract
      * @param string $connection The connection to use.
      * @param string $testName   The current test's name.
      * @return ConfigDTO
+     * @throws AdaptBootException When the database name is invalid.
      */
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
+
+        $database = config("database.connections.$connection.database");
+        if (!mb_strlen($database)) {
+            throw AdaptBootException::databaseNameNotAString($database);
+        }
+
         return (new ConfigDTO())
             ->projectName(config("$c.project_name"))
             ->testName($testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->origDatabase(config("database.connections.$connection.database"))
+            ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')

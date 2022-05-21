@@ -5,14 +5,11 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Console\Command;
-use Illuminate\Foundation\Application;
 
 /**
  * Command to list the Adapt snapshot and test-databases.
  */
-class AdaptListCachesCommand extends Command
+class AdaptListCachesCommand extends AbstractAdaptCommand
 {
     use CommandFunctionalityTrait;
 
@@ -25,19 +22,14 @@ class AdaptListCachesCommand extends Command
 
 
     /**
-     * Execute the console command.
+     * Carry out the console command work.
      *
      * @return void
      */
-    public function handle()
+    public function performHandleWork()
     {
-        /** @var Application $app */
-        $app = app();
-        if (!$app->environment('testing')) {
-            LaravelSupport::useTestingConfig();
-        }
-
         $cacheListDTO = $this->getCacheList();
+
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no databases or snapshot files.');
@@ -49,6 +41,8 @@ class AdaptListCachesCommand extends Command
         $this->listSnapshotPaths($cacheListDTO);
         $this->info('');
     }
+
+
 
     /**
      * List the databases found in the given CacheListDTO.
@@ -66,7 +60,10 @@ class AdaptListCachesCommand extends Command
 
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-            $this->info('- Connection "' . $connection . '":');
+
+            $driver = reset($databaseMetaDTOs)->driver;
+            $this->info("- Connection \"$connection\" (driver $driver):");
+
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
                 $this->info('  - ' . $databaseMetaDTO->readableWithPurgeInfo($canPurge));
             }

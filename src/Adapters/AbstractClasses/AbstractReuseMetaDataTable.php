@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\Adapters\Interfaces\ReuseMetaDataTableInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
+use DateTime;
+use DateTimeZone;
 use stdClass;
 use Throwable;
 
@@ -68,7 +70,7 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
             return false;
         }
 
-        if ($reuseInfo->transaction_reusable === 0) {
+        if (($reuseInfo->transaction_reusable === 0) || ($reuseInfo->transaction_reusable === false)) {
 //            $this->di->log->warning(
 //                'The previous transaction for database "' . $database . '" '
 //                . 'was committed instead of being rolled-back'
@@ -76,11 +78,11 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
             return false;
         }
 
-        if ($reuseInfo->journal_reusable === 0) {
+        if (($reuseInfo->journal_reusable === 0) || ($reuseInfo->journal_reusable === false)) {
             return false;
         }
 
-        if ($reuseInfo->validation_passed === 0) {
+        if (($reuseInfo->validation_passed === 0) || ($reuseInfo->validation_passed === false)) {
             return false;
         }
 
@@ -89,5 +91,15 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
         }
 
         return true;
+    }
+
+    /**
+     * Render the current time in UTC as a string.
+     *
+     * @return string
+     */
+    protected function nowUtcString(): string
+    {
+        return (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s');
     }
 }

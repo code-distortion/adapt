@@ -34,6 +34,8 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
         return !$this->isMemoryDatabase();
     }
 
+
+
     /**
      * Start the transaction that the test will be encapsulated in.
      *
@@ -41,9 +43,9 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
      */
     public function applyTransaction()
     {
-        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 1");
+        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 1");
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE`" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
+        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
     }
 
     /**

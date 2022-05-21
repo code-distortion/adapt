@@ -4,8 +4,11 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractFind;
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\AbstractLaravelPDO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Support\Settings;
+use PDO;
+use Throwable;
 
 /**
  * Database-adapter methods related to finding Laravel/MySQL databases.
@@ -50,14 +53,12 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
         $logTimer = $this->di->log->newTimer();
 
         $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
-        if (!$pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`")) {
-            return true;
-        }
+        $pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`", $databaseMetaInfo->name);
 
-        $this->di->log->debug(
-            'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
-            $logTimer
-        );
+        $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
+        $driver = $databaseMetaInfo->driver;
+        $this->di->log->debug("Removed$stale $driver database: \"$databaseMetaInfo->name\"", $logTimer);
+
         return true;
     }
 

@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Exceptions;
 
+use CodeDistortion\Adapt\Support\Settings;
 use Throwable;
 
 /**
@@ -16,7 +17,7 @@ class AdaptConfigException extends AdaptException
      */
     public static function cannotLoadEnvTestingFile(): self
     {
-        return new self("The .env.testing file could not be loaded");
+        return new self("The " . Settings::LARAVEL_ENV_TESTING_FILE . " file could not be loaded");
     }
 
     /**
@@ -104,17 +105,6 @@ class AdaptConfigException extends AdaptException
 
 
     /**
-     * The connection details couldn't be read.
-     *
-     * @param string $connection The connection used.
-     * @return self
-     */
-    public static function couldNotReadConnectionDetails($connection): self
-    {
-        return new self("Could not read connection details for connection \"$connection\"");
-    }
-
-    /**
      * The driver isn't currently supported.
      *
      * @param string $connection The connection used.
@@ -124,7 +114,7 @@ class AdaptConfigException extends AdaptException
     public static function unsupportedDriver($connection, $driver): self
     {
         return new self(
-            "Connection \"$connection\" uses driver \"$driver\" which unfortunately isn\'t supported (yet!)"
+            "Connection \"$connection\" uses driver \"$driver\" which unfortunately isn\'t supported by Adapt"
         );
     }
 

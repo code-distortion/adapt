@@ -1,16 +1,17 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractFind;
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Support\Settings;
+use Throwable;
 
 /**
- * Database-adapter methods related to finding Laravel/SQLite databases.
+ * Database-adapter methods related to finding Laravel/PostgreSQL databases.
  */
-class LaravelSQLiteFind extends AbstractFind implements FindInterface
+class LaravelPostgreSQLFind extends AbstractFind implements FindInterface
 {
     /**
      * Look for databases and build DatabaseMetaInfo objects for them.
@@ -23,22 +24,23 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
      */
     public function findDatabases($origDBName, $buildHash): array
     {
-        if (!$this->di->filesystem->dirExists($this->configDTO->storageDir)) {
-            return [];
-        }
-
         $databaseMetaInfos = [];
-        foreach ($this->di->filesystem->filesInDir($this->configDTO->storageDir) as $name) {
+        $pdo = $this->di->db->newPDO();
+        $databases = $pdo->listDatabases();
+        foreach ($databases as $database) {
 
-            $table = Settings::REUSE_TABLE;
+            try {
+                $table = Settings::REUSE_TABLE;
+                $pdo = $this->di->db->newPDO($database);
 
-            $pdo = $this->di->db->newPDO($name);
-            $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
-                $this->di->db->getConnection(),
-                $name,
-                $pdo->fetchReuseTableInfo("SELECT * FROM `$table` LIMIT 0, 1"),
-                $buildHash
-            );
+                $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
+                    $this->di->db->getConnection(),
+                    $database,
+                    $pdo->fetchReuseTableInfo("SELECT * FROM \"$table\" LIMIT 1 OFFSET 0"),
+                    $buildHash
+                );
+            } catch (Throwable $e) {
+            }
         }
         return array_values(array_filter($databaseMetaInfos));
     }
@@ -51,15 +53,10 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
      */
     protected function removeDatabase($databaseMetaInfo): bool
     {
-        if (!$this->di->filesystem->fileExists($databaseMetaInfo->name)) {
-            return true;
-        }
-
         $logTimer = $this->di->log->newTimer();
 
-        if (!$this->di->filesystem->unlink($databaseMetaInfo->name)) {
-            return false;
-        }
+        $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
+        $pdo->dropDatabase("DROP DATABASE IF EXISTS \"$databaseMetaInfo->name\"", $databaseMetaInfo->name);
 
         $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
         $driver = $databaseMetaInfo->driver;
@@ -76,6 +73,8 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
      */
     protected function size($database)
     {
-        return $this->di->filesystem->size($database);
+        $pdo = $this->di->db->newPDO();
+        $size = $pdo->size("SELECT pg_database_size('$database')");
+        return is_integer($size) ? $size :  null;
     }
 }

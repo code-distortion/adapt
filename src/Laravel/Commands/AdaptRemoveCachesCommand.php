@@ -4,15 +4,12 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
-use CodeDistortion\Adapt\Support\LaravelSupport;
-use Illuminate\Console\Command;
-use Illuminate\Foundation\Application;
 use Throwable;
 
 /**
  * Command to delete the Adapt snapshot and test-databases.
  */
-class AdaptRemoveCachesCommand extends Command
+class AdaptRemoveCachesCommand extends AbstractAdaptCommand
 {
     use CommandFunctionalityTrait;
 
@@ -26,19 +23,14 @@ class AdaptRemoveCachesCommand extends Command
 
 
     /**
-     * Execute the console command.
+     * Carry out the console command work.
      *
      * @return void
      */
-    public function handle()
+    public function performHandleWork()
     {
-        /** @var Application $app */
-        $app = app();
-        if (!$app->environment('testing')) {
-            LaravelSupport::useTestingConfig();
-        }
-
         $cacheListDTO = $this->getCacheList();
+
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no databases or snapshot files to remove.');
@@ -54,6 +46,8 @@ class AdaptRemoveCachesCommand extends Command
         $this->deleteSnapshots($cacheListDTO);
         $this->info('');
     }
+
+
 
     /**
      * Get confirmation from the user before proceeding.
@@ -86,7 +80,10 @@ class AdaptRemoveCachesCommand extends Command
 
         $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
-            $this->warn('- Connection "' . $connection . '":');
+
+            $driver = reset($databaseMetaDTOs)->driver;
+            $this->warn("- Connection \"$connection\" (driver $driver):");
+
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
                 $this->warn('  - ' . $databaseMetaDTO->readable());
             }
@@ -134,7 +131,9 @@ class AdaptRemoveCachesCommand extends Command
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $this->info('- Connection "' . $connection . '":');
+            $driver = reset($databaseMetaDTOs)->driver;
+            $this->info("- Connection \"$connection\" (driver $driver):");
+
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
 
                 $readable = null;

@@ -26,7 +26,7 @@ interface VerifierInterface
      *
      * @return boolean
      */
-    public function suppertsVerification(): bool;
+    public function supportsVerification(): bool;
 
     /**
      * Create and populate the verification table.

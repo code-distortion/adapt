@@ -16,6 +16,7 @@ class LaravelSQLiteName implements NameInterface
     use SQLiteHelperTrait;
 
 
+
     /**
      * Build a scenario database name.
      *

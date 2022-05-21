@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\BuildInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
@@ -10,9 +10,9 @@ use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use Throwable;
 
 /**
- * Database-adapter methods related to building a Laravel/MySQL database.
+ * Database-adapter methods related to building a Laravel/PostgreSQL database.
  */
-class LaravelMySQLBuild implements BuildInterface
+class LaravelPostgreSQLBuild implements BuildInterface
 {
     use InjectTrait;
     use LaravelBuildTrait;
@@ -97,16 +97,7 @@ class LaravelMySQLBuild implements BuildInterface
         $logTimer = $this->di->log->newTimer();
 
         try {
-
-            $this->di->db->newPDO()->createDatabase(
-                sprintf(
-                    'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET %s COLLATE %s',
-                    $this->configDTO->database,
-                    $this->conVal('charset', 'utf8mb4'),
-                    $this->conVal('collation', 'utf8mb4_unicode_ci')
-                )
-            );
-
+            $this->di->db->newPDO()->createDatabase("CREATE DATABASE \"{$this->configDTO->database}\"");
         } catch (Throwable $e) {
             throw AdaptBuildException::couldNotCreateDatabase(
                 (string) $this->configDTO->database,
@@ -127,8 +118,13 @@ class LaravelMySQLBuild implements BuildInterface
     {
         $logTimer = $this->di->log->newTimer();
 
+        $this->di->db->purge();
+
+        // @todo (FORCE) was introduced in PostgreSQL 13
+        // https://dba.stackexchange.com/questions/11893/force-drop-db-while-others-may-be-connected
+//        $this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS \"{$this->configDTO->database}\" (FORCE)");
         $this->di->db->newPDO()->dropDatabase(
-            "DROP DATABASE IF EXISTS `{$this->configDTO->database}`",
+            "DROP DATABASE IF EXISTS \"{$this->configDTO->database}\"",
             (string) $this->configDTO->database
         );
 

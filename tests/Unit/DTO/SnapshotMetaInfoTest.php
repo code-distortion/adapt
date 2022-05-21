@@ -24,8 +24,8 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
         $sizes = [
             [0, '0B'],
             [1, '1B'],
-            [1024, '1kB'],
-            [1024 * 512, '512kB'],
+            [1024, '1KB'],
+            [1024 * 512, '512KB'],
             [1024 * 1024, '1MB'],
             [1024 * 1024 * 512, '512MB'],
             [1024 * 1024 * 1024, '1GB'],

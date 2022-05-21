@@ -10,6 +10,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Hasher;
@@ -86,17 +87,24 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      *
      * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return ConfigDTO
+     * @throws AdaptBootException When the database name isn't valid.
      */
     private function newConfigDTO(ConfigDTO $remoteConfigDTO): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         $connection = $remoteConfigDTO->connection;
+
+        $database = config("database.connections.$connection.database");
+        if (!mb_strlen($database)) {
+            throw AdaptBootException::databaseNameNotAString($database);
+        }
+
         return (new ConfigDTO())
             ->projectName($remoteConfigDTO->projectName)
             ->testName($remoteConfigDTO->testName)
             ->connection($connection)
             ->connectionExists(!is_null(config("database.connections.$connection")))
-            ->origDatabase(config("database.connections.$connection.database"))
+            ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfigDTO->databaseModifier)
             ->storageDir($this->storageDir())

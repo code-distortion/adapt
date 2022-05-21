@@ -13,22 +13,6 @@ use Throwable;
 trait LaravelBuildTrait
 {
     /**
-     * Drop the database.
-     *
-     * @return void
-     */
-    protected function dropDB()
-    {
-        $logTimer = $this->di->log->newTimer();
-
-        if (!$this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS `{$this->configDTO->database}`")) {
-            return;
-        }
-
-        $this->di->log->debug('Dropped the existing database', $logTimer);
-    }
-
-    /**
      * Migrate the database.
      *
      * @param string|null $migrationsPath The location of the migrations.
@@ -46,7 +30,7 @@ trait LaravelBuildTrait
             // relative paths (relative to base_path()) have to be passed
             $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
             $migrationsPath = $useRealPath
-                ? realpath($migrationsPath)
+                ? (string) realpath($migrationsPath)
                 : $this->makeRealpathRelative((string) realpath($migrationsPath));
         }
 
@@ -62,7 +46,7 @@ trait LaravelBuildTrait
                 ])
             );
         } catch (Throwable $e) {
-            throw AdaptBuildException::migrationsFailed($e);
+            throw AdaptBuildException::migrationsFailed($migrationsPath, $e);
         }
 
         $this->di->log->debug('Ran migrations', $logTimer);

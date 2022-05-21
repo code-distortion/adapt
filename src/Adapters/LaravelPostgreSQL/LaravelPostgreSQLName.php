@@ -1,15 +1,15 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 
 /**
- * Database-adapter methods related to naming Laravel/MySQL database things.
+ * Database-adapter methods related to naming Laravel/PostgreSQL database things.
  */
-class LaravelMySQLName implements NameInterface
+class LaravelPostgreSQLName implements NameInterface
 {
     use InjectTrait;
 
@@ -45,7 +45,7 @@ class LaravelMySQLName implements NameInterface
     public function generateSnapshotPath($snapshotFilenameHashPart): string
     {
         $prefix = $this->configDTO->snapshotPrefix;
-        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.mysql';
+        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.pgsql';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }
@@ -59,8 +59,8 @@ class LaravelMySQLName implements NameInterface
      */
     private function validateDBName(string $database)
     {
-        if (mb_strlen($database) > 64) {
-            throw AdaptBuildException::yourMySQLDatabaseNameIsTooLongCouldYouChangeItThx($database);
+        if (mb_strlen($database) > 63) {
+            throw AdaptBuildException::yourPostgreSQLDatabaseNameIsTooLongCouldYouChangeItThx($database);
         }
     }
 }

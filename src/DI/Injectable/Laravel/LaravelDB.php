@@ -61,10 +61,10 @@ class LaravelDB
      *
      * @param string|null $database   The database to connect to (only when required by the driver - e.g. sqlite).
      * @param string|null $connection The connection to use (defaults to the current one).
-     * @return LaravelPDO
+     * @return AbstractLaravelPDO
      * @throws AdaptConfigException When the driver isn't recognised.
      */
-    public function newPDO($database = null, $connection = null): LaravelPDO
+    public function newPDO($database = null, $connection = null): AbstractLaravelPDO
     {
         $connection = $connection ?? $this->connection;
 
@@ -75,19 +75,26 @@ class LaravelDB
         $driver = LaravelSupport::configString("database.connections.$connection.driver");
 
         switch ($driver) {
+
             case 'mysql':
-            case 'pgsql':
                 $dsn = sprintf("$driver:host=%s;port=%d", $host, $port);
-                break;
+                return new LaravelMySQLPDO($dsn, $username, $password, []);
+
+            case 'pgsql':
+                $dsn = $database
+                    ? sprintf("$driver:host=%s;port=%d;dbname=%s", $host, $port, $database)
+                    : sprintf("$driver:host=%s;port=%d", $host, $port);
+                return new LaravelPostgreSQLPDO($dsn, $username, $password, []);
+
             case 'sqlite':
                 $dsn = sprintf("$driver:%s", $database);
-                break;
+                return new LaravelSQLitePDO($dsn, $username, $password, []);
+
             default:
                 throw AdaptConfigException::unsupportedDriver($connection, $driver);
         }
-
-        return new LaravelPDO($dsn, $username, $password, []);
     }
+
 
 
     /**

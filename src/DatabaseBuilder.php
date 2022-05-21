@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Adapters\LaravelMySQLAdapter;
+use CodeDistortion\Adapt\Adapters\LaravelPostgreSQLAdapter;
 use CodeDistortion\Adapt\Adapters\LaravelSQLiteAdapter;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
@@ -56,7 +57,7 @@ class DatabaseBuilder
         'laravel' => [
             'mysql' => LaravelMySQLAdapter::class,
             'sqlite' => LaravelSQLiteAdapter::class,
-//            'pgsql' => LaravelPostgreSQLAdapter::class,
+            'pgsql' => LaravelPostgreSQLAdapter::class,
         ],
     ];
 
@@ -99,7 +100,7 @@ class DatabaseBuilder
         $this->pickDriverClosure = $pickDriverClosure;
 
         // update $configDTO with some extra settings now that the driver is known
-        $this->configDTO->dbAdapterSupport($this->dbAdapter()->build->supportsReuse(), $this->dbAdapter()->snapshot->supportsSnapshots(), $this->dbAdapter()->build->supportsScenarios(), $this->dbAdapter()->reuseTransaction->supportsTransactions(), $this->dbAdapter()->reuseJournal->supportsJournaling(), $this->dbAdapter()->verifier->suppertsVerification());
+        $this->configDTO->dbAdapterSupport($this->dbAdapter()->build->supportsReuse(), $this->dbAdapter()->snapshot->supportsSnapshots(), $this->dbAdapter()->build->supportsScenarios(), $this->dbAdapter()->reuseTransaction->supportsTransactions(), $this->dbAdapter()->reuseJournal->supportsJournaling(), $this->dbAdapter()->verifier->supportsVerification());
     }
 
 
@@ -616,6 +617,7 @@ class DatabaseBuilder
 
         foreach ($preMigrationImports as $path) {
             $logTimer = $this->di->log->newTimer();
+            // will throw exception if the file doesn't exist
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
             $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
@@ -789,7 +791,7 @@ class DatabaseBuilder
             return false;
         }
 
-        $this->di->filesystem->touch($snapshotPath); // stale grace-period will start "now"
+        $this->di->filesystem->touch($snapshotPath); // so the stale grace-period starts again
 
         $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
@@ -1038,10 +1040,10 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-            $this->di->log->debug(
-                'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
-                $logTimer
-            );
+
+            $stale = (!$snapshotMetaInfo->isValid ? ' stale' : '');
+            $this->di->log->debug("Removed$stale snapshot file: \"$snapshotMetaInfo->path\"", $logTimer);
+
             return true;
         }
         return false;
@@ -1070,6 +1072,7 @@ class DatabaseBuilder
             }
             $previous = $previous->getPrevious();
         } while ($previous);
+
         return $e;
     }
 

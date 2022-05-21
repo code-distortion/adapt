@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
@@ -10,9 +10,9 @@ use stdClass;
 use Throwable;
 
 /**
- * Database-adapter methods related to managing Laravel/MySQL reuse through transactions.
+ * Database-adapter methods related to managing Laravel/PostgreSQL reuse through transactions.
  */
-class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
+class LaravelPostgreSQLReuseTransaction implements ReuseTransactionInterface
 {
     use InjectTrait;
     use LaravelTransactionsTrait;
@@ -38,9 +38,9 @@ class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
      */
     public function applyTransaction()
     {
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 1");
+        $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = TRUE");
         $this->laravelApplyTransaction();
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
+        $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = FALSE");
     }
 
     /**
@@ -52,13 +52,13 @@ class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
     {
         try {
             $rows = $this->di->db->select(
-                "SELECT `transaction_reusable` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
+                "SELECT \"transaction_reusable\" FROM \"" . Settings::REUSE_TABLE . "\" LIMIT 1 OFFSET 0"
             );
 
             /** @var stdClass|null $reuseInfo */
             $reuseInfo = $rows[0] ?? null;
 
-            return ($reuseInfo->transaction_reusable ?? null) === 0;
+            return ($reuseInfo->transaction_reusable ?? null) === false;
 
         } catch (Throwable $e) {
             return false;

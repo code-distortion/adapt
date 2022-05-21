@@ -1,6 +1,6 @@
 <?php
 
-namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
+namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractReuseMetaDataTable;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseMetaDataTableInterface;
@@ -8,9 +8,9 @@ use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
 
 /**
- * Database-adapter methods related to managing Laravel/SQLite reuse meta-data.
+ * Database-adapter methods related to managing Laravel/PostgreSQL reuse meta-data.
  */
-class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
+class LaravelPostgreSQLReuseMetaDataTable extends AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
 {
     /**
      * Insert details to the database to help identify if it can be reused or not.
@@ -33,32 +33,32 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
         $table = Settings::REUSE_TABLE;
 
         $this->di->db->statement(
-            "CREATE TABLE `$table` ("
-            . "`project_name` varchar(255), "
-            . "`reuse_table_version` varchar(16), "
-            . "`orig_db_name` varchar(255) NOT NULL, "
-            . "`build_hash` varchar(32) NULL, "
-            . "`snapshot_hash` varchar(32) NULL, "
-            . "`scenario_hash` varchar(32) NULL, "
-            . "`transaction_reusable` tinyint unsigned NULL, "
-            . "`journal_reusable` tinyint unsigned NULL, "
-            . "`validation_passed` tinyint unsigned NULL, "
-            . "`last_used` timestamp"
+            "CREATE TABLE \"$table\" ("
+            . "\"project_name\" character varying(255), "
+            . "\"reuse_table_version\" character varying(16), "
+            . "\"orig_db_name\" character varying(255) NOT NULL, "
+            . "\"build_hash\" character varying(32) NULL, "
+            . "\"snapshot_hash\" character varying(32) NULL, "
+            . "\"scenario_hash\" character varying(32) NULL, "
+            . "\"transaction_reusable\" boolean NULL, "
+            . "\"journal_reusable\" boolean NULL, "
+            . "\"validation_passed\" boolean NULL, "
+            . "\"last_used\" timestamp"
             . ")"
         );
 
         $this->di->db->insert(
-            "INSERT INTO `$table` ("
-                . "`project_name`, "
-                . "`reuse_table_version`, "
-                . "`orig_db_name`, "
-                . "`build_hash`, "
-                . "`snapshot_hash`, "
-                . "`scenario_hash`, "
-                . "`transaction_reusable`, "
-                . "`journal_reusable`, "
-                . "`validation_passed`, "
-                . "`last_used`"
+            "INSERT INTO \"$table\" ("
+                . "\"project_name\", "
+                . "\"reuse_table_version\", "
+                . "\"orig_db_name\", "
+                . "\"build_hash\", "
+                . "\"snapshot_hash\", "
+                . "\"scenario_hash\", "
+                . "\"transaction_reusable\", "
+                . "\"journal_reusable\", "
+                . "\"validation_passed\", "
+                . "\"last_used\""
             . ") "
             . "VALUES ("
                 . ":projectName, "
@@ -94,7 +94,10 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
      */
     public function updateMetaTableLastUsed()
     {
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `last_used` = ?", [$this->nowUtcString()]);
+        $this->di->db->update(
+            "UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"last_used\" = ?",
+            [$this->nowUtcString()]
+        );
     }
 
     /**
@@ -104,7 +107,7 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
      */
     public function removeReuseMetaTable()
     {
-        $this->di->db->statement("DROP TABLE IF EXISTS `" . Settings::REUSE_TABLE . "`");
+        $this->di->db->statement("DROP TABLE IF EXISTS \"" . Settings::REUSE_TABLE . "\"");
     }
 
     /**
@@ -114,7 +117,7 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
      */
     protected function loadReuseInfo()
     {
-        $rows = $this->di->db->select("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1");
+        $rows = $this->di->db->select("SELECT * FROM \"" . Settings::REUSE_TABLE . "\" LIMIT 1 OFFSET 0");
         return $rows[0] ?? null;
     }
 }

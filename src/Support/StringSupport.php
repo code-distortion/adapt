@@ -16,7 +16,7 @@ class StringSupport
      */
     public static function readableSize($bytes, $decPl = 2): string
     {
-        $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        $size = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((mb_strlen((string) $bytes) - 1) / 3);
 
         return round($bytes / pow(1024, $factor), $decPl) . @$size[$factor];
