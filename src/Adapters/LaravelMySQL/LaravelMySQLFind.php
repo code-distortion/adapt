@@ -55,10 +55,10 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
         $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
         $pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`", $databaseMetaInfo->name);
 
-        $this->di->log->debug(
-            'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
-            $logTimer
-        );
+        $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
+        $driver = $databaseMetaInfo->driver;
+        $this->di->log->debug("Removed$stale $driver database: \"$databaseMetaInfo->name\"", $logTimer);
+
         return true;
     }
 

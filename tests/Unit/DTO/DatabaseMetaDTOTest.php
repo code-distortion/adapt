@@ -40,6 +40,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         $return = [];
         foreach ($sizes as $size) {
             $return[] = [
+                'driver' => 'mysql',
                 'connection' => 'con',
                 'name' => 'abc',
                 'accessDT' => new DateTime('now', new DateTimeZone('UTC')),
@@ -56,6 +57,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseMetaDtoDataProvider
+     * @param string   $driver           The Laravel driver used.
      * @param string   $connection       The connection to use.
      * @param string   $name             The database name to set.
      * @param DateTime $accessDT         The accessed-at DateTime to set.
@@ -65,6 +67,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      * @return void
      */
     public function database_meta_dto_can_set_and_get_values(
+        string $driver,
         string $connection,
         string $name,
         DateTime $accessDT,
@@ -82,6 +85,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         };
 
         $databaseMetaDTO = (new DatabaseMetaInfo(
+            $driver,
             $connection,
             $name,
             $accessDT,
@@ -91,6 +95,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         ))
             ->setDeleteCallback($deleteCallback);
 
+        $this->assertSame($driver, $databaseMetaDTO->driver);
         $this->assertSame($connection, $databaseMetaDTO->connection);
         $this->assertSame($name, $databaseMetaDTO->name);
         $this->assertSame($accessDT, $databaseMetaDTO->accessDT);

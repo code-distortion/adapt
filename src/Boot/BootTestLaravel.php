@@ -462,7 +462,6 @@ class BootTestLaravel extends BootTestAbstract
 
                     if ($databaseMetaInfo->shouldPurgeNow()) {
                         $databaseMetaInfo->delete();
-                        $this->log->debug("Removed database \"$databaseMetaInfo->name\"");
                         $removedCount++;
                     }
                 }
@@ -490,7 +489,6 @@ class BootTestLaravel extends BootTestAbstract
 
             if ($snapshotMetaInfo->shouldPurgeNow()) {
                 $snapshotMetaInfo->delete();
-                $this->log->debug("Removed snapshot \"$snapshotMetaInfo->filename\"");
                 $removedCount++;
             }
         }

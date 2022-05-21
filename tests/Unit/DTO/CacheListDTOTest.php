@@ -45,15 +45,15 @@ class CacheListDTOTest extends PHPUnitTestCase
             $snapshotMetaInfo2,
         ];
 
-        $databaseMetaInfo1 = new DatabaseMetaInfo('', '', new DateTime(), true, fn() => true, 14400);
-        $databaseMetaInfo2 = new DatabaseMetaInfo('', '', new DateTime(), true, fn() => true, 14400);
+        $databaseMetaInfo1 = new DatabaseMetaInfo('mysql', '', '', new DateTime(), true, fn() => true, 14400);
+        $databaseMetaInfo2 = new DatabaseMetaInfo('mysql', '', '', new DateTime(), true, fn() => true, 14400);
         $databases1 = [
             $databaseMetaInfo1,
             $databaseMetaInfo2,
         ];
 
-        $databaseMetaInfo3 = new DatabaseMetaInfo('', '', new DateTime(), true, fn() => true, 14400);
-        $databaseMetaInfo4 = new DatabaseMetaInfo('', '', new DateTime(), true, fn() => true, 14400);
+        $databaseMetaInfo3 = new DatabaseMetaInfo('mysql', '', '', new DateTime(), true, fn() => true, 14400);
+        $databaseMetaInfo4 = new DatabaseMetaInfo('mysql', '', '', new DateTime(), true, fn() => true, 14400);
         $databases2 = [
             $databaseMetaInfo3,
             $databaseMetaInfo4,

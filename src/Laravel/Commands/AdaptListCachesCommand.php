@@ -29,6 +29,7 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
     public function performHandleWork(): void
     {
         $cacheListDTO = $this->getCacheList();
+
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no databases or snapshot files.');

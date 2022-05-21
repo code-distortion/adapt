@@ -61,10 +61,10 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
             return false;
         }
 
-        $this->di->log->debug(
-            'Removed ' . (!$databaseMetaInfo->isValid ? 'old ' : '') . "database: \"$databaseMetaInfo->name\"",
-            $logTimer
-        );
+        $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
+        $driver = $databaseMetaInfo->driver;
+        $this->di->log->debug("Removed$stale $driver database: \"$databaseMetaInfo->name\"", $logTimer);
+
         return true;
     }
 

@@ -1043,10 +1043,10 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-            $this->di->log->debug(
-                'Removed ' . (!$snapshotMetaInfo->isValid ? 'old ' : '') . "snapshot: \"$snapshotMetaInfo->path\"",
-                $logTimer
-            );
+
+            $stale = (!$snapshotMetaInfo->isValid ? ' stale' : '');
+            $this->di->log->debug("Removed$stale snapshot file: \"$snapshotMetaInfo->path\"", $logTimer);
+
             return true;
         }
         return false;
