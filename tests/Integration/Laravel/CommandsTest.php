@@ -35,13 +35,13 @@ class CommandsTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'expectedOutputWithTestingConn' =>
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
@@ -52,13 +52,13 @@ class CommandsTest extends LaravelTestCase
                     ->snapshots(false, false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'expectedOutputWithTestingConn' =>
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
@@ -69,7 +69,7 @@ class CommandsTest extends LaravelTestCase
                     ->snapshots('afterMigrations', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]",
@@ -77,7 +77,7 @@ class CommandsTest extends LaravelTestCase
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]",
@@ -91,7 +91,7 @@ class CommandsTest extends LaravelTestCase
                     ->snapshots('afterSeeders', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]",
@@ -99,7 +99,7 @@ class CommandsTest extends LaravelTestCase
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]",
@@ -113,7 +113,7 @@ class CommandsTest extends LaravelTestCase
                     ->snapshots('both', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]\n"
@@ -122,7 +122,7 @@ class CommandsTest extends LaravelTestCase
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- [file2]\n"
@@ -190,13 +190,13 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                 'config' => $this->newConfigDTO('sqlite'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'expectedOutputWithTestingConn' =>
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - DELETED [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
@@ -207,13 +207,13 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     ->snapshots(false, false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'expectedOutputWithTestingConn' =>
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - DELETED [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
                     '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
@@ -224,7 +224,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     ->snapshots('afterMigrations', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
@@ -232,7 +232,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - DELETED [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
@@ -246,7 +246,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     ->snapshots('afterSeeders', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
@@ -254,7 +254,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - DELETED [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
@@ -268,7 +268,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     ->snapshots('both', false),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]\n"
@@ -277,7 +277,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     "Test-databases:\n\n"
                     . "- Connection \"testing\":\n"
                     . "  - DELETED [file1]\n"
-                    . "- Connection \"sqlite\":\n"
+                    . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]\n\n"
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]\n"
