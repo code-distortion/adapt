@@ -118,15 +118,22 @@ class LaravelPostgreSQLBuild implements BuildInterface
     {
         $logTimer = $this->di->log->newTimer();
 
+        // disconnect so that connection isn't sitting around
         $this->di->db->purge();
 
-        // @todo (FORCE) was introduced in PostgreSQL 13
-        // https://dba.stackexchange.com/questions/11893/force-drop-db-while-others-may-be-connected
-//        $this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS \"{$this->configDTO->database}\" (FORCE)");
-        $this->di->db->newPDO()->dropDatabase(
-            "DROP DATABASE IF EXISTS \"{$this->configDTO->database}\"",
-            (string) $this->configDTO->database
-        );
+        $database = (string) $this->configDTO->database;
+
+        try {
+
+            // (FORCE) was introduced in PostgreSQL 13
+            // https://dba.stackexchange.com/questions/11893/force-drop-db-while-others-may-be-connected
+            $this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS \"$database\" (FORCE)", $database);
+
+        } catch (AdaptBuildException $e) {
+
+            // so fall-back to this if the (FORCE) query fails
+            $this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS \"$database\"", $database);
+        }
 
         $this->di->log->debug('Dropped the existing database', $logTimer);
     }
