@@ -67,4 +67,11 @@ interface ReuseMetaDataTableInterface
         ?string $projectName,
         string $database
     ): bool;
+
+    /**
+     * Get the reason why the database couldn't be reused.
+     *
+     * @return string|null
+     */
+    public function getCantReuseReason(): ?string;
 }

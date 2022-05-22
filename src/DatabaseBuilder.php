@@ -438,7 +438,7 @@ class DatabaseBuilder
             return false;
         }
 
-        $canReuse = $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
+        $isReusable = $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
             $buildHash,
             $scenarioHash,
             $this->configDTO->projectName,
@@ -446,17 +446,21 @@ class DatabaseBuilder
         );
 
         if (!$logTimer) {
-            return $canReuse;
+            return $isReusable;
         }
-        if (!$canReuse && !$this->di->db->currentDatabaseExists()) {
-            return $canReuse;
+        if (!$isReusable && !$this->di->db->currentDatabaseExists()) {
+            return false;
         }
 
-        $canReuse
-            ? $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer)
-            : $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
+        if ($isReusable) {
+            $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer);
+        } else {
+            $reason = $this->dbAdapter()->reuseMetaData->getCantReuseReason();
+            $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
+            $this->di->log->debug("(Reason \"$reason\")");
+        }
 
-        return $canReuse;
+        return $isReusable;
     }
 
     /**
