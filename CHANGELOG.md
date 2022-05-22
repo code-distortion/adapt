@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.10.2] - 2022-05-22
+
+### Added
+- Added the reason why the database couldn't be reused to the logs
+- Added (FORCE) when dropping a PostgreSQL database to drop it when other connections exist (falls back to the original query if FORCE isn't available in the current PostgreSQL version)
+
+
+
 ## [0.10.1] - 2022-05-21
 
 ### Added
