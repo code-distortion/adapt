@@ -187,6 +187,7 @@ class BootTestLaravel extends BootTestAbstract
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
+        $isParallelTest = mb_strlen($paraTestDBModifier) > 0;
 
         $c = Settings::LARAVEL_CONFIG_NAME;
         $pb = $this->propBag;
@@ -221,6 +222,7 @@ class BootTestLaravel extends BootTestAbstract
                 $this->resolveSeeders(),
                 $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'),
                 $pb->prop('isBrowserTest', $this->browserTestDetected),
+                $isParallelTest,
                 false,
                 $pb->config('session.driver'),
                 null,

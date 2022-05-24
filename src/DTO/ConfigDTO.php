@@ -80,6 +80,9 @@ class ConfigDTO
     /** @var boolean Is a browser test being run? If so, this will turn off transaction re-use. */
     public bool $isBrowserTest;
 
+    /** @var boolean Is parallel testing being run? Is just for informational purposes. */
+    public bool $isParallelTest;
+
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public bool $isRemoteBuild;
 
@@ -360,6 +363,7 @@ class ConfigDTO
      * @param string[]            $seeders                   The seeders to run after migrating.
      * @param string|null         $remoteBuildUrl            The remote Adapt installation to send "build" requests to.
      * @param boolean             $isBrowserTest             Is a browser test running?.
+     * @param boolean             $isParallelTest            Is parallel testing being run?.
      * @param boolean             $isRemoteBuild             Is this process building a db for another Adapt
      *                                                       installation?.
      * @param string              $sessionDriver             The session driver being used.
@@ -373,6 +377,7 @@ class ConfigDTO
         array $seeders,
         ?string $remoteBuildUrl,
         bool $isBrowserTest,
+        bool $isParallelTest,
         bool $isRemoteBuild,
         string $sessionDriver,
         ?string $remoteCallerSessionDriver
@@ -383,6 +388,7 @@ class ConfigDTO
         $this->seeders = $seeders;
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
+        $this->isParallelTest = $isParallelTest;
         $this->isRemoteBuild = $isRemoteBuild;
         $this->sessionDriver = $sessionDriver;
         $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
@@ -449,6 +455,18 @@ class ConfigDTO
     public function isBrowserTest(bool $isBrowserTest): self
     {
         $this->isBrowserTest = $isBrowserTest;
+        return $this;
+    }
+
+    /**
+     * Turn the is-parallel-test setting on or off (is just for informational purposes).
+     *
+     * @param boolean $isParallelTest Is parallel testing being run?.
+     * @return static
+     */
+    public function isParallelTest(bool $isParallelTest): self
+    {
+        $this->isParallelTest = $isParallelTest;
         return $this;
     }
 

@@ -1119,6 +1119,7 @@ class DatabaseBuilder
                 is_string($configDTO->useSnapshotsWhenNotReusingDB) ? $configDTO->useSnapshotsWhenNotReusingDB : null,
             )
             ->isBrowserTest($configDTO->isBrowserTest)
+            ->isParallelTest($configDTO->isParallelTest)
             ->sessionDriver($configDTO->sessionDriver)
             ->transactionReusable($configDTO->shouldUseTransaction())
             ->journalReusable($configDTO->shouldUseJournal())

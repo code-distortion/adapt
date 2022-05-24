@@ -112,6 +112,7 @@ trait DatabaseBuilderTestTrait
                 null,
                 false,
                 false,
+                false,
                 'database',
                 null,
             )

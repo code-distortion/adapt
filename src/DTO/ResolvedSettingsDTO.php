@@ -81,6 +81,9 @@ class ResolvedSettingsDTO
     /** @var boolean Is a browser test being run?. */
     public bool $isBrowserTest;
 
+    /** @var boolean Is parallel testing being run? Is just for informational purposes. */
+    public bool $isParallelTest;
+
     /** @var string|null The session-driver being used. */
     public ?string $sessionDriver;
 
@@ -293,6 +296,18 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Turn the is-parallel-test setting on or off (is just for informational purposes).
+     *
+     * @param boolean $isParallelTest Is parallel testing being run?.
+     * @return static
+     */
+    public function isParallelTest(bool $isParallelTest): self
+    {
+        $this->isParallelTest = $isParallelTest;
+        return $this;
+    }
+
+    /**
      * Set the session-driver that's being used.
      *
      * @param string|null $sessionDriver The session-driver being used.
@@ -468,11 +483,12 @@ class ResolvedSettingsDTO
 
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
-            'Database is reusable?' => $isReusable,
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            'For a browser-test?' => $isBrowserTest,
+            'Database is reusable?' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
+            'For a browser-test?' => $isBrowserTest,
+            'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
             'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
             'Snapshot-hash:' => $this->escapeString($this->snapshotHash, 'n/a'),
             'Scenario-hash:' => $this->escapeString($this->scenarioHash, 'n/a'),
