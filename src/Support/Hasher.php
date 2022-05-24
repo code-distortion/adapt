@@ -203,7 +203,7 @@ class Hasher
     private function resolveMigrationPaths(): array
     {
         return $this->resolvePaths(
-            is_string($this->configDTO->migrations) ? [$this->configDTO->migrations] : [],
+            is_string($this->configDTO->migrations) ? [$this->configDTO->migrations] : [database_path('migrations')],
             true,
             'migrationsPathInvalid'
         );

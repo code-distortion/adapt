@@ -208,13 +208,14 @@ return [
     | Changes to files in these directories will invalidate existing
     | test-databases and snapshots (they'll be rebuilt).
     |
+    | "pre_migration_imports" and "migration" files are included automatically.
+    |
     | string[]
     |
     */
 
     'look_for_changes_in' => [
         database_path('factories'),
-        database_path('migrations'),
         database_path('seeders'), // Laravel 8 and after
 //        database_path('seeds'), // before Laravel 8
     ],
