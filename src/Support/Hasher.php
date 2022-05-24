@@ -312,7 +312,10 @@ class Hasher
             'preMigrationImports' => $this->configDTO->preMigrationImports,
             'migrations' => $this->configDTO->migrations,
             'seeders' => $seeders,
-//            'hasAppliedJournaling' => $hasAppliedJournaling, // todo - if journal tables are included in snapshots
+            // todo - if journal / verification tables are included in snapshots
+//            'reuseJournal' => $this->configDTO->shouldUseJournal(),
+//            'verifyStructure' => $this->configDTO->shouldVerifyStructure(),
+//            'verifyData' => $this->configDTO->shouldVerifyData(),
         ]));
     }
 
@@ -347,11 +350,10 @@ class Hasher
 
         return md5(serialize([
             'snapshotHash' => $this->generateSnapshotHash($seeders),
-            'usingScenarios' => $this->configDTO->scenarioTestDBs,
             'projectName' => $this->configDTO->projectName,
 //            'connection' => $this->configDTO->connection, // not included, so that multiple connections can share
             'origDatabase' => $this->configDTO->origDatabase,
-            'isBrowserTest' => $this->configDTO->isBrowserTest,
+            'usingScenarios' => $this->configDTO->scenarioTestDBs,
             'reuseTransaction' => $this->configDTO->shouldUseTransaction(),
             'reuseJournal' => $this->configDTO->shouldUseJournal(),
             'verifyStructure' => $this->configDTO->shouldVerifyStructure(),
