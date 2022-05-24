@@ -156,9 +156,9 @@ class Hasher
     private function buildListOfBuildFiles(): array
     {
         $paths = array_unique(array_filter(array_merge(
-            $this->resolveHashFilePaths(),
             $this->resolvePreMigrationPaths(),
-            $this->resolveMigrationPaths()
+            $this->resolveMigrationPaths(),
+            $this->resolveHashFilePaths()
         )));
         sort($paths);
         return $paths;
@@ -202,11 +202,12 @@ class Hasher
      */
     private function resolveMigrationPaths(): array
     {
-        return $this->resolvePaths(
-            is_string($this->configDTO->migrations) ? [$this->configDTO->migrations] : [database_path('migrations')],
-            true,
-            'migrationsPathInvalid'
-        );
+        $paths = is_string($this->configDTO->migrations)
+            ? [database_path('migrations'), $this->configDTO->migrations]
+            : [database_path('migrations')];
+        $paths = array_unique($paths);
+
+        return $this->resolvePaths($paths, true, 'migrationsPathInvalid');
     }
 
     /**
