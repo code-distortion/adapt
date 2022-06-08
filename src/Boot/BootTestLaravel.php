@@ -458,28 +458,36 @@ class BootTestLaravel extends BootTestAbstract
 
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
+
+            $databaseMetaInfos = null;
+
             try {
                 $builder = $this->createBuilder((string) $connection);
-                foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
-
-                    if (!$databaseMetaInfo->shouldPurgeNow()) {
-                        continue;
-                    }
-
-                    $databaseMetaInfo->delete();
-                    $removedCount++;
-
-                    $this->log->vDebug(
-                        "Removed stale database - $databaseMetaInfo->name "
-                        . "(connection: \"$databaseMetaInfo->connection\", driver: \"$databaseMetaInfo->driver\")"
-                    );
-                }
+                $databaseMetaInfos = $builder->buildDatabaseMetaInfos();
             } catch (AdaptConfigException|PDOException $e) {
+
                 // ignore exceptions caused because the database can't be connected to
                 // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
                 $driver = LaravelSupport::configString("database.connections.$connection.driver");
                 $this->log->vDebug(
                     "Could not retrieve database list (connection: \"$connection\", driver: \"$driver\")"
+                );
+
+                continue;
+            }
+
+            foreach ($databaseMetaInfos as $databaseMetaInfo) {
+
+                if (!$databaseMetaInfo->shouldPurgeNow()) {
+                    continue;
+                }
+
+                $databaseMetaInfo->delete();
+                $removedCount++;
+
+                $this->log->vDebug(
+                    "Removed stale database - \"$databaseMetaInfo->name\" "
+                    . "(connection: \"$databaseMetaInfo->connection\", driver: \"$databaseMetaInfo->driver\")"
                 );
             }
         }
@@ -493,15 +501,18 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeStaleSnapshots(): int
     {
-        $removedCount = 0;
-
         $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
+        $removedCount = 0;
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
 
-            if ($snapshotMetaInfo->shouldPurgeNow()) {
-                $snapshotMetaInfo->delete();
-                $removedCount++;
+            if (!$snapshotMetaInfo->shouldPurgeNow()) {
+                continue;
             }
+
+            $snapshotMetaInfo->delete();
+            $removedCount++;
+
+            $this->log->vDebug("Removed stale snapshot - \"$snapshotMetaInfo->path\"");
         }
         return $removedCount;
     }

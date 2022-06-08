@@ -988,10 +988,33 @@ class DatabaseBuilder
         }
 
         try {
-            $snapshotMetaInfos = [];
+
+            $logTimer = $this->di->log->newTimer();
             $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
+            $this->di->log->vDebug("Retrieved list of snapshots", $logTimer);
+
+            $snapshotMetaInfos = [];
             foreach ($filePaths as $path) {
-                $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
+
+                // ignore other files
+                $temp = explode('/', $path);
+                $filename = array_pop($temp);
+                if (in_array($filename, ['.gitignore', 'purge-lock'])) {
+                    continue;
+                }
+
+                $logTimer2 = $this->di->log->newTimer();
+
+                $snapshotMetaInfo = $this->buildSnapshotMetaInfo($path);
+                $snapshotMetaInfos[] = $snapshotMetaInfo;
+
+                $path = $snapshotMetaInfo ? $snapshotMetaInfo->path : $path;
+                $usable = $snapshotMetaInfo
+                    ? ($snapshotMetaInfo->isValid
+                        ? '(usable)'
+                        : "(stale" . ($snapshotMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
+                    : '(not usable)';
+                $this->di->log->vDebug("- Found snapshot: \"$path\" $usable", $logTimer2);
             }
             return array_values(array_filter($snapshotMetaInfos));
         } catch (Throwable $e) {
