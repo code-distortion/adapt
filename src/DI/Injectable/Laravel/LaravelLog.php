@@ -19,17 +19,22 @@ class LaravelLog implements LogInterface
     /** @var boolean Should messages be sent to Laravel's logging mechanism?. */
     private bool $laravel;
 
+    /** @var integer The current verbosity level - output at this level or lower will be displayed. */
+    private int $verbosity;
+
 
     /**
      * Constructor.
      *
-     * @param boolean $stdout  Display messages to stdout?.
-     * @param boolean $laravel Add messages to Laravel's standard log.
+     * @param boolean $stdout    Display messages to stdout?.
+     * @param boolean $laravel   Add messages to Laravel's standard log.
+     * @param integer $verbosity The current verbosity level - output at this level or lower will be displayed.
      */
-    public function __construct(bool $stdout, bool $laravel)
+    public function __construct(bool $stdout, bool $laravel, int $verbosity)
     {
         $this->stdout = $stdout;
         $this->laravel = $laravel;
+        $this->verbosity = $verbosity;
     }
 
     /**
@@ -42,7 +47,20 @@ class LaravelLog implements LogInterface
      */
     public function debug(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('debug', $this->buildMessage($message, $timerRef, $newLineAfter));
+        $this->output('debug', $this->buildMessage($message, $timerRef, $newLineAfter), 0);
+    }
+
+    /**
+     * Display some debug output - DEBUG level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vDebug(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('debug', $this->buildMessage($message, $timerRef, $newLineAfter), 1);
     }
 
     /**
@@ -55,7 +73,20 @@ class LaravelLog implements LogInterface
      */
     public function warning(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('warning', $this->buildMessage($message, $timerRef, $newLineAfter));
+        $this->output('warning', $this->buildMessage($message, $timerRef, $newLineAfter), 0);
+    }
+
+    /**
+     * Display some debug output - WARNING level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vWarning(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('warning', $this->buildMessage($message, $timerRef, $newLineAfter), 1);
     }
 
     /**
@@ -68,7 +99,20 @@ class LaravelLog implements LogInterface
      */
     public function error(string $message, int $timerRef = null, bool $newLineAfter = false): void
     {
-        $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter));
+        $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter), 0);
+    }
+
+    /**
+     * Display some debug output - ERROR level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vError(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter), 1);
     }
 
     /**
@@ -78,8 +122,12 @@ class LaravelLog implements LogInterface
      * @param string $message  The message to log.
      * @return void
      */
-    private function output(string $logLevel, string $message): void
+    private function output(string $logLevel, string $message, int $verbosity): void
     {
+        if ($verbosity > $this->verbosity) {
+            return;
+        }
+
         if ($this->stdout) {
             print 'ADAPT ' . mb_strtoupper($logLevel) . ': ' . $message . PHP_EOL;
         }

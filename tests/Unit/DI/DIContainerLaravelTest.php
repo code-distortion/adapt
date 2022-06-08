@@ -54,7 +54,7 @@ class DIContainerLaravelTest extends LaravelTestCase
             ],
             'log' => [
                 'method' => 'log',
-                'params' => ['log' => new LaravelLog(false, false)],
+                'params' => ['log' => new LaravelLog(false, false, 0)],
             ],
         ];
     }

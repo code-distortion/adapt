@@ -18,6 +18,16 @@ interface LogInterface
     public function debug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
+     * Display some debug output - DEBUG level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vDebug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+    /**
      * Display some debug output - WARNING level.
      *
      * @param string       $message      The message to show.
@@ -28,6 +38,16 @@ interface LogInterface
     public function warning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
+     * Display some debug output - WARNING level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vWarning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+    /**
      * Display some debug output - ERROR level.
      *
      * @param string       $message      The message to show.
@@ -36,6 +56,16 @@ interface LogInterface
      * @return void
      */
     public function error(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+    /**
+     * Display some debug output - ERROR level + verbose.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vError(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
      * Create a new timer and return a reference to it.

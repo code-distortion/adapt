@@ -132,7 +132,8 @@ class PreBootTestLaravel
     {
         return new LaravelLog(
             (bool) $this->propBag->adaptConfig('log.stdout'),
-            (bool) $this->propBag->adaptConfig('log.laravel')
+            (bool) $this->propBag->adaptConfig('log.laravel'),
+            (int) $this->propBag->adaptConfig('log.verbosity'),
         );
     }
 
@@ -172,7 +173,7 @@ class PreBootTestLaravel
     }
 
     /**
-     * Laravel sets the session driver to "array" during tests, but it doesn't when "php artisan dusk". This way,
+     * Laravel sets the session driver to "array" during tests, but it doesn't when using "php artisan dusk". This way,
      * "loginAs" works because the session data can persist in the database.
      *
      * This method "un-does" Laravel's override of the session driver when browser testing, so that loginAs works when

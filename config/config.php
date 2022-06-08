@@ -310,17 +310,18 @@ return [
      | Logging
      |--------------------------------------------------------------------------
      |
-     | Where to log debugging output:
-     | - stdout - to the screen.
-     | - laravel - to Laravel's default logging mechanism.
+     | - stdout - Add logs to stdout.
+     | - laravel - Add logs to Laravel's default logging mechanism.
+     | - verbosity - The verbosity level to use (0 or 1).
      |
-     | array<string, boolean>
+     | array<string, boolean|integer>
      |
      */
 
     'log' => [
         'stdout' => env('ADAPT_LOG_STDOUT', false),
         'laravel' => env('ADAPT_LOG_LARAVEL', false),
+        'verbosity' => env('ADAPT_LOG_VERBOSITY', 0),
     ],
 
     /*

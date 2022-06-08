@@ -89,7 +89,7 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false);
+        return new LaravelLog(false, false, 0);
     }
 
     /**

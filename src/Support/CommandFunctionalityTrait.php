@@ -77,6 +77,7 @@ trait CommandFunctionalityTrait
         return new LaravelLog(
             (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'),
             (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
+            (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'),
         );
     }
 }
