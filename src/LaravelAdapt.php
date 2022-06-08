@@ -132,7 +132,7 @@ trait LaravelAdapt
      * causes outside requests to your website) needs to access the same
      * database that your test built.
      *
-     * If you don't specify this value,  Adapt will automatically
+     * If you don't specify this value, Adapt will automatically
      * detect if a browser test is running.
      *
      * @var boolean
@@ -176,7 +176,7 @@ trait LaravelAdapt
 //        // the DatabaseBuilder $builder is pre-built to match your config settings
 //        // you can override them with any of the following…
 //        $builder
-//            ->connection('primary-mysql') // specify another connection to build a db for
+//            ->connection('primary') // specify the connection to build a db for
 //            ->checkForSourceChanges() // or ->dontCheckForSourceChanges()
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
@@ -190,10 +190,9 @@ trait LaravelAdapt
 //            ->isBrowserTest() // or isNotBrowserTest()
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
 //
-//        // create a database for another connection
-//        $connection = 'secondary-mysql';
+//        // you can create a database for another connection
+//        $connection = 'secondary';
 //        $builder2 = $this->newBuilder($connection);
-//        /** @var DatabaseBuilder $builder2 **/
 //        $builder2
 //            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
 //            // …
