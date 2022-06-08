@@ -970,10 +970,7 @@ class DatabaseBuilder
             return [];
         }
 
-        return $this->dbAdapter()->find->findDatabases(
-            $this->origDBName(),
-            $this->hasher->getBuildHash()
-        );
+        return $this->dbAdapter()->find->findDatabases($this->hasher->getBuildHash());
     }
 
 

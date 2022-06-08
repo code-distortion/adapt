@@ -13,34 +13,47 @@ use CodeDistortion\Adapt\Support\Settings;
 class LaravelSQLiteFind extends AbstractFind implements FindInterface
 {
     /**
-     * Look for databases and build DatabaseMetaInfo objects for them.
+     * Generate the list of existing databases.
      *
-     * Only pick databases that have "reuse" meta-info stored.
-     *
-     * @param string|null $origDBName The original database that this instance is for - will be ignored when null.
-     * @param string|null $buildHash  The current build-hash.
-     * @return DatabaseMetaInfo[]
+     * @return string[]
      */
-    public function findDatabases(?string $origDBName, ?string $buildHash): array
+    protected function listDatabases(): array
     {
-        if (!$this->di->filesystem->dirExists($this->configDTO->storageDir)) {
-            return [];
-        }
+        return $this->di->filesystem->dirExists($this->configDTO->storageDir)
+            ? $this->di->filesystem->filesInDir($this->configDTO->storageDir)
+            : [];
+    }
 
-        $databaseMetaInfos = [];
-        foreach ($this->di->filesystem->filesInDir($this->configDTO->storageDir) as $name) {
+    /**
+     * Check if this database should be ignored.
+     *
+     * @param string $database The database to check.
+     * @return boolean
+     */
+    protected function shouldIgnoreDatabase(string $database): bool
+    {
+        // ignore other files
+        $temp = explode('/', $database);
+        $filename = array_pop($temp);
+        return in_array($filename, ['.gitignore', 'purge-lock']);
+    }
 
-            $table = Settings::REUSE_TABLE;
-
-            $pdo = $this->di->db->newPDO($name);
-            $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
-                $this->di->db->getConnection(),
-                $name,
-                $pdo->fetchReuseTableInfo("SELECT * FROM `$table` LIMIT 0, 1"),
-                $buildHash
-            );
-        }
-        return array_values(array_filter($databaseMetaInfos));
+    /**
+     * Build DatabaseMetaInfo objects for a database.
+     *
+     * @param string $database  The database to use.
+     * @param string $buildHash The current build-hash.
+     * @return DatabaseMetaInfo|null
+     */
+    protected function buildDatabaseMetaInfo(string $database, string $buildHash): ?DatabaseMetaInfo
+    {
+        $pdo = $this->di->db->newPDO($database);
+        return $this->buildDatabaseMetaInfoX(
+            $this->di->db->getConnection(),
+            $database,
+            $pdo->fetchReuseTableInfo("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
+            $buildHash
+        );
     }
 
     /**

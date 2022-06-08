@@ -427,8 +427,8 @@ class BootTestLaravel extends BootTestAbstract
         $removedCount += $this->removeOrphanedTempConfigFiles();
 
         $message = $removedCount
-            ? 'Time taken for removal'
-            : 'Nothing found to remove';
+            ? 'Total time taken for removal'
+            : 'Nothing found to remove - total time taken';
         $this->log->debug($message, $logTimer, true);
 
         $this->releaseMutexLock();
@@ -462,16 +462,25 @@ class BootTestLaravel extends BootTestAbstract
                 $builder = $this->createBuilder((string) $connection);
                 foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
 
-                    if ($databaseMetaInfo->shouldPurgeNow()) {
-                        $databaseMetaInfo->delete();
-                        $removedCount++;
+                    if (!$databaseMetaInfo->shouldPurgeNow()) {
+                        continue;
                     }
+
+                    $databaseMetaInfo->delete();
+                    $removedCount++;
+
+                    $this->log->vDebug(
+                        "Removed stale database - $databaseMetaInfo->name "
+                        . "(connection: \"$databaseMetaInfo->connection\", driver: \"$databaseMetaInfo->driver\")"
+                    );
                 }
-            } catch (AdaptConfigException $e) {
+            } catch (AdaptConfigException|PDOException $e) {
                 // ignore exceptions caused because the database can't be connected to
                 // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
-            } catch (PDOException $e) {
-                // same as above
+                $driver = LaravelSupport::configString("database.connections.$connection.driver");
+                $this->log->vDebug(
+                    "Could not retrieve database list (connection: \"$connection\", driver: \"$driver\")"
+                );
             }
         }
         return $removedCount;

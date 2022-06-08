@@ -4,11 +4,13 @@ namespace CodeDistortion\Adapt\Adapters\AbstractClasses;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\AbstractLaravelPDO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
 use stdClass;
+use Throwable;
 
 /**
  * Database-adapter methods related to managing reuse meta-data.
@@ -20,6 +22,77 @@ abstract class AbstractFind implements FindInterface
 
 
     /**
+     * Look for databases and build DatabaseMetaInfo objects for them.
+     *
+     * Only pick databases that have "reuse" meta-info stored.
+     *
+     * @param string|null $buildHash The current build-hash.
+     * @return DatabaseMetaInfo[]
+     */
+    public function findDatabases(?string $buildHash): array
+    {
+        $logTimer = $this->di->log->newTimer();
+        $databases = $this->listDatabases();
+        $this->di->log->vDebug(
+            "Retrieved list of databases "
+            . "(connection: \"{$this->configDTO->connection}\", driver: \"{$this->configDTO->driver}\")",
+            $logTimer
+        );
+
+        $databaseMetaInfos = [];
+        foreach ($databases as $database) {
+
+            if ($this->shouldIgnoreDatabase($database)) {
+                continue;
+            }
+
+            try {
+
+                $logTimer2 = $this->di->log->newTimer();
+
+                $databaseMetaInfo = $this->buildDatabaseMetaInfo($database, $buildHash);
+                $databaseMetaInfos[] = $databaseMetaInfo;
+
+                $database = $databaseMetaInfo ? $databaseMetaInfo->name : $database;
+                $usable = $databaseMetaInfo
+                    ? ($databaseMetaInfo->isValid
+                        ? '(usable)'
+                        : "(stale" . ($databaseMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
+                    : '(not usable)';
+                $this->di->log->vDebug("- Found database: \"$database\" $usable", $logTimer2);
+
+            } catch (Throwable $e) {
+            }
+        }
+
+        return array_values(array_filter($databaseMetaInfos));
+    }
+
+    /**
+     * Generate the list of existing databases.
+     *
+     * @return string[]
+     */
+    abstract protected function listDatabases(): array;
+
+    /**
+     * Check if this database should be ignored.
+     *
+     * @param string $database The database to check.
+     * @return boolean
+     */
+    abstract protected function shouldIgnoreDatabase(string $database): bool;
+
+    /**
+     * Build DatabaseMetaInfo objects for a database.
+     *
+     * @param string $database  The database to use.
+     * @param string $buildHash The current build-hash.
+     * @return DatabaseMetaInfo|null
+     */
+    abstract protected function buildDatabaseMetaInfo(string $database, string $buildHash): ?DatabaseMetaInfo;
+
+    /**
      * Build DatabaseMetaInfo objects for a database.
      *
      * @param string        $connection The connection the database is within.
@@ -28,7 +101,7 @@ abstract class AbstractFind implements FindInterface
      * @param string|null   $buildHash  The current build-hash.
      * @return DatabaseMetaInfo|null
      */
-    protected function buildDatabaseMetaInfo(
+    protected function buildDatabaseMetaInfoX(
         string $connection,
         string $name,
         ?stdClass $reuseInfo,
