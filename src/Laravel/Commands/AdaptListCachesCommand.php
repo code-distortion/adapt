@@ -14,7 +14,7 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
     use CommandFunctionalityTrait;
 
     /** @var string The name and signature of the console command. */
-    protected $signature = 'adapt:list-db-caches';
+    protected $signature = 'adapt:list';
 
     /** @var string The console command description. */
     protected $description = 'List Adapt\'s test-databases and snapshot files';

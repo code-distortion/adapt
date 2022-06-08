@@ -137,14 +137,14 @@ class CommandsTest extends LaravelTestCase
     }
 
     /**
-     * Test the adapt:list-db-caches command
+     * Test the adapt:list command
      *
      * @test
      * @dataProvider listDBCachesDataProvider
      * @param ConfigDTO $configDTO                     The ConfigDTO to use which instructs what and how to build.
-     * @param string    $expectedOutput                The expected adapt:list-db-caches output.
-     * @param string    $expectedOutputWithTestingConn The expected adapt:list-db-caches output when the "testing" db
-     *                                                 connection is present.
+     * @param string    $expectedOutput                The expected adapt:list output.
+     * @param string    $expectedOutputWithTestingConn The expected adapt:list output when the "testing" db connection
+     *                                                 is present.
      * @param string[]  $substitutions                 File substitutions to replace after resolving their paths and
      *                                                 size.
      * @return void
@@ -160,7 +160,7 @@ class CommandsTest extends LaravelTestCase
 
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:list-db-caches', [], 'There are no databases or snapshot files.');
+        $this->expectCommandOutput('adapt:list', [], 'There are no databases or snapshot files.');
 
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
@@ -174,7 +174,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
 
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:list-db-caches', [], $expectedOutput);
+        $this->expectCommandOutput('adapt:list', [], $expectedOutput);
     }
 
 
@@ -292,14 +292,14 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
     }
 
     /**
-     * Test the adapt:remove-db-caches command
+     * Test the adapt:remove command
      *
      * @test
      * @dataProvider removeDBCachesDataProvider
      * @param ConfigDTO $configDTO                     The ConfigDTO to use which instructs what and how to build.
-     * @param string    $expectedOutput                The expected adapt:list-db-caches output.
-     * @param string    $expectedOutputWithTestingConn The expected adapt:list-db-caches output when the "testing" db
-     *                                                 connection is present.
+     * @param string    $expectedOutput                The expected adapt:list output.
+     * @param string    $expectedOutputWithTestingConn The expected adapt:list output when the "testing" db connection
+     *                                                 is present.
      * @param string[]  $substitutions                 File substitutions to replace after resolving their paths and
      *                                                 size.
      * @return void
@@ -316,7 +316,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
         $this->expectCommandOutput(
-            'adapt:remove-db-caches',
+            'adapt:remove',
             ['--force' => true],
             'There are no databases or snapshot files to remove.'
         );
@@ -333,7 +333,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
 
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:remove-db-caches', ['--force' => true], $expectedOutput);
+        $this->expectCommandOutput('adapt:remove', ['--force' => true], $expectedOutput);
     }
 
 
