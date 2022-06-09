@@ -77,13 +77,15 @@ class LaravelSQLiteBuild implements BuildInterface
 
 
     /**
-     * Create the database if it doesn't exist, and wipe the database clean if it does.
+     * Remove the database (if it exists), and create it.
      *
+     * @param boolean $exists Whether the database exists or not.
      * @return void
      */
-    public function resetDB(): void
+    public function resetDB(bool $exists): void
     {
-        if ($this->databaseExists()) {
+//        if ($this->databaseExists()) {
+        if ($exists) {
             $this->dropDBSQLite();
         }
 
@@ -118,7 +120,7 @@ class LaravelSQLiteBuild implements BuildInterface
 
         $this->di->filesystem->unlink((string) $this->configDTO->database);
 
-        $this->di->log->debug('Removed the existing database', $logTimer);
+        $this->di->log->vDebug('Removed the existing database', $logTimer);
     }
 
     /**
@@ -145,7 +147,7 @@ class LaravelSQLiteBuild implements BuildInterface
             );
         }
 
-        $this->di->log->debug('Created the database', $logTimer);
+        $this->di->log->vDebug('Created the database', $logTimer);
     }
 
     /**

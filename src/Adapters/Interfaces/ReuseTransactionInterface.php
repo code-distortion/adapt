@@ -28,11 +28,18 @@ interface ReuseTransactionInterface
     public function supportsTransactions(): bool;
 
     /**
-     * Start the transaction that the test will be encapsulated in.
+     * Start the wrapper-transaction.
      *
      * @return void
      */
-    public function applyTransaction(): void;
+    public function startTransaction(): void;
+
+    /**
+     * Roll-back the wrapper-transaction.
+     *
+     * @return void
+     */
+    public function rollBackTransaction(): void;
 
     /**
      * Check if the transaction was committed.

@@ -14,7 +14,6 @@ use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
-use PDOException;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -89,50 +88,7 @@ trait InitialiseLaravelAdapt
 
 
 
-        // start a database transaction on the given connection
-        // (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction())
-        $buildTransactionClosure = function (string $conn) {
-
-            /** @var $this LaravelTestCase */
-            $database = $this->app->make('db');
-            $connection = $database->connection($conn);
-
-            // this allows this code to run with older versions of Laravel versions
-            $useEventDispatcher = (method_exists($connection, 'unsetEventDispatcher'));
-            if ($useEventDispatcher) {
-                $dispatcher = $connection->getEventDispatcher();
-                $connection->unsetEventDispatcher();
-                $connection->beginTransaction();
-                $connection->setEventDispatcher($dispatcher);
-            } else {
-                $connection->beginTransaction();
-            }
-
-            $this->beforeApplicationDestroyed(
-                function () use ($database, $conn, $useEventDispatcher) {
-                    $connection = $database->connection($conn);
-                    if ($useEventDispatcher) {
-                        $dispatcher = $connection->getEventDispatcher();
-                        $connection->unsetEventDispatcher();
-
-                        try {
-                            $connection->rollback();
-                        } catch (PDOException $e) {
-                            // act gracefully if the transaction was committed already? - no
-                        }
-
-                        $connection->setEventDispatcher($dispatcher);
-                        $connection->disconnect();
-                    } else {
-                        $connection->rollback();
-                    }
-                }
-            );
-        };
-
-
-
-        // allow for a custom build process via databaseInit(…)
+        // allow for a custom build process via this test class's databaseInit(…) method
         // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
         if (method_exists(static::class, Settings::LARAVEL_CUSTOM_BUILD_METHOD)) {
@@ -150,7 +106,6 @@ trait InitialiseLaravelAdapt
             get_class($this),
             $this->getName(),
             $propBag,
-            $buildTransactionClosure,
             $buildInitCallback,
             $this instanceof DuskTestCase
         );
@@ -161,10 +116,7 @@ trait InitialiseLaravelAdapt
         /** @var $this LaravelTestCase */
         $this->afterApplicationCreated(function () {
             $this->adaptPreBootTestLaravel->adaptSetUp();
-
-            $this->beforeApplicationDestroyed(function () {
-                $this->adaptPreBootTestLaravel->adaptTearDown();
-            });
+            $this->beforeApplicationDestroyed(fn() => $this->adaptPreBootTestLaravel->adaptTearDown());
         });
     }
 

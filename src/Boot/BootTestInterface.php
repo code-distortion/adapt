@@ -38,14 +38,6 @@ interface BootTestInterface
     public function props(PropBagDTO $propBag): self;
 
     /**
-     * Specify the closure to call to start a db transaction.
-     *
-     * @param callable $transactionClosure The closure to use.
-     * @return static
-     */
-    public function transactionClosure(callable $transactionClosure): self;
-
-    /**
      * Specify the callback closure to call that will initialise the DatabaseBuilder/s.
      *
      * @param callable|null $initCallback The closure to use.

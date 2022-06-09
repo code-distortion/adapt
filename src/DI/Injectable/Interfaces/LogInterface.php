@@ -8,7 +8,16 @@ namespace CodeDistortion\Adapt\DI\Injectable\Interfaces;
 interface LogInterface
 {
     /**
-     * Display some debug output - DEBUG level.
+     * Get the current verbosity level.
+     *
+     * @return integer
+     */
+    public function currentVerbosity(): int;
+
+
+
+    /**
+     * Display some debug output - DEBUG level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -18,7 +27,7 @@ interface LogInterface
     public function debug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
-     * Display some debug output - DEBUG level + verbose.
+     * Display some debug output - DEBUG level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -28,7 +37,19 @@ interface LogInterface
     public function vDebug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
-     * Display some debug output - WARNING level.
+     * Display some debug output - DEBUG level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvDebug(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+
+
+    /**
+     * Display some debug output - WARNING level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -38,7 +59,7 @@ interface LogInterface
     public function warning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
-     * Display some debug output - WARNING level + verbose.
+     * Display some debug output - WARNING level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -48,7 +69,19 @@ interface LogInterface
     public function vWarning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
-     * Display some debug output - ERROR level.
+     * Display some debug output - WARNING level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvWarning(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+
+
+    /**
+     * Display some debug output - ERROR level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -58,7 +91,7 @@ interface LogInterface
     public function error(string $message, int $timerRef = null, bool $newLineAfter = false): void;
 
     /**
-     * Display some debug output - ERROR level + verbose.
+     * Display some debug output - ERROR level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -66,6 +99,18 @@ interface LogInterface
      * @return void
      */
     public function vError(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+    /**
+     * Display some debug output - ERROR level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvError(string $message, int $timerRef = null, bool $newLineAfter = false): void;
+
+
 
     /**
      * Create a new timer and return a reference to it.

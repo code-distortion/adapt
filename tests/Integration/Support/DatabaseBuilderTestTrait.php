@@ -62,8 +62,6 @@ trait DatabaseBuilderTestTrait
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-            })
             ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());

@@ -26,9 +26,6 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var boolean Whether a browser test is being run. */
     protected bool $browserTestDetected = false;
 
-    /** @var callable The closure to call to start a db transaction. */
-    protected $transactionClosure;
-
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback;
 
@@ -85,18 +82,6 @@ abstract class BootTestAbstract implements BootTestInterface
     public function browserTestDetected(bool $browserTestDetected): self
     {
         $this->browserTestDetected = $browserTestDetected;
-        return $this;
-    }
-
-    /**
-     * Specify the closure to call to start a db transaction.
-     *
-     * @param callable $transactionClosure The closure to use.
-     * @return static
-     */
-    public function transactionClosure(callable $transactionClosure): self
-    {
-        $this->transactionClosure = $transactionClosure;
         return $this;
     }
 

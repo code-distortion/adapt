@@ -74,7 +74,6 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(fn() => null)
             ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());

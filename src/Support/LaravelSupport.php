@@ -5,8 +5,12 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Http\Request;
+use PDOException;
 
 /**
  * Provides extra miscellaneous Laravel related support functionality.
@@ -222,5 +226,84 @@ class LaravelSupport
     {
         $value = $request->headers->get($headerName);
         return is_string($value) ? $value : '';
+    }
+
+
+
+    /**
+     * Start a database transaction for a connection.
+     *
+     * (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction()).
+     *
+     * @param string $connection The connection to use.
+     * @return void
+     */
+    public static function startTransaction(string $connection): void
+    {
+        $connection = static::getConnectionInterface($connection);
+        if (static::useEventDispatcher($connection)) {
+            $dispatcher = $connection->getEventDispatcher();
+            $connection->unsetEventDispatcher();
+            $connection->beginTransaction();
+            $connection->setEventDispatcher($dispatcher);
+        } else {
+            // compatible with older versions of Laravel
+            $connection->beginTransaction();
+        }
+    }
+
+    /**
+     * Rollback the database transaction for a connection.
+     *
+     * (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction()).
+     *
+     * @param string $connection The connection to use.
+     * @return void
+     */
+    public static function rollBackTransaction(string $connection): void
+    {
+        $connection = static::getConnectionInterface($connection);
+        if (static::useEventDispatcher($connection)) {
+
+            $dispatcher = $connection->getEventDispatcher();
+            $connection->unsetEventDispatcher();
+            try {
+                $connection->rollback();
+            } catch (PDOException $e) {
+                // act gracefully if the transaction was committed already? - no
+            }
+            $connection->setEventDispatcher($dispatcher);
+//            $connection->disconnect();
+
+        } else {
+            // compatible with older versions of Laravel
+            $connection->rollback();
+        }
+    }
+
+    /**
+     * Get the ConnectionInterface for a particular connection.
+     *
+     * @param string $connection The connection to use.
+     * @return ConnectionInterface
+     */
+    private static function getConnectionInterface(string $connection): ConnectionInterface
+    {
+        /** @var LaravelTestCase $this */
+        /** @var ConnectionResolverInterface $database */
+        $database = app('db');
+        return $database->connection($connection);
+    }
+
+    /**
+     * Check if Laravel's newer EventDispatcher should be used when applying transactions.
+     *
+     * @param ConnectionInterface $connection The connection to use.
+     * @return boolean
+     */
+    private static function useEventDispatcher(ConnectionInterface $connection): bool
+    {
+        // this allows this code to run with older versions of Laravel versions
+        return method_exists($connection, 'unsetEventDispatcher');
     }
 }

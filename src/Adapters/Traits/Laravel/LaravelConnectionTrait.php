@@ -16,7 +16,7 @@ trait LaravelConnectionTrait
     {
         config(['database.default' => $this->configDTO->connection]);
 
-        $this->di->log->debug("Changed the default connection to: \"{$this->configDTO->connection}\"");
+        $this->di->log->vDebug("Changed the default connection to: \"{$this->configDTO->connection}\"");
     }
 
     /**
@@ -38,7 +38,7 @@ trait LaravelConnectionTrait
                 ? "Leaving the database for connection \"$connection\" unchanged as \"$database\""
                 : "Changed the database for connection \"$connection\" to \"$database\"";
 
-            $this->di->log->debug($message);
+            $this->di->log->vDebug($message);
         }
 
         config(["database.connections.$connection.database" => $database]);

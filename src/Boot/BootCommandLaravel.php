@@ -75,8 +75,6 @@ class BootCommandLaravel extends BootCommandAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-            })
             ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -89,7 +87,11 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false, 0);
+        return new LaravelLog(
+            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'),
+            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
+            (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'),
+        );
     }
 
     /**

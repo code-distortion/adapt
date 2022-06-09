@@ -25,7 +25,8 @@ trait LogTrait
 
         $this->di->log->logBox(
             [$prepLine, "For test \"{$this->configDTO->testName}\""],
-            'ADAPT - Preparing a Test-Database'
+            'ADAPT - Preparing a Test-Database',
+            'vDebug',
         );
     }
 
@@ -41,13 +42,13 @@ trait LogTrait
         }
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSources());
-        $this->di->log->logBox($lines, 'Build Sources');
+        $this->di->log->logBox($lines, 'Build Sources', 'vDebug');
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildEnvironmentSettings());
-        $this->di->log->logBox($lines, 'Build Environment');
+        $this->di->log->logBox($lines, 'Build Environment', 'vDebug');
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
-        $this->di->log->logBox($lines, 'Resolved Database');
+        $this->di->log->logBox($lines, 'Resolved Database', 'vDebug');
     }
 
     /**
@@ -59,7 +60,7 @@ trait LogTrait
      */
     private function logHttpRequestWasSaved(string $database, int $logTimer): void
     {
-        $this->di->log->debug(
+        $this->di->log->vDebug(
             "Database \"$database\" was already prepared remotely, and can be reused without sending another request",
             $logTimer
         );

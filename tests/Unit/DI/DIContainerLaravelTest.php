@@ -24,8 +24,6 @@ class DIContainerLaravelTest extends LaravelTestCase
      */
     public function diContainerDataProvider(): array
     {
-        $dbTransactionClosure = function () {
-        };
 
         return [
             'artisan' => [
@@ -35,14 +33,6 @@ class DIContainerLaravelTest extends LaravelTestCase
             'db' => [
                 'method' => 'db',
                 'params' => ['db' => new LaravelDB()],
-            ],
-            'dbTransactionClosure' => [
-                'method' => 'dbTransactionClosure',
-                'params' => [
-                    'dbTransactionClosure' => function () use ($dbTransactionClosure) {
-                        return $dbTransactionClosure;
-                    }
-                ],
             ],
             'exec' => [
                 'method' => 'exec',

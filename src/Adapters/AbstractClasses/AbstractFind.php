@@ -4,8 +4,8 @@ namespace CodeDistortion\Adapt\Adapters\AbstractClasses;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\AbstractLaravelPDO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
 use DateTime;
 use DateTimeZone;
@@ -32,24 +32,32 @@ abstract class AbstractFind implements FindInterface
     public function findDatabases(?string $buildHash): array
     {
         $logTimer = $this->di->log->newTimer();
-        $databases = $this->listDatabases();
-        $this->di->log->vDebug(
-            "Retrieved list of databases "
-            . "(connection: \"{$this->configDTO->connection}\", driver: \"{$this->configDTO->driver}\")",
-            $logTimer
-        );
+
+        $connDetails = "(connection: \"{$this->configDTO->connection}\", driver: \"{$this->configDTO->driver}\")";
+
+        try {
+            $databases = $this->listDatabases();
+            $this->di->log->vvDebug("Retrieved database list $connDetails", $logTimer);
+        } catch (Throwable $e) {
+            $this->di->log->vvWarning("Could not retrieve database list $connDetails", $logTimer);
+            return [];
+        }
+
+        $logTimer2 = $this->di->log->newTimer();
 
         $databaseMetaInfos = [];
+        $attemptedCount = 0;
         foreach ($databases as $database) {
 
             if ($this->shouldIgnoreDatabase($database)) {
                 continue;
             }
 
+            $attemptedCount++;
+
+            $logTimer3 = $this->di->log->newTimer();
+
             try {
-
-                $logTimer2 = $this->di->log->newTimer();
-
                 $databaseMetaInfo = $this->buildDatabaseMetaInfo($database, $buildHash);
                 $databaseMetaInfos[] = $databaseMetaInfo;
 
@@ -58,11 +66,16 @@ abstract class AbstractFind implements FindInterface
                     ? ($databaseMetaInfo->isValid
                         ? '(usable)'
                         : "(stale" . ($databaseMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
-                    : '(not usable)';
-                $this->di->log->vDebug("- Found database: \"$database\" $usable", $logTimer2);
+                    : '(not usable - ignoring)';
+                $this->di->log->vvDebug("- Found database \"$database\" $usable", $logTimer3);
 
             } catch (Throwable $e) {
+                $this->di->log->vvWarning("Could not read from database \"$database\" $connDetails", $logTimer3);
             }
+        }
+
+        if (!$attemptedCount) {
+            $this->di->log->vvDebug("- No databases were found", $logTimer2);
         }
 
         return array_values(array_filter($databaseMetaInfos));
@@ -139,6 +152,7 @@ abstract class AbstractFind implements FindInterface
      *
      * @param DatabaseMetaInfo $databaseMetaInfo The info object representing the database.
      * @return boolean
+     * @throws AdaptBuildException When the database cannot be removed.
      */
     abstract protected function removeDatabase(DatabaseMetaInfo $databaseMetaInfo): bool;
 

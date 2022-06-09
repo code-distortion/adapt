@@ -31,6 +31,9 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
     {
         $cacheListDTO = $this->getCacheList();
 
+        $log = $this->newLog();
+        $log->vDebug("\n");
+
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
             $this->info('There are no databases or snapshot files to remove.');
@@ -45,6 +48,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
         $this->deleteDatabases($cacheListDTO);
         $this->deleteSnapshots($cacheListDTO);
         $this->info('');
+        $log->debug("\n");
     }
 
 
@@ -122,11 +126,13 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
 
         // several databases may point to the same actual database.
         // get the sizes before deleting any of them
-        foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
+        foreach ($cacheListDTO->databases as $databaseMetaDTOs) {
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
                 $databaseMetaDTO->getSize();
             }
         }
+
+        $log = $this->newLog();
 
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
@@ -145,8 +151,12 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
                 }
 
                 $deleted
-                    ? $this->info('  - DELETED ' . $readable)
-                    : $this->error('  - COULD NOT DELETE ' . $readable);
+                    ? $this->info("  - DELETED $readable")
+                    : $this->error("  - COULD NOT DELETE $readable");
+
+                $deleted
+                    ? $log->debug("Deleted \"$connection\" database $readable")
+                    : $log->error("Could not delete \"$connection\" database $readable");
             }
         }
     }
@@ -163,6 +173,8 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
             return;
         }
 
+        $log = $this->newLog();
+
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
 
@@ -177,6 +189,10 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
             $deleted
                 ? $this->info('- DELETED ' . $readable)
                 : $this->error('- COULD NOT DELETE ' . $readable);
+
+            $deleted
+                ? $log->debug("Deleted snapshot $readable")
+                : $log->error("Could not delete \snapshot $readable");
         }
     }
 }

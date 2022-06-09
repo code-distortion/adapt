@@ -127,10 +127,33 @@ class DatabaseBuilder
         $this->onlyExecuteOnce();
         $this->prePreparationChecks();
         $this->prepareDB();
-
-        $this->di->log->debug("Total preparation time for database \"{$this->configDTO->database}\"", $logTimer, true);
+        $this->logTotalTimeTaken($logTimer);
 
         return $this;
+    }
+
+    /**
+     * Add a line to the log showing how long the total preparation time was.
+     *
+     * @param integer $logTimer The timer measuring the overall time taken.
+     * @return void
+     */
+    private function logTotalTimeTaken(int $logTimer): void
+    {
+        $database = $this->configDTO->database;
+        $connection = $this->configDTO->connection;
+        $existed = $this->resolvedSettingsDTO->databaseExistedBefore;
+        $reused = $this->resolvedSettingsDTO->databaseWasReused;
+        $reusing = $reused ? "Reusing" : ($existed ? "Rebuilt" : "Built");
+        $emoji = $this->resolvedSettingsDTO->databaseWasReused ? '😎' : '🏗️ ';
+
+        if ($this->di->log->currentVerbosity() == 0) {
+            $message = "$reusing $connection database \"$database\" $emoji";
+            $this->di->log->debug($message, $logTimer, true);
+        } else {
+            $message = "$reusing \"$connection\" database \"$database\" - total time taken $emoji";
+            $this->di->log->vDebug($message, $logTimer, true);
+        }
     }
 
     /**
@@ -142,7 +165,7 @@ class DatabaseBuilder
     {
         $this->recordVerificationStart();
         $this->recordJournalingStart();
-        $this->applyTransaction();
+        $this->startTransaction();
     }
 
     /**
@@ -155,14 +178,20 @@ class DatabaseBuilder
     public function runPostTestSteps(bool $isLast)
     {
         // work out when the new-line should be added
-        $c = $isLast && $this->configDTO->shouldVerifyData();
-        $b = $isLast && $this->configDTO->shouldUseJournal() && !$c;
-        $a = $isLast && $this->configDTO->shouldVerifyStructure() && !$b && !$c;
+        $d = $isLast && $this->configDTO->shouldVerifyData();
+        $c = $isLast && $this->configDTO->shouldUseJournal() && !$d;
+        $b = $isLast && $this->configDTO->shouldVerifyStructure() && !$c && !$d;
+        $a = $isLast && $this->configDTO->shouldUseTransaction() && !$b && !$c && !$d;
 
-        $this->checkForCommittedTransaction();
-        $this->verifyDatabaseStructure($a);
-        $this->reverseJournal($b);
-        $this->verifyDatabaseData($c);
+        $logTimer = $this->di->log->newTimer();
+        $this->rollBackTransaction();
+        $this->checkForCommittedTransaction($logTimer, $a);
+
+        $this->verifyDatabaseStructure($b);
+
+        $this->reverseJournal($c);
+
+        $this->verifyDatabaseData($d);
         $this->recordVerificationStop();
     }
 
@@ -296,6 +325,7 @@ class DatabaseBuilder
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
+            $this->resolvedSettingsDTO->databaseWasReused(true); // it was re-used this time
 
             $connection = $this->configDTO->connection;
             $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
@@ -307,13 +337,13 @@ class DatabaseBuilder
             $this->logHttpRequestWasSaved($database, $logTimer);
 
             if (!$this->configDTO->shouldInitialise()) {
-                $this->di->log->debug("Not using connection \"$connection\" locally");
+                $this->di->log->vDebug("Not using connection \"$connection\" locally");
                 return;
             }
 
             $this->logTheUsedSettings();
             $this->useDatabase($database);
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+            $this->di->log->vDebug("The existing \"$database\" database can be reused");
             $this->updateMetaTableLastUsed();
 
         } catch (Throwable $e) {
@@ -378,7 +408,7 @@ class DatabaseBuilder
      */
     private function buildOrReuseDBLocally(bool $forceRebuild): bool
     {
-//        $this->di->log->debug("Preparing database \"{$this->configDTO->database}\"…");
+//        $this->di->log->vDebug("Preparing database \"{$this->configDTO->database}\"…");
 
         try {
             $logTimer = $this->di->log->newTimer();
@@ -453,11 +483,11 @@ class DatabaseBuilder
         }
 
         if ($isReusable) {
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer);
+            $this->di->log->vDebug("The existing \"$database\" database can be reused", $logTimer);
         } else {
             $reason = $this->dbAdapter()->reuseMetaData->getCantReuseReason();
-            $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
-            $this->di->log->debug("(Reason \"$reason\")");
+            $this->di->log->vDebug("Database \"$database\" cannot be reused", $logTimer);
+            $this->di->log->vDebug("(Reason \"$reason\")");
         }
 
         return $isReusable;
@@ -485,8 +515,8 @@ class DatabaseBuilder
         );
 
         $this->configDTO->dbSupportsReUse
-            ? $this->di->log->debug("Set up re-use meta-data", $logTimer)
-            : $this->di->log->debug("Set up meta-data", $logTimer);
+            ? $this->di->log->vDebug("Set up the re-use meta-data", $logTimer)
+            : $this->di->log->vDebug("Set up the meta-data", $logTimer);
     }
 
     /**
@@ -500,7 +530,7 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
 
-        $this->di->log->debug("Updated re-use meta-data", $logTimer);
+        $this->di->log->vDebug("Updated the re-use meta-data", $logTimer);
     }
 
     /**
@@ -558,8 +588,11 @@ class DatabaseBuilder
      */
     private function resetDB(): void
     {
-        $this->dbAdapter()->build->resetDB();
+        $exists = $this->di->db->currentDatabaseExists();
+        $this->dbAdapter()->build->resetDB($exists);
 //        $this->createReuseMetaDataTable();
+
+        $this->resolvedSettingsDTO->databaseExistedBefore($exists);
     }
 
     /**
@@ -630,7 +663,7 @@ class DatabaseBuilder
             $logTimer = $this->di->log->newTimer();
             // will throw exception if the file doesn't exist
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
+            $this->di->log->vDebug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -743,7 +776,7 @@ class DatabaseBuilder
 
 //        $this->createReuseMetaDataTable(); // put the meta-table back
 
-        $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
 
     /**
@@ -793,18 +826,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
+            $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
+            $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // so the stale grace-period starts again
 
-        $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
@@ -830,7 +863,7 @@ class DatabaseBuilder
 
 
 
-        $this->di->log->debug("Building the database remotely…");
+        $this->di->log->vDebug("Building the database remotely…");
 
         $this->resolvedSettingsDTO = $this->sendBuildRemoteRequest($forceRebuild);
         Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioHash(), $this->resolvedSettingsDTO);
@@ -841,11 +874,11 @@ class DatabaseBuilder
         $message = $this->resolvedSettingsDTO->databaseWasReused
             ? "Database \"$database\" was reused. Remote preparation time"
             : "Database \"$database\" was built. Remote preparation time";
-        $this->di->log->debug($message, $logTimer);
+        $this->di->log->vDebug($message, $logTimer);
 
         if (!$this->configDTO->shouldInitialise()) {
 //            $this->configDTO->database($database);
-            $this->di->log->debug("Not using connection \"$connection\" locally");
+            $this->di->log->vDebug("Not using connection \"$connection\" locally");
             return;
         }
 
@@ -853,7 +886,7 @@ class DatabaseBuilder
         $this->useDatabase($database);
 
         if ($this->resolvedSettingsDTO && $this->resolvedSettingsDTO->databaseWasReused) {
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+            $this->di->log->vDebug("The existing \"$database\" database can be reused");
         }
     }
 
@@ -979,7 +1012,6 @@ class DatabaseBuilder
      * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
      *
      * @return SnapshotMetaInfo[]
-     * @throws AdaptSnapshotException When a snapshot file couldn't be used.
      */
     public function buildSnapshotMetaInfos(): array
     {
@@ -987,24 +1019,34 @@ class DatabaseBuilder
             return [];
         }
 
+        $logTimer = $this->di->log->newTimer();
+
         try {
-
-            $logTimer = $this->di->log->newTimer();
             $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
-            $this->di->log->vDebug("Retrieved list of snapshots", $logTimer);
+            $this->di->log->vvDebug("Retrieved snapshot list", $logTimer);
+        } catch (Throwable $e) {
+            $this->di->log->vvWarning("Could not retrieve snapshot list", $logTimer);
+            return [];
+        }
 
-            $snapshotMetaInfos = [];
-            foreach ($filePaths as $path) {
+        $logTimer2 = $this->di->log->newTimer();
 
-                // ignore other files
-                $temp = explode('/', $path);
-                $filename = array_pop($temp);
-                if (in_array($filename, ['.gitignore', 'purge-lock'])) {
-                    continue;
-                }
+        $snapshotMetaInfos = [];
+        $attemptedCount = 0;
+        foreach ($filePaths as $path) {
 
-                $logTimer2 = $this->di->log->newTimer();
+            // ignore other files
+            $temp = preg_split('/[\\\\\/]+/', $path);
+            $filename = array_pop($temp);
+            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
+                continue;
+            }
 
+            $attemptedCount++;
+
+            $logTimer3 = $this->di->log->newTimer();
+
+            try {
                 $snapshotMetaInfo = $this->buildSnapshotMetaInfo($path);
                 $snapshotMetaInfos[] = $snapshotMetaInfo;
 
@@ -1013,13 +1055,19 @@ class DatabaseBuilder
                     ? ($snapshotMetaInfo->isValid
                         ? '(usable)'
                         : "(stale" . ($snapshotMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
-                    : '(not usable)';
-                $this->di->log->vDebug("- Found snapshot: \"$path\" $usable", $logTimer2);
+                    : '(not usable - ignoring)';
+                $this->di->log->vvDebug("- Found snapshot \"$path\" $usable", $logTimer3);
+
+            } catch (Throwable $e) {
+                $this->di->log->vvWarning("Could not read from snapshot \"$path\"", $logTimer3);
             }
-            return array_values(array_filter($snapshotMetaInfos));
-        } catch (Throwable $e) {
-            throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
         }
+
+        if (!$attemptedCount) {
+            $this->di->log->vvDebug("- No snapshots were found", $logTimer2);
+        }
+
+        return array_values(array_filter($snapshotMetaInfos));
     }
 
     /**
@@ -1064,16 +1112,20 @@ class DatabaseBuilder
      */
     private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
-        $logTimer = $this->di->log->newTimer();
-
-        if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-
-            $stale = (!$snapshotMetaInfo->isValid ? ' stale' : '');
-            $this->di->log->debug("Removed$stale snapshot file: \"$snapshotMetaInfo->path\"", $logTimer);
-
-            return true;
+        if (!$this->di->filesystem->fileExists($snapshotMetaInfo->path)) {
+            return false;
         }
-        return false;
+
+        try {
+            if (!$this->di->filesystem->unlink($snapshotMetaInfo->path)) {
+                throw AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path);
+            }
+            return true;
+        } catch (Throwable $e) {
+            throw $e instanceof AdaptSnapshotException
+                ? $e
+                : AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path, $e);
+        }
     }
 
 

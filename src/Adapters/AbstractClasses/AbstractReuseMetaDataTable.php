@@ -85,11 +85,7 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
         }
 
         if (($reuseInfo->transaction_reusable === 0) || ($reuseInfo->transaction_reusable === false)) {
-            $this->cantReuseReason = "the re-use transaction was committed";
-//            $this->di->log->warning(
-//                'The previous transaction for database "' . $database . '" '
-//                . 'was committed instead of being rolled-back'
-//            );
+            $this->cantReuseReason = "the wrapper-transaction was committed";
             return false;
         }
 

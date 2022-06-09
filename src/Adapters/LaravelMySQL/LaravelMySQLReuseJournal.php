@@ -52,7 +52,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         $this->createChangeTrackerTable();
         $this->setUpJournalTablesAndTriggers();
 
-        $this->di->log->debug('Set up journaling', $logTimer);
+        $this->di->log->vDebug('Set up journaling', $logTimer);
     }
 
     /**
@@ -344,7 +344,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         $message = $madeChanges
             ? "Used the journal to reverse changes to database \"{$this->configDTO->database}\""
             : "There aren't any journaled changes to reverse for \"{$this->configDTO->database}\"";
-        $this->di->log->debug($message, $logTimer, $newLineAfter);
+        $this->di->log->vDebug($message, $logTimer, $newLineAfter);
     }
 
     /**

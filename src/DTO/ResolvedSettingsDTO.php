@@ -99,6 +99,9 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public bool $forceRebuild;
 
+    /** @var boolean Whether the database existed before or not (for logging). */
+    public bool $databaseExistedBefore;
+
     /** @var boolean Whether the database was reused or not (for logging). */
     public bool $databaseWasReused;
 
@@ -368,6 +371,21 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Record whether the database existed before or not.
+     *
+     * @param boolean $databaseExistedBefore Whether the database existed before or not.
+     * @return static
+     */
+    public function databaseExistedBefore(bool $databaseExistedBefore): self
+    {
+        $this->databaseExistedBefore = $databaseExistedBefore;
+        if (!$databaseExistedBefore) {
+            $this->databaseWasReused(false);
+        }
+        return $this;
+    }
+
+    /**
      * Record whether the database was reused or not.
      *
      * @param boolean $databaseWasReused Whether the database was reused or not.
@@ -376,6 +394,9 @@ class ResolvedSettingsDTO
     public function databaseWasReused(bool $databaseWasReused): self
     {
         $this->databaseWasReused = $databaseWasReused;
+        if ($databaseWasReused) {
+            $this->databaseExistedBefore(true);
+        }
         return $this;
     }
 

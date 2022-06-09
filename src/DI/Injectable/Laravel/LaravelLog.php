@@ -23,6 +23,7 @@ class LaravelLog implements LogInterface
     private int $verbosity;
 
 
+
     /**
      * Constructor.
      *
@@ -37,8 +38,22 @@ class LaravelLog implements LogInterface
         $this->verbosity = $verbosity;
     }
 
+
+
     /**
-     * Display some debug output - DEBUG level.
+     * Get the current verbosity level.
+     *
+     * @return integer
+     */
+    public function currentVerbosity(): int
+    {
+        return $this->verbosity;
+    }
+
+
+
+    /**
+     * Display some debug output - DEBUG level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -51,7 +66,7 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - DEBUG level + verbose.
+     * Display some debug output - DEBUG level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -64,7 +79,22 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - WARNING level.
+     * Display some debug output - DEBUG level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvDebug(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('debug', $this->buildMessage($message, $timerRef, $newLineAfter), 2);
+    }
+
+
+
+    /**
+     * Display some debug output - WARNING level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -77,7 +107,7 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - WARNING level + verbose.
+     * Display some debug output - WARNING level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -90,7 +120,22 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - ERROR level.
+     * Display some debug output - WARNING level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvWarning(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('warning', $this->buildMessage($message, $timerRef, $newLineAfter), 2);
+    }
+
+
+
+    /**
+     * Display some debug output - ERROR level - verbose 0.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -103,7 +148,7 @@ class LaravelLog implements LogInterface
     }
 
     /**
-     * Display some debug output - ERROR level + verbose.
+     * Display some debug output - ERROR level - verbose 1.
      *
      * @param string       $message      The message to show.
      * @param integer|null $timerRef     Show the time taken for the given timer.
@@ -114,6 +159,21 @@ class LaravelLog implements LogInterface
     {
         $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter), 1);
     }
+
+    /**
+     * Display some debug output - ERROR level - verbose 2.
+     *
+     * @param string       $message      The message to show.
+     * @param integer|null $timerRef     Show the time taken for the given timer.
+     * @param boolean      $newLineAfter Add a new line afterwards?.
+     * @return void
+     */
+    public function vvError(string $message, int $timerRef = null, bool $newLineAfter = false): void
+    {
+        $this->output('error', $this->buildMessage($message, $timerRef, $newLineAfter), 2);
+    }
+
+
 
     /**
      * Actually log the message to the desired locations.

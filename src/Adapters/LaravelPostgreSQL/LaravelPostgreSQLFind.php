@@ -5,7 +5,9 @@ namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractFind;
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
+use Throwable;
 
 /**
  * Database-adapter methods related to finding Laravel/PostgreSQL databases.
@@ -57,19 +59,19 @@ class LaravelPostgreSQLFind extends AbstractFind implements FindInterface
      *
      * @param DatabaseMetaInfo $databaseMetaInfo The info object representing the database.
      * @return boolean
+     * @throws AdaptBuildException When the database cannot be removed.
      */
     protected function removeDatabase(DatabaseMetaInfo $databaseMetaInfo): bool
     {
-        $logTimer = $this->di->log->newTimer();
-
-        $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
-        $pdo->dropDatabase("DROP DATABASE IF EXISTS \"$databaseMetaInfo->name\"", $databaseMetaInfo->name);
-
-        $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
-        $driver = $databaseMetaInfo->driver;
-        $this->di->log->debug("Removed$stale $driver database: \"$databaseMetaInfo->name\"", $logTimer);
-
-        return true;
+        try {
+            $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
+            $pdo->dropDatabase("DROP DATABASE IF EXISTS \"$databaseMetaInfo->name\"", $databaseMetaInfo->name);
+            return true;
+        } catch (Throwable $e) {
+            throw $e instanceof AdaptBuildException
+                ? $e
+                : AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
+        }
     }
 
     /**

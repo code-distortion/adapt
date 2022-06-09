@@ -13,10 +13,10 @@ class AdaptTransactionException extends AdaptException
      * @param string $testName The name of the test that committed the transaction.
      * @return self
      */
-    public static function testCommittedTransaction(string $testName): self
+    public static function aTestCommittedTheWrapperTransaction(string $testName): self
     {
         return new self(
-            "The $testName test committed the transaction wrapper - see "
+            "The wrapper-transaction was committed - see "
             . "https://github.com/code-distortion/adapt#testing-code-that-uses-transactions for more details"
         );
     }

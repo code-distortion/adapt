@@ -11,40 +11,68 @@ use CodeDistortion\Adapt\Exceptions\AdaptTransactionException;
 trait ReuseTransactionTrait
 {
     /**
-     * Start the database transaction.
+     * Start the wrapper-transaction.
      *
      * @return void
      */
-    public function applyTransaction(): void
+    public function startTransaction(): void
     {
         if (!$this->configDTO->shouldUseTransaction()) {
             return;
         }
 
-        $this->dbAdapter()->reuseTransaction->applyTransaction();
+        $logTimer = $this->di->log->newTimer();
+
+        $this->dbAdapter()->reuseTransaction->startTransaction();
+
+        $this->di->log->vDebug(
+            "Started the wrapper-transaction in database \"{$this->configDTO->database}\"",
+            $logTimer
+        );
+    }
+
+    /**
+     * Roll-back the wrapper-transaction.
+     *
+     * @return void
+     */
+    public function rollBackTransaction(): void
+    {
+        if (!$this->configDTO->shouldUseTransaction()) {
+            return;
+        }
+
+        $this->dbAdapter()->reuseTransaction->rollBackTransaction();
     }
 
     /**
      * Check to see if any of the transaction was committed (if relevant), and generate a warning.
      *
+     * @param integer $logTimer        The timer that started before rolling the transaction back.
+     * @param boolean $addNewLineAfter Whether a new line should be added after logging or not.
      * @return void
      * @throws AdaptTransactionException When the test committed the test-transaction.
      */
-    private function checkForCommittedTransaction(): void
+    private function checkForCommittedTransaction(int $logTimer, bool $addNewLineAfter): void
     {
         if (!$this->configDTO->shouldUseTransaction()) {
             return;
         }
+
         if (!$this->dbAdapter()->reuseTransaction->wasTransactionCommitted()) {
+            $this->di->log->vDebug(
+                "Rolled back the wrapper-transaction in database \"{$this->configDTO->database}\"",
+                $logTimer,
+                $addNewLineAfter
+            );
             return;
         }
 
-        $this->di->log->warning(
-            "The {$this->configDTO->testName} test committed the transaction wrapper - "
-            . "turn \$reuseTransaction off to isolate it from other "
-            . "tests that don't commit their transactions"
-        );
+//        $this->di->log->vWarning(
+//            "The wrapper-transaction was committed in database \"{$this->configDTO->database}\"",
+//            $addNewLineAfter
+//        );
 
-        throw AdaptTransactionException::testCommittedTransaction($this->configDTO->testName);
+        throw AdaptTransactionException::aTestCommittedTheWrapperTransaction($this->configDTO->testName);
     }
 }

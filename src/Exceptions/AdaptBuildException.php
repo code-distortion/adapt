@@ -73,13 +73,15 @@ class AdaptBuildException extends AdaptException
     /**
      * Could not drop the database.
      *
-     * @param string    $databaseName      The database that was to be used.
-     * @param Throwable $previousException The original exception.
+     * @param string         $databaseName      The database that was to be used.
+     * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function couldNotDropDatabase(string $databaseName, Throwable $previousException): self
+    public static function couldNotDropDatabase(string $databaseName, ?Throwable $previousException = null): self
     {
-        return new self("Could not drop database \"$databaseName\"", 0, $previousException);
+        return $previousException
+            ? new self("Could not drop database \"$databaseName\"", 0, $previousException)
+            : new self("Could not drop database \"$databaseName\"");
     }
 
     /**

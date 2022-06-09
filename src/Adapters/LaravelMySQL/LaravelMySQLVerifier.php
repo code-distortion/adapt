@@ -55,7 +55,7 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->createVerificationTable();
         $this->populateVerificationTable($createStructureHash, $createDataHash);
 
-        $this->di->log->debug("Set up database verification", $logTimer);
+        $this->di->log->vDebug("Set up database verification", $logTimer);
     }
 
 
@@ -99,8 +99,8 @@ class LaravelMySQLVerifier implements VerifierInterface
 
         $this->performDatabaseStructureVerification();
 
-        $this->di->log->debug(
-            "Verified that the structure of database \"{$this->configDTO->database}\" hasn't changed",
+        $this->di->log->vDebug(
+            "Verified the structure of database \"{$this->configDTO->database}\"",
             $logTimer,
             $newLineAfter
         );
@@ -119,8 +119,8 @@ class LaravelMySQLVerifier implements VerifierInterface
 
         $this->performDatabaseDataVerification();
 
-        $this->di->log->debug(
-            "Verified that content in database \"{$this->configDTO->database}\" hasn't changed",
+        $this->di->log->vDebug(
+            "Verified the content of database \"{$this->configDTO->database}\"",
             $logTimer,
             $newLineAfter
         );

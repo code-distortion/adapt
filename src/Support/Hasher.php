@@ -140,7 +140,7 @@ class Hasher
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
-        $this->di->log->debug(
+        $this->di->log->vDebug(
             'Generated the build-hash - of the files that can be used to build the database',
             $logTimer
         );

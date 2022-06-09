@@ -19,9 +19,6 @@ class DIContainer
     /** @var LaravelDB The LaravelDB object to use. */
     public LaravelDB $db;
 
-    /** @var callable|null The closure to call to start a database transaction. */
-    public $dbTransactionClosure;
-
     /** @var Exec The Exec object to use. */
     public Exec $exec;
 
@@ -53,18 +50,6 @@ class DIContainer
     public function db(LaravelDB $db): self
     {
         $this->db = $db;
-        return $this;
-    }
-
-    /**
-     * Set the closure to call to start a database transaction.
-     *
-     * @param callable|null $dbTransactionClosure The closure to store.
-     * @return static
-     */
-    public function dbTransactionClosure(?callable $dbTransactionClosure): self
-    {
-        $this->dbTransactionClosure = $dbTransactionClosure;
         return $this;
     }
 

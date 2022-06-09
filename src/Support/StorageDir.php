@@ -50,7 +50,7 @@ class StorageDir
                         '*' . PHP_EOL . '!.gitignore' . PHP_EOL
                     );
                 }
-                $log->debug('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
+                $log->vDebug('Created adapt-test-storage dir: "' . $storageDir . '"', $logTimer);
             } catch (Throwable $e) {
                 throw AdaptConfigException::cannotCreateStorageDir($storageDir, $e);
             }

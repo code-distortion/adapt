@@ -4,8 +4,8 @@ namespace CodeDistortion\Adapt\Adapters\LaravelSQLite;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelTransactionsTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
 use Throwable;
@@ -16,7 +16,6 @@ use Throwable;
 class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
 {
     use InjectTrait;
-    use LaravelTransactionsTrait;
     use SQLiteHelperTrait;
 
 
@@ -37,15 +36,25 @@ class LaravelSQLiteReuseTransaction implements ReuseTransactionInterface
 
 
     /**
-     * Start the transaction that the test will be encapsulated in.
+     * Start the wrapper-transaction.
      *
      * @return void
      */
-    public function applyTransaction(): void
+    public function startTransaction(): void
     {
         $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 1");
-        $this->laravelApplyTransaction();
+        LaravelSupport::startTransaction($this->configDTO->connection);
         $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
+    }
+
+    /**
+     * Roll-back the wrapper-transaction.
+     *
+     * @return void
+     */
+    public function rollBackTransaction(): void
+    {
+        LaravelSupport::rollBackTransaction($this->configDTO->connection);
     }
 
     /**

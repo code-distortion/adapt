@@ -38,10 +38,7 @@ class PreBootTestLaravel
     /** @var LogInterface The logger to use. */
     private LogInterface $log;
 
-    /** @var callable The framework specific callback to set up the database transaction. */
-    private $buildTransactionClosure;
-
-    /** @var callable|null The callback that uses databaseInit(), to let the Test customise the database build process. */
+    /** @var callable|null Callback that uses databaseInit(), to let the Test customise the database build process. */
     private $buildInitCallback;
 
     /** @var boolean Whether the current test is a browser test or not. */
@@ -52,25 +49,22 @@ class PreBootTestLaravel
     /**
      * Constructor.
      *
-     * @param string        $testClass               The class the current test is in.
-     * @param string        $testName                The name of the current test.
-     * @param PropBagDTO    $propBag                 The properties specified in the test-class.
-     * @param callable      $buildTransactionClosure The closure to call to set up the database transaction.
-     * @param callable|null $buildInitCallback       The callback that calls the custom databaseInit() build process.
-     * @param boolean       $isBrowserTest           Whether the current test is a browser test or not.
+     * @param string        $testClass         The class the current test is in.
+     * @param string        $testName          The name of the current test.
+     * @param PropBagDTO    $propBag           The properties specified in the test-class.
+     * @param callable|null $buildInitCallback The callback that calls the custom databaseInit() build process.
+     * @param boolean       $isBrowserTest     Whether the current test is a browser test or not.
      */
     public function __construct(
         string $testClass,
         string $testName,
         PropBagDTO $propBag,
-        callable $buildTransactionClosure,
         ?callable $buildInitCallback,
         bool $isBrowserTest
     ) {
         $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
-        $this->buildTransactionClosure = $buildTransactionClosure;
         $this->buildInitCallback = $buildInitCallback;
         $this->isBrowserTest = $isBrowserTest;
     }
@@ -293,7 +287,6 @@ class PreBootTestLaravel
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
-            ->transactionClosure($this->buildTransactionClosure)
             ->initCallback($this->buildInitCallback)
             ->ensureStorageDirExists();
     }

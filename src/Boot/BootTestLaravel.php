@@ -15,6 +15,7 @@ use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -23,10 +24,9 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Config\Repository;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\ParallelTesting;
 use Laravel\Dusk\Browser;
-use PDOException;
+use Throwable;
 
 /**
  * Bootstrap Adapt for Laravel tests.
@@ -116,7 +116,6 @@ class BootTestLaravel extends BootTestAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure($this->transactionClosure)
             ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -420,7 +419,7 @@ class BootTestLaravel extends BootTestAbstract
         }
 
         $logTimer = $this->log->newTimer();
-        $this->log->debug('Looking for stale things to remove');
+        $this->log->vDebug('Looking for stale things to remove');
 
         $removedCount = $this->purgeStaleDatabases();
         $removedCount += $this->purgeStaleSnapshots();
@@ -429,7 +428,7 @@ class BootTestLaravel extends BootTestAbstract
         $message = $removedCount
             ? 'Total time taken for removal'
             : 'Nothing found to remove - total time taken';
-        $this->log->debug($message, $logTimer, true);
+        $this->log->vDebug($message, $logTimer, true);
 
         $this->releaseMutexLock();
     }
@@ -459,36 +458,41 @@ class BootTestLaravel extends BootTestAbstract
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
 
-            $databaseMetaInfos = null;
+            $logTimer = $this->log->newTimer();
 
             try {
                 $builder = $this->createBuilder((string) $connection);
-                $databaseMetaInfos = $builder->buildDatabaseMetaInfos();
-            } catch (AdaptConfigException|PDOException $e) {
+            } catch (Throwable $e) {
 
-                // ignore exceptions caused because the database can't be connected to
+                // this is expected, as connections will probably exist where the database can't be connected to
                 // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
-                $driver = LaravelSupport::configString("database.connections.$connection.driver");
-                $this->log->vDebug(
-                    "Could not retrieve database list (connection: \"$connection\", driver: \"$driver\")"
-                );
+                $driver = $this->propBag->config("database.connections.$connection.driver");
+                $connDetails = "(connection: \"$connection\", driver: \"$driver\")";
+                $this->log->vvWarning("Could not retrieve database list $connDetails", $logTimer);
 
                 continue;
             }
 
-            foreach ($databaseMetaInfos as $databaseMetaInfo) {
+            foreach ($builder->buildDatabaseMetaInfos() as $dbMetaInfo) {
 
-                if (!$databaseMetaInfo->shouldPurgeNow()) {
+                if (!$dbMetaInfo->shouldPurgeNow()) {
                     continue;
                 }
 
-                $databaseMetaInfo->delete();
-                $removedCount++;
+                $logTimer2 = $this->log->newTimer();
 
-                $this->log->vDebug(
-                    "Removed stale database - \"$databaseMetaInfo->name\" "
-                    . "(connection: \"$databaseMetaInfo->connection\", driver: \"$databaseMetaInfo->driver\")"
-                );
+                $connDetails = "(connection: \"$dbMetaInfo->connection\", driver: \"$dbMetaInfo->driver\")";
+                $dbMsg = "stale database - \"$dbMetaInfo->name\" $connDetails";
+
+                try {
+                    if ($dbMetaInfo->delete()) {
+                        $removedCount++;
+                        $this->log->vvDebug("Removed $dbMsg", $logTimer2);
+                    }
+                } catch (Throwable $e) {
+//                    $this->log->vError("Could not remove $dbMsg", $logTimer2);
+                    Exceptions::logException($this->log, $e);
+                }
             }
         }
         return $removedCount;
@@ -509,10 +513,17 @@ class BootTestLaravel extends BootTestAbstract
                 continue;
             }
 
-            $snapshotMetaInfo->delete();
-            $removedCount++;
+            $logTimer = $this->log->newTimer();
 
-            $this->log->vDebug("Removed stale snapshot - \"$snapshotMetaInfo->path\"");
+            try {
+                if ($snapshotMetaInfo->delete()) {
+                    $removedCount++;
+                    $this->log->vvDebug("Removed stale snapshot \"$snapshotMetaInfo->path\"", $logTimer);
+                }
+            } catch (Throwable $e) {
+//                $this->log->vError("Could not remove stale snapshot \"$snapshotMetaInfo->path\"", $logTimer);
+                Exceptions::logException($this->log, $e);
+            }
         }
         return $removedCount;
     }
@@ -541,7 +552,7 @@ class BootTestLaravel extends BootTestAbstract
             $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
             if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
-                $this->log->debug("Removed orphaned temporary config file \"$filename\"");
+                $this->log->vDebug("Removed orphaned temporary config file \"$filename\"");
                 $removedCount++;
             }
         }
