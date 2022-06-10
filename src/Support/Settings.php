@@ -11,6 +11,9 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
  */
 class Settings
 {
+    /** @var string The current package version number. */
+    public const PACKAGE_VERSION = '0.11.0';
+
     /** @var string The name of the Adapt config file. */
     public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 

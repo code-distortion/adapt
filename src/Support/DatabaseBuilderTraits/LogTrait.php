@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Support\DatabaseBuilderTraits;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * @mixin DatabaseBuilder
@@ -25,7 +26,7 @@ trait LogTrait
 
         $this->di->log->logBox(
             [$prepLine, "For test \"{$this->configDTO->testName}\""],
-            'ADAPT - Preparing a Test-Database',
+            'ADAPT (v' . Settings::PACKAGE_VERSION . ') - Preparing a Test-Database',
             'vDebug',
         );
     }
