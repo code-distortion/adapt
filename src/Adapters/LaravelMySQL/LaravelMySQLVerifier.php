@@ -55,7 +55,7 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->createVerificationTable();
         $this->populateVerificationTable($createStructureHash, $createDataHash);
 
-        $this->di->log->vDebug("Set up database verification", $logTimer);
+        $this->di->log->vDebug("Set up the verification meta-data", $logTimer);
     }
 
 

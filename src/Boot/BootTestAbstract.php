@@ -154,6 +154,8 @@ abstract class BootTestAbstract implements BootTestInterface
         foreach ($this->pickExecutedBuilders() as $builder) {
             $builder->runPostBuildSteps();
         }
+
+        $this->log->vDebug("Ready for the test to run");
     }
 
     /**

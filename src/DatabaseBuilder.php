@@ -149,9 +149,9 @@ class DatabaseBuilder
 
         if ($this->di->log->currentVerbosity() == 0) {
             $message = "$reusing $connection database \"$database\" $emoji";
-            $this->di->log->debug($message, $logTimer, true);
+            $this->di->log->debug($message, $logTimer, false);
         } else {
-            $message = "$reusing \"$connection\" database \"$database\" - total time taken $emoji";
+            $message = "$reusing database \"$database\" - total preparation time $emoji";
             $this->di->log->vDebug($message, $logTimer, true);
         }
     }
@@ -343,7 +343,7 @@ class DatabaseBuilder
 
             $this->logTheUsedSettings();
             $this->useDatabase($database);
-            $this->di->log->vDebug("The existing \"$database\" database can be reused");
+            $this->di->log->vDebug("The existing database \"$database\" can be reused");
             $this->updateMetaTableLastUsed();
 
         } catch (Throwable $e) {
@@ -483,11 +483,11 @@ class DatabaseBuilder
         }
 
         if ($isReusable) {
-            $this->di->log->vDebug("The existing \"$database\" database can be reused", $logTimer);
+            $this->di->log->vDebug("The existing database \"$database\" can be reused", $logTimer);
         } else {
             $reason = $this->dbAdapter()->reuseMetaData->getCantReuseReason();
             $this->di->log->vDebug("Database \"$database\" cannot be reused", $logTimer);
-            $this->di->log->vDebug("(Reason \"$reason\")");
+            $this->di->log->vDebug("(Reason: $reason)");
         }
 
         return $isReusable;
@@ -530,7 +530,7 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
 
-        $this->di->log->vDebug("Updated the re-use meta-data", $logTimer);
+        $this->di->log->vDebug("Refreshed the re-use meta-data", $logTimer);
     }
 
     /**
@@ -886,7 +886,7 @@ class DatabaseBuilder
         $this->useDatabase($database);
 
         if ($this->resolvedSettingsDTO && $this->resolvedSettingsDTO->databaseWasReused) {
-            $this->di->log->vDebug("The existing \"$database\" database can be reused");
+            $this->di->log->vDebug("The existing database \"$database\" can be reused");
         }
     }
 

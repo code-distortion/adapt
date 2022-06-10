@@ -2,6 +2,7 @@
 
 namespace CodeDistortion\Adapt\Initialise;
 
+use CodeDistortion\Adapt\AdaptDatabase;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
@@ -20,7 +21,7 @@ use Laravel\Dusk\TestCase as DuskTestCase;
  *
  * @mixin LaravelTestCase
  */
-trait InitialiseLaravelAdapt
+trait InitialiseAdapt
 {
     /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseLaravelAdapt. */
     private ?PreBootTestLaravel $adaptPreBootTestLaravel = null;
@@ -35,11 +36,20 @@ trait InitialiseLaravelAdapt
      */
     public static function initialiseAdaptIfNeeded(LaravelTestCase $test): void
     {
-        if (!in_array(LaravelAdapt::class, class_uses_recursive(get_class($test)))) {
+        $found = false;
+        $traits = [LaravelAdapt::class, AdaptDatabase::class];
+        foreach ($traits as $trait) {
+            if (in_array($trait, class_uses_recursive(get_class($test)))) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
             return;
         }
 
-        /** @var InitialiseLaravelAdapt $test */
+        /** @var InitialiseAdapt $test */
         $test->initialiseAdapt();
     }
 

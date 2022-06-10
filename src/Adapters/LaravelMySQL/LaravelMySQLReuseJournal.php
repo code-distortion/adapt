@@ -52,7 +52,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         $this->createChangeTrackerTable();
         $this->setUpJournalTablesAndTriggers();
 
-        $this->di->log->vDebug('Set up journaling', $logTimer);
+        $this->di->log->vDebug('Set up the journaling stores', $logTimer);
     }
 
     /**

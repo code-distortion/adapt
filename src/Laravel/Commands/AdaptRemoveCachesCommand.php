@@ -48,7 +48,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
         $this->deleteDatabases($cacheListDTO);
         $this->deleteSnapshots($cacheListDTO);
         $this->info('');
-        $log->debug("\n");
+        $log->vDebug("\n");
     }
 
 
