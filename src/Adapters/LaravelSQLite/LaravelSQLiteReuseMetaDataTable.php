@@ -15,17 +15,17 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string      $origDBName   The name of the database that this test-database is for.
-     * @param string|null $buildHash    The current build-hash.
-     * @param string|null $snapshotHash The current snapshot-hash.
-     * @param string|null $scenarioHash The current scenario-hash.
+     * @param string      $origDBName       The name of the database that this test-database is for.
+     * @param string|null $buildChecksum    The current build-checksum.
+     * @param string|null $snapshotChecksum The current snapshot-checksum.
+     * @param string|null $scenarioChecksum The current scenario-checksum.
      * @return void
      */
     public function createReuseMetaDataTable(
         string $origDBName,
-        ?string $buildHash,
-        ?string $snapshotHash,
-        ?string $scenarioHash
+        ?string $buildChecksum,
+        ?string $snapshotChecksum,
+        ?string $scenarioChecksum
     ): void {
 
         $this->removeReuseMetaTable();
@@ -37,9 +37,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
             . "`project_name` varchar(255), "
             . "`reuse_table_version` varchar(16), "
             . "`orig_db_name` varchar(255) NOT NULL, "
-            . "`build_hash` varchar(32) NULL, "
-            . "`snapshot_hash` varchar(32) NULL, "
-            . "`scenario_hash` varchar(32) NULL, "
+            . "`build_checksum` varchar(32) NULL, "
+            . "`snapshot_checksum` varchar(32) NULL, "
+            . "`scenario_checksum` varchar(32) NULL, "
             . "`transaction_reusable` tinyint unsigned NULL, "
             . "`journal_reusable` tinyint unsigned NULL, "
             . "`validation_passed` tinyint unsigned NULL, "
@@ -52,9 +52,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
                 . "`project_name`, "
                 . "`reuse_table_version`, "
                 . "`orig_db_name`, "
-                . "`build_hash`, "
-                . "`snapshot_hash`, "
-                . "`scenario_hash`, "
+                . "`build_checksum`, "
+                . "`snapshot_checksum`, "
+                . "`scenario_checksum`, "
                 . "`transaction_reusable`, "
                 . "`journal_reusable`, "
                 . "`validation_passed`, "
@@ -64,9 +64,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
                 . ":projectName, "
                 . ":reuseTableVersion, "
                 . ":origDBName, "
-                . ":buildHash, "
-                . ":snapshotHash, "
-                . ":scenarioHash, "
+                . ":buildChecksum, "
+                . ":snapshotChecksum, "
+                . ":scenarioChecksum, "
                 . ":transactionReusable, "
                 . ":journalReusable, "
                 . ":validationPassed, "
@@ -76,9 +76,9 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
                 'projectName' => $this->configDTO->projectName,
                 'reuseTableVersion' => Settings::REUSE_TABLE_VERSION,
                 'origDBName' => $origDBName,
-                'buildHash' => $buildHash,
-                'snapshotHash' => $snapshotHash,
-                'scenarioHash' => $scenarioHash,
+                'buildChecksum' => $buildChecksum,
+                'snapshotChecksum' => $snapshotChecksum,
+                'scenarioChecksum' => $scenarioChecksum,
                 'transactionReusable' => null,
                 'journalReusable' => null,
                 'validationPassed' => null,

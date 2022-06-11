@@ -31,12 +31,12 @@ interface VerifierInterface
     /**
      * Create and populate the verification table.
      *
-     * @param boolean $createStructureHash Generate hashes of the create-table queries?.
-     * @param boolean $createDataHash      Generate hashes of the table's data?.
+     * @param boolean $createStructureChecksum Generate checksums of the create-table queries?.
+     * @param boolean $createDataChecksum      Generate checksums of the table's data?.
      * @return void
      * @throws AdaptJournalException When something goes wrong.
      */
-    public function setUpVerification(bool $createStructureHash, bool $createDataHash): void;
+    public function setUpVerification(bool $createStructureChecksum, bool $createDataChecksum): void;
 
     /**
      * Record that a test with verification has begun.

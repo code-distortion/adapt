@@ -67,7 +67,7 @@ class DatabaseBuilder
     /** @var callable The closure to call to get the driver for a connection. */
     private $pickDriverClosure;
 
-    /** @var Hasher Builds and checks hashes. */
+    /** @var Hasher Builds and checks checksums. */
     private Hasher $hasher;
 
 
@@ -239,7 +239,7 @@ class DatabaseBuilder
     /**
      * Check if the database was built remotely, earlier in the test-run. Then re-use it if it can be.
      *
-     * (This avoids needing to make a remote request to build when the hashes have already been calculated).
+     * (This avoids needing to make a remote request to build when the checksums have already been calculated).
      *
      * @param integer $logTimer The timer, started a little earlier.
      * @return boolean|null Null = irrelevant (just build it), false = it exists but can't be reused (force-rebuild).
@@ -278,8 +278,8 @@ class DatabaseBuilder
             $this->silentlyUseDatabase((string) $resolvedSettingsDTO->database);
 
             $return = $this->canReuseDB(
-                $resolvedSettingsDTO->buildHash,
-                $resolvedSettingsDTO->scenarioHash,
+                $resolvedSettingsDTO->buildChecksum,
+                $resolvedSettingsDTO->scenarioChecksum,
                 (string) $resolvedSettingsDTO->database,
                 false,
                 null
@@ -306,7 +306,7 @@ class DatabaseBuilder
             return null;
         }
 
-        return Settings::getResolvedSettingsDTO($this->hasher->currentScenarioHash());
+        return Settings::getResolvedSettingsDTO($this->hasher->currentScenarioChecksum());
     }
 
     /**
@@ -329,9 +329,9 @@ class DatabaseBuilder
 
             $connection = $this->configDTO->connection;
             $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
-            $buildHash = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildHash : null;
+            $buildChecksum = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildChecksum : null;
             $this->configDTO->remoteBuildUrl = null; // stop debug output from showing that it's being built remotely
-            $this->hasher->buildHashWasPreCalculated($buildHash);
+            $this->hasher->buildChecksumWasPreCalculated($buildChecksum);
 
             $this->logTitle();
             $this->logHttpRequestWasSaved($database, $logTimer);
@@ -366,7 +366,7 @@ class DatabaseBuilder
     {
         $this->initialise();
 
-        $this->hasher->buildHashWasPreCalculated($this->configDTO->preCalculatedBuildHash); // only used when not null
+        $this->hasher->buildChecksumWasPreCalculated($this->configDTO->preCalculatedBuildChecksum); // only used when not null
 
         $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
 
@@ -415,8 +415,8 @@ class DatabaseBuilder
 
             $database = (string) $this->configDTO->database;
             $canReuse = $this->canReuseDB(
-                $this->hasher->getBuildHash(),
-                $this->hasher->currentScenarioHash(),
+                $this->hasher->getBuildChecksum(),
+                $this->hasher->currentScenarioChecksum(),
                 $database,
                 $forceRebuild,
                 $logTimer
@@ -441,16 +441,16 @@ class DatabaseBuilder
     /**
      * Check if the current database can be re-used.
      *
-     * @param string|null  $buildHash    The current build-hash.
-     * @param string|null  $scenarioHash The current scenario-hash.
-     * @param string       $database     The current database to check.
-     * @param boolean      $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
-     * @param integer|null $logTimer     The timer, started a little earlier.
+     * @param string|null  $buildChecksum    The current build-checksum.
+     * @param string|null  $scenarioChecksum The current scenario-checksum.
+     * @param string       $database         The current database to check.
+     * @param boolean      $forceRebuild     Should the database be rebuilt anyway (no need to double-check)?.
+     * @param integer|null $logTimer         The timer, started a little earlier.
      * @return boolean
      */
     private function canReuseDB(
-        ?string $buildHash,
-        ?string $scenarioHash,
+        ?string $buildChecksum,
+        ?string $scenarioChecksum,
         string $database,
         bool $forceRebuild,
         ?int $logTimer
@@ -469,8 +469,8 @@ class DatabaseBuilder
         }
 
         $isReusable = $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
-            $buildHash,
-            $scenarioHash,
+            $buildChecksum,
+            $scenarioChecksum,
             $this->configDTO->projectName,
             $database
         );
@@ -509,9 +509,9 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuseMetaData->createReuseMetaDataTable(
             $this->origDBName(),
-            $this->hasher->getBuildHash(),
-            $this->hasher->currentSnapshotHash(),
-            $this->hasher->currentScenarioHash()
+            $this->hasher->getBuildChecksum(),
+            $this->hasher->currentSnapshotChecksum(),
+            $this->hasher->currentScenarioChecksum()
         );
 
         $this->configDTO->dbSupportsReUse
@@ -809,7 +809,7 @@ class DatabaseBuilder
     private function generateSnapshotPath(array $seeders): string
     {
         return $this->dbAdapter()->name->generateSnapshotPath(
-            $this->hasher->generateSnapshotFilenameHashPart($seeders)
+            $this->hasher->generateSnapshotFilenameChecksumPart($seeders)
         );
     }
 
@@ -866,7 +866,7 @@ class DatabaseBuilder
         $this->di->log->vDebug("Building the database remotely…");
 
         $this->resolvedSettingsDTO = $this->sendBuildRemoteRequest($forceRebuild);
-        Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioHash(), $this->resolvedSettingsDTO);
+        Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioChecksum(), $this->resolvedSettingsDTO);
 
         $connection = $this->resolvedSettingsDTO->connection;
         $database = (string) $this->resolvedSettingsDTO->database;
@@ -912,7 +912,7 @@ class DatabaseBuilder
             $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
             $resolvedSettingsDTO->builtRemotely(true, $url);
 
-            Hasher::rememberRemoteBuildHash($url, (string) $resolvedSettingsDTO->buildHash);
+            Hasher::rememberRemoteBuildChecksum($url, (string) $resolvedSettingsDTO->buildChecksum);
 
             return $resolvedSettingsDTO;
 
@@ -936,8 +936,8 @@ class DatabaseBuilder
             $configDTO->forceRebuild = true;
         }
 
-        // save time by telling the remote Adapt installation what the build-hash was from last time.
-        $configDTO->preCalculatedBuildHash(Hasher::getRemoteBuildHash($remoteBuildUrl));
+        // save time by telling the remote Adapt installation what the build-checksum was from last time.
+        $configDTO->preCalculatedBuildChecksum(Hasher::getRemoteBuildChecksum($remoteBuildUrl));
         return $configDTO;
     }
 
@@ -1003,7 +1003,7 @@ class DatabaseBuilder
             return [];
         }
 
-        return $this->dbAdapter()->find->findDatabases($this->hasher->getBuildHash());
+        return $this->dbAdapter()->find->findDatabases($this->hasher->getBuildChecksum());
     }
 
 
@@ -1096,7 +1096,7 @@ class DatabaseBuilder
             $path,
             $filename,
             $accessDT,
-            $this->hasher->filenameHasBuildHash($filename),
+            $this->hasher->filenameHasBuildChecksum($filename),
             fn() => $this->di->filesystem->size($path),
             $this->configDTO->staleGraceSeconds
         );
@@ -1199,9 +1199,9 @@ class DatabaseBuilder
             ->forceRebuild($configDTO->forceRebuild)
             ->scenarioTestDBs(
                 $configDTO->usingScenarioTestDBs(),
-                $buildingLocally ? $this->hasher->getBuildHash() : null,
-                $buildingLocally ? $this->hasher->currentSnapshotHash() : null,
-                $buildingLocally ? $this->hasher->currentScenarioHash() : null
+                $buildingLocally ? $this->hasher->getBuildChecksum() : null,
+                $buildingLocally ? $this->hasher->currentSnapshotChecksum() : null,
+                $buildingLocally ? $this->hasher->currentScenarioChecksum() : null
             )
             ->databaseWasReused(true);
     }

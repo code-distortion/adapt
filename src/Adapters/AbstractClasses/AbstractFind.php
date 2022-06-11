@@ -26,10 +26,10 @@ abstract class AbstractFind implements FindInterface
      *
      * Only pick databases that have "reuse" meta-info stored.
      *
-     * @param string|null $buildHash The current build-hash.
+     * @param string|null $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo[]
      */
-    public function findDatabases(?string $buildHash): array
+    public function findDatabases(?string $buildChecksum): array
     {
         $logTimer = $this->di->log->newTimer();
 
@@ -58,7 +58,7 @@ abstract class AbstractFind implements FindInterface
             $logTimer3 = $this->di->log->newTimer();
 
             try {
-                $databaseMetaInfo = $this->buildDatabaseMetaInfo($database, $buildHash);
+                $databaseMetaInfo = $this->buildDatabaseMetaInfo($database, $buildChecksum);
                 $databaseMetaInfos[] = $databaseMetaInfo;
 
                 $database = $databaseMetaInfo ? $databaseMetaInfo->name : $database;
@@ -99,26 +99,26 @@ abstract class AbstractFind implements FindInterface
     /**
      * Build DatabaseMetaInfo objects for a database.
      *
-     * @param string $database  The database to use.
-     * @param string $buildHash The current build-hash.
+     * @param string $database      The database to use.
+     * @param string $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo|null
      */
-    abstract protected function buildDatabaseMetaInfo(string $database, string $buildHash): ?DatabaseMetaInfo;
+    abstract protected function buildDatabaseMetaInfo(string $database, string $buildChecksum): ?DatabaseMetaInfo;
 
     /**
      * Build DatabaseMetaInfo objects for a database.
      *
-     * @param string        $connection The connection the database is within.
-     * @param string        $name       The database's name.
-     * @param stdClass|null $reuseInfo  The reuse info from the database.
-     * @param string|null   $buildHash  The current build-hash.
+     * @param string        $connection    The connection the database is within.
+     * @param string        $name          The database's name.
+     * @param stdClass|null $reuseInfo     The reuse info from the database.
+     * @param string|null   $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo|null
      */
     protected function buildDatabaseMetaInfoX(
         string $connection,
         string $name,
         ?stdClass $reuseInfo,
-        ?string $buildHash
+        ?string $buildChecksum
     ): ?DatabaseMetaInfo {
 
         if (!$reuseInfo) {
@@ -131,7 +131,7 @@ abstract class AbstractFind implements FindInterface
 
         $isValid = (
             $reuseInfo->reuse_table_version == Settings::REUSE_TABLE_VERSION
-            && (($reuseInfo->build_hash === $buildHash) || (is_null($reuseInfo->build_hash)))
+            && (($reuseInfo->build_checksum === $buildChecksum) || (is_null($reuseInfo->build_checksum)))
         );
 
         $databaseMetaInfo = new DatabaseMetaInfo(

@@ -55,14 +55,14 @@ class ConfigDTO
     /** @var string The prefix to add to database names. */
     public string $databasePrefix;
 
-    /** @var boolean Turn the usage of build-hashes on or off. */
+    /** @var boolean Turn the usage of build-checksums on or off. */
     public bool $checkForSourceChanges;
 
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
-    public array $hashPaths;
+    public array $checksumPaths;
 
-    /** @var string|null The build-hash if it has already been calculated - passed to remote Adapt installations. */
-    public ?string $preCalculatedBuildHash;
+    /** @var string|null The build-checksum if it has already been calculated - passed to remote Adapt installations. */
+    public ?string $preCalculatedBuildChecksum;
 
 
     /** @var string[]|string[][] The files to import before the migrations are run. */
@@ -317,9 +317,9 @@ class ConfigDTO
     }
 
     /**
-     * Turn the usage of build-hashes on or off.
+     * Turn the usage of build-checksums on or off.
      *
-     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @param boolean $checkForSourceChanges Whether build-checksums should be calculated or not.
      * @return static
      */
     public function checkForSourceChanges(bool $checkForSourceChanges): self
@@ -331,24 +331,24 @@ class ConfigDTO
     /**
      * Set the list of directories that can invalidate test-databases and snapshots.
      *
-     * @param string[] $hashPaths The files and directories to look through.
+     * @param string[] $checksumPaths The files and directories to look through.
      * @return static
      */
-    public function hashPaths(array $hashPaths): self
+    public function checksumPaths(array $checksumPaths): self
     {
-        $this->hashPaths = $hashPaths;
+        $this->checksumPaths = $checksumPaths;
         return $this;
     }
 
     /**
-     * Set the pre-calculated build-hash - passed to remote Adapt installations.
+     * Set the pre-calculated build-checksum - passed to remote Adapt installations.
      *
-     * @param string|null $preCalculatedBuildHash The pre-calculated build-hash.
+     * @param string|null $preCalculatedBuildChecksum The pre-calculated build-checksum.
      * @return static
      */
-    public function preCalculatedBuildHash(?string $preCalculatedBuildHash): self
+    public function preCalculatedBuildChecksum(?string $preCalculatedBuildChecksum): self
     {
-        $this->preCalculatedBuildHash = $preCalculatedBuildHash;
+        $this->preCalculatedBuildChecksum = $preCalculatedBuildChecksum;
         return $this;
     }
 

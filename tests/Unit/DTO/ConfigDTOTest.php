@@ -89,14 +89,14 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['checkForSourceChanges' => true],
             ],
 
-            'hashPaths' => [
-                'method' => 'hashPaths',
-                'params' => ['hashPaths' => ['/someplace1', '/someplace2']],
+            'checksumPaths' => [
+                'method' => 'checksumPaths',
+                'params' => ['checksumPaths' => ['/someplace1', '/someplace2']],
             ],
 
-            'preCalculatedBuildHash' => [
-                'method' => 'preCalculatedBuildHash',
-                'params' => ['preCalculatedBuildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+            'preCalculatedBuildChecksum' => [
+                'method' => 'preCalculatedBuildChecksum',
+                'params' => ['preCalculatedBuildChecksum' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
             ],
 
             'buildSettings 1' => [

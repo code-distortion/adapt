@@ -39,18 +39,18 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
     /**
      * Build DatabaseMetaInfo objects for a database.
      *
-     * @param string $database  The database to use.
-     * @param string $buildHash The current build-hash.
+     * @param string $database      The database to use.
+     * @param string $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo|null
      */
-    protected function buildDatabaseMetaInfo(string $database, string $buildHash): ?DatabaseMetaInfo
+    protected function buildDatabaseMetaInfo(string $database, string $buildChecksum): ?DatabaseMetaInfo
     {
         $pdo = $this->di->db->newPDO($database);
         return $this->buildDatabaseMetaInfoX(
             $this->di->db->getConnection(),
             $database,
             $pdo->fetchReuseTableInfo("SELECT * FROM `$database`.`" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
-            $buildHash
+            $buildChecksum
         );
     }
 

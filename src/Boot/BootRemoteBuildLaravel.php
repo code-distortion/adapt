@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
@@ -23,7 +23,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
  */
 class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
 
 
     /**
@@ -108,8 +108,8 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->checkForSourceChanges($remoteConfigDTO->checkForSourceChanges)
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->preCalculatedBuildHash($remoteConfigDTO->preCalculatedBuildHash)
+            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildChecksum($remoteConfigDTO->preCalculatedBuildChecksum)
             ->buildSettings(
                 $remoteConfigDTO->preMigrationImports,
                 $remoteConfigDTO->migrations,

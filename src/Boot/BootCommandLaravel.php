@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
@@ -24,7 +24,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
  */
 class BootCommandLaravel extends BootCommandAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
 
 
     /**
@@ -122,8 +122,8 @@ class BootCommandLaravel extends BootCommandAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->checkForSourceChanges(config("$c.check_for_source_changes"))
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->preCalculatedBuildHash(null)
+            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 config("$c.pre_migration_imports"),
                 config("$c.migrations"),

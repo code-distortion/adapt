@@ -96,13 +96,13 @@ trait DatabaseBuilderTestTrait
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
             ->checkForSourceChanges(true)
-            ->hashPaths([
+            ->checksumPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,
                 $this->wsPreMigrationsDir,
                 $this->wsSeedsDir,
             ])
-            ->preCalculatedBuildHash(null)
+            ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 [],
                 $this->wsMigrationsDir,
@@ -163,8 +163,8 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig(?ConfigDTO $configDTO = null, ?DIContainer $di = null): void
     {
-        // generate a build-hash based on the current look_for_changes_in etc. dirs
-        $this->newHasher($configDTO, $di)->getBuildHash();
+        // generate a build-checksum based on the current look_for_changes_in etc. dirs
+        $this->newHasher($configDTO, $di)->getBuildChecksum();
     }
 
     /**

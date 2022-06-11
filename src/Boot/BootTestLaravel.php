@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
@@ -33,7 +33,7 @@ use Throwable;
  */
 class BootTestLaravel extends BootTestAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
     use HasMutexTrait;
 
     /** @var string[] The paths to the temporary config files, created during browser tests. */
@@ -213,8 +213,8 @@ class BootTestLaravel extends BootTestAbstract
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->checkForSourceChanges($pb->adaptConfig('check_for_source_changes'))
-            ->hashPaths($this->checkLaravelHashPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildHash(null)
+            ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
+            ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 $pb->adaptConfig('pre_migration_imports', 'preMigrationImports'),
                 $pb->adaptConfig('migrations', 'migrations'),

@@ -30,21 +30,21 @@ trait DatabaseTrait
      */
     private function pickDatabaseName(): string
     {
-        $dbNameHashPart = $this->configDTO->usingScenarioTestDBs() ? $this->generateDatabaseNameHashPart() : null;
+        $dbNameChecksumPart = $this->configDTO->usingScenarioTestDBs() ? $this->generateDatabaseNameChecksumPart() : null;
 
-        return $this->dbAdapter()->name->generateDBName($this->configDTO->usingScenarioTestDBs(), $dbNameHashPart);
+        return $this->dbAdapter()->name->generateDBName($this->configDTO->usingScenarioTestDBs(), $dbNameChecksumPart);
     }
 
     /**
-     * Generate a hash to use in the database name.
+     * Generate a checksum to use in the database name.
      *
-     * Based on the source-files hash, extended-scenario hash.
+     * Based on the source-files checksum, extended-scenario checksum.
      *
      * @return string
      */
-    private function generateDatabaseNameHashPart(): string
+    private function generateDatabaseNameChecksumPart(): string
     {
-        return $this->hasher->generateDatabaseNameHashPart(
+        return $this->hasher->generateDatabaseNameChecksumPart(
             $this->configDTO->pickSeedersToInclude(),
             $this->configDTO->databaseModifier
         );

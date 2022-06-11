@@ -44,16 +44,16 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Create and populate the verification table.
      *
-     * @param boolean $createStructureHash Generate hashes of the create-table queries?.
-     * @param boolean $createDataHash      Generate hashes of the table's data?.
+     * @param boolean $createStructureChecksum Generate checksums of the create-table queries?.
+     * @param boolean $createDataChecksum      Generate checksums of the table's data?.
      * @return void
      */
-    public function setUpVerification(bool $createStructureHash, bool $createDataHash): void
+    public function setUpVerification(bool $createStructureChecksum, bool $createDataChecksum): void
     {
         $logTimer = $this->di->log->newTimer();
 
         $this->createVerificationTable();
-        $this->populateVerificationTable($createStructureHash, $createDataHash);
+        $this->populateVerificationTable($createStructureChecksum, $createDataChecksum);
 
         $this->di->log->vDebug("Set up the verification meta-data", $logTimer);
     }
@@ -139,8 +139,8 @@ class LaravelMySQLVerifier implements VerifierInterface
     {
         $query = "CREATE TABLE `" . Settings::VERIFICATION_TABLE . "` ("
             . "`table` varchar(63) NOT NULL, "
-            . "`structure_hash` varchar(32) NULL DEFAULT NULL, "
-            . "`data_hash` varchar(32) NULL DEFAULT NULL, "
+            . "`structure_checksum` varchar(32) NULL DEFAULT NULL, "
+            . "`data_checksum` varchar(32) NULL DEFAULT NULL, "
             . "PRIMARY KEY(`table`)"
             . ")";
         $this->di->db->directExec($query);
@@ -154,7 +154,7 @@ class LaravelMySQLVerifier implements VerifierInterface
     private function getRecordedTableList(): array
     {
         $table = Settings::VERIFICATION_TABLE;
-        $query = "SELECT `table`, `structure_hash`, `data_hash` FROM `$table` ORDER BY `table`";
+        $query = "SELECT `table`, `structure_checksum`, `data_checksum` FROM `$table` ORDER BY `table`";
         $rows = $this->di->db->select($query);
 
         $tables = [];
@@ -167,13 +167,13 @@ class LaravelMySQLVerifier implements VerifierInterface
 
 
     /**
-     * Populate the verification table with hashes and info needed later.
+     * Populate the verification table with checksums and info needed later.
      *
-     * @param boolean $createStructureHash Generate hashes of the create-table queries?.
-     * @param boolean $createDataHash      Generate hashes of the table's data?.
+     * @param boolean $createStructureChecksum Generate checksums of the create-table queries?.
+     * @param boolean $createDataChecksum      Generate checksums of the table's data?.
      * @return void
      */
-    private function populateVerificationTable(bool $createStructureHash, bool $createDataHash): void
+    private function populateVerificationTable(bool $createStructureChecksum, bool $createDataChecksum): void
     {
         $tables = $this->getTableList();
         if (!count($tables)) {
@@ -183,22 +183,22 @@ class LaravelMySQLVerifier implements VerifierInterface
         $placeholders = $values = [];
         foreach ($tables as $table) {
 
-            $tableStructureHash = $createStructureHash
-                ? $this->generateStructureHash($table)
+            $tableStructureChecksum = $createStructureChecksum
+                ? $this->generateStructureChecksum($table)
                 : null;
 
-            $dataHash = $createDataHash
-                ? $this->generateDataHash($table)
+            $dataChecksum = $createDataChecksum
+                ? $this->generateDataChecksum($table)
                 : null;
 
             $placeholders[] = "(?, ?, ?)";
-            $currentValues = [$table, $tableStructureHash, $dataHash];
+            $currentValues = [$table, $tableStructureChecksum, $dataChecksum];
             $values = array_merge($values, $currentValues);
         }
 
         $allPlaceholders = implode(', ', $placeholders);
         $query = "INSERT INTO `" . Settings::VERIFICATION_TABLE . "` "
-            . "(`table`, `structure_hash`, `data_hash`) "
+            . "(`table`, `structure_checksum`, `data_checksum`) "
             . "VALUES $allPlaceholders";
 
         $this->di->db->insert($query, $values);
@@ -207,13 +207,13 @@ class LaravelMySQLVerifier implements VerifierInterface
 
 
     /**
-     * Generate a table's structure hash.
+     * Generate a table's structure checksum.
      *
-     * @param string  $table        The table to generate a hash for.
+     * @param string  $table        The table to generate a checksum for.
      * @param boolean $forceRefresh Will overwrite the internal cache when true.
      * @return string
      */
-    private function generateStructureHash(string $table, bool $forceRefresh = false): string
+    private function generateStructureChecksum(string $table, bool $forceRefresh = false): string
     {
         $query = $this->getCreateTableQuery($table, $forceRefresh);
         $query = $this->removeAutoIncrementFromCreateTableQuery($query);
@@ -265,12 +265,12 @@ class LaravelMySQLVerifier implements VerifierInterface
 
 
     /**
-     * Generate a table's data hash.
+     * Generate a table's data checksum.
      *
-     * @param string $table The table to generate a hash for.
+     * @param string $table The table to generate a checksum for.
      * @return string
      */
-    private function generateDataHash(string $table): string
+    private function generateDataChecksum(string $table): string
     {
         $primaryKey = $this->getPrimaryKey($table);
 
@@ -302,7 +302,7 @@ class LaravelMySQLVerifier implements VerifierInterface
                 throw AdaptVerificationException::tableWasCreated((string) $this->configDTO->database, $table);
             }
 
-            $this->checkTableStructureHash($table, $previousTableList[$table]->structure_hash);
+            $this->checkTableStructureChecksum($table, $previousTableList[$table]->structure_checksum);
 
             // remove so left-over ones can be picked up below
             unset($previousTableList[$table]);
@@ -324,7 +324,7 @@ class LaravelMySQLVerifier implements VerifierInterface
     {
         $previousTableList = $this->getRecordedTableList();
         foreach (array_keys($previousTableList) as $table) {
-            $this->checkTableDataHash($table, $previousTableList[$table]->data_hash);
+            $this->checkTableDataChecksum($table, $previousTableList[$table]->data_checksum);
         }
     }
 
@@ -333,15 +333,15 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Throw an exception if the table's structure has changed.
      *
-     * @param string $table        The table being inspected.
-     * @param string $previousHash What the hash was before.
+     * @param string $table            The table being inspected.
+     * @param string $previousChecksum What the checksum was before.
      * @return void
-     * @throws AdaptVerificationException When the hash doesn't match.
+     * @throws AdaptVerificationException When the checksum doesn't match.
      */
-    private function checkTableStructureHash(string $table, string $previousHash)
+    private function checkTableStructureChecksum(string $table, string $previousChecksum)
     {
-        $currentHash = $this->generateStructureHash($table, true);
-        if ($currentHash == $previousHash) {
+        $currentChecksum = $this->generateStructureChecksum($table, true);
+        if ($currentChecksum == $previousChecksum) {
             return;
         }
         throw AdaptVerificationException::tableStructureHasChanged((string) $this->configDTO->database, $table);
@@ -350,15 +350,15 @@ class LaravelMySQLVerifier implements VerifierInterface
     /**
      * Throw an exception if the table's content has changed.
      *
-     * @param string $table        The table being inspected.
-     * @param string $previousHash What the hash was before.
+     * @param string $table            The table being inspected.
+     * @param string $previousChecksum What the checksum was before.
      * @return void
-     * @throws AdaptVerificationException When the hash doesn't match.
+     * @throws AdaptVerificationException When the checksum doesn't match.
      */
-    private function checkTableDataHash(string $table, string $previousHash)
+    private function checkTableDataChecksum(string $table, string $previousChecksum)
     {
-        $currentHash = $this->generateDataHash($table);
-        if ($currentHash == $previousHash) {
+        $currentChecksum = $this->generateDataChecksum($table);
+        if ($currentChecksum == $previousChecksum) {
             return;
         }
         throw AdaptVerificationException::tableContentHasChanged((string) $this->configDTO->database, $table);

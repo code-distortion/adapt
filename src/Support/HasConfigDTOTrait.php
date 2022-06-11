@@ -48,9 +48,9 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the usage of build-hashes on (or off).
+     * Turn the usage of build-checksums on (or off).
      *
-     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @param boolean $checkForSourceChanges Whether build-checksums should be calculated or not.
      * @return static
      */
     public function checkForSourceChanges(bool $checkForSourceChanges = true): self
@@ -60,7 +60,7 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the usage of build-hashes off.
+     * Turn the usage of build-checksums off.
      *
      * @return static
      */

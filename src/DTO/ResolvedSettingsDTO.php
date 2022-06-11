@@ -69,14 +69,14 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, databases are created for each scenario (based on migrations and seeders etc). */
     public bool $usingScenarios;
 
-    /** @var string|null The calculated build-hash. */
-    public ?string $buildHash;
+    /** @var string|null The calculated build-checksum. */
+    public ?string $buildChecksum;
 
-    /** @var string|null The calculated snapshot scenario-hash. */
-    public ?string $snapshotHash;
+    /** @var string|null The calculated snapshot scenario-checksum. */
+    public ?string $snapshotChecksum;
 
-    /** @var string|null The calculated scenario-hash. */
-    public ?string $scenarioHash;
+    /** @var string|null The calculated scenario-checksum. */
+    public ?string $scenarioChecksum;
 
     /** @var boolean Is a browser test being run?. */
     public bool $isBrowserTest;
@@ -266,23 +266,23 @@ class ResolvedSettingsDTO
     /**
      * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
-     * @param string|null $buildHash      The calculated build-hash.
-     * @param string|null $snapshotHash   The calculated snapshot-hash.
-     * @param string|null $scenarioHash   The calculated scenario-hash.
+     * @param boolean     $usingScenarios   Create databases as needed for the database-scenario?.
+     * @param string|null $buildChecksum    The calculated build-checksum.
+     * @param string|null $snapshotChecksum The calculated snapshot-checksum.
+     * @param string|null $scenarioChecksum The calculated scenario-checksum.
      * @return static
      */
     public function scenarioTestDBs(
         bool $usingScenarios,
-        ?string $buildHash,
-        ?string $snapshotHash,
-        ?string $scenarioHash
+        ?string $buildChecksum,
+        ?string $snapshotChecksum,
+        ?string $scenarioChecksum
     ): self {
 
         $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $buildHash;
-        $this->snapshotHash = $snapshotHash;
-        $this->scenarioHash = $scenarioHash;
+        $this->buildChecksum = $buildChecksum;
+        $this->snapshotChecksum = $snapshotChecksum;
+        $this->scenarioChecksum = $scenarioChecksum;
         return $this;
     }
 
@@ -510,9 +510,9 @@ class ResolvedSettingsDTO
             'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
             'For a browser-test?' => $isBrowserTest,
             'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
-            'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
-            'Snapshot-hash:' => $this->escapeString($this->snapshotHash, 'n/a'),
-            'Scenario-hash:' => $this->escapeString($this->scenarioHash, 'n/a'),
+            'Build-checksum:' => $this->escapeString($this->buildChecksum, 'n/a'),
+            'Snapshot-checksum:' => $this->escapeString($this->snapshotChecksum, 'n/a'),
+            'Scenario-checksum:' => $this->escapeString($this->scenarioChecksum, 'n/a'),
         ]);
     }
 

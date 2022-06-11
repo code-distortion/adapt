@@ -20,12 +20,12 @@ class LaravelSQLiteName implements NameInterface
     /**
      * Build a scenario database name.
      *
-     * @param boolean     $usingScenarios Whether scenarios are being used or not.
-     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
+     * @param boolean     $usingScenarios     Whether scenarios are being used or not.
+     * @param string|null $dbNameChecksumPart The current database part, based on the snapshot checksum.
      * @return string
      * @throws AdaptBuildException When the database name is invalid.
      */
-    public function generateDBName(bool $usingScenarios, ?string $dbNameHashPart): string
+    public function generateDBName(bool $usingScenarios, ?string $dbNameChecksumPart): string
     {
         $database = $this->configDTO->origDatabase;
 
@@ -38,9 +38,9 @@ class LaravelSQLiteName implements NameInterface
         }
 
         if ($usingScenarios) {
-            $dbNameHashPart = str_replace('_', '-', (string) $dbNameHashPart);
+            $dbNameChecksumPart = str_replace('_', '-', (string) $dbNameChecksumPart);
             $filename = $this->pickBaseFilename($database);
-            $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameHashPart . '.sqlite';
+            $filename = $this->configDTO->databasePrefix . $filename . '.' . $dbNameChecksumPart . '.sqlite';
         } else {
             $filename = $database;
         }
@@ -51,13 +51,13 @@ class LaravelSQLiteName implements NameInterface
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
+     * @param string $snapshotFilenameChecksumPart The current filename part, based on the snapshot checksum.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotFilenameHashPart): string
+    public function generateSnapshotPath(string $snapshotFilenameChecksumPart): string
     {
         $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
-        $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotFilenameHashPart . '.sqlite';
+        $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotFilenameChecksumPart . '.sqlite';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }

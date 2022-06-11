@@ -35,7 +35,7 @@ class Settings
     public const REUSE_TABLE = self::ADAPT_TABLE_PREFIX . '___';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    public const REUSE_TABLE_VERSION = '5';
+    public const REUSE_TABLE_VERSION = '6';
 
 
 
@@ -111,25 +111,25 @@ class Settings
     /**
      * Get a recently resolved ResolvedSettingsDTO.
      *
-     * @param string|null $currentScenarioHash The scenario-hash to return for.
+     * @param string|null $currentScenarioChecksum The scenario-checksum to return for.
      * @return ResolvedSettingsDTO|null
      */
-    public static function getResolvedSettingsDTO(?string $currentScenarioHash): ?ResolvedSettingsDTO
+    public static function getResolvedSettingsDTO(?string $currentScenarioChecksum): ?ResolvedSettingsDTO
     {
-        return Settings::$resolvedSettingsDTOs[$currentScenarioHash] ?? null;
+        return Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] ?? null;
     }
 
     /**
      * Store recently resolved ResolvedSettingsDTO for reference later.
      *
-     * @param string|null         $currentScenarioHash The scenario-hash to store this against.
-     * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
+     * @param string|null         $currentScenarioChecksum The scenario-checksum to store this against.
+     * @param ResolvedSettingsDTO $resolvedSettingsDTO     A recently resolved ResolvedSettingsDTO.
      * @return void
      */
     public static function storeResolvedSettingsDTO(
-        ?string $currentScenarioHash,
+        ?string $currentScenarioChecksum,
         ResolvedSettingsDTO $resolvedSettingsDTO
     ): void {
-        Settings::$resolvedSettingsDTOs[$currentScenarioHash] = $resolvedSettingsDTO;
+        Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
     }
 }

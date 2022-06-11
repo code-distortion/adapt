@@ -6,23 +6,23 @@ use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 
 /**
- * Injectable class to generate and check hashes.
+ * Injectable class to generate and check checksums.
  */
 class Hasher
 {
     use InjectTrait;
 
-    /** @var string|null Hash of all files that CAN be used to build databases - which may affect the db when changed. */
-    private static ?string $buildHash = null;
+    /** @var string|null Checksum of all files that CAN be used to build databases - which may affect the db when changed. */
+    private static ?string $buildChecksum = null;
 
-    /** @var string[] Build-hashes of remote Adapt installations. */
-    private static array $remoteBuildHashes = [];
+    /** @var string[] Build-checksums of remote Adapt installations. */
+    private static array $remoteBuildChecksums = [];
 
-    /** @var string|null The scenario-hash representing the way the database is to be built. */
-    private ?string $currentScenarioHash = null;
+    /** @var string|null The scenario-checksum representing the way the database is to be built. */
+    private ?string $currentScenarioChecksum = null;
 
-    /** @var string|null The snapshot scenario-hash representing the way the database is to be built. */
-    private ?string $currentSnapshotHash = null;
+    /** @var string|null The snapshot scenario-checksum representing the way the database is to be built. */
+    private ?string $currentSnapshotChecksum = null;
 
 
 
@@ -33,93 +33,93 @@ class Hasher
      */
     public static function resetStaticProps(): void
     {
-        self::$buildHash = null;
-        self::$remoteBuildHashes = [];
+        self::$buildChecksum = null;
+        self::$remoteBuildChecksums = [];
     }
 
 
 
     /**
-     * Allow the pre-calculated build-hash to be passed in (if it has in fact been pre-calculated).
+     * Allow the pre-calculated build-checksum to be passed in (if it has in fact been pre-calculated).
      *
-     * @param string|null $buildHash The pre-calculated build-hash (or null).
+     * @param string|null $buildChecksum The pre-calculated build-checksum (or null).
      * @return void
      */
-    public static function buildHashWasPreCalculated(?string $buildHash): void
+    public static function buildChecksumWasPreCalculated(?string $buildChecksum): void
     {
-        if (!$buildHash) {
+        if (!$buildChecksum) {
             return;
         }
-        self::$buildHash = $buildHash;
+        self::$buildChecksum = $buildChecksum;
     }
 
 
 
     /**
-     * A remote Adapt installation generated a build-hash. Remember it for subsequent requests (to save on build-time).
+     * A remote Adapt installation generated a build-checksum. Remember it for subsequent requests (to save on build-time).
      *
      * @param string $remoteBuildUrl The remote-build url.
-     * @param string $buildHash      The build-hash that the remote Adapt installation calculated.
+     * @param string $buildChecksum  The build-checksum that the remote Adapt installation calculated.
      * @return void
      */
-    public static function rememberRemoteBuildHash(string $remoteBuildUrl, string $buildHash): void
+    public static function rememberRemoteBuildChecksum(string $remoteBuildUrl, string $buildChecksum): void
     {
-        self::$remoteBuildHashes[$remoteBuildUrl] = $buildHash;
+        self::$remoteBuildChecksums[$remoteBuildUrl] = $buildChecksum;
     }
 
     /**
-     * Retrieve the cached remote-build hash value (if it's been set).
+     * Retrieve the cached remote-build checksum value (if it's been set).
      *
      * @param string $remoteBuildUrl The remote-build url.
      * @return string|null
      */
-    public static function getRemoteBuildHash(string $remoteBuildUrl): ?string
+    public static function getRemoteBuildChecksum(string $remoteBuildUrl): ?string
     {
-        return self::$remoteBuildHashes[$remoteBuildUrl] ?? null;
+        return self::$remoteBuildChecksums[$remoteBuildUrl] ?? null;
     }
 
 
 
     /**
-     * Generate the build-hash part for snapshot filenames.
+     * Generate the build-checksum part for snapshot filenames.
      *
-     * @param boolean $useBuildHash Use the current build-hash (if available).
-     * @param boolean $force        Force the build-hash to be generated, even if it's turned off via the config.
+     * @param boolean $useBuildChecksum Use the current build-checksum (if available).
+     * @param boolean $force            Force the build-checksum to be generated, even if it's turned off via the config.
      * @return string
      */
-    public function getBuildHashFilenamePart(bool $useBuildHash = true, bool $force = false): string
+    public function getBuildChecksumFilenamePart(bool $useBuildChecksum = true, bool $force = false): string
     {
-        $buildHash = $useBuildHash && $this->getBuildHash($force)
-            ? $this->getBuildHash($force)
+        $buildChecksum = $useBuildChecksum && $this->getBuildChecksum($force)
+            ? $this->getBuildChecksum($force)
             : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
-        return mb_substr($buildHash, 0, 6);
+        return mb_substr($buildChecksum, 0, 6);
     }
 
 
 
     /**
-     * Resolve the current build-hash.
+     * Resolve the current build-checksum.
      *
-     * @param boolean $force Force the build-hash to be generated, even if it's turned off via the config.
+     * @param boolean $force Force the build-checksum to be generated, even if it's turned off via the config.
      * @return string|null
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    public function getBuildHash(bool $force = false): ?string
+    public function getBuildChecksum(bool $force = false): ?string
     {
         if ($force) {
-            return self::$buildHash ??= $this->generateBuildHash();
+            return self::$buildChecksum ??= $this->generateBuildChecksum();
         }
 
         if (!$this->configDTO->checkForSourceChanges || !$this->configDTO->dbSupportsReUse) {
             return null;
         }
 
-        return self::$buildHash ??= $this->generateBuildHash();
+        return self::$buildChecksum ??= $this->generateBuildChecksum();
     }
 
     /**
-     * Build a hash based on the source files (and the database name prefix).
+     * Build a checksum based on the source files (and the database name prefix).
      *
      * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "x" part.
      * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "x" part.
@@ -127,25 +127,25 @@ class Hasher
      * @return string
      * @throws AdaptConfigException When a directory or file could not be opened.
      */
-    private function generateBuildHash(): string
+    private function generateBuildChecksum(): string
     {
         $logTimer = $this->di->log->newTimer();
 
         $paths = $this->buildListOfBuildFiles();
-        $hashes = $this->hashFiles($paths);
+        $fileChecksums = $this->checksumFiles($paths);
 
-        $buildHash = md5(serialize([
-            'fileHashes' => $hashes,
+        $buildChecksum = md5(serialize([
+            'fileChecksum' => $fileChecksums,
             'databasePrefix' => $this->configDTO->databasePrefix,
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
         $this->di->log->vDebug(
-            'Generated the build-hash - of the files that can be used to build the database',
+            'Generated the build-checksum - of the files that can be used to build the database',
             $logTimer
         );
 
-        return $buildHash;
+        return $buildChecksum;
     }
 
     /**
@@ -158,29 +158,29 @@ class Hasher
         $paths = array_unique(array_filter(array_merge(
             $this->resolvePreMigrationPaths(),
             $this->resolveMigrationPaths(),
-            $this->resolveHashFilePaths()
+            $this->resolveChecksumFilePaths()
         )));
         sort($paths);
         return $paths;
     }
 
     /**
-     * Look for paths to hash from the hash-paths list.
+     * Look for paths to checksum from the checksum-paths list.
      *
      * @return string[]
      * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
-    private function resolveHashFilePaths(): array
+    private function resolveChecksumFilePaths(): array
     {
         return $this->resolvePaths(
-            $this->configDTO->hashPaths,
+            $this->configDTO->checksumPaths,
             true,
             'databaseRelatedFilesPathInvalid'
         );
     }
 
     /**
-     * Look for pre-migration paths to hash.
+     * Look for pre-migration paths to checksum.
      *
      * @return string[]
      * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
@@ -195,7 +195,7 @@ class Hasher
     }
 
     /**
-     * Look for migration paths to hash.
+     * Look for migration paths to checksum.
      *
      * @return string[]
      * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
@@ -211,7 +211,7 @@ class Hasher
     }
 
     /**
-     * Look for paths to hash.
+     * Look for paths to checksum.
      *
      * @param string[] $paths           A set of paths to use or look for files in.
      * @param boolean  $dirAllowed      Recurse into directories?.
@@ -232,7 +232,7 @@ class Hasher
     }
 
     /**
-     * Check that the given path is ready for hashing.
+     * Check that the given path is ready for checksum generation.
      *
      * @param string  $path            The path to use or look for files in.
      * @param boolean $dirAllowed      Recurse into directories?.
@@ -266,34 +266,34 @@ class Hasher
 
 
     /**
-     * Take the list of files and generate a hash for the contents of each.
+     * Take the list of files and generate a checksum for the contents of each.
      *
-     * @param string[] $paths The files to hash.
+     * @param string[] $paths The files to checksum.
      * @return array<string, string|null>
      */
-    private function hashFiles(array $paths): array
+    private function checksumFiles(array $paths): array
     {
-        $hashes = [];
+        $checksums = [];
         foreach ($paths as $path) {
-            $hashes[$path] = $this->di->filesystem->md5File($path);
+            $checksums[$path] = $this->di->filesystem->md5File($path);
         }
-        return $hashes;
+        return $checksums;
     }
 
 
 
     /**
-     * Resolve the current snapshot scenario-hash.
+     * Resolve the current snapshot scenario-checksum.
      *
      * @return string|null
      */
-    public function currentSnapshotHash(): ?string
+    public function currentSnapshotChecksum(): ?string
     {
-        return $this->currentSnapshotHash ??= $this->generateSnapshotHash($this->configDTO->pickSeedersToInclude());
+        return $this->currentSnapshotChecksum ??= $this->generateSnapshotChecksum($this->configDTO->pickSeedersToInclude());
     }
 
     /**
-     * Generate the snapshot scenario-hash, based on the way this DatabaseBuilder will build this database.
+     * Generate the snapshot scenario-checksum, based on the way this DatabaseBuilder will build this database.
      *
      * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "y" part.
      *
@@ -303,7 +303,7 @@ class Hasher
      * @param string[] $seeders The seeders that will be run.
      * @return string|null
      */
-    private function generateSnapshotHash(array $seeders): ?string
+    private function generateSnapshotChecksum(array $seeders): ?string
     {
         if (!$this->configDTO->dbSupportsSnapshots) {
             return null;
@@ -323,34 +323,34 @@ class Hasher
 
 
     /**
-     * Resolve the current scenario-hash.
+     * Resolve the current scenario-checksum.
      *
      * @return string|null
      */
-    public function currentScenarioHash(): ?string
+    public function currentScenarioChecksum(): ?string
     {
-        return $this->currentScenarioHash ??= $this->generateScenarioHash($this->configDTO->pickSeedersToInclude());
+        return $this->currentScenarioChecksum ??= $this->generateScenarioChecksum($this->configDTO->pickSeedersToInclude());
     }
 
     /**
-     * Generate an extended scenario hash.
+     * Generate an extended scenario checksum.
      *
      * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "y" part.
      *
-     * It's based on the settings *being used in this situation*: snapshot hash, project-name, original-database name,
+     * It's based on the settings *being used in this situation*: snapshot checksum, project-name, original-database name,
      * is-browser-test setting, database reusability (transaction and journal) settings, and verification setting.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string|null
      */
-    private function generateScenarioHash(array $seeders): ?string
+    private function generateScenarioChecksum(array $seeders): ?string
     {
         if (!$this->configDTO->usingScenarioTestDBs()) {
             return null;
         }
 
         return md5(serialize([
-            'snapshotHash' => $this->generateSnapshotHash($seeders),
+            'snapshotChecksum' => $this->generateSnapshotChecksum($seeders),
             'projectName' => $this->configDTO->projectName,
 //            'connection' => $this->configDTO->connection, // not included, so that multiple connections can share
             'origDatabase' => $this->configDTO->origDatabase,
@@ -365,25 +365,25 @@ class Hasher
 
 
     /**
-     * Check to see if the current build-hash is present in the filename.
+     * Check to see if the current build-checksum is present in the filename.
      *
      * e.g. "snapshot.db.ef7aa7-1e6855bc44ee.mysql".
      *
      * @param string $filename The prefix that needs to be found.
      * @return boolean
      */
-    public function filenameHasBuildHash(string $filename): bool
+    public function filenameHasBuildChecksum(string $filename): bool
     {
-        // let the filename match the current build-hash, and also the null build-hash
-        $buildHashParts = [
-            $this->getBuildHashFilenamePart(true, true),
-            $this->getBuildHashFilenamePart(false)
+        // let the filename match the current build-checksum, and also the null build-checksum
+        $buildChecksumParts = [
+            $this->getBuildChecksumFilenamePart(true, true),
+            $this->getBuildChecksumFilenamePart(false)
         ];
 
-        foreach ($buildHashParts as $buildHashPart) {
+        foreach ($buildChecksumParts as $buildChecksumPart) {
 
             $matched = (bool) preg_match(
-                '/^.+\.' . preg_quote($buildHashPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
+                '/^.+\.' . preg_quote($buildChecksumPart) . '[^0-9a-f][0-9a-f]+\.[^\.]+$/',
                 $filename
             );
 
@@ -395,33 +395,33 @@ class Hasher
     }
 
     /**
-     * Generate a hash to use in a snapshot filename.
+     * Generate a checksum to use in a snapshot filename.
      *
      * @param string[] $seeders The seeders that are included in the snapshot.
      * @return string
      */
-    public function generateSnapshotFilenameHashPart(array $seeders): string
+    public function generateSnapshotFilenameChecksumPart(array $seeders): string
     {
         return $this->joinNameParts([
-            $this->getBuildHashFilenamePart(),
-            mb_substr((string) $this->generateSnapshotHash($seeders), 0, 12),
+            $this->getBuildChecksumFilenamePart(),
+            mb_substr((string) $this->generateSnapshotChecksum($seeders), 0, 12),
         ]);
     }
 
     /**
-     * Generate a hash to use in the database name.
+     * Generate a checksum to use in the database name.
      *
-     * Based on the source-files hash, extended-scenario hash.
+     * Based on the source-files checksum, extended-scenario checksum.
      *
      * @param string[] $seeders          The seeders that will be run.
      * @param string   $databaseModifier The modifier to use (e.g. ParaTest suffix).
      * @return string
      */
-    public function generateDatabaseNameHashPart(array $seeders, string $databaseModifier): string
+    public function generateDatabaseNameChecksumPart(array $seeders, string $databaseModifier): string
     {
         return $this->joinNameParts([
-            $this->getBuildHashFilenamePart(),
-            mb_substr((string) $this->generateScenarioHash($seeders), 0, 12),
+            $this->getBuildChecksumFilenamePart(),
+            mb_substr((string) $this->generateScenarioChecksum($seeders), 0, 12),
             $databaseModifier,
         ]);
     }

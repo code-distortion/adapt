@@ -18,20 +18,20 @@ class LaravelMySQLName implements NameInterface
     /**
      * Build a scenario database name.
      *
-     * @param boolean     $usingScenarios Whether scenarios are being used or not.
-     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
+     * @param boolean     $usingScenarios     Whether scenarios are being used or not.
+     * @param string|null $dbNameChecksumPart The current database part, based on the snapshot checksum.
      * @return string
      * @throws AdaptBuildException When the database name is invalid.
      */
-    public function generateDBName(bool $usingScenarios, ?string $dbNameHashPart): string
+    public function generateDBName(bool $usingScenarios, ?string $dbNameChecksumPart): string
     {
         if (!$usingScenarios) {
             $this->validateDBName($this->configDTO->origDatabase);
             return $this->configDTO->origDatabase;
         }
 
-        $dbNameHashPart = str_replace('-', '_', (string) $dbNameHashPart);
-        $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameHashPart;
+        $dbNameChecksumPart = str_replace('-', '_', (string) $dbNameChecksumPart);
+        $database = $this->configDTO->databasePrefix . $this->configDTO->origDatabase . '_' . $dbNameChecksumPart;
         $this->validateDBName($database);
         return $database;
     }
@@ -39,13 +39,13 @@ class LaravelMySQLName implements NameInterface
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
+     * @param string $snapshotFilenameChecksumPart The current filename part, based on the snapshot checksum.
      * @return string
      */
-    public function generateSnapshotPath(string $snapshotFilenameHashPart): string
+    public function generateSnapshotPath(string $snapshotFilenameChecksumPart): string
     {
         $prefix = $this->configDTO->snapshotPrefix;
-        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameHashPart . '.mysql';
+        $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameChecksumPart . '.mysql';
         $filename = str_replace('_', '-', $filename);
         return $this->configDTO->storageDir . '/' . $filename;
     }
