@@ -11,7 +11,9 @@ use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
@@ -122,10 +124,24 @@ trait InitialiseAdapt
 
 
 
+        // unset Artisan, to not interfere with mocks inside tests
+        $unsetArtisan = function () {
+            /** @var \Illuminate\Contracts\Console\Kernel $kernel */
+            $kernel = $this->app[Kernel::class];
+            method_exists($kernel, 'setArtisan')
+                ? $kernel->setArtisan(null)
+                : PHPSupport::updatePrivateProperty($kernel, 'artisan', null);
+        };
+
+
+
         // tell the test to run the set-up and tear-down methods at the right time
         /** @var $this LaravelTestCase */
-        $this->afterApplicationCreated(function () {
+        $this->afterApplicationCreated(function () use ($unsetArtisan) {
+
             $this->adaptPreBootTestLaravel->adaptSetUp();
+            $unsetArtisan();
+
             $this->beforeApplicationDestroyed(fn() => $this->adaptPreBootTestLaravel->adaptTearDown());
         });
     }
