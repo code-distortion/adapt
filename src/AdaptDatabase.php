@@ -178,7 +178,7 @@ trait AdaptDatabase
 //        // you can override them with any of the following…
 //        $builder
 //            ->connection('primary') // specify another connection to build a db for
-//            ->cacheInvalidationMethod('content') // or ->cacheInvalidationMethodOff()
+//            ->cacheInvalidationMethod('content') // or ->noCacheInvalidationMethod()
 //            ->initialImports($initialImports) // or ->noInitialImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()

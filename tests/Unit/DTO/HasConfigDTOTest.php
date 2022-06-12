@@ -81,8 +81,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
                     'cacheInvalidationMethod' => null,
                 ],
             ],
-            'cacheInvalidationMethodOff' => [
-                'method' => 'cacheInvalidationMethodOff',
+            'noCacheInvalidationMethod' => [
+                'method' => 'noCacheInvalidationMethod',
                 'params' => [],
                 'outcome' => [
                     'cacheInvalidationMethod' => null,

@@ -64,7 +64,7 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
-    public function cacheInvalidationMethodOff(): self
+    public function noCacheInvalidationMethod(): self
     {
         $this->configDTO->cacheInvalidationMethod(null);
         return $this;
@@ -90,7 +90,7 @@ trait HasConfigDTOTrait
      */
     public function dontCheckForSourceChanges(): self
     {
-        return $this->cacheInvalidationMethodOff();
+        return $this->noCacheInvalidationMethod();
     }
 
     /**
