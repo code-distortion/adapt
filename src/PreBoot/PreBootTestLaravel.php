@@ -77,19 +77,29 @@ class PreBootTestLaravel
      * @return void
      * @throws Throwable When something goes wrong.
      */
-    public function adaptSetUp(): void
-    {
+    public function adaptSetUp(
+        callable $beforeRefreshingDatabase,
+        callable $afterRefreshingDatabase,
+        callable $unsetArtisan
+    ): void {
+
         // the logger needs Laravel's config settings to be built,
         // so it needs to be built here instead of earlier in the constructor
         // (as Laravel hadn't booted by that point)
         $this->log = $this->newLog();
 
         try {
+
             $this->prepareLaravelConfig();
+
+            $beforeRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
 
             $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
             $this->adaptBootTestLaravel->runBuildSteps();
             $this->adaptBootTestLaravel->runPostBuildSteps();
+
+            $afterRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
+            $unsetArtisan(); // unset Artisan, so as to not interfere with mocks inside tests
 
         } catch (Throwable $e) {
             Exceptions::logException($this->log, $e, true);

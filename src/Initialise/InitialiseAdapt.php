@@ -100,8 +100,6 @@ trait InitialiseAdapt
             }
         }
 
-
-
         // allow for a custom build process via this test class's databaseInit(…) method
         // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
@@ -124,7 +122,19 @@ trait InitialiseAdapt
             $this instanceof DuskTestCase
         );
 
+        // callback - for compatability with Laravel's `RefreshDatabase`
+        $beforeRefreshingDatabase = function () {
+            if (method_exists($this, 'beforeRefreshingDatabase')) {
+                $this->beforeRefreshingDatabase();
+            }
+        };
 
+        // callback - for compatability with Laravel's `RefreshDatabase`
+        $afterRefreshingDatabase = function () {
+            if (method_exists($this, 'afterRefreshingDatabase')) {
+                $this->afterRefreshingDatabase();
+            }
+        };
 
         // unset Artisan, so as to not interfere with mocks inside tests
         $unsetArtisan = function () {
@@ -139,13 +149,20 @@ trait InitialiseAdapt
 
         // tell the test to run the set-up and tear-down methods at the right time
         /** @var $this LaravelTestCase */
-        $this->afterApplicationCreated(function () use ($unsetArtisan) {
+        $this->afterApplicationCreated(
+            function () use ($beforeRefreshingDatabase, $afterRefreshingDatabase, $unsetArtisan) {
 
-            $this->adaptPreBootTestLaravel->adaptSetUp();
-            $unsetArtisan();
+                $this->adaptPreBootTestLaravel->adaptSetUp(
+                    $beforeRefreshingDatabase,
+                    $afterRefreshingDatabase,
+                    $unsetArtisan
+                );
 
-            $this->beforeApplicationDestroyed(fn() => $this->adaptPreBootTestLaravel->adaptTearDown());
-        });
+                $this->beforeApplicationDestroyed(
+                    fn() => $this->adaptPreBootTestLaravel->adaptTearDown()
+                );
+            }
+        );
     }
 
 
