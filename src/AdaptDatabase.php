@@ -198,5 +198,5 @@ trait AdaptDatabase
 //            ->initialImports($initialImports) // or ->noInitialImports()
 //            // …
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
-//    }another
+//    }
 }
