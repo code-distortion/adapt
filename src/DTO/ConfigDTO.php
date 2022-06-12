@@ -1008,6 +1008,10 @@ class ConfigDTO
      */
     public function snapshotType(): ?string
     {
+        if (!$this->dbSupportsSnapshots) {
+            return null;
+        }
+
         $snapshotType = $this->reusingDB()
             ? $this->useSnapshotsWhenReusingDB
             : $this->useSnapshotsWhenNotReusingDB;
