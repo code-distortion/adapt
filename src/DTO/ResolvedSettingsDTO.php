@@ -493,22 +493,22 @@ class ResolvedSettingsDTO
         );
 
         $reuseTypes = array_filter([
-            $this->transactionReusable ? 'transaction' : '',
-            $this->journalReusable ? 'journal' : '',
+            $this->transactionReusable ? 'Transaction' : '',
+            $this->journalReusable ? 'Journal' : '',
         ]);
         $isReusable = $this->renderBoolean(
             (bool) count($reuseTypes),
-            'Yes - ' . implode(', ', $reuseTypes),
-            'No, it will be rebuilt for each test'
+            implode(', ', $reuseTypes),
+            'None, it will be rebuilt for each test'
         );
 
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            'Database is reusable?' => $isReusable,
+            'Re-use type:' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
-            'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
-            'For a browser-test?' => $isBrowserTest,
+            'Verify db after?' => $this->renderBoolean($this->verifyDatabase),
+            'For a browser test?' => $isBrowserTest,
             'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
             'Build-checksum:' => $this->escapeString($this->buildChecksum, 'n/a'),
             'Snapshot-checksum:' => $this->escapeString($this->snapshotChecksum, 'n/a'),

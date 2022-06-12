@@ -17,7 +17,7 @@ trait LogTrait
      */
     private function logTitle(): void
     {
-        $prepLine = "Preparing the database for connection \"{$this->configDTO->connection}\"";
+        $prepLine = "Preparing a database for connection \"{$this->configDTO->connection}\"";
         if ($this->configDTO->shouldBuildRemotely()) {
             $prepLine .= " remotely";
         } elseif ($this->configDTO->isRemoteBuild) {
@@ -26,7 +26,7 @@ trait LogTrait
 
         $this->di->log->logBox(
             [$prepLine, "For test \"{$this->configDTO->testName}\""],
-            'ADAPT (v' . Settings::PACKAGE_VERSION . ') - Preparing a Test-Database',
+            'ADAPT (v' . Settings::PACKAGE_VERSION . ')',
             'vDebug',
         );
     }
