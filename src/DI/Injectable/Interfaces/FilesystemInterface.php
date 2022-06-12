@@ -119,6 +119,14 @@ interface FilesystemInterface
     public function md5File(string $path): ?string;
 
     /**
+     * Find the time when the file was last modified.
+     *
+     * @param string $path The path of the file to check.
+     * @return integer|null
+     */
+    public function fileModifiedTime(string $path): ?int;
+
+    /**
      * Get the size of the file in bytes.
      *
      * @param string $path The path of the file to get the size of.

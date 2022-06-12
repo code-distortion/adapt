@@ -178,6 +178,18 @@ class Filesystem implements FilesystemInterface
     }
 
     /**
+     * Find the time when the file was last modified.
+     *
+     * @param string $path The path of the file to check.
+     * @return integer|null
+     */
+    public function fileModifiedTime(string $path): ?int
+    {
+        $return = filemtime($path);
+        return is_int($return) ? $return : null;
+    }
+
+    /**
      * Get the size of the file in bytes.
      *
      * @param string $path The path of the file to get the size of.

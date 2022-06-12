@@ -107,7 +107,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($remoteConfigDTO->checkForSourceChanges)
+            ->cacheInvalidationMethod(config("$c.cache_invalidation_method"))
             ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildChecksum($remoteConfigDTO->preCalculatedBuildChecksum)
             ->buildSettings(

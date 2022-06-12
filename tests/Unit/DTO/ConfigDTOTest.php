@@ -84,9 +84,27 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['databasePrefix' => 'test-'],
             ],
 
-            'checkForSourceChanges' => [
-                'method' => 'checkForSourceChanges',
-                'params' => ['checkForSourceChanges' => true],
+            'cacheInvalidationMethod 1' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => 'content'],
+            ],
+            'cacheInvalidationMethod 2' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => 'modified'],
+            ],
+            'cacheInvalidationMethod 3' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => null],
+            ],
+            'cacheInvalidationMethod 4' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => true],
+                'outcome' => ['cacheInvalidationMethod' => 'content'],
+            ],
+            'cacheInvalidationMethod 5' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => false],
+                'outcome' => ['cacheInvalidationMethod' => null],
             ],
 
             'checksumPaths' => [
@@ -107,6 +125,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => 'https://something',
                     'isBrowserTest' => true,
+                    'isParallelTest' => true,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,
@@ -120,6 +139,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isParallelTest' => true,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'file',
                     'remoteCallerSessionDriver' => 'database',
@@ -133,6 +153,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => false,
+                    'isParallelTest' => false,
                     'isRemoteBuild' => true,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,
@@ -146,6 +167,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isParallelTest' => false,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,

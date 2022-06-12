@@ -48,26 +48,49 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the usage of build-checksums on (or off).
+     * Set the method to use when checking for source-file changes.
      *
+     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
+     * @return static
+     */
+    public function cacheInvalidationMethod($cacheInvalidationMethod): self
+    {
+        $this->configDTO->cacheInvalidationMethod($cacheInvalidationMethod);
+        return $this;
+    }
+
+    /**
+     * Turn checking for source-file changes off.
+     *
+     * @return static
+     */
+    public function cacheInvalidationMethodOff(): self
+    {
+        $this->configDTO->cacheInvalidationMethod(null);
+        return $this;
+    }
+
+    /**
+     * Set the method to use when checking for source-file changes.
+     *
+     * @deprecated
      * @param boolean $checkForSourceChanges Whether build-checksums should be calculated or not.
      * @return static
      */
     public function checkForSourceChanges(bool $checkForSourceChanges = true): self
     {
-        $this->configDTO->checkForSourceChanges = $checkForSourceChanges;
-        return $this;
+        return $this->cacheInvalidationMethod($checkForSourceChanges);
     }
 
     /**
-     * Turn the usage of build-checksums off.
+     * Turn checking for source-file changes off.
      *
+     * @deprecated
      * @return static
      */
     public function dontCheckForSourceChanges(): self
     {
-        $this->configDTO->checkForSourceChanges = false;
-        return $this;
+        return $this->cacheInvalidationMethodOff();
     }
 
     /**

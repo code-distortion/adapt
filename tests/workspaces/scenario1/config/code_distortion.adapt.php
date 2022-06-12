@@ -199,7 +199,7 @@ return [
     |
     */
 
-    'check_for_source_changes' => env('ADAPT_CHECK_FOR_SOURCE_CHANGES', true),
+    'cache_invalidation_method' => env('ADAPT_CACHE_INVALIDATION_METHOD', 'content'),
 
     /*
     |--------------------------------------------------------------------------

@@ -46,25 +46,46 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'checkForSourceChanges 1' => [
-                'method' => 'checkForSourceChanges',
+            'cacheInvalidationMethod 1' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['content'],
+                'outcome' => [
+                    'cacheInvalidationMethod' => 'content',
+                ],
+            ],
+            'cacheInvalidationMethod 2' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['modified'],
+                'outcome' => [
+                    'cacheInvalidationMethod' => 'modified',
+                ],
+            ],
+            'cacheInvalidationMethod 3' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => [null],
+                'outcome' => [
+                    'cacheInvalidationMethod' => null,
+                ],
+            ],
+            'cacheInvalidationMethod 4' => [
+                'method' => 'cacheInvalidationMethod',
                 'params' => [true],
                 'outcome' => [
-                    'checkForSourceChanges' => true,
+                    'cacheInvalidationMethod' => 'content',
                 ],
             ],
-            'checkForSourceChanges 2' => [
-                'method' => 'checkForSourceChanges',
+            'cacheInvalidationMethod 5' => [
+                'method' => 'cacheInvalidationMethod',
                 'params' => [false],
                 'outcome' => [
-                    'checkForSourceChanges' => false,
+                    'cacheInvalidationMethod' => null,
                 ],
             ],
-            'dontCheckForSourceChanges' => [
-                'method' => 'dontCheckForSourceChanges',
+            'cacheInvalidationMethodOff' => [
+                'method' => 'cacheInvalidationMethodOff',
                 'params' => [],
                 'outcome' => [
-                    'checkForSourceChanges' => false,
+                    'cacheInvalidationMethod' => null,
                 ],
             ],
 

@@ -217,7 +217,7 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($pb->adaptConfig('check_for_source_changes'))
+            ->cacheInvalidationMethod($pb->adaptConfig('cache_invalidation_method'))
             ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(

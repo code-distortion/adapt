@@ -96,7 +96,7 @@ trait DatabaseBuilderTestTrait
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
-            ->checkForSourceChanges(true)
+            ->cacheInvalidationMethod('content')
             ->checksumPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,

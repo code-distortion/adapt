@@ -55,8 +55,8 @@ class ConfigDTO
     /** @var string The prefix to add to database names. */
     public string $databasePrefix;
 
-    /** @var boolean Turn the usage of build-checksums on or off. */
-    public bool $checkForSourceChanges;
+    /** @var string|null The method to check source-files for changes - 'content' / 'modified' / null. */
+    public ?string $cacheInvalidationMethod;
 
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
     public array $checksumPaths;
@@ -317,14 +317,19 @@ class ConfigDTO
     }
 
     /**
-     * Turn the usage of build-checksums on or off.
+     * Set the method to use when checking for source-file changes.
      *
-     * @param boolean $checkForSourceChanges Whether build-checksums should be calculated or not.
+     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
      * @return static
      */
-    public function checkForSourceChanges(bool $checkForSourceChanges): self
+    public function cacheInvalidationMethod($cacheInvalidationMethod): self
     {
-        $this->checkForSourceChanges = $checkForSourceChanges;
+        if (in_array($cacheInvalidationMethod, ['content', 'modified', null], true)) {
+            $this->cacheInvalidationMethod = $cacheInvalidationMethod;
+        } else {
+            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'content' : null;
+        }
+
         return $this;
     }
 

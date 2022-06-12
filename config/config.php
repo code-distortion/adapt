@@ -183,9 +183,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Check for source file changes
+    | Check for source file changes @todo
     |--------------------------------------------------------------------------
     |
+    | This is the method used to detect when files change that will affect the
+    | way databases are built. (like migrations, seeders and factories).
+    |
+    | 'content' will be more reliable
+    | 'modified' will be quicker
+
     | Adapt detects when changes are made to the files that build your
     | databases. These include initial-imports, migrations, seeders
     | and factories.
@@ -195,11 +201,19 @@ return [
     |
     | You can remove old databases by running: "php artisan adapt:remove"
     |
-    | boolean
+    | The checksum method to use when generating checksums of files, and is
+    | used to work out when files (like migrations, seeders and factories)
+    | have changed.
+    |
+    | 'content' will be more reliable
+    | 'modified' will be quicker
+    | null - turned off
+    |
+    | ?string - 'content' / 'modified' / null
     |
     */
 
-    'check_for_source_changes' => env('ADAPT_CHECK_FOR_SOURCE_CHANGES', true),
+    'cache_invalidation_method' => env('ADAPT_CACHE_INVALIDATION_METHOD', 'content'),
 
     /*
     |--------------------------------------------------------------------------

@@ -99,11 +99,11 @@ abstract class AbstractFind implements FindInterface
     /**
      * Build DatabaseMetaInfo objects for a database.
      *
-     * @param string $database      The database to use.
-     * @param string $buildChecksum The current build-checksum.
+     * @param string      $database      The database to use.
+     * @param string|null $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo|null
      */
-    abstract protected function buildDatabaseMetaInfo(string $database, string $buildChecksum): ?DatabaseMetaInfo;
+    abstract protected function buildDatabaseMetaInfo(string $database, ?string $buildChecksum): ?DatabaseMetaInfo;
 
     /**
      * Build DatabaseMetaInfo objects for a database.

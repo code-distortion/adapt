@@ -18,11 +18,11 @@ class Hasher
     /** @var string[] Build-checksums of remote Adapt installations. */
     private static array $remoteBuildChecksums = [];
 
-    /** @var string|null The scenario-checksum representing the way the database is to be built. */
-    private ?string $currentScenarioChecksum = null;
-
     /** @var string|null The snapshot scenario-checksum representing the way the database is to be built. */
     private ?string $currentSnapshotChecksum = null;
+
+    /** @var string|null The scenario-checksum representing the way the database is to be built. */
+    private ?string $currentScenarioChecksum = null;
 
 
 
@@ -111,7 +111,7 @@ class Hasher
             return self::$buildChecksum ??= $this->generateBuildChecksum();
         }
 
-        if (!$this->configDTO->checkForSourceChanges || !$this->configDTO->dbSupportsReUse) {
+        if (!$this->configDTO->cacheInvalidationMethod || !$this->configDTO->dbSupportsReUse) {
             return null;
         }
 
@@ -132,16 +132,19 @@ class Hasher
         $logTimer = $this->di->log->newTimer();
 
         $paths = $this->buildListOfBuildFiles();
-        $fileChecksums = $this->checksumFiles($paths);
 
         $buildChecksum = md5(serialize([
-            'fileChecksum' => $fileChecksums,
+            'fileChecksum' => $this->checksumFiles($paths),
             'databasePrefix' => $this->configDTO->databasePrefix,
             'version' => Settings::REUSE_TABLE_VERSION,
         ]));
 
+        $message = $this->configDTO->cacheInvalidationMethod == 'content'
+            ? "Generated a content-based build-checksum"
+            : "Generated a modified-time based build-checksum";
+
         $this->di->log->vDebug(
-            'Generated the build-checksum - of the files that can be used to build the database',
+            $message,
             $logTimer
         );
 
@@ -275,7 +278,9 @@ class Hasher
     {
         $checksums = [];
         foreach ($paths as $path) {
-            $checksums[$path] = $this->di->filesystem->md5File($path);
+            $checksums[$path] = $this->configDTO->cacheInvalidationMethod == 'content'
+                ? $this->di->filesystem->md5File($path)
+                : $this->di->filesystem->fileModifiedTime($path);
         }
         return $checksums;
     }
