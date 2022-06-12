@@ -4,7 +4,7 @@ namespace CodeDistortion\Adapt\Tests\Integration\Laravel\DatabaseBuilder;
 
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
-use CodeDistortion\Adapt\Tests\Database\Seeders\PreMigrationImportSeeder;
+use CodeDistortion\Adapt\Tests\Database\Seeders\InitialImportSeeder;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\Integration\Support\ExpectedOutcomeDTO;
@@ -31,14 +31,14 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      */
     public function structureAndDataSetupDataProvider(): array
     {
-        $evPreMigrationImportOne = new ExpectedValuesDTO('pre_migration_import', ['name'], [['One']]);
-        $evPreMigrationImportOneThree = new ExpectedValuesDTO('pre_migration_import', ['name'], [['One'], ['Three']]);
+        $evInitialImportOne = new ExpectedValuesDTO('initial_import', ['name'], [['One']]);
+        $evInitialImportOneThree = new ExpectedValuesDTO('initial_import', ['name'], [['One'], ['Three']]);
         $evUsers = new ExpectedValuesDTO('users', ['username'], [['user1']]);
         $evNoUsers = new ExpectedValuesDTO('users', ['username'], []);
         $evLogs = new ExpectedValuesDTO('logs', ['event'], [['event1']]);
         $evNoLogs = new ExpectedValuesDTO('logs', ['event'], []);
         $allTables = [
-            'pre_migration_import',
+            'initial_import',
             'migrations',
             'sqlite_sequence',
             'users',
@@ -55,99 +55,99 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ->expectedTables(['____adapt____']),
             ],
 
-            'sqlite - No pre-migration imports 1 - no migrations - no seeders' => [
+            'sqlite - No initial-imports 1 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-a7bb33d7d9b2.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
-            'sqlite - No pre-migration imports 2 - no migrations - no seeders' => [
+            'sqlite - No initial-imports 2 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports(['sqlite' => '']),
+                    ->initialImports(['sqlite' => '']),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-e69755c9c9bd.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
-            'sqlite - No pre-migration imports 3 - no migrations - no seeders' => [
+            'sqlite - No initial-imports 3 - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports(['sqlite' => []]),
+                    ->initialImports(['sqlite' => []]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-540f84254f46.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
 
-            'sqlite - pre-migration imports (string) - no migrations - no seeders' => [
+            'sqlite - initial-imports (string) - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => "$this->wsPreMigrationsDir/pre-migration-import-1.sqlite",
+                    ->initialImports([
+                        'sqlite' => "$this->wsInitialImportsDir/initial-import-1.sqlite",
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-19c60372d635.sqlite")
-                    ->expectedTables(['pre_migration_import', '____adapt____'])
-                    ->addExpectedValues($evPreMigrationImportOne),
+                    ->expectedTables(['initial_import', '____adapt____'])
+                    ->addExpectedValues($evInitialImportOne),
             ],
-            'sqlite - pre-migration imports (array) - no migrations - no seeders' => [
+            'sqlite - initial-imports (array) - no migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
+                    ->initialImports([
+                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-47d3551e6a4c.sqlite")
-                    ->expectedTables(['pre_migration_import', '____adapt____'])
-                    ->addExpectedValues($evPreMigrationImportOne),
+                    ->expectedTables(['initial_import', '____adapt____'])
+                    ->addExpectedValues($evInitialImportOne),
             ],
 
-            'sqlite - pre-migration imports - migrations - no seeders' => [
+            'sqlite - initial-imports - migrations - no seeders' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
+                    ->initialImports([
+                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
                     ])
                     ->migrations($this->wsMigrationsDir),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-0126ca588e17.sqlite")
                     ->expectedTables($allTables)
-                    ->addExpectedValues($evPreMigrationImportOne)
+                    ->addExpectedValues($evInitialImportOne)
                     ->addExpectedValues($evNoUsers)
                     ->addExpectedValues($evNoLogs),
             ],
-            'sqlite - pre-migration imports - no migrations - seeders (one)' => [
+            'sqlite - initial-imports - no migrations - seeders (one)' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
+                    ->initialImports([
+                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
                     ])
-                    ->seeders([PreMigrationImportSeeder::class]),
+                    ->seeders([InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-47d3551e6a4c.sqlite")
-                    ->expectedTables(['pre_migration_import','____adapt____'])
-                    ->addExpectedValues($evPreMigrationImportOne)
+                    ->expectedTables(['initial_import', '____adapt____'])
+                    ->addExpectedValues($evInitialImportOne)
             ],
 
-            'sqlite - pre-migration imports - migrations - seeders (one)' => [
+            'sqlite - initial-imports - migrations - seeders (one)' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
+                    ->initialImports([
+                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
                     ])
                     ->migrations($this->wsMigrationsDir)
-                    ->seeders([PreMigrationImportSeeder::class]),
+                    ->seeders([InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-423c485a7882.sqlite")
                     ->expectedTables($allTables)
-                    ->addExpectedValues($evPreMigrationImportOneThree)
+                    ->addExpectedValues($evInitialImportOneThree)
                     ->addExpectedValues($evNoUsers)
                     ->addExpectedValues($evNoLogs),
             ],
 
-            'sqlite - pre-migration imports - migrations - seeders (several)' => [
+            'sqlite - initial-imports - migrations - seeders (several)' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->preMigrationImports([
-                        'sqlite' => ["$this->wsPreMigrationsDir/pre-migration-import-1.sqlite"],
+                    ->initialImports([
+                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
                     ])
                     ->migrations($this->wsMigrationsDir)
-                    ->seeders([DatabaseSeeder::class, PreMigrationImportSeeder::class]),
+                    ->seeders([DatabaseSeeder::class, InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/test-database.80cb3b-6a48d8a4d86e.sqlite")
                     ->expectedTables($allTables)
-                    ->addExpectedValues($evPreMigrationImportOneThree)
+                    ->addExpectedValues($evInitialImportOneThree)
                     ->addExpectedValues($evUsers)
                     ->addExpectedValues($evLogs),
             ],

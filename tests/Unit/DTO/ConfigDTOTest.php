@@ -102,7 +102,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 1' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => 'https://something',
@@ -115,7 +115,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 2' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => false,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
@@ -128,7 +128,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 3' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
@@ -141,7 +141,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 4' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => '/migrations-path',
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
@@ -152,9 +152,9 @@ class ConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'preMigrationImports' => [
-                'method' => 'preMigrationImports',
-                'params' => ['preMigrationImports' => ['mysql' => 'someFile.sql']],
+            'initialImports' => [
+                'method' => 'initialImports',
+                'params' => ['initialImports' => ['mysql' => 'someFile.sql']],
             ],
 
             'migrations 1' => [
@@ -436,15 +436,15 @@ class ConfigDTOTest extends PHPUnitTestCase
 
 
     /**
-     * Provide data for the test_pick_pre_migration_dumps_getter test.
+     * Provide data for the test_pick_initial_imports_getter test.
      *
      * @return mixed[][]
      */
-    public function pickPreMigrationDumpsDataProvider(): array
+    public function pickInitialImportsDataProvider(): array
     {
         return [
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -452,7 +452,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/mysql/my-database.sql'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -460,7 +460,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/sqlite/my-database.sqlite'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -468,7 +468,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => [],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => 'database/dumps/mysql/my-database.sql',
                     'sqlite' => 'database/dumps/sqlite/my-database.sqlite'
                 ],
@@ -476,7 +476,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/mysql/my-database.sql'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => '',
                     'sqlite' => ''
                 ],
@@ -487,21 +487,21 @@ class ConfigDTOTest extends PHPUnitTestCase
     }
 
     /**
-     * Test the ConfigDTO->pickPreMigrationDumps() getter.
+     * Test the ConfigDTO->pickInitialImports() getter.
      *
      * @test
-     * @dataProvider pickPreMigrationDumpsDataProvider
-     * @param array<int, string|string[]> $preMigrationImports The pre-migration-imports value (same as what could be
-     *                                                         put in the config).
-     * @param string                      $driver              The driver to read from.
-     * @param mixed                       $expected            The expected output.
+     * @dataProvider pickInitialImportsDataProvider
+     * @param array<int, string|string[]> $initialImports The initial-imports value (same as what could be put in the
+     *                                                    config).
+     * @param string                      $driver         The driver to read from.
+     * @param mixed                       $expected       The expected output.
      * @return void
      */
-    public function test_pick_pre_migration_dumps_getter(array $preMigrationImports, string $driver, $expected): void
+    public function test_pick_initial_imports_getter(array $initialImports, string $driver, $expected): void
     {
         $this->assertSame(
             $expected,
-            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationImports()
+            (new ConfigDTO())->initialImports($initialImports)->driver($driver)->pickInitialImports()
         );
     }
 

@@ -156,7 +156,7 @@ class Hasher
     private function buildListOfBuildFiles(): array
     {
         $paths = array_unique(array_filter(array_merge(
-            $this->resolvePreMigrationPaths(),
+            $this->resolveInitialImportPaths(),
             $this->resolveMigrationPaths(),
             $this->resolveChecksumFilePaths()
         )));
@@ -180,17 +180,17 @@ class Hasher
     }
 
     /**
-     * Look for pre-migration paths to checksum.
+     * Look for initial-import paths to checksum.
      *
      * @return string[]
      * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
      */
-    private function resolvePreMigrationPaths(): array
+    private function resolveInitialImportPaths(): array
     {
         return $this->resolvePaths(
-            $this->configDTO->pickPreMigrationImports(),
+            $this->configDTO->pickInitialImports(),
             false,
-            'preMigrationImportPathInvalid'
+            'initialImportPathInvalid'
         );
     }
 
@@ -298,7 +298,7 @@ class Hasher
      * Note: snapshot file "snapshot.db.xxxxxx-yyyyyyyyyyyy.mysql" - for the "y" part.
      *
      * It's based on the database-building file content *that's being used in this situation*:
-     * the current pre-migration-imports, current migrations and current seeders.
+     * the current initial-imports, current migrations and current seeders.
      *
      * @param string[] $seeders The seeders that will be run.
      * @return string|null
@@ -310,10 +310,10 @@ class Hasher
         }
 
         return md5(serialize([
-            'preMigrationImports' => $this->configDTO->preMigrationImports,
+            'initialImports' => $this->configDTO->initialImports,
             'migrations' => $this->configDTO->migrations,
             'seeders' => $seeders,
-            // todo - if journal / verification tables are included in snapshots
+            // todo - add journal / verification info if they added to snapshots later
 //            'reuseJournal' => $this->configDTO->shouldUseJournal(),
 //            'verifyStructure' => $this->configDTO->shouldVerifyStructure(),
 //            'verifyData' => $this->configDTO->shouldVerifyData(),

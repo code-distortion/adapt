@@ -73,14 +73,14 @@ trait AdaptDatabase
      * Specify database dump files to import before migrations run.
      *
      * NOTE: It's important that these dumps don't contain output from seeders
-     * if those seeders are to be run by Adapt as needed afterwards.
+     * if those seeders are to also be run by Adapt afterwards.
      *
-     * NOTE: pre_migration_imports aren't available for SQLite :memory:
+     * NOTE: initial_imports aren't available for SQLite :memory:
      * databases.
      *
      * @var array<string, string>|array<string, string[]>
      */
-//    protected array $preMigrationImports = [
+//    protected array $initialImports = [
 //        'mysql' => ['database/dumps/mysql/my-database.sql'],
 //        'pgsql' => ['database/dumps/pgsql/my-database.sql'],
 //        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
@@ -167,7 +167,7 @@ trait AdaptDatabase
      */
 //    protected function databaseInit(DatabaseBuilder $builder): void
 //    {
-//        $preMigrationImports =  [
+//        $initialImports =  [
 //            'mysql' => ['database/dumps/mysql/my-database.sql'],
 //            'pgsql' => ['database/dumps/pgsql/my-database.sql'],
 //            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
@@ -179,7 +179,7 @@ trait AdaptDatabase
 //        $builder
 //            ->connection('primary') // specify another connection to build a db for
 //            ->checkForSourceChanges() // or ->dontCheckForSourceChanges()
-//            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
+//            ->initialImports($initialImports) // or ->noInitialImports()
 //            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()
 //            ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
@@ -195,7 +195,7 @@ trait AdaptDatabase
 //        $connection = 'secondary';
 //        $builder2 = $this->newBuilder($connection);
 //        $builder2
-//            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
+//            ->initialImports($initialImports) // or ->noInitialImports()
 //            // …
 //            ->makeDefault(); // make the "default" Laravel connection point to this database
 //    }another

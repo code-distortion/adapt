@@ -66,7 +66,7 @@ class ConfigDTO
 
 
     /** @var string[]|string[][] The files to import before the migrations are run. */
-    public array $preMigrationImports;
+    public array $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
@@ -357,7 +357,7 @@ class ConfigDTO
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).
      *
-     * @param string[]|string[][] $preMigrationImports       The files to import before the migrations are run.
+     * @param string[]|string[][] $initialImports            The files to import before the migrations are run.
      * @param boolean|string      $migrations                Should the migrations be run? / the path of the migrations
      *                                                       to run.
      * @param string[]            $seeders                   The seeders to run after migrating.
@@ -372,7 +372,7 @@ class ConfigDTO
      * @return static
      */
     public function buildSettings(
-        array $preMigrationImports,
+        array $initialImports,
         $migrations,
         array $seeders,
         ?string $remoteBuildUrl,
@@ -383,7 +383,7 @@ class ConfigDTO
         ?string $remoteCallerSessionDriver
     ): self {
 
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
         $this->remoteBuildUrl = $remoteBuildUrl;
@@ -398,12 +398,12 @@ class ConfigDTO
     /**
      * Specify the database dump files to import before migrations run.
      *
-     * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
+     * @param string[]|string[][] $initialImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports(array $preMigrationImports): self
+    public function initialImports(array $initialImports): self
     {
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         return $this;
     }
 
@@ -776,15 +776,15 @@ class ConfigDTO
      *
      * @return string[]
      */
-    public function pickPreMigrationImports(): array
+    public function pickInitialImports(): array
     {
-        $preMigrationImports = $this->preMigrationImports;
+        $initialImports = $this->initialImports;
         $driver = $this->driver;
 
         $usePaths = [];
-        if (isset($preMigrationImports[$driver])) {
+        if (isset($initialImports[$driver])) {
 
-            $paths = $preMigrationImports[$driver];
+            $paths = $initialImports[$driver];
             $paths = is_string($paths) ? [$paths] : $paths;
 
             if (is_array($paths)) {

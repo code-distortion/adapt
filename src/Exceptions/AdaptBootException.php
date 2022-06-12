@@ -32,12 +32,12 @@ class AdaptBootException extends AdaptException
     }
 
     /**
-     * The database name must be a string.
+     * The database name must be a string with characters in it.
      *
      * @param string $database The database name.
      * @return self
      */
-    public static function databaseNameNotAString(string $database): self
+    public static function databaseNameIsInvalid(string $database): self
     {
         return new self("The Database name \"$database\" is invalid");
     }

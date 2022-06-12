@@ -49,16 +49,16 @@ class AdaptConfigException extends AdaptException
     }
 
     /**
-     * A pre-migration-import path could not be read.
+     * An initial-import path could not be read.
      *
      * @param string $path The invalid path.
      * @return self
      */
-    public static function preMigrationImportPathInvalid(string $path): self
+    public static function initialImportPathInvalid(string $path): self
     {
         return new self(
-            "Couldn't open pre-migration-dump file \"$path\". "
-            . "Please review the \"pre_migration_imports\" config setting"
+            "Couldn't open initial-import file \"$path\". "
+            . "Please review the \"initial_imports\" config setting"
         );
     }
 

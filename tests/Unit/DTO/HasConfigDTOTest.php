@@ -68,25 +68,25 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'preMigrationImports 1' => [
-                'method' => 'preMigrationImports',
+            'initialImports 1' => [
+                'method' => 'initialImports',
                 'params' => [['a']],
                 'outcome' => [
-                    'preMigrationImports' => ['a'],
+                    'initialImports' => ['a'],
                 ],
             ],
-            'preMigrationImports 2' => [
-                'method' => 'preMigrationImports',
+            'initialImports 2' => [
+                'method' => 'initialImports',
                 'params' => [[]],
                 'outcome' => [
-                    'preMigrationImports' => [],
+                    'initialImports' => [],
                 ],
             ],
-            'noPreMigrationImports' => [
-                'method' => 'noPreMigrationImports',
+            'noInitialImports' => [
+                'method' => 'noInitialImports',
                 'params' => [],
                 'outcome' => [
-                    'preMigrationImports' => [],
+                    'initialImports' => [],
                 ],
             ],
 

@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
 /**
- * Seed the pre_migration_import table (which was created by the pre-migration sql file).
+ * Seed the initial_import table (which was created by the initial-import sql file).
  */
-class PreMigrationImportSeeder extends Seeder
+class InitialImportSeeder extends Seeder
 {
     /**
      * Seed the application's database.
@@ -17,6 +17,6 @@ class PreMigrationImportSeeder extends Seeder
      */
     public function run()
     {
-        DB::insert("INSERT INTO `pre_migration_import` (`name`) VALUES ('Three')");
+        DB::insert("INSERT INTO `initial_import` (`name`) VALUES ('Three')");
     }
 }

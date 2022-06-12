@@ -44,8 +44,8 @@ trait DatabaseBuilderTestTrait
     /** @var string The current workspace migrations directory. */
     private string $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
 
-    /** @var string The current workspace pre-migration-imports directory. */
-    private string $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
+    /** @var string The current workspace initial-imports directory. */
+    private string $wsInitialImportsDir = 'tests/workspaces/current/database/initial-imports';
 
     /** @var string The current workspace seeds directory. */
     private string $wsSeedsDir = 'tests/workspaces/current/database/seeds';
@@ -92,6 +92,7 @@ trait DatabaseBuilderTestTrait
             ->connectionExists(true)
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
+            ->databaseModifier('')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
@@ -99,7 +100,7 @@ trait DatabaseBuilderTestTrait
             ->checksumPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,
-                $this->wsPreMigrationsDir,
+                $this->wsInitialImportsDir,
                 $this->wsSeedsDir,
             ])
             ->preCalculatedBuildChecksum(null)

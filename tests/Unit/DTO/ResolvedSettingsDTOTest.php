@@ -95,9 +95,9 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 'params' => ['storageDir' => '/path/to/dir'],
             ],
 
-            'preMigrationImports' => [
-                'method' => 'preMigrationImports',
-                'params' => ['preMigrationImports' => ['mysql' => ['a.sql', 'b.sql']]],
+            'initialImports' => [
+                'method' => 'initialImports',
+                'params' => ['initialImports' => ['mysql' => ['a.sql', 'b.sql']]],
             ],
 
             'migrations 1' => [

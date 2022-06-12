@@ -102,15 +102,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Imports To Apply Before Migrations & Seeders
+    | Files to Import Before Migrations & Seeders are Run
     |--------------------------------------------------------------------------
     |
-    | If you have your own database-dump/s that you'd like to be applied BEFORE
-    | migrations run, list them here. This config setting can be overridden
-    | by adding the $preMigrationImports property to your test-class.
+    | If you have your own database-dump/s that you'd like to be imported
+    | BEFORE migrations run, list them here. This config setting can be
+    | overridden by adding the $initialImports property to your
+    | test-class.
     |
     | NOTE: It's important that these dumps don't contain output from seeders
-    | if those seeders are also run by Adapt afterwards.
+    | if those seeders are also going to be run by Adapt afterwards.
     |
     | array<string, string>|array<string, string[]>
     |
@@ -122,7 +123,7 @@ return [
     |
     */
 
-    'pre_migration_imports' => [
+    'initial_imports' => [
         'mysql' => [],
         'sqlite' => [],
         'pgsql' => [],
@@ -186,8 +187,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Adapt detects when changes are made to the files that build your
-    | databases. These include pre-migration imports, migrations,
-    | seeders and factories.
+    | databases. These include initial-imports, migrations, seeders
+    | and factories.
     |
     | When turned off, the "look for changes in" setting below will be ignored.
     | Then it's your responsibility to remove old databases when they change.
@@ -208,7 +209,7 @@ return [
     | Changes to files in these directories will invalidate existing
     | test-databases and snapshots (they'll be rebuilt).
     |
-    | "pre_migration_imports" and "migration" files are included automatically.
+    | "initial_imports" and "migration" files are included automatically.
     |
     | string[]
     |

@@ -628,7 +628,7 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
-        $this->importPreMigrationImports();
+        $this->importInitialImports();
         $this->migrate();
         $this->takeSnapshotAfterMigrations();
         $this->seed();
@@ -645,10 +645,10 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptSnapshotException When snapshots aren't allowed for this type of database.
      */
-    private function importPreMigrationImports(): void
+    private function importInitialImports(): void
     {
-        $preMigrationImports = $this->configDTO->pickPreMigrationImports();
-        if (!count($preMigrationImports)) {
+        $initialImports = $this->configDTO->pickInitialImports();
+        if (!count($initialImports)) {
             return;
         }
 
@@ -659,11 +659,11 @@ class DatabaseBuilder
             );
         }
 
-        foreach ($preMigrationImports as $path) {
+        foreach ($initialImports as $path) {
             $logTimer = $this->di->log->newTimer();
             // will throw exception if the file doesn't exist
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->vDebug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
+            $this->di->log->vDebug('Initial import: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -1178,7 +1178,7 @@ class DatabaseBuilder
             ->host($this->di->db->getHost())
             ->database($database)
             ->storageDir($configDTO->storageDir)
-            ->preMigrationImports($configDTO->pickPreMigrationImports())
+            ->initialImports($configDTO->pickInitialImports())
             ->migrations($configDTO->migrations)
             ->seeders($configDTO->seedingIsAllowed(), $configDTO->seeders)
             ->builtRemotely(

@@ -39,7 +39,7 @@ trait InitialiseAdapt
     public static function initialiseAdaptIfNeeded(LaravelTestCase $test): void
     {
         $found = false;
-        $traits = [LaravelAdapt::class, AdaptDatabase::class];
+        $traits = [AdaptDatabase::class, LaravelAdapt::class];
         foreach ($traits as $trait) {
             if (in_array($trait, class_uses_recursive(get_class($test)))) {
                 $found = true;
@@ -82,10 +82,11 @@ trait InitialiseAdapt
             'scenarioTestDBs',
             'useSnapshotsWhenReusingDB',
             'useSnapshotsWhenNotReusingDB',
-            'preMigrationImports',
+            'preMigrationImports', // @deprecated
+            'initialImports',
             'migrations',
             'seeders',
-            'seed',
+            'seed', // for compatability with Laravel
             'remapConnections',
             'defaultConnection',
             'isBrowserTest',
@@ -124,13 +125,13 @@ trait InitialiseAdapt
 
 
 
-        // unset Artisan, to not interfere with mocks inside tests
+        // unset Artisan, so as to not interfere with mocks inside tests
         $unsetArtisan = function () {
             /** @var \Illuminate\Contracts\Console\Kernel $kernel */
             $kernel = $this->app[Kernel::class];
             method_exists($kernel, 'setArtisan')
                 ? $kernel->setArtisan(null)
-                : PHPSupport::updatePrivateProperty($kernel, 'artisan', null);
+                : PHPSupport::updatePrivateProperty($kernel, 'artisan', null); // Laravel <= 5.2
         };
 
 

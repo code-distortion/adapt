@@ -91,9 +91,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         $connection = $remoteConfigDTO->connection;
 
-        $database = config("database.connections.$connection.database");
+        $database = (string) config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -111,7 +111,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildChecksum($remoteConfigDTO->preCalculatedBuildChecksum)
             ->buildSettings(
-                $remoteConfigDTO->preMigrationImports,
+                $remoteConfigDTO->initialImports,
                 $remoteConfigDTO->migrations,
                 $remoteConfigDTO->seeders,
                 null, // don't forward again

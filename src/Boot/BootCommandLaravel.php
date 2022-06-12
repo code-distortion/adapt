@@ -106,9 +106,9 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
 
-        $database = config("database.connections.$connection.database");
+        $database = (string) config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -118,6 +118,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
+            ->databaseModifier('')
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
@@ -125,7 +126,8 @@ class BootCommandLaravel extends BootCommandAbstract
             ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(
-                config("$c.pre_migration_imports"),
+                // accept the deprecated config('...pre_migration_imports') setting
+                config("$c.pre_migration_imports") ?? config("$c.initial_imports"),
                 config("$c.migrations"),
                 config("$c.seeders"),
                 config("$c.remote_build_url"),
@@ -144,7 +146,8 @@ class BootCommandLaravel extends BootCommandAbstract
                 true,
             )
             ->cacheTools(
-                config("$c.reuse.transactions"),
+                // accept the deprecated config('...reuse_test_dbs') setting
+                config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions"),
                 config("$c.reuse.journals"),
                 config("$c.verify_databases"),
                 config("$c.scenario_test_dbs"),

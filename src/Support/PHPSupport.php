@@ -11,7 +11,7 @@ use ReflectionObject;
 class PHPSupport
 {
     /**
-     * Read a class static private property.
+     * Read a class's STATIC private property.
      *
      * @param string $class        The class to look in to.
      * @param string $propertyName The property to read.

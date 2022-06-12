@@ -55,7 +55,7 @@ class ResolvedSettingsDTO
     public string $storageDir;
 
     /** @var string[] The files to import before the migrations are run. */
-    public array $preMigrationImports;
+    public array $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
@@ -228,12 +228,12 @@ class ResolvedSettingsDTO
     /**
      * Specify the database dump files to import before migrations run.
      *
-     * @param string[] $preMigrationImports The database dump files to import, one per database type.
+     * @param string[] $initialImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports(array $preMigrationImports): self
+    public function initialImports(array $initialImports): self
     {
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         return $this;
     }
 
@@ -454,9 +454,9 @@ class ResolvedSettingsDTO
             ? $this->escapeString($this->storageDir) . $remoteExtra
             : null;
 
-        $preMigrationImportsTitle = count($this->preMigrationImports) == 1
-            ? 'Pre-migration import:'
-            : 'Pre-migration imports:';
+        $initialImportsTitle = count($this->initialImports) == 1
+            ? 'Initial import:'
+            : 'Initial imports:';
 
         $migrations = is_bool($this->migrations)
             ? ($this->migrations ? 'Yes' : 'No')
@@ -470,7 +470,7 @@ class ResolvedSettingsDTO
 
         return array_filter([
             'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
-            $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
+            $initialImportsTitle => $this->renderList($this->initialImports, $remoteExtra),
             'Migrations:' => $migrations,
             $seedersTitle => $seeders,
             'Snapshots enabled?' => $snapshotsEnabled,

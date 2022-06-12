@@ -110,10 +110,10 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
 
-            'Takes snapshot after migrations - with pre-migration-import' => [
+            'Takes snapshot after migrations - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('afterMigrations', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-abda22425307.sqlite',
@@ -122,10 +122,10 @@ class SnapshotTest extends LaravelTestCase
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
-            'Takes snapshot after seeders - with pre-migration-import' => [
+            'Takes snapshot after seeders - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('afterSeeders', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-0a7748252665.sqlite',
@@ -134,10 +134,10 @@ class SnapshotTest extends LaravelTestCase
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
-            'Takes snapshot after migrations and seeders - with pre-migration-import' => [
+            'Takes snapshot after migrations and seeders - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('both', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-0a7748252665.sqlite',
@@ -148,10 +148,10 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
 
-            'Takes snapshot after migrations (no seeders) - with pre-migration-import' => [
+            'Takes snapshot after migrations (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('afterMigrations', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-abda22425307.sqlite',
@@ -160,10 +160,10 @@ class SnapshotTest extends LaravelTestCase
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
-            'Takes snapshot after seeders (no seeders) - with pre-migration-import' => [
+            'Takes snapshot after seeders (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('afterSeeders', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-abda22425307.sqlite',
@@ -172,10 +172,10 @@ class SnapshotTest extends LaravelTestCase
                 'removeAdaptStorageDir' => true,
                 'expectUsers' => [],
             ],
-            'Takes snapshot after migrations and seeders (no seeders) - with pre-migration-import' => [
+            'Takes snapshot after migrations and seeders (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->snapshots('both', false)
-                    ->preMigrationImports(['sqlite' => $this->wsPreMigrationsDir . '/pre-migration-import-1.sqlite'])
+                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshot.database.80cb3b-abda22425307.sqlite',

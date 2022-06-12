@@ -73,13 +73,25 @@ trait HasConfigDTOTrait
     /**
      * Specify the database dump files to import before migrations run.
      *
+     * @param string[]|string[][] $initialImports The database dump files to import, one per database type.
+     * @return static
+     */
+    public function initialImports(array $initialImports = []): self
+    {
+        $this->configDTO->initialImports($initialImports);
+        return $this;
+    }
+
+    /**
+     * Specify the database dump files to import before migrations run.
+     *
+     * @deprecated
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
      * @return static
      */
     public function preMigrationImports(array $preMigrationImports = []): self
     {
-        $this->configDTO->preMigrationImports($preMigrationImports);
-        return $this;
+        return $this->initialImports($preMigrationImports);
     }
 
     /**
@@ -87,10 +99,21 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
+    public function noInitialImports(): self
+    {
+        $this->configDTO->initialImports([]);
+        return $this;
+    }
+
+    /**
+     * Specify that no database dump files will be imported before migrations run.
+     *
+     * @deprecated
+     * @return static
+     */
     public function noPreMigrationImports(): self
     {
-        $this->configDTO->preMigrationImports([]);
-        return $this;
+        return $this->noInitialImports();
     }
 
     /**

@@ -196,9 +196,14 @@ class BootTestLaravel extends BootTestAbstract
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
 
-        $database = $pb->config("database.connections.$connection.database");
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
+        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
+        $initialImports = $propVal ?? $configVal;
+
+        $database = (string) $pb->config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -216,7 +221,7 @@ class BootTestLaravel extends BootTestAbstract
             ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(
-                $pb->adaptConfig('pre_migration_imports', 'preMigrationImports'),
+                $initialImports,
                 $pb->adaptConfig('migrations', 'migrations'),
                 $this->resolveSeeders(),
                 $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'),
