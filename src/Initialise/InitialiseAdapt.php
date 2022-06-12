@@ -86,6 +86,7 @@ trait InitialiseAdapt
             'initialImports',
             'migrations',
             'seeders',
+            'seeder', // for compatability with Laravel
             'seed', // for compatability with Laravel
             'remapConnections',
             'defaultConnection',

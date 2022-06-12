@@ -20,37 +20,61 @@ class LaravelSupportTest extends PHPUnitTestCase
     public function seedersDataProvider(): array
     {
         return [
-            [true, ['seeders'], true, true, ['config'], ['seeders']],
-            [true, ['seeders'], true, true, null, ['seeders']],
-            [true, ['seeders'], true, false, ['config'], ['seeders']],
-            [true, ['seeders'], true, false, null, ['seeders']],
-            [true, ['seeders'], false, null, ['config'], ['seeders']],
-            [true, ['seeders'], false, null, null, ['seeders']],
+            [true, ['seeders'], true, 'seeder', true, true, ['config'], ['seeders']],
+            [true, ['seeders'], true, 'seeder', true, true, null, ['seeders']],
+            [true, ['seeders'], true, 'seeder', true, false, ['config'], ['seeders']],
+            [true, ['seeders'], true, 'seeder', true, false, null, ['seeders']],
+            [true, ['seeders'], true, 'seeder', false, null, ['config'], ['seeders']],
+            [true, ['seeders'], true, 'seeder', false, null, null, ['seeders']],
 
-            [true, 'seeders', true, true, ['config'], ['seeders']],
-            [true, 'seeders', true, true, null, ['seeders']],
-            [true, 'seeders', true, false, ['config'], ['seeders']],
-            [true, 'seeders', true, false, null, ['seeders']],
-            [true, 'seeders', false, null, ['config'], ['seeders']],
-            [true, 'seeders', false, null, null, ['seeders']],
+            [true, ['seeders'], false, null, true, true, ['config'], ['seeders']],
+            [true, ['seeders'], false, null, true, true, null, ['seeders']],
+            [true, ['seeders'], false, null, true, false, ['config'], ['seeders']],
+            [true, ['seeders'], false, null, true, false, null, ['seeders']],
+            [true, ['seeders'], false, null, false, null, ['config'], ['seeders']],
+            [true, ['seeders'], false, null, false, null, null, ['seeders']],
 
-            [false, null, true, true, ['config'], ['Database\\Seeders\\DatabaseSeeder']],
-            [false, null, true, true, null, ['Database\\Seeders\\DatabaseSeeder']],
-            [false, null, true, false, ['config'], []],
-            [false, null, true, false, null, []],
+            [true, 'seeders', true, 'seeder', true, true, ['config'], ['seeders']],
+            [true, 'seeders', true, 'seeder', true, true, null, ['seeders']],
+            [true, 'seeders', true, 'seeder', true, false, ['config'], ['seeders']],
+            [true, 'seeders', true, 'seeder', true, false, null, ['seeders']],
+            [true, 'seeders', true, 'seeder', false, null, ['config'], ['seeders']],
+            [true, 'seeders', true, 'seeder', false, null, null, ['seeders']],
 
-            [false, null, false, null, ['config'], ['config']],
-            [false, null, false, null, null, []],
+            [true, 'seeders', false, null, true, true, ['config'], ['seeders']],
+            [true, 'seeders', false, null, true, true, null, ['seeders']],
+            [true, 'seeders', false, null, true, false, ['config'], ['seeders']],
+            [true, 'seeders', false, null, true, false, null, ['seeders']],
+            [true, 'seeders', false, null, false, null, ['config'], ['seeders']],
+            [true, 'seeders', false, null, false, null, null, ['seeders']],
+
+            [false, null, true, 'seeder', true, true, ['config'], ['seeder']],
+            [false, null, true, 'seeder', true, true, null, ['seeder']],
+            [false, null, true, 'seeder', true, false, ['config'], []],
+            [false, null, true, 'seeder', true, false, null, []],
+
+            [false, null, false, null, true, true, ['config'], ['Database\\Seeders\\DatabaseSeeder']],
+            [false, null, false, null, true, true, null, ['Database\\Seeders\\DatabaseSeeder']],
+            [false, null, false, null, true, false, ['config'], []],
+            [false, null, false, null, true, false, null, []],
+
+            [false, null, true, 'seeder', false, null, ['config'], ['config']],
+            [false, null, true, 'seeder', false, null, null, []],
+
+            [false, null, false, null, false, null, ['config'], ['config']],
+            [false, null, false, null, false, null, null, []],
         ];
     }
 
     /**
-     * Test that the CacheListDTO object can set and get values properly.
+     * Test that the seeder settings get picked up properly.
      *
      * @test
      * @dataProvider seedersDataProvider
      * @param boolean  $hasSeedersProp  Whether the test has the $seeders property or not.
      * @param mixed    $seedersProp     The $seeders property.
+     * @param boolean  $hasSeederProp   Whether the test has the $seeder property or not.
+     * @param mixed    $seederProp      The $seeder property.
      * @param boolean  $hasSeedProp     Whether the test has the $seed property or not.
      * @param mixed    $seedProp        The $seed property.
      * @param mixed    $seedersConfig   The "code_distortion.adapt.seeders" Laravel config value.
@@ -60,6 +84,8 @@ class LaravelSupportTest extends PHPUnitTestCase
     public function test_that_the_correct_seeders_are_picked(
         bool $hasSeedersProp,
         $seedersProp,
+        bool $hasSeederProp,
+        $seederProp,
         bool $hasSeedProp,
         $seedProp,
         $seedersConfig,
@@ -69,6 +95,8 @@ class LaravelSupportTest extends PHPUnitTestCase
         $seeders = LaravelSupport::resolveSeeders(
             $hasSeedersProp,
             $seedersProp,
+            $hasSeederProp,
+            $seederProp,
             $hasSeedProp,
             $seedProp,
             $seedersConfig

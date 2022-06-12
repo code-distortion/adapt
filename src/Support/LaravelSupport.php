@@ -121,8 +121,12 @@ class LaravelSupport
     /**
      * Look at the seeder properties and config value, and determine what the seeders should be.
      *
+     * Adapt uses $seeders, Laravel uses $seed and $seeder. This allows Adapt to respect the Laravel settings.
+     *
      * @param boolean $hasSeedersProp Whether the test has the $seeders property or not.
      * @param mixed   $seedersProp    The $seeders property.
+     * @param boolean $hasSeederProp  Whether the test has the $seeder property or not.
+     * @param mixed   $seederProp     The $seeder property.
      * @param boolean $hasSeedProp    Whether the test has the $seed property or not.
      * @param mixed   $seedProp       The $seed property.
      * @param mixed   $seedersConfig  The code_distortion.adapt.seeders Laravel config value.
@@ -131,6 +135,8 @@ class LaravelSupport
     public static function resolveSeeders(
         bool $hasSeedersProp,
         $seedersProp,
+        bool $hasSeederProp,
+        $seederProp,
         bool $hasSeedProp,
         $seedProp,
         $seedersConfig
@@ -139,11 +145,14 @@ class LaravelSupport
         // use the $seeders property first if it exists
         if ($hasSeedersProp) {
             $seeders = $seedersProp;
-        // use the default DatabaseSeeder when $seed is truthy
-        // or none if $seed exists and is falsey
+        // when $seed is truthy:
+        // $seeder will be used (if present), and will fall back to the default DatabaseSeeder otherwise
         } elseif ($hasSeedProp) {
-            $seeders = $seedProp ? 'Database\\Seeders\\DatabaseSeeder' : [];
-        // fall back to the seeders
+            $seeders = [];
+            if ($seedProp) {
+                $seeders = $hasSeederProp ? $seederProp : 'Database\\Seeders\\DatabaseSeeder';
+            }
+        // fall back to the config seeders
         } else {
             $seeders = $seedersConfig;
         }

@@ -285,6 +285,8 @@ class BootTestLaravel extends BootTestAbstract
         return LaravelSupport::resolveSeeders(
             $this->propBag->hasProp('seeders'),
             $this->propBag->prop('seeders', null),
+            $this->propBag->hasProp('seeder'),
+            $this->propBag->prop('seeder', null),
             $this->propBag->hasProp('seed'),
             $this->propBag->prop('seed', null),
             config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
