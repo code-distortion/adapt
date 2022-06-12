@@ -30,10 +30,8 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
 
         $this->removeReuseMetaTable();
 
-        $table = Settings::REUSE_TABLE;
-
         $this->di->db->statement(
-            "CREATE TABLE `$table` ("
+            "CREATE TABLE `" . Settings::REUSE_TABLE . "` ("
             . "`project_name` varchar(255), "
             . "`reuse_table_version` varchar(16), "
             . "`orig_db_name` varchar(255) NOT NULL, "
@@ -48,7 +46,7 @@ class LaravelSQLiteReuseMetaDataTable extends AbstractReuseMetaDataTable impleme
         );
 
         $this->di->db->insert(
-            "INSERT INTO `$table` ("
+            "INSERT INTO `" . Settings::REUSE_TABLE . "` ("
                 . "`project_name`, "
                 . "`reuse_table_version`, "
                 . "`orig_db_name`, "

@@ -30,10 +30,8 @@ class LaravelPostgreSQLReuseMetaDataTable extends AbstractReuseMetaDataTable imp
 
         $this->removeReuseMetaTable();
 
-        $table = Settings::REUSE_TABLE;
-
         $this->di->db->statement(
-            "CREATE TABLE \"$table\" ("
+            "CREATE TABLE \"" . Settings::REUSE_TABLE . "\" ("
             . "\"project_name\" character varying(255), "
             . "\"reuse_table_version\" character varying(16), "
             . "\"orig_db_name\" character varying(255) NOT NULL, "
@@ -48,7 +46,7 @@ class LaravelPostgreSQLReuseMetaDataTable extends AbstractReuseMetaDataTable imp
         );
 
         $this->di->db->insert(
-            "INSERT INTO \"$table\" ("
+            "INSERT INTO \"" . Settings::REUSE_TABLE . "\" ("
                 . "\"project_name\", "
                 . "\"reuse_table_version\", "
                 . "\"orig_db_name\", "

@@ -8,6 +8,22 @@ namespace CodeDistortion\Adapt\Exceptions;
 class AdaptBootException extends AdaptException
 {
     /**
+     * Thrown when Laravel's RefreshDatabase, DatabaseTransactions or DatabaseMigrations traits are detected.
+     *
+     * @param string $trait The detected trait.
+     * @return self
+     */
+    public static function laravelDatabaseTraitDetected(string $trait): self
+    {
+        $temp = preg_split('/[\\\\\/]+/', $trait);
+        $trait = array_pop($temp);
+
+        return new self(
+            "Laravel's \"$trait\" trait was detected. Please remove it from your tests when using Adapt"
+        );
+    }
+
+    /**
      * Thrown when the --recreate-databases option has been added when --parallel testing.
      *
      * Because Adapt dynamically decides which database/s to use based on the settings for each test, it's not

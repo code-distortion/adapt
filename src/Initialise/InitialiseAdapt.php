@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\AdaptDatabase;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
@@ -14,6 +15,10 @@ use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Migrations\DatabaseMigrationRepository;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
@@ -69,6 +74,16 @@ trait InitialiseAdapt
         // only initialise once
         if ($this->adaptPreBootTestLaravel) {
             return;
+        }
+
+
+
+        // check to make sure Laravel's RefreshDatabase, DatabaseTransactions and DatabaseMigrations
+        // traits aren't also being used
+        foreach ([RefreshDatabase::class, DatabaseTransactions::class, DatabaseMigrations::class] as $trait) {
+            if (in_array($trait, class_uses_recursive(get_class($this)), true)) {
+                throw AdaptBootException::laravelDatabaseTraitDetected($trait);
+            }
         }
 
 
