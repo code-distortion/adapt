@@ -14,7 +14,7 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
     use CommandFunctionalityTrait;
 
     /** @var string The name and signature of the console command. */
-    protected $signature = 'adapt:list-db-caches';
+    protected $signature = 'adapt:list';
 
     /** @var string The console command description. */
     protected $description = 'List Adapt\'s test-databases and snapshot files';
@@ -29,6 +29,9 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
     public function performHandleWork()
     {
         $cacheListDTO = $this->getCacheList();
+
+        $log = $this->newLog();
+        $log->vDebug("\n");
 
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');
@@ -61,7 +64,10 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $driver = reset($databaseMetaDTOs)->driver;
+            reset($databaseMetaDTOs);
+            $key = key($databaseMetaDTOs);
+            $driver = $databaseMetaDTOs[$key]->driver;
+
             $this->info("- Connection \"$connection\" (driver $driver):");
 
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {

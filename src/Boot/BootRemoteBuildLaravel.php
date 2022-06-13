@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
@@ -23,7 +23,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
  */
 class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
 
 
     /**
@@ -74,9 +74,6 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-                return null;
-            })
             ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -94,9 +91,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         $connection = $remoteConfigDTO->connection;
 
-        $database = config("database.connections.$connection.database");
+        $database = (string) config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -110,15 +107,16 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($remoteConfigDTO->checkForSourceChanges)
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->preCalculatedBuildHash($remoteConfigDTO->preCalculatedBuildHash)->buildSettings(
-                $remoteConfigDTO->preMigrationImports,
+            ->cacheInvalidationMethod(config("$c.cache_invalidation_method"))
+            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildChecksum($remoteConfigDTO->preCalculatedBuildChecksum)->buildSettings(
+                $remoteConfigDTO->initialImports,
                 $remoteConfigDTO->migrations,
                 $remoteConfigDTO->seeders,
                 null,
                 // don't forward again
                 $remoteConfigDTO->isBrowserTest,
+                $remoteConfigDTO->isParallelTest,
                 true,
                 // yes, a remote database is being built here now, locally
                 config("session.driver"),

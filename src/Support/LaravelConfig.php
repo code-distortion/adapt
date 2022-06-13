@@ -67,7 +67,7 @@ class LaravelConfig
     private static function loadConfigsAddedByServiceProviders(array $origConfigValues)
     {
         /** @var array<string, array<string, string>> $publishGroups */
-        $publishGroups = self::readStaticPrivateProperty(ServiceProvider::class, 'publishGroups');
+        $publishGroups = PHPSupport::readStaticPrivateProperty(ServiceProvider::class, 'publishGroups');
 
         /** @var Application $app */
         $app = app();
@@ -108,6 +108,7 @@ class LaravelConfig
         try {
             return Arr::has($array, $key);
         } catch (Throwable $e) {
+            // for older versions of Laravel
             return array_has($array, $key);
         }
     }
@@ -189,7 +190,7 @@ class LaravelConfig
             }
 
             if ($monolog instanceof MonologLogger) {
-                self::updatePrivateProperty($monolog, 'name', $app->environment());
+                PHPSupport::updatePrivateProperty($monolog, 'name', $app->environment());
 //            } elseif ($monolog instanceof Logger) {
             }
 
@@ -199,46 +200,7 @@ class LaravelConfig
 
 
 
-    /**
-     * Read a class static private property.
-     *
-     * @param string $class        The class to look in to.
-     * @param string $propertyName The property to read.
-     * @return mixed
-     */
-    private static function readStaticPrivateProperty(string $class, string $propertyName)
-    {
-        $reflection = new ReflectionClass($class);
 
-        if (!$reflection->hasProperty($propertyName)) {
-            return null;
-        }
-
-        $prop = $reflection->getProperty($propertyName);
-        $prop->setAccessible(true);
-        return $prop->getValue();
-    }
-
-    /**
-     * Update an object's private property.
-     *
-     * @param object $object       The object to alter.
-     * @param string $propertyName The property to update.
-     * @param mixed  $newValue     The value to set.
-     * @return void
-     */
-    private static function updatePrivateProperty($object, string $propertyName, $newValue)
-    {
-        $reflection = new ReflectionObject($object);
-
-        if (!$reflection->hasProperty($propertyName)) {
-            return;
-        }
-
-        $prop = $reflection->getProperty($propertyName);
-        $prop->setAccessible(true);
-        $prop->setValue($object, $newValue);
-    }
 
 
 

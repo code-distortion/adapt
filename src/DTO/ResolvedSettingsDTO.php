@@ -55,7 +55,7 @@ class ResolvedSettingsDTO
     public $storageDir;
 
     /** @var string[] The files to import before the migrations are run. */
-    public $preMigrationImports;
+    public $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
@@ -69,17 +69,20 @@ class ResolvedSettingsDTO
     /** @var boolean When turned on, databases are created for each scenario (based on migrations and seeders etc). */
     public $usingScenarios;
 
-    /** @var string|null The calculated build-hash. */
-    public $buildHash;
+    /** @var string|null The calculated build-checksum. */
+    public $buildChecksum;
 
-    /** @var string|null The calculated snapshot scenario-hash. */
-    public $snapshotHash;
+    /** @var string|null The calculated snapshot scenario-checksum. */
+    public $snapshotChecksum;
 
-    /** @var string|null The calculated scenario-hash. */
-    public $scenarioHash;
+    /** @var string|null The calculated scenario-checksum. */
+    public $scenarioChecksum;
 
     /** @var boolean Is a browser test being run?. */
     public $isBrowserTest;
+
+    /** @var boolean Is parallel testing being run? Is just for informational purposes. */
+    public $isParallelTest;
 
     /** @var string|null The session-driver being used. */
     public $sessionDriver;
@@ -95,6 +98,9 @@ class ResolvedSettingsDTO
 
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public $forceRebuild;
+
+    /** @var boolean Whether the database existed before or not (for logging). */
+    public $databaseExistedBefore;
 
     /** @var boolean Whether the database was reused or not (for logging). */
     public $databaseWasReused;
@@ -222,12 +228,12 @@ class ResolvedSettingsDTO
     /**
      * Specify the database dump files to import before migrations run.
      *
-     * @param string[] $preMigrationImports The database dump files to import, one per database type.
+     * @param string[] $initialImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports($preMigrationImports): self
+    public function initialImports($initialImports): self
     {
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         return $this;
     }
 
@@ -260,23 +266,23 @@ class ResolvedSettingsDTO
     /**
      * Turn the scenario-test-dbs setting on (or off).
      *
-     * @param boolean     $usingScenarios Create databases as needed for the database-scenario?.
-     * @param string|null $buildHash      The calculated build-hash.
-     * @param string|null $snapshotHash   The calculated snapshot-hash.
-     * @param string|null $scenarioHash   The calculated scenario-hash.
+     * @param boolean     $usingScenarios   Create databases as needed for the database-scenario?.
+     * @param string|null $buildChecksum    The calculated build-checksum.
+     * @param string|null $snapshotChecksum The calculated snapshot-checksum.
+     * @param string|null $scenarioChecksum The calculated scenario-checksum.
      * @return static
      */
     public function scenarioTestDBs(
         $usingScenarios,
-        $buildHash,
-        $snapshotHash,
-        $scenarioHash
+        $buildChecksum,
+        $snapshotChecksum,
+        $scenarioChecksum
     ): self {
 
         $this->usingScenarios = $usingScenarios;
-        $this->buildHash = $buildHash;
-        $this->snapshotHash = $snapshotHash;
-        $this->scenarioHash = $scenarioHash;
+        $this->buildChecksum = $buildChecksum;
+        $this->snapshotChecksum = $snapshotChecksum;
+        $this->scenarioChecksum = $scenarioChecksum;
         return $this;
     }
 
@@ -289,6 +295,18 @@ class ResolvedSettingsDTO
     public function isBrowserTest($isBrowserTest): self
     {
         $this->isBrowserTest = $isBrowserTest;
+        return $this;
+    }
+
+    /**
+     * Turn the is-parallel-test setting on or off (is just for informational purposes).
+     *
+     * @param boolean $isParallelTest Is parallel testing being run?.
+     * @return static
+     */
+    public function isParallelTest($isParallelTest): self
+    {
+        $this->isParallelTest = $isParallelTest;
         return $this;
     }
 
@@ -353,6 +371,21 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Record whether the database existed before or not.
+     *
+     * @param boolean $databaseExistedBefore Whether the database existed before or not.
+     * @return static
+     */
+    public function databaseExistedBefore($databaseExistedBefore): self
+    {
+        $this->databaseExistedBefore = $databaseExistedBefore;
+        if (!$databaseExistedBefore) {
+            $this->databaseWasReused(false);
+        }
+        return $this;
+    }
+
+    /**
      * Record whether the database was reused or not.
      *
      * @param boolean $databaseWasReused Whether the database was reused or not.
@@ -361,6 +394,9 @@ class ResolvedSettingsDTO
     public function databaseWasReused($databaseWasReused): self
     {
         $this->databaseWasReused = $databaseWasReused;
+        if ($databaseWasReused) {
+            $this->databaseExistedBefore(true);
+        }
         return $this;
     }
 
@@ -418,9 +454,9 @@ class ResolvedSettingsDTO
             ? $this->escapeString($this->storageDir) . $remoteExtra
             : null;
 
-        $preMigrationImportsTitle = count($this->preMigrationImports) == 1
-            ? 'Pre-migration import:'
-            : 'Pre-migration imports:';
+        $initialImportsTitle = count($this->initialImports) == 1
+            ? 'Initial import:'
+            : 'Initial imports:';
 
         $migrations = is_bool($this->migrations)
             ? ($this->migrations ? 'Yes' : 'No')
@@ -434,7 +470,7 @@ class ResolvedSettingsDTO
 
         return array_filter([
             'Remote-build url:' => $this->escapeString($this->remoteBuildUrl),
-            $preMigrationImportsTitle => $this->renderList($this->preMigrationImports, $remoteExtra),
+            $initialImportsTitle => $this->renderList($this->initialImports, $remoteExtra),
             'Migrations:' => $migrations,
             $seedersTitle => $seeders,
             'Snapshots enabled?' => $snapshotsEnabled,
@@ -457,25 +493,26 @@ class ResolvedSettingsDTO
         );
 
         $reuseTypes = array_filter([
-            $this->transactionReusable ? 'transaction' : '',
-            $this->journalReusable ? 'journal' : '',
+            $this->transactionReusable ? 'Transaction' : '',
+            $this->journalReusable ? 'Journal' : '',
         ]);
         $isReusable = $this->renderBoolean(
             (bool) count($reuseTypes),
-            'Yes - ' . implode(', ', $reuseTypes),
-            'No, it will be rebuilt for each test'
+            implode(', ', $reuseTypes),
+            'None, it will be rebuilt for each test'
         );
 
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
-            'Database is reusable?' => $isReusable,
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            'For a browser-test?' => $isBrowserTest,
+            'Re-use type:' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
-            'Verify database after?' => $this->renderBoolean($this->verifyDatabase),
-            'Build-hash:' => $this->escapeString($this->buildHash, 'n/a'),
-            'Snapshot-hash:' => $this->escapeString($this->snapshotHash, 'n/a'),
-            'Scenario-hash:' => $this->escapeString($this->scenarioHash, 'n/a'),
+            'Verify db after?' => $this->renderBoolean($this->verifyDatabase),
+            'For a browser test?' => $isBrowserTest,
+            'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
+            'Build-checksum:' => $this->escapeString($this->buildChecksum, 'n/a'),
+            'Snapshot-checksum:' => $this->escapeString($this->snapshotChecksum, 'n/a'),
+            'Scenario-checksum:' => $this->escapeString($this->scenarioChecksum, 'n/a'),
         ]);
     }
 

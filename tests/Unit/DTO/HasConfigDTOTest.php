@@ -46,47 +46,68 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'checkForSourceChanges 1' => [
-                'method' => 'checkForSourceChanges',
+            'cacheInvalidationMethod 1' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['content'],
+                'outcome' => [
+                    'cacheInvalidationMethod' => 'content',
+                ],
+            ],
+            'cacheInvalidationMethod 2' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['modified'],
+                'outcome' => [
+                    'cacheInvalidationMethod' => 'modified',
+                ],
+            ],
+            'cacheInvalidationMethod 3' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => [null],
+                'outcome' => [
+                    'cacheInvalidationMethod' => null,
+                ],
+            ],
+            'cacheInvalidationMethod 4' => [
+                'method' => 'cacheInvalidationMethod',
                 'params' => [true],
                 'outcome' => [
-                    'checkForSourceChanges' => true,
+                    'cacheInvalidationMethod' => 'content',
                 ],
             ],
-            'checkForSourceChanges 2' => [
-                'method' => 'checkForSourceChanges',
+            'cacheInvalidationMethod 5' => [
+                'method' => 'cacheInvalidationMethod',
                 'params' => [false],
                 'outcome' => [
-                    'checkForSourceChanges' => false,
+                    'cacheInvalidationMethod' => null,
                 ],
             ],
-            'dontCheckForSourceChanges' => [
-                'method' => 'dontCheckForSourceChanges',
+            'noCacheInvalidationMethod' => [
+                'method' => 'noCacheInvalidationMethod',
                 'params' => [],
                 'outcome' => [
-                    'checkForSourceChanges' => false,
+                    'cacheInvalidationMethod' => null,
                 ],
             ],
 
-            'preMigrationImports 1' => [
-                'method' => 'preMigrationImports',
+            'initialImports 1' => [
+                'method' => 'initialImports',
                 'params' => [['a']],
                 'outcome' => [
-                    'preMigrationImports' => ['a'],
+                    'initialImports' => ['a'],
                 ],
             ],
-            'preMigrationImports 2' => [
-                'method' => 'preMigrationImports',
+            'initialImports 2' => [
+                'method' => 'initialImports',
                 'params' => [[]],
                 'outcome' => [
-                    'preMigrationImports' => [],
+                    'initialImports' => [],
                 ],
             ],
-            'noPreMigrationImports' => [
-                'method' => 'noPreMigrationImports',
+            'noInitialImports' => [
+                'method' => 'noInitialImports',
                 'params' => [],
                 'outcome' => [
-                    'preMigrationImports' => [],
+                    'initialImports' => [],
                 ],
             ],
 

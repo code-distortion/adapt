@@ -49,7 +49,7 @@ trait LaravelBuildTrait
             throw AdaptBuildException::migrationsFailed($migrationsPath, $e);
         }
 
-        $this->di->log->debug('Ran migrations', $logTimer);
+        $this->di->log->vDebug('Ran migrations', $logTimer);
     }
 
     /**
@@ -83,7 +83,7 @@ trait LaravelBuildTrait
                 throw AdaptBuildException::seederFailed($seeder, $e);
             }
 
-            $this->di->log->debug('Ran seeder "' . $seeder . '"', $logTimer);
+            $this->di->log->vDebug('Ran seeder "' . $seeder . '"', $logTimer);
         }
     }
 
@@ -121,19 +121,6 @@ trait LaravelBuildTrait
         }
 
         return $seeder;
-    }
-
-    /**
-     * Start the transaction that the test will be encapsulated in.
-     *
-     * @return void
-     */
-    protected function laravelApplyTransaction()
-    {
-        $closure = $this->di->dbTransactionClosure;
-        if (is_callable($closure)) {
-            $closure($this->configDTO->connection);
-        }
     }
 
     /**

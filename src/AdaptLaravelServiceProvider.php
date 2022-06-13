@@ -199,10 +199,8 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function newLog(): LogInterface
     {
-        $useLaravelLog = (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel');
-
         // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
-        return new LaravelLog(false, $useLaravelLog);
+        return new LaravelLog(false, (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'), (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'));
     }
 
     /**

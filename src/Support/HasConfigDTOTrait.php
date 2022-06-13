@@ -48,38 +48,73 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the usage of build-hashes on (or off).
+     * Set the method to use when checking for source-file changes.
      *
-     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
      * @return static
      */
-    public function checkForSourceChanges($checkForSourceChanges = true): self
+    public function cacheInvalidationMethod($cacheInvalidationMethod): self
     {
-        $this->configDTO->checkForSourceChanges = $checkForSourceChanges;
+        $this->configDTO->cacheInvalidationMethod($cacheInvalidationMethod);
         return $this;
     }
 
     /**
-     * Turn the usage of build-hashes off.
+     * Turn checking for source-file changes off.
      *
+     * @return static
+     */
+    public function noCacheInvalidationMethod(): self
+    {
+        $this->configDTO->cacheInvalidationMethod(null);
+        return $this;
+    }
+
+    /**
+     * Set the method to use when checking for source-file changes.
+     *
+     * @deprecated
+     * @param boolean $checkForSourceChanges Whether build-checksums should be calculated or not.
+     * @return static
+     */
+    public function checkForSourceChanges($checkForSourceChanges = true): self
+    {
+        return $this->cacheInvalidationMethod($checkForSourceChanges);
+    }
+
+    /**
+     * Turn checking for source-file changes off.
+     *
+     * @deprecated
      * @return static
      */
     public function dontCheckForSourceChanges(): self
     {
-        $this->configDTO->checkForSourceChanges = false;
+        return $this->noCacheInvalidationMethod();
+    }
+
+    /**
+     * Specify the database dump files to import before migrations run.
+     *
+     * @param string[]|string[][] $initialImports The database dump files to import, one per database type.
+     * @return static
+     */
+    public function initialImports($initialImports = []): self
+    {
+        $this->configDTO->initialImports($initialImports);
         return $this;
     }
 
     /**
      * Specify the database dump files to import before migrations run.
      *
+     * @deprecated
      * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
      * @return static
      */
     public function preMigrationImports($preMigrationImports = []): self
     {
-        $this->configDTO->preMigrationImports($preMigrationImports);
-        return $this;
+        return $this->initialImports($preMigrationImports);
     }
 
     /**
@@ -87,10 +122,21 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
+    public function noInitialImports(): self
+    {
+        $this->configDTO->initialImports([]);
+        return $this;
+    }
+
+    /**
+     * Specify that no database dump files will be imported before migrations run.
+     *
+     * @deprecated
+     * @return static
+     */
     public function noPreMigrationImports(): self
     {
-        $this->configDTO->preMigrationImports([]);
-        return $this;
+        return $this->noInitialImports();
     }
 
     /**

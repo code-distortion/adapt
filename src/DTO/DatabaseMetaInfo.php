@@ -144,8 +144,8 @@ class DatabaseMetaInfo
      */
     public function readable(): string
     {
-        return $this->name
-            . ' ' . Str::readableSize($this->getSize())
+        return "\"{$this->name}\" "
+            . Str::readableSize($this->getSize())
             . ($this->getPurgeAfter() ? ' - Stale' : '');
     }
 
@@ -170,7 +170,7 @@ class DatabaseMetaInfo
             }
         }
 
-        return $this->name
+        return "\"$this->name\""
             . ' ' . Str::readableSize($this->getSize())
             . $purgeMessage;
     }

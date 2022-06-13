@@ -46,7 +46,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
                 'accessDT' => new DateTime('now', new DateTimeZone('UTC')),
                 'isValid' => true,
                 'size' => $size[0],
-                'expectedReadable' => 'abc ' . $size[1],
+                'expectedReadable' => '"abc" ' . $size[1],
             ];
         }
         return $return;

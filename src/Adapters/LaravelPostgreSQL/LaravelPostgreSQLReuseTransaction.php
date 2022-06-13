@@ -4,7 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
-use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelTransactionsTrait;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use stdClass;
 use Throwable;
@@ -15,7 +15,6 @@ use Throwable;
 class LaravelPostgreSQLReuseTransaction implements ReuseTransactionInterface
 {
     use InjectTrait;
-    use LaravelTransactionsTrait;
 
 
 
@@ -32,15 +31,25 @@ class LaravelPostgreSQLReuseTransaction implements ReuseTransactionInterface
 
 
     /**
-     * Start the transaction that the test will be encapsulated in.
+     * Start the wrapper-transaction.
      *
      * @return void
      */
-    public function applyTransaction()
+    public function startTransaction()
     {
         $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = TRUE");
-        $this->laravelApplyTransaction();
+        LaravelSupport::startTransaction($this->configDTO->connection);
         $this->di->db->update("UPDATE \"" . Settings::REUSE_TABLE . "\" SET \"transaction_reusable\" = FALSE");
+    }
+
+    /**
+     * Roll-back the wrapper-transaction.
+     *
+     * @return void
+     */
+    public function rollBackTransaction()
+    {
+        LaravelSupport::rollBackTransaction($this->configDTO->connection);
     }
 
     /**

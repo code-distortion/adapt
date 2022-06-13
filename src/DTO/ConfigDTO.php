@@ -55,18 +55,18 @@ class ConfigDTO
     /** @var string The prefix to add to database names. */
     public $databasePrefix;
 
-    /** @var boolean Turn the usage of build-hashes on or off. */
-    public $checkForSourceChanges;
+    /** @var string|null The method to check source-files for changes - 'content' / 'modified' / null. */
+    public $cacheInvalidationMethod;
 
     /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
-    public $hashPaths;
+    public $checksumPaths;
 
-    /** @var string|null The build-hash if it has already been calculated - passed to remote Adapt installations. */
-    public $preCalculatedBuildHash;
+    /** @var string|null The build-checksum if it has already been calculated - passed to remote Adapt installations. */
+    public $preCalculatedBuildChecksum;
 
 
     /** @var string[]|string[][] The files to import before the migrations are run. */
-    public $preMigrationImports;
+    public $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
@@ -79,6 +79,9 @@ class ConfigDTO
 
     /** @var boolean Is a browser test being run? If so, this will turn off transaction re-use. */
     public $isBrowserTest;
+
+    /** @var boolean Is parallel testing being run? Is just for informational purposes. */
+    public $isParallelTest;
 
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public $isRemoteBuild;
@@ -314,38 +317,43 @@ class ConfigDTO
     }
 
     /**
-     * Turn the usage of build-hashes on or off.
+     * Set the method to use when checking for source-file changes.
      *
-     * @param boolean $checkForSourceChanges Whether build-hashes should be calculated or not.
+     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
      * @return static
      */
-    public function checkForSourceChanges($checkForSourceChanges): self
+    public function cacheInvalidationMethod($cacheInvalidationMethod): self
     {
-        $this->checkForSourceChanges = $checkForSourceChanges;
+        if (in_array($cacheInvalidationMethod, ['content', 'modified', null], true)) {
+            $this->cacheInvalidationMethod = $cacheInvalidationMethod;
+        } else {
+            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'content' : null;
+        }
+
         return $this;
     }
 
     /**
      * Set the list of directories that can invalidate test-databases and snapshots.
      *
-     * @param string[] $hashPaths The files and directories to look through.
+     * @param string[] $checksumPaths The files and directories to look through.
      * @return static
      */
-    public function hashPaths($hashPaths): self
+    public function checksumPaths($checksumPaths): self
     {
-        $this->hashPaths = $hashPaths;
+        $this->checksumPaths = $checksumPaths;
         return $this;
     }
 
     /**
-     * Set the pre-calculated build-hash - passed to remote Adapt installations.
+     * Set the pre-calculated build-checksum - passed to remote Adapt installations.
      *
-     * @param string|null $preCalculatedBuildHash The pre-calculated build-hash.
+     * @param string|null $preCalculatedBuildChecksum The pre-calculated build-checksum.
      * @return static
      */
-    public function preCalculatedBuildHash($preCalculatedBuildHash): self
+    public function preCalculatedBuildChecksum($preCalculatedBuildChecksum): self
     {
-        $this->preCalculatedBuildHash = $preCalculatedBuildHash;
+        $this->preCalculatedBuildChecksum = $preCalculatedBuildChecksum;
         return $this;
     }
 
@@ -354,12 +362,13 @@ class ConfigDTO
     /**
      * Set the details that affect what is being built (i.e. the database-scenario).
      *
-     * @param string[]|string[][] $preMigrationImports       The files to import before the migrations are run.
+     * @param string[]|string[][] $initialImports            The files to import before the migrations are run.
      * @param boolean|string      $migrations                Should the migrations be run? / the path of the migrations
      *                                                       to run.
      * @param string[]            $seeders                   The seeders to run after migrating.
      * @param string|null         $remoteBuildUrl            The remote Adapt installation to send "build" requests to.
      * @param boolean             $isBrowserTest             Is a browser test running?.
+     * @param boolean             $isParallelTest            Is parallel testing being run?.
      * @param boolean             $isRemoteBuild             Is this process building a db for another Adapt
      *                                                       installation?.
      * @param string              $sessionDriver             The session driver being used.
@@ -368,21 +377,23 @@ class ConfigDTO
      * @return static
      */
     public function buildSettings(
-        $preMigrationImports,
+        $initialImports,
         $migrations,
         $seeders,
         $remoteBuildUrl,
         $isBrowserTest,
+        $isParallelTest,
         $isRemoteBuild,
         $sessionDriver,
         $remoteCallerSessionDriver
     ): self {
 
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         $this->migrations = $migrations;
         $this->seeders = $seeders;
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
+        $this->isParallelTest = $isParallelTest;
         $this->isRemoteBuild = $isRemoteBuild;
         $this->sessionDriver = $sessionDriver;
         $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
@@ -392,12 +403,12 @@ class ConfigDTO
     /**
      * Specify the database dump files to import before migrations run.
      *
-     * @param string[]|string[][] $preMigrationImports The database dump files to import, one per database type.
+     * @param string[]|string[][] $initialImports The database dump files to import, one per database type.
      * @return static
      */
-    public function preMigrationImports($preMigrationImports): self
+    public function initialImports($initialImports): self
     {
-        $this->preMigrationImports = $preMigrationImports;
+        $this->initialImports = $initialImports;
         return $this;
     }
 
@@ -449,6 +460,18 @@ class ConfigDTO
     public function isBrowserTest($isBrowserTest): self
     {
         $this->isBrowserTest = $isBrowserTest;
+        return $this;
+    }
+
+    /**
+     * Turn the is-parallel-test setting on or off (is just for informational purposes).
+     *
+     * @param boolean $isParallelTest Is parallel testing being run?.
+     * @return static
+     */
+    public function isParallelTest($isParallelTest): self
+    {
+        $this->isParallelTest = $isParallelTest;
         return $this;
     }
 
@@ -758,15 +781,15 @@ class ConfigDTO
      *
      * @return string[]
      */
-    public function pickPreMigrationImports(): array
+    public function pickInitialImports(): array
     {
-        $preMigrationImports = $this->preMigrationImports;
+        $initialImports = $this->initialImports;
         $driver = $this->driver;
 
         $usePaths = [];
-        if (isset($preMigrationImports[$driver])) {
+        if (isset($initialImports[$driver])) {
 
-            $paths = $preMigrationImports[$driver];
+            $paths = $initialImports[$driver];
             $paths = is_string($paths) ? [$paths] : $paths;
 
             if (is_array($paths)) {
@@ -985,6 +1008,10 @@ class ConfigDTO
      */
     public function snapshotType()
     {
+        if (!$this->dbSupportsSnapshots) {
+            return null;
+        }
+
         $snapshotType = $this->reusingDB()
             ? $this->useSnapshotsWhenReusingDB
             : $this->useSnapshotsWhenNotReusingDB;

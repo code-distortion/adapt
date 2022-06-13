@@ -24,17 +24,17 @@ interface ReuseMetaDataTableInterface
     /**
      * Insert details to the database to help identify if it can be reused or not.
      *
-     * @param string      $origDBName   The name of the database that this test-database is for.
-     * @param string|null $buildHash    The current build-hash.
-     * @param string|null $snapshotHash The current snapshot-hash.
-     * @param string|null $scenarioHash The current scenario-hash.
+     * @param string      $origDBName       The name of the database that this test-database is for.
+     * @param string|null $buildChecksum    The current build-checksum.
+     * @param string|null $snapshotChecksum The current snapshot-checksum.
+     * @param string|null $scenarioChecksum The current scenario-checksum.
      * @return void
      */
     public function createReuseMetaDataTable(
         $origDBName,
-        $buildHash,
-        $snapshotHash,
-        $scenarioHash
+        $buildChecksum,
+        $snapshotChecksum,
+        $scenarioChecksum
     );
 
     /**
@@ -54,16 +54,16 @@ interface ReuseMetaDataTableInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string|null $buildHash    The current build-hash.
-     * @param string|null $scenarioHash The current scenario-hash.
-     * @param string|null $projectName  The project-name.
-     * @param string      $database     The database being built.
+     * @param string|null $buildChecksum    The current build-checksum.
+     * @param string|null $scenarioChecksum The current scenario-checksum.
+     * @param string|null $projectName      The project-name.
+     * @param string      $database         The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
     public function dbIsCleanForReuse(
-        $buildHash,
-        $scenarioHash,
+        $buildChecksum,
+        $scenarioChecksum,
         $projectName,
         $database
     ): bool;

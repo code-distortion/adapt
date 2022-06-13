@@ -15,7 +15,7 @@ return [
      |
      */
 
-    'project_name' => env('ADAPT_PROJECT_NAME', ''),
+    'project_name' => env('ADAPT_PROJECT_NAME'),
 
     /*
      |--------------------------------------------------------------------------
@@ -102,15 +102,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Imports To Apply Before Migrations & Seeders
+    | Files to Import Before Migrations & Seeders are Run
     |--------------------------------------------------------------------------
     |
-    | If you have your own database-dump/s that you'd like to be applied BEFORE
-    | migrations run, list them here. This config setting can be overridden
-    | by adding the $preMigrationImports property to your test-class.
+    | If you have your own database-dump/s that you'd like to be imported
+    | BEFORE migrations run, list them here. This config setting can be
+    | overridden by adding the $initialImports property to your
+    | test-class.
     |
     | NOTE: It's important that these dumps don't contain output from seeders
-    | if those seeders are also run by Adapt afterwards.
+    | if those seeders are also going to be run by Adapt afterwards.
     |
     | array<string, string>|array<string, string[]>
     |
@@ -122,7 +123,7 @@ return [
     |
     */
 
-    'pre_migration_imports' => [
+    'initial_imports' => [
         'mysql' => [],
         'sqlite' => [],
         'pgsql' => [],
@@ -182,23 +183,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Check for source file changes
+    | Detect Changes to Source Files
     |--------------------------------------------------------------------------
     |
-    | Adapt detects when changes are made to the files that build your
-    | databases. These include pre-migration imports, migrations,
-    | seeders and factories.
+    | Adapt will detect when source files (like migrations, seeders and
+    | factories) change. When they do, new databases will be built.
     |
-    | When turned off, the "look for changes in" setting below will be ignored.
-    | Then it's your responsibility to remove old databases when they change.
+    | 'content' will be more reliable
+    | 'modified' will be quicker
+    | null - turned off
     |
-    | You can remove old databases by running: "php artisan adapt:remove"
+    | If needed, you can remove old databases yourself by running:
+    | "php artisan adapt:clear"
     |
-    | boolean
+    | ?string - 'modified' / 'content' / null
     |
     */
 
-    'check_for_source_changes' => env('ADAPT_CHECK_FOR_SOURCE_CHANGES', true),
+    'cache_invalidation_method' => env('ADAPT_CACHE_INVALIDATION_METHOD', 'modified'),
 
     /*
     |--------------------------------------------------------------------------
@@ -207,6 +209,8 @@ return [
     |
     | Changes to files in these directories will invalidate existing
     | test-databases and snapshots (they'll be rebuilt).
+    |
+    | "initial_imports" and "migration" files are included automatically.
     |
     | string[]
     |
@@ -309,17 +313,18 @@ return [
      | Logging
      |--------------------------------------------------------------------------
      |
-     | Where to log debugging output:
-     | - stdout - to the screen.
-     | - laravel - to Laravel's default logging mechanism.
+     | - stdout - Add logs to stdout.
+     | - laravel - Add logs to Laravel's default logging mechanism.
+     | - verbosity - The verbosity level to use (0 or 1).
      |
-     | array<string, boolean>
+     | array<string, boolean|integer>
      |
      */
 
     'log' => [
         'stdout' => env('ADAPT_LOG_STDOUT', false),
         'laravel' => env('ADAPT_LOG_LARAVEL', false),
+        'verbosity' => env('ADAPT_LOG_VERBOSITY', 0),
     ],
 
     /*

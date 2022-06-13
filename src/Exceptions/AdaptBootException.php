@@ -8,6 +8,22 @@ namespace CodeDistortion\Adapt\Exceptions;
 class AdaptBootException extends AdaptException
 {
     /**
+     * Thrown when Laravel's RefreshDatabase, DatabaseTransactions or DatabaseMigrations traits are detected.
+     *
+     * @param string $trait The detected trait.
+     * @return self
+     */
+    public static function laravelDatabaseTraitDetected($trait): self
+    {
+        $temp = (array) preg_split('/[\\\\\/]+/', $trait);
+        $trait = array_pop($temp);
+
+        return new self(
+            "Laravel's \"$trait\" trait was detected. Please remove it from your tests when using Adapt"
+        );
+    }
+
+    /**
      * Thrown when the --recreate-databases option has been added when --parallel testing.
      *
      * Because Adapt dynamically decides which database/s to use based on the settings for each test, it's not
@@ -18,7 +34,7 @@ class AdaptBootException extends AdaptException
      */
     public static function parallelTestingSaysRebuildDBs(): self
     {
-        return new self('Instead of using --recreate-databases, please use "php artisan adapt:remove (--force)"');
+        return new self('Instead of using --recreate-databases, please use "php artisan adapt:clear (--force)"');
     }
 
     /**
@@ -32,12 +48,12 @@ class AdaptBootException extends AdaptException
     }
 
     /**
-     * The database name must be a string.
+     * The database name must be a string with characters in it.
      *
      * @param string $database The database name.
      * @return self
      */
-    public static function databaseNameNotAString($database): self
+    public static function databaseNameIsInvalid($database): self
     {
         return new self("The Database name \"$database\" is invalid");
     }

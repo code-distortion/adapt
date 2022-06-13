@@ -5,8 +5,13 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Http\Request;
+use PDOException;
 
 /**
  * Provides extra miscellaneous Laravel related support functionality.
@@ -66,8 +71,8 @@ class LaravelSupport
      *
      * e.g. /var/www/html instead of /var/www/html/public
      *
-     * This ensures that the paths of hash files (migrations, seeders etc) are resolved identically, compared to when
-     * Adapt is running in non-web situations tests (i.e. tests).
+     * This ensures that the paths of checksum files (migrations, seeders etc) are resolved identically, compared to
+     * when Adapt is running in non-web situations tests (i.e. tests).
      *
      * @return void
      */
@@ -117,8 +122,12 @@ class LaravelSupport
     /**
      * Look at the seeder properties and config value, and determine what the seeders should be.
      *
+     * Adapt uses $seeders, Laravel uses $seed and $seeder. This allows Adapt to respect the Laravel settings.
+     *
      * @param boolean $hasSeedersProp Whether the test has the $seeders property or not.
      * @param mixed   $seedersProp    The $seeders property.
+     * @param boolean $hasSeederProp  Whether the test has the $seeder property or not.
+     * @param mixed   $seederProp     The $seeder property.
      * @param boolean $hasSeedProp    Whether the test has the $seed property or not.
      * @param mixed   $seedProp       The $seed property.
      * @param mixed   $seedersConfig  The code_distortion.adapt.seeders Laravel config value.
@@ -127,6 +136,8 @@ class LaravelSupport
     public static function resolveSeeders(
         $hasSeedersProp,
         $seedersProp,
+        $hasSeederProp,
+        $seederProp,
         $hasSeedProp,
         $seedProp,
         $seedersConfig
@@ -135,11 +146,14 @@ class LaravelSupport
         // use the $seeders property first if it exists
         if ($hasSeedersProp) {
             $seeders = $seedersProp;
-        // use the default DatabaseSeeder when $seed is truthy
-        // or none if $seed exists and is falsey
+        // when $seed is truthy:
+        // $seeder will be used (if present), and will fall back to the default DatabaseSeeder otherwise
         } elseif ($hasSeedProp) {
-            $seeders = $seedProp ? 'Database\\Seeders\\DatabaseSeeder' : [];
-        // fall back to the seeders
+            $seeders = [];
+            if ($seedProp) {
+                $seeders = $hasSeederProp ? $seederProp : 'Database\\Seeders\\DatabaseSeeder';
+            }
+        // fall back to the config seeders
         } else {
             $seeders = $seedersConfig;
         }
@@ -226,5 +240,85 @@ class LaravelSupport
     {
         $value = $request->headers->get($headerName);
         return is_string($value) ? $value : '';
+    }
+
+
+
+    /**
+     * Start a database transaction for a connection.
+     *
+     * (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction()).
+     *
+     * @param string $connection The connection to use.
+     * @return void
+     */
+    public static function startTransaction($connection)
+    {
+        $connection = self::getConnectionInterface($connection);
+        if (self::useEventDispatcher($connection)) {
+            /** @var Connection $connection */
+            $dispatcher = $connection->getEventDispatcher();
+            $connection->unsetEventDispatcher();
+            $connection->beginTransaction();
+            $connection->setEventDispatcher($dispatcher);
+        } else {
+            // compatible with older versions of Laravel
+            $connection->beginTransaction();
+        }
+    }
+
+    /**
+     * Rollback the database transaction for a connection.
+     *
+     * (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction()).
+     *
+     * @param string $connection The connection to use.
+     * @return void
+     */
+    public static function rollBackTransaction($connection)
+    {
+        $connection = self::getConnectionInterface($connection);
+        if (self::useEventDispatcher($connection)) {
+
+            /** @var Connection $connection */
+            $dispatcher = $connection->getEventDispatcher();
+            $connection->unsetEventDispatcher();
+            try {
+                $connection->rollback();
+            } catch (PDOException $e) {
+                // act gracefully if the transaction was committed already? - no
+            }
+            $connection->setEventDispatcher($dispatcher);
+//            $connection->disconnect();
+
+        } else {
+            // compatible with older versions of Laravel
+            $connection->rollback();
+        }
+    }
+
+    /**
+     * Get the ConnectionInterface for a particular connection.
+     *
+     * @param string $connection The connection to use.
+     * @return ConnectionInterface
+     */
+    private static function getConnectionInterface(string $connection): ConnectionInterface
+    {
+        /** @var ConnectionResolverInterface $database */
+        $database = app('db');
+        return $database->connection($connection);
+    }
+
+    /**
+     * Check if Laravel's newer EventDispatcher should be used when applying transactions.
+     *
+     * @param ConnectionInterface $connection The connection to use.
+     * @return boolean
+     */
+    private static function useEventDispatcher(ConnectionInterface $connection): bool
+    {
+        // this allows this code to run with older versions of Laravel versions
+        return method_exists($connection, 'unsetEventDispatcher');
     }
 }

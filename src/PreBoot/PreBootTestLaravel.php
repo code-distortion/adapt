@@ -38,10 +38,7 @@ class PreBootTestLaravel
     /** @var LogInterface The logger to use. */
     private $log;
 
-    /** @var callable The framework specific callback to set up the database transaction. */
-    private $buildTransactionClosure;
-
-    /** @var callable|null The callback that uses databaseInit(), to let the Test customise the database build process. */
+    /** @var callable|null Callback that uses databaseInit(), to let the Test customise the database build process. */
     private $buildInitCallback;
 
     /** @var boolean Whether the current test is a browser test or not. */
@@ -52,25 +49,22 @@ class PreBootTestLaravel
     /**
      * Constructor.
      *
-     * @param string        $testClass               The class the current test is in.
-     * @param string        $testName                The name of the current test.
-     * @param PropBagDTO    $propBag                 The properties specified in the test-class.
-     * @param callable      $buildTransactionClosure The closure to call to set up the database transaction.
-     * @param callable|null $buildInitCallback       The callback that calls the custom databaseInit() build process.
-     * @param boolean       $isBrowserTest           Whether the current test is a browser test or not.
+     * @param string        $testClass         The class the current test is in.
+     * @param string        $testName          The name of the current test.
+     * @param PropBagDTO    $propBag           The properties specified in the test-class.
+     * @param callable|null $buildInitCallback The callback that calls the custom databaseInit() build process.
+     * @param boolean       $isBrowserTest     Whether the current test is a browser test or not.
      */
     public function __construct(
         string $testClass,
         string $testName,
         PropBagDTO $propBag,
-        callable $buildTransactionClosure,
         $buildInitCallback,
         bool $isBrowserTest
     ) {
         $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
-        $this->buildTransactionClosure = $buildTransactionClosure;
         $this->buildInitCallback = $buildInitCallback;
         $this->isBrowserTest = $isBrowserTest;
     }
@@ -80,22 +74,35 @@ class PreBootTestLaravel
     /**
      * Prepare and boot Adapt.
      *
+     * @param callable $beforeRefreshingDatabase Callback to call the test's beforeRefreshingDatabase() method.
+     * @param callable $afterRefreshingDatabase  Callback to call the test's afterRefreshingDatabase() method.
+     * @param callable $unsetArtisan             Callback to clear Artisan from Laravel's App.
      * @return void
      * @throws Throwable When something goes wrong.
      */
-    public function adaptSetUp()
-    {
+    public function adaptSetUp(
+        $beforeRefreshingDatabase,
+        $afterRefreshingDatabase,
+        $unsetArtisan
+    ) {
+
         // the logger needs Laravel's config settings to be built,
         // so it needs to be built here instead of earlier in the constructor
         // (as Laravel hadn't booted by that point)
         $this->log = $this->newLog();
 
         try {
+
             $this->prepareLaravelConfig();
+
+            $beforeRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
 
             $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
             $this->adaptBootTestLaravel->runBuildSteps();
             $this->adaptBootTestLaravel->runPostBuildSteps();
+
+            $afterRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
+            $unsetArtisan(); // unset Artisan, so as to not interfere with mocks inside tests
 
         } catch (Throwable $e) {
             Exceptions::logException($this->log, $e, true);
@@ -130,10 +137,7 @@ class PreBootTestLaravel
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(
-            (bool) $this->propBag->adaptConfig('log.stdout'),
-            (bool) $this->propBag->adaptConfig('log.laravel')
-        );
+        return new LaravelLog((bool) $this->propBag->adaptConfig('log.stdout'), (bool) $this->propBag->adaptConfig('log.laravel'), (int) $this->propBag->adaptConfig('log.verbosity'));
     }
 
 
@@ -172,7 +176,7 @@ class PreBootTestLaravel
     }
 
     /**
-     * Laravel sets the session driver to "array" during tests, but it doesn't when "php artisan dusk". This way,
+     * Laravel sets the session driver to "array" during tests, but it doesn't when using "php artisan dusk". This way,
      * "loginAs" works because the session data can persist in the database.
      *
      * This method "un-does" Laravel's override of the session driver when browser testing, so that loginAs works when
@@ -292,7 +296,6 @@ class PreBootTestLaravel
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
-            ->transactionClosure($this->buildTransactionClosure)
             ->initCallback($this->buildInitCallback)
             ->ensureStorageDirExists();
     }

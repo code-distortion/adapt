@@ -45,7 +45,7 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
                 'accessDT' => new DateTime('now', new DateTimeZone('UTC')),
                 'isValid' => true,
                 'size' => $size[0],
-                'expectedReadable' => '/var/www/database/adapt-test-storage/abc.mysql ' . $size[1],
+                'expectedReadable' => "\"/var/www/database/adapt-test-storage/abc.mysql\" $size[1]",
             ];
         }
         return $return;

@@ -29,12 +29,17 @@ class Exceptions
 
             $title = 'An Exception Occurred - ' . Exceptions::readableExceptionClass($e);
 
-            $lines = array_filter(self::breakDownStringLinesIntoArray($e->getMessage()));
+            $message = $e->getMessage() . PHP_EOL
+                . "{$e->getFile()} on line {$e->getLine()}";
+            $lines = self::breakDownStringLinesIntoArray($message);
 
             $e2 = $e;
             while ($e2 = $e2->getPrevious()) {
-                $message = 'Previous Exception - ' . static::readableExceptionClass($e2) . PHP_EOL . $e2->getMessage();
-                $e2Lines = array_filter(self::breakDownStringLinesIntoArray($message));
+                /** @var Throwable $e2 */
+                $message = 'Previous Exception - ' . static::readableExceptionClass($e2) . PHP_EOL
+                    . $e2->getMessage() . PHP_EOL
+                    . "{$e2->getFile()} on line {$e2->getLine()}";
+                $e2Lines = self::breakDownStringLinesIntoArray($message);
                 $lines = array_merge($lines, [''], $e2Lines);
             }
         }
@@ -68,6 +73,6 @@ class Exceptions
     private static function breakDownStringLinesIntoArray(string $string): array
     {
         $temp = str_replace("\r", "\n", str_replace("\r\n", "\n", $string));
-        return explode("\n", $temp);
+        return array_filter(explode("\n", $temp));
     }
 }

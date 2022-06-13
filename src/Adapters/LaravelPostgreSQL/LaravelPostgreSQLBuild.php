@@ -73,13 +73,15 @@ class LaravelPostgreSQLBuild implements BuildInterface
 
 
     /**
-     * Create the database if it doesn't exist, and wipe the database clean if it does.
+     * Remove the database (if it exists), and create it.
      *
+     * @param boolean $exists Whether the database exists or not.
      * @return void
      */
-    public function resetDB()
+    public function resetDB($exists)
     {
-        if ($this->di->db->currentDatabaseExists()) {
+//        if ($this->di->db->currentDatabaseExists()) {
+        if ($exists) {
             $this->dropDB();
         }
 
@@ -106,7 +108,7 @@ class LaravelPostgreSQLBuild implements BuildInterface
             );
         }
 
-        $this->di->log->debug('Created a new database', $logTimer);
+        $this->di->log->vDebug('Created a new database', $logTimer);
     }
 
     /**
@@ -135,7 +137,7 @@ class LaravelPostgreSQLBuild implements BuildInterface
             $this->di->db->newPDO()->dropDatabase("DROP DATABASE IF EXISTS \"$database\"", $database);
         }
 
-        $this->di->log->debug('Dropped the existing database', $logTimer);
+        $this->di->log->vDebug('Dropped the existing database', $logTimer);
     }
 
     /**

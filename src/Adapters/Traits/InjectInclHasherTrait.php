@@ -17,7 +17,7 @@ trait InjectInclHasherTrait
     /** @var ConfigDTO A DTO containing the settings to use. */
     protected $configDTO;
 
-    /** @var Hasher A Hasher that's used to generate and check hashes. */
+    /** @var Hasher A Hasher that's used to generate and check checksums. */
     protected $hasher;
 
 
@@ -26,7 +26,7 @@ trait InjectInclHasherTrait
      *
      * @param DIContainer $di        The dependency-injection container to use.
      * @param ConfigDTO   $configDTO A DTO containing the settings to use.
-     * @param Hasher      $hasher    The object used to generate and check hashes.
+     * @param Hasher      $hasher    The object used to generate and check checksums.
      */
     public function __construct(DIContainer $di, ConfigDTO $configDTO, Hasher $hasher)
     {

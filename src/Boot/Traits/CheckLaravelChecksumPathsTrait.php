@@ -6,23 +6,23 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Illuminate\Foundation\Application;
 
-trait CheckLaravelHashPathsTrait
+trait CheckLaravelChecksumPathsTrait
 {
     /**
-     * Check that the hash-paths are valid.
+     * Check that the checksum-paths are valid.
      *
-     * @param string[] $hashPaths The files and directories to look through.
+     * @param string[] $checksumPaths The files and directories to look through.
      * @return string[]
-     * @throws AdaptConfigException When one of the $hashPaths refers to the seeders directory, but it's invalid for
+     * @throws AdaptConfigException When one of the $checksumPaths refers to the seeders directory, but it's invalid for
      *                              the current version of Laravel.
      */
-    private function checkLaravelHashPaths(array $hashPaths): array
+    private function checkLaravelChecksumPaths(array $checksumPaths): array
     {
         $filesystem = new Filesystem();
         $seedersDir = database_path('seeders');
         $seedsDir = database_path('seeds');
 
-        foreach ($hashPaths as $path) {
+        foreach ($checksumPaths as $path) {
 
             if (!in_array($path, [$seedersDir, $seedsDir])) {
                 continue;
@@ -40,7 +40,7 @@ trait CheckLaravelHashPathsTrait
                 throw AdaptConfigException::seedersDirInvalid($path);
             }
         }
-        return $hashPaths;
+        return $checksumPaths;
     }
 
     /**

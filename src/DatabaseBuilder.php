@@ -67,7 +67,7 @@ class DatabaseBuilder
     /** @var callable The closure to call to get the driver for a connection. */
     private $pickDriverClosure;
 
-    /** @var Hasher Builds and checks hashes. */
+    /** @var Hasher Builds and checks checksums. */
     private $hasher;
 
 
@@ -120,10 +120,38 @@ class DatabaseBuilder
         $this->onlyExecuteOnce();
         $this->prePreparationChecks();
         $this->prepareDB();
-
-        $this->di->log->debug("Total preparation time for database \"{$this->configDTO->database}\"", $logTimer, true);
+        $this->logTotalTimeTaken($logTimer);
 
         return $this;
+    }
+
+    /**
+     * Add a line to the log showing how long the total preparation time was.
+     *
+     * @param integer $logTimer The timer measuring the overall time taken.
+     * @return void
+     */
+    private function logTotalTimeTaken(int $logTimer)
+    {
+        // for phpstan - it will exist
+        if (!$this->resolvedSettingsDTO) {
+            return;
+        }
+
+        $database = $this->configDTO->database;
+        $connection = $this->configDTO->connection;
+        $existed = $this->resolvedSettingsDTO->databaseExistedBefore;
+        $reused = $this->resolvedSettingsDTO->databaseWasReused;
+        $reusing = $reused ? "Reusing" : ($existed ? "Rebuilt" : "Built");
+        $emoji = $this->resolvedSettingsDTO->databaseWasReused ? '😎' : '🏗️ ';
+
+        if ($this->di->log->currentVerbosity() == 0) {
+            $message = "$reusing $connection database \"$database\" $emoji";
+            $this->di->log->debug($message, $logTimer, false);
+        } else {
+            $message = "$reusing database \"$database\" - total preparation time $emoji";
+            $this->di->log->vDebug($message, $logTimer, true);
+        }
     }
 
     /**
@@ -135,7 +163,7 @@ class DatabaseBuilder
     {
         $this->recordVerificationStart();
         $this->recordJournalingStart();
-        $this->applyTransaction();
+        $this->startTransaction();
     }
 
     /**
@@ -148,14 +176,20 @@ class DatabaseBuilder
     public function runPostTestSteps($isLast)
     {
         // work out when the new-line should be added
-        $c = $isLast && $this->configDTO->shouldVerifyData();
-        $b = $isLast && $this->configDTO->shouldUseJournal() && !$c;
-        $a = $isLast && $this->configDTO->shouldVerifyStructure() && !$b && !$c;
+        $d = $isLast && $this->configDTO->shouldVerifyData();
+        $c = $isLast && $this->configDTO->shouldUseJournal() && !$d;
+        $b = $isLast && $this->configDTO->shouldVerifyStructure() && !$c && !$d;
+        $a = $isLast && $this->configDTO->shouldUseTransaction() && !$b && !$c && !$d;
 
-        $this->checkForCommittedTransaction();
-        $this->verifyDatabaseStructure($a);
-        $this->reverseJournal($b);
-        $this->verifyDatabaseData($c);
+        $logTimer = $this->di->log->newTimer();
+        $this->rollBackTransaction();
+        $this->checkForCommittedTransaction($logTimer, $a);
+
+        $this->verifyDatabaseStructure($b);
+
+        $this->reverseJournal($c);
+
+        $this->verifyDatabaseData($d);
         $this->recordVerificationStop();
     }
 
@@ -203,7 +237,7 @@ class DatabaseBuilder
     /**
      * Check if the database was built remotely, earlier in the test-run. Then re-use it if it can be.
      *
-     * (This avoids needing to make a remote request to build when the hashes have already been calculated).
+     * (This avoids needing to make a remote request to build when the checksums have already been calculated).
      *
      * @param integer $logTimer The timer, started a little earlier.
      * @return boolean|null Null = irrelevant (just build it), false = it exists but can't be reused (force-rebuild).
@@ -242,8 +276,8 @@ class DatabaseBuilder
             $this->silentlyUseDatabase((string) $resolvedSettingsDTO->database);
 
             $return = $this->canReuseDB(
-                $resolvedSettingsDTO->buildHash,
-                $resolvedSettingsDTO->scenarioHash,
+                $resolvedSettingsDTO->buildChecksum,
+                $resolvedSettingsDTO->scenarioChecksum,
                 (string) $resolvedSettingsDTO->database,
                 false,
                 null
@@ -270,7 +304,7 @@ class DatabaseBuilder
             return null;
         }
 
-        return Settings::getResolvedSettingsDTO($this->hasher->currentScenarioHash());
+        return Settings::getResolvedSettingsDTO($this->hasher->currentScenarioChecksum());
     }
 
     /**
@@ -289,24 +323,26 @@ class DatabaseBuilder
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
+            // it was re-used this time
+            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->databaseWasReused(true) : null;
 
             $connection = $this->configDTO->connection;
             $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
-            $buildHash = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildHash : null;
+            $buildChecksum = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildChecksum : null;
             $this->configDTO->remoteBuildUrl = null; // stop debug output from showing that it's being built remotely
-            $this->hasher->buildHashWasPreCalculated($buildHash);
+            $this->hasher->buildChecksumWasPreCalculated($buildChecksum);
 
             $this->logTitle();
             $this->logHttpRequestWasSaved($database, $logTimer);
 
             if (!$this->configDTO->shouldInitialise()) {
-                $this->di->log->debug("Not using connection \"$connection\" locally");
+                $this->di->log->vDebug("Not using connection \"$connection\" locally");
                 return;
             }
 
             $this->logTheUsedSettings();
             $this->useDatabase($database);
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+            $this->di->log->vDebug("The existing database \"$database\" can be reused");
             $this->updateMetaTableLastUsed();
 
         } catch (Throwable $e) {
@@ -329,7 +365,8 @@ class DatabaseBuilder
     {
         $this->initialise();
 
-        $this->hasher->buildHashWasPreCalculated($this->configDTO->preCalculatedBuildHash); // only used when not null
+        // is only used when not null
+        $this->hasher->buildChecksumWasPreCalculated($this->configDTO->preCalculatedBuildChecksum);
 
         $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
 
@@ -371,15 +408,15 @@ class DatabaseBuilder
      */
     private function buildOrReuseDBLocally(bool $forceRebuild): bool
     {
-//        $this->di->log->debug("Preparing database \"{$this->configDTO->database}\"…");
+//        $this->di->log->vDebug("Preparing database \"{$this->configDTO->database}\"…");
 
         try {
             $logTimer = $this->di->log->newTimer();
 
             $database = (string) $this->configDTO->database;
             $canReuse = $this->canReuseDB(
-                $this->hasher->getBuildHash(),
-                $this->hasher->currentScenarioHash(),
+                $this->hasher->getBuildChecksum(),
+                $this->hasher->currentScenarioChecksum(),
                 $database,
                 $forceRebuild,
                 $logTimer
@@ -404,16 +441,16 @@ class DatabaseBuilder
     /**
      * Check if the current database can be re-used.
      *
-     * @param string|null  $buildHash    The current build-hash.
-     * @param string|null  $scenarioHash The current scenario-hash.
-     * @param string       $database     The current database to check.
-     * @param boolean      $forceRebuild Should the database be rebuilt anyway (no need to double-check)?.
-     * @param integer|null $logTimer     The timer, started a little earlier.
+     * @param string|null  $buildChecksum    The current build-checksum.
+     * @param string|null  $scenarioChecksum The current scenario-checksum.
+     * @param string       $database         The current database to check.
+     * @param boolean      $forceRebuild     Should the database be rebuilt anyway (no need to double-check)?.
+     * @param integer|null $logTimer         The timer, started a little earlier.
      * @return boolean
      */
     private function canReuseDB(
-        $buildHash,
-        $scenarioHash,
+        $buildChecksum,
+        $scenarioChecksum,
         string $database,
         bool $forceRebuild,
         $logTimer
@@ -432,8 +469,8 @@ class DatabaseBuilder
         }
 
         $isReusable = $this->dbAdapter()->reuseMetaData->dbIsCleanForReuse(
-            $buildHash,
-            $scenarioHash,
+            $buildChecksum,
+            $scenarioChecksum,
             $this->configDTO->projectName,
             $database
         );
@@ -446,11 +483,11 @@ class DatabaseBuilder
         }
 
         if ($isReusable) {
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎", $logTimer);
+            $this->di->log->vDebug("The existing database \"$database\" can be reused", $logTimer);
         } else {
             $reason = $this->dbAdapter()->reuseMetaData->getCantReuseReason();
-            $this->di->log->debug("Database \"$database\" cannot be reused", $logTimer);
-            $this->di->log->debug("(Reason \"$reason\")");
+            $this->di->log->vDebug("Database \"$database\" cannot be reused", $logTimer);
+            $this->di->log->vDebug("(Reason: $reason)");
         }
 
         return $isReusable;
@@ -472,14 +509,14 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuseMetaData->createReuseMetaDataTable(
             $this->origDBName(),
-            $this->hasher->getBuildHash(),
-            $this->hasher->currentSnapshotHash(),
-            $this->hasher->currentScenarioHash()
+            $this->hasher->getBuildChecksum(),
+            $this->hasher->currentSnapshotChecksum(),
+            $this->hasher->currentScenarioChecksum()
         );
 
         $this->configDTO->dbSupportsReUse
-            ? $this->di->log->debug("Set up re-use meta-data", $logTimer)
-            : $this->di->log->debug("Set up meta-data", $logTimer);
+            ? $this->di->log->vDebug("Set up the re-use meta-data", $logTimer)
+            : $this->di->log->vDebug("Set up the meta-data", $logTimer);
     }
 
     /**
@@ -493,7 +530,7 @@ class DatabaseBuilder
 
         $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
 
-        $this->di->log->debug("Updated re-use meta-data", $logTimer);
+        $this->di->log->vDebug("Refreshed the re-use meta-data", $logTimer);
     }
 
     /**
@@ -551,8 +588,13 @@ class DatabaseBuilder
      */
     private function resetDB()
     {
-        $this->dbAdapter()->build->resetDB();
+        $exists = $this->di->db->currentDatabaseExists();
+        $this->dbAdapter()->build->resetDB($exists);
 //        $this->createReuseMetaDataTable();
+
+        $this->resolvedSettingsDTO // for phpstan
+            ? $this->resolvedSettingsDTO->databaseExistedBefore($exists)
+            : null;
     }
 
     /**
@@ -588,7 +630,7 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
-        $this->importPreMigrationImports();
+        $this->importInitialImports();
         $this->migrate();
         $this->takeSnapshotAfterMigrations();
         $this->seed();
@@ -605,10 +647,10 @@ class DatabaseBuilder
      * @return void
      * @throws AdaptSnapshotException When snapshots aren't allowed for this type of database.
      */
-    private function importPreMigrationImports()
+    private function importInitialImports()
     {
-        $preMigrationImports = $this->configDTO->pickPreMigrationImports();
-        if (!count($preMigrationImports)) {
+        $initialImports = $this->configDTO->pickInitialImports();
+        if (!count($initialImports)) {
             return;
         }
 
@@ -619,11 +661,11 @@ class DatabaseBuilder
             );
         }
 
-        foreach ($preMigrationImports as $path) {
+        foreach ($initialImports as $path) {
             $logTimer = $this->di->log->newTimer();
             // will throw exception if the file doesn't exist
             $this->dbAdapter()->snapshot->importSnapshot($path, true);
-            $this->di->log->debug('Import of pre-migration dump: "' . $path . '" - successful', $logTimer);
+            $this->di->log->vDebug('Initial import: "' . $path . '" - successful', $logTimer);
         }
     }
 
@@ -736,7 +778,7 @@ class DatabaseBuilder
 
 //        $this->createReuseMetaDataTable(); // put the meta-table back
 
-        $this->di->log->debug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
 
     /**
@@ -769,7 +811,7 @@ class DatabaseBuilder
     private function generateSnapshotPath(array $seeders): string
     {
         return $this->dbAdapter()->name->generateSnapshotPath(
-            $this->hasher->generateSnapshotFilenameHashPart($seeders)
+            $this->hasher->generateSnapshotFilenameChecksumPart($seeders)
         );
     }
 
@@ -786,18 +828,18 @@ class DatabaseBuilder
         $snapshotPath = $this->generateSnapshotPath($seeders);
 
         if (!$this->di->filesystem->fileExists($snapshotPath)) {
-            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
+            $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - not found', $logTimer);
             return false;
         }
 
         if (!$this->dbAdapter()->snapshot->importSnapshot($snapshotPath)) {
-            $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
+            $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - FAILED', $logTimer);
             return false;
         }
 
         $this->di->filesystem->touch($snapshotPath); // so the stale grace-period starts again
 
-        $this->di->log->debug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
+        $this->di->log->vDebug('Snapshot import: "' . $snapshotPath . '" - successful', $logTimer);
         return true;
     }
 
@@ -823,10 +865,10 @@ class DatabaseBuilder
 
 
 
-        $this->di->log->debug("Building the database remotely…");
+        $this->di->log->vDebug("Building the database remotely…");
 
         $this->resolvedSettingsDTO = $this->sendBuildRemoteRequest($forceRebuild);
-        Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioHash(), $this->resolvedSettingsDTO);
+        Settings::storeResolvedSettingsDTO($this->hasher->currentScenarioChecksum(), $this->resolvedSettingsDTO);
 
         $connection = $this->resolvedSettingsDTO->connection;
         $database = (string) $this->resolvedSettingsDTO->database;
@@ -834,11 +876,11 @@ class DatabaseBuilder
         $message = $this->resolvedSettingsDTO->databaseWasReused
             ? "Database \"$database\" was reused. Remote preparation time"
             : "Database \"$database\" was built. Remote preparation time";
-        $this->di->log->debug($message, $logTimer);
+        $this->di->log->vDebug($message, $logTimer);
 
         if (!$this->configDTO->shouldInitialise()) {
 //            $this->configDTO->database($database);
-            $this->di->log->debug("Not using connection \"$connection\" locally");
+            $this->di->log->vDebug("Not using connection \"$connection\" locally");
             return;
         }
 
@@ -846,7 +888,7 @@ class DatabaseBuilder
         $this->useDatabase($database);
 
         if ($this->resolvedSettingsDTO && $this->resolvedSettingsDTO->databaseWasReused) {
-            $this->di->log->debug("Reusing the existing \"$database\" database 😎");
+            $this->di->log->vDebug("The existing database \"$database\" can be reused");
         }
     }
 
@@ -872,7 +914,7 @@ class DatabaseBuilder
             $resolvedSettingsDTO = ResolvedSettingsDTO::buildFromPayload((string) $response->getBody());
             $resolvedSettingsDTO->builtRemotely(true, $url);
 
-            Hasher::rememberRemoteBuildHash($url, (string) $resolvedSettingsDTO->buildHash);
+            Hasher::rememberRemoteBuildChecksum($url, (string) $resolvedSettingsDTO->buildChecksum);
 
             return $resolvedSettingsDTO;
 
@@ -896,8 +938,8 @@ class DatabaseBuilder
             $configDTO->forceRebuild = true;
         }
 
-        // save time by telling the remote Adapt installation what the build-hash was from last time.
-        $configDTO->preCalculatedBuildHash(Hasher::getRemoteBuildHash($remoteBuildUrl));
+        // save time by telling the remote Adapt installation what the build-checksum was from last time.
+        $configDTO->preCalculatedBuildChecksum(Hasher::getRemoteBuildChecksum($remoteBuildUrl));
         return $configDTO;
     }
 
@@ -963,10 +1005,7 @@ class DatabaseBuilder
             return [];
         }
 
-        return $this->dbAdapter()->find->findDatabases(
-            $this->origDBName(),
-            $this->hasher->getBuildHash()
-        );
+        return $this->dbAdapter()->find->findDatabases($this->hasher->getBuildChecksum());
     }
 
 
@@ -975,7 +1014,6 @@ class DatabaseBuilder
      * Build SnapshotMetaInfo objects for the snapshots in the storage directory.
      *
      * @return SnapshotMetaInfo[]
-     * @throws AdaptSnapshotException When a snapshot file couldn't be used.
      */
     public function buildSnapshotMetaInfos(): array
     {
@@ -983,16 +1021,55 @@ class DatabaseBuilder
             return [];
         }
 
+        $logTimer = $this->di->log->newTimer();
+
         try {
-            $snapshotMetaInfos = [];
             $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
-            foreach ($filePaths as $path) {
-                $snapshotMetaInfos[] = $this->buildSnapshotMetaInfo($path);
-            }
-            return array_values(array_filter($snapshotMetaInfos));
+            $this->di->log->vvDebug("Retrieved snapshot list", $logTimer);
         } catch (Throwable $e) {
-            throw AdaptSnapshotException::hadTroubleFindingSnapshots($e);
+            $this->di->log->vvWarning("Could not retrieve snapshot list", $logTimer);
+            return [];
         }
+
+        $logTimer2 = $this->di->log->newTimer();
+
+        $snapshotMetaInfos = [];
+        $attemptedCount = 0;
+        foreach ($filePaths as $path) {
+
+            // ignore other files
+            $temp = (array) preg_split('/[\\\\\/]+/', $path);
+            $filename = array_pop($temp);
+            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
+                continue;
+            }
+
+            $attemptedCount++;
+
+            $logTimer3 = $this->di->log->newTimer();
+
+            try {
+                $snapshotMetaInfo = $this->buildSnapshotMetaInfo($path);
+                $snapshotMetaInfos[] = $snapshotMetaInfo;
+
+                $path = $snapshotMetaInfo ? $snapshotMetaInfo->path : $path;
+                $usable = $snapshotMetaInfo
+                    ? ($snapshotMetaInfo->isValid
+                        ? '(usable)'
+                        : "(stale" . ($snapshotMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
+                    : '(not usable - ignoring)';
+                $this->di->log->vvDebug("- Found snapshot \"$path\" $usable", $logTimer3);
+
+            } catch (Throwable $e) {
+                $this->di->log->vvWarning("Could not read from snapshot \"$path\"", $logTimer3);
+            }
+        }
+
+        if (!$attemptedCount) {
+            $this->di->log->vvDebug("- No snapshots were found", $logTimer2);
+        }
+
+        return array_values(array_filter($snapshotMetaInfos));
     }
 
     /**
@@ -1021,7 +1098,7 @@ class DatabaseBuilder
             $path,
             $filename,
             $accessDT,
-            $this->hasher->filenameHasBuildHash($filename),
+            $this->hasher->filenameHasBuildChecksum($filename),
             function () use ($path) {
                 return $this->di->filesystem->size($path);
             },
@@ -1038,19 +1115,24 @@ class DatabaseBuilder
      *
      * @param SnapshotMetaInfo $snapshotMetaInfo The info object representing the snapshot file.
      * @return boolean
+     * @throws AdaptSnapshotException When the snapshot can't be removed.
      */
     private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
-        $logTimer = $this->di->log->newTimer();
-
-        if ($this->di->filesystem->unlink($snapshotMetaInfo->path)) {
-
-            $stale = (!$snapshotMetaInfo->isValid ? ' stale' : '');
-            $this->di->log->debug("Removed$stale snapshot file: \"$snapshotMetaInfo->path\"", $logTimer);
-
-            return true;
+        if (!$this->di->filesystem->fileExists($snapshotMetaInfo->path)) {
+            return false;
         }
-        return false;
+
+        try {
+            if (!$this->di->filesystem->unlink($snapshotMetaInfo->path)) {
+                throw AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path);
+            }
+            return true;
+        } catch (AdaptSnapshotException $e) {
+            throw $e; // just rethrow as is
+        } catch (Throwable $e) {
+            throw AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path, $e);
+        }
     }
 
 
@@ -1103,7 +1185,7 @@ class DatabaseBuilder
             ->host($this->di->db->getHost())
             ->database($database)
             ->storageDir($configDTO->storageDir)
-            ->preMigrationImports($configDTO->pickPreMigrationImports())
+            ->initialImports($configDTO->pickInitialImports())
             ->migrations($configDTO->migrations)
             ->seeders($configDTO->seedingIsAllowed(), $configDTO->seeders)
             ->builtRemotely(
@@ -1111,6 +1193,7 @@ class DatabaseBuilder
                 $configDTO->shouldBuildRemotely() ? $this->buildRemoteUrl() : null
             )->snapshotType($configDTO->snapshotType(), is_string($configDTO->useSnapshotsWhenReusingDB) ? $configDTO->useSnapshotsWhenReusingDB : null, is_string($configDTO->useSnapshotsWhenNotReusingDB) ? $configDTO->useSnapshotsWhenNotReusingDB : null)
             ->isBrowserTest($configDTO->isBrowserTest)
+            ->isParallelTest($configDTO->isParallelTest)
             ->sessionDriver($configDTO->sessionDriver)
             ->transactionReusable($configDTO->shouldUseTransaction())
             ->journalReusable($configDTO->shouldUseJournal())
@@ -1118,9 +1201,9 @@ class DatabaseBuilder
             ->forceRebuild($configDTO->forceRebuild)
             ->scenarioTestDBs(
                 $configDTO->usingScenarioTestDBs(),
-                $buildingLocally ? $this->hasher->getBuildHash() : null,
-                $buildingLocally ? $this->hasher->currentSnapshotHash() : null,
-                $buildingLocally ? $this->hasher->currentScenarioHash() : null
+                $buildingLocally ? $this->hasher->getBuildChecksum() : null,
+                $buildingLocally ? $this->hasher->currentSnapshotChecksum() : null,
+                $buildingLocally ? $this->hasher->currentScenarioChecksum() : null
             )
             ->databaseWasReused(true);
     }

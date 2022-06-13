@@ -56,11 +56,12 @@ interface BuildInterface
     public function isCompatibleWithBrowserTests(): bool;
 
     /**
-     * Create the database if it doesn't exist, and wipe the database clean if it does.
+     * Remove the database (if it exists), and create it.
      *
+     * @param boolean $exists Whether the database exists or not.
      * @return void
      */
-    public function resetDB();
+    public function resetDB($exists);
 
     /**
      * Migrate the database.

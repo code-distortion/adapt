@@ -3,6 +3,7 @@
 namespace CodeDistortion\Adapt\Support\DatabaseBuilderTraits;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * @mixin DatabaseBuilder
@@ -16,17 +17,14 @@ trait LogTrait
      */
     private function logTitle()
     {
-        $prepLine = "Preparing the database for connection \"{$this->configDTO->connection}\"";
+        $prepLine = "Preparing a database for connection \"{$this->configDTO->connection}\"";
         if ($this->configDTO->shouldBuildRemotely()) {
             $prepLine .= " remotely";
         } elseif ($this->configDTO->isRemoteBuild) {
             $prepLine .= " locally, for another Adapt installation";
         }
 
-        $this->di->log->logBox(
-            [$prepLine, "For test \"{$this->configDTO->testName}\""],
-            'ADAPT - Preparing a Test-Database'
-        );
+        $this->di->log->logBox([$prepLine, "For test \"{$this->configDTO->testName}\""], 'ADAPT (v' . Settings::PACKAGE_VERSION . ')', 'vDebug');
     }
 
     /**
@@ -41,13 +39,13 @@ trait LogTrait
         }
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSources());
-        $this->di->log->logBox($lines, 'Build Sources');
+        $this->di->log->logBox($lines, 'Build Sources', 'vDebug');
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildEnvironmentSettings());
-        $this->di->log->logBox($lines, 'Build Environment');
+        $this->di->log->logBox($lines, 'Build Environment', 'vDebug');
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
-        $this->di->log->logBox($lines, 'Resolved Database');
+        $this->di->log->logBox($lines, 'Resolved Database', 'vDebug');
     }
 
     /**
@@ -59,7 +57,7 @@ trait LogTrait
      */
     private function logHttpRequestWasSaved(string $database, int $logTimer)
     {
-        $this->di->log->debug(
+        $this->di->log->vDebug(
             "Database \"$database\" was already prepared remotely, and can be reused without sending another request",
             $logTimer
         );

@@ -26,9 +26,6 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var boolean Whether a browser test is being run. */
     protected $browserTestDetected = false;
 
-    /** @var callable The closure to call to start a db transaction. */
-    protected $transactionClosure;
-
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback;
 
@@ -85,18 +82,6 @@ abstract class BootTestAbstract implements BootTestInterface
     public function browserTestDetected($browserTestDetected)
     {
         $this->browserTestDetected = $browserTestDetected;
-        return $this;
-    }
-
-    /**
-     * Specify the closure to call to start a db transaction.
-     *
-     * @param callable $transactionClosure The closure to use.
-     * @return static
-     */
-    public function transactionClosure($transactionClosure)
-    {
-        $this->transactionClosure = $transactionClosure;
         return $this;
     }
 
@@ -169,6 +154,8 @@ abstract class BootTestAbstract implements BootTestInterface
         foreach ($this->pickExecutedBuilders() as $builder) {
             $builder->runPostBuildSteps();
         }
+
+        $this->log->vDebug("Ready for the test to run");
     }
 
     /**

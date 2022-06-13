@@ -84,29 +84,48 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['databasePrefix' => 'test-'],
             ],
 
-            'checkForSourceChanges' => [
-                'method' => 'checkForSourceChanges',
-                'params' => ['checkForSourceChanges' => true],
+            'cacheInvalidationMethod 1' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => 'content'],
+            ],
+            'cacheInvalidationMethod 2' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => 'modified'],
+            ],
+            'cacheInvalidationMethod 3' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => null],
+            ],
+            'cacheInvalidationMethod 4' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => true],
+                'outcome' => ['cacheInvalidationMethod' => 'content'],
+            ],
+            'cacheInvalidationMethod 5' => [
+                'method' => 'cacheInvalidationMethod',
+                'params' => ['cacheInvalidationMethod' => false],
+                'outcome' => ['cacheInvalidationMethod' => null],
             ],
 
-            'hashPaths' => [
-                'method' => 'hashPaths',
-                'params' => ['hashPaths' => ['/someplace1', '/someplace2']],
+            'checksumPaths' => [
+                'method' => 'checksumPaths',
+                'params' => ['checksumPaths' => ['/someplace1', '/someplace2']],
             ],
 
-            'preCalculatedBuildHash' => [
-                'method' => 'preCalculatedBuildHash',
-                'params' => ['preCalculatedBuildHash' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+            'preCalculatedBuildChecksum' => [
+                'method' => 'preCalculatedBuildChecksum',
+                'params' => ['preCalculatedBuildChecksum' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
             ],
 
             'buildSettings 1' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => 'https://something',
                     'isBrowserTest' => true,
+                    'isParallelTest' => true,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,
@@ -115,11 +134,12 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 2' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => false,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isParallelTest' => true,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'file',
                     'remoteCallerSessionDriver' => 'database',
@@ -128,11 +148,12 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 3' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => true,
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => false,
+                    'isParallelTest' => false,
                     'isRemoteBuild' => true,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,
@@ -141,20 +162,21 @@ class ConfigDTOTest extends PHPUnitTestCase
             'buildSettings 4' => [
                 'method' => 'buildSettings',
                 'params' => [
-                    'preMigrationImports' => ['mysql' => 'someFile.sql'],
+                    'initialImports' => ['mysql' => 'someFile.sql'],
                     'migrations' => '/migrations-path',
                     'seeders' => ['DatabaseSeeder', 'TestSeeder'],
                     'remoteBuildUrl' => null,
                     'isBrowserTest' => true,
+                    'isParallelTest' => false,
                     'isRemoteBuild' => false,
                     'sessionDriver' => 'database',
                     'remoteCallerSessionDriver' => null,
                 ],
             ],
 
-            'preMigrationImports' => [
-                'method' => 'preMigrationImports',
-                'params' => ['preMigrationImports' => ['mysql' => 'someFile.sql']],
+            'initialImports' => [
+                'method' => 'initialImports',
+                'params' => ['initialImports' => ['mysql' => 'someFile.sql']],
             ],
 
             'migrations 1' => [
@@ -436,15 +458,15 @@ class ConfigDTOTest extends PHPUnitTestCase
 
 
     /**
-     * Provide data for the test_pick_pre_migration_dumps_getter test.
+     * Provide data for the test_pick_initial_imports_getter test.
      *
      * @return mixed[][]
      */
-    public function pickPreMigrationDumpsDataProvider(): array
+    public function pickInitialImportsDataProvider(): array
     {
         return [
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -452,7 +474,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/mysql/my-database.sql'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -460,7 +482,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/sqlite/my-database.sqlite'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => ['database/dumps/mysql/my-database.sql'],
                     'sqlite' => ['database/dumps/sqlite/my-database.sqlite'],
                 ],
@@ -468,7 +490,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => [],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => 'database/dumps/mysql/my-database.sql',
                     'sqlite' => 'database/dumps/sqlite/my-database.sqlite'
                 ],
@@ -476,7 +498,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'expected' => ['database/dumps/mysql/my-database.sql'],
             ],
             [
-                'preMigrationImports' => [
+                'initialImports' => [
                     'mysql' => '',
                     'sqlite' => ''
                 ],
@@ -487,21 +509,21 @@ class ConfigDTOTest extends PHPUnitTestCase
     }
 
     /**
-     * Test the ConfigDTO->pickPreMigrationDumps() getter.
+     * Test the ConfigDTO->pickInitialImports() getter.
      *
      * @test
-     * @dataProvider pickPreMigrationDumpsDataProvider
-     * @param array<int, string|string[]> $preMigrationImports The pre-migration-imports value (same as what could be
-     *                                                         put in the config).
-     * @param string                      $driver              The driver to read from.
-     * @param mixed                       $expected            The expected output.
+     * @dataProvider pickInitialImportsDataProvider
+     * @param array<int, string|string[]> $initialImports The initial-imports value (same as what could be put in the
+     *                                                    config).
+     * @param string                      $driver         The driver to read from.
+     * @param mixed                       $expected       The expected output.
      * @return void
      */
-    public function test_pick_pre_migration_dumps_getter(array $preMigrationImports, string $driver, $expected)
+    public function test_pick_initial_imports_getter(array $initialImports, string $driver, $expected)
     {
         $this->assertSame(
             $expected,
-            (new ConfigDTO())->preMigrationImports($preMigrationImports)->driver($driver)->pickPreMigrationImports()
+            (new ConfigDTO())->initialImports($initialImports)->driver($driver)->pickInitialImports()
         );
     }
 
@@ -1299,6 +1321,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists(true)
             ->isRemoteBuild(false)
             ->isBrowserTest(false)
+            ->dbSupportsSnapshots(true)
             ->dbSupportsReUse(true)
             ->dbSupportsTransactions(true)
             ->dbSupportsJournaling(true)
@@ -1317,6 +1340,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->connectionExists(true)
             ->isRemoteBuild(false)
             ->isBrowserTest(false)
+            ->dbSupportsSnapshots(true)
             ->dbSupportsReUse(true)
             ->dbSupportsTransactions(true)
             ->dbSupportsJournaling(true)

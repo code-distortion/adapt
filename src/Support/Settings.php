@@ -11,6 +11,9 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
  */
 class Settings
 {
+    /** @var string The current package version number. */
+    const PACKAGE_VERSION = '0.11.0';
+
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
@@ -32,7 +35,7 @@ class Settings
     const REUSE_TABLE = self::ADAPT_TABLE_PREFIX . '___';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    const REUSE_TABLE_VERSION = '5';
+    const REUSE_TABLE_VERSION = '6';
 
 
 
@@ -47,10 +50,10 @@ class Settings
 
 
     /** @var integer Included when prepping a db remotely between Adapt installations. Mismatch causes an exception. */
-    const CONFIG_DTO_VERSION = 3;
+    const CONFIG_DTO_VERSION = 5;
 
     /** @var integer Included in the remote-share payload between Adapt installations. Mismatch causes an exception. */
-    const REMOTE_SHARE_DTO_VERSION = 3;
+    const REMOTE_SHARE_DTO_VERSION = 5;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
     const REMOTE_SHARE_KEY = 'adapt-remote-share';
@@ -108,25 +111,25 @@ class Settings
     /**
      * Get a recently resolved ResolvedSettingsDTO.
      *
-     * @param string|null $currentScenarioHash The scenario-hash to return for.
+     * @param string|null $currentScenarioChecksum The scenario-checksum to return for.
      * @return ResolvedSettingsDTO|null
      */
-    public static function getResolvedSettingsDTO($currentScenarioHash)
+    public static function getResolvedSettingsDTO($currentScenarioChecksum)
     {
-        return Settings::$resolvedSettingsDTOs[$currentScenarioHash] ?? null;
+        return Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] ?? null;
     }
 
     /**
      * Store recently resolved ResolvedSettingsDTO for reference later.
      *
-     * @param string|null         $currentScenarioHash The scenario-hash to store this against.
-     * @param ResolvedSettingsDTO $resolvedSettingsDTO A recently resolved ResolvedSettingsDTO.
+     * @param string|null         $currentScenarioChecksum The scenario-checksum to store this against.
+     * @param ResolvedSettingsDTO $resolvedSettingsDTO     A recently resolved ResolvedSettingsDTO.
      * @return void
      */
     public static function storeResolvedSettingsDTO(
-        $currentScenarioHash,
+        $currentScenarioChecksum,
         $resolvedSettingsDTO
     ) {
-        Settings::$resolvedSettingsDTOs[$currentScenarioHash] = $resolvedSettingsDTO;
+        Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
     }
 }

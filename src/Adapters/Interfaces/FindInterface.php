@@ -26,9 +26,8 @@ interface FindInterface
      *
      * Only pick databases that have "reuse" meta-info stored.
      *
-     * @param string|null $origDBName The original database that this instance is for - will be ignored when null.
-     * @param string|null $buildHash  The current build-hash.
+     * @param string|null $buildChecksum The current build-checksum.
      * @return DatabaseMetaInfo[]
      */
-    public function findDatabases($origDBName, $buildHash): array;
+    public function findDatabases($buildChecksum): array;
 }

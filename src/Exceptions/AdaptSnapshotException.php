@@ -11,17 +11,6 @@ use Throwable;
 class AdaptSnapshotException extends AdaptException
 {
     /**
-     * Could not find snapshot files.
-     *
-     * @param Throwable $previousException The original exception.
-     * @return self
-     */
-    public static function hadTroubleFindingSnapshots($previousException): self
-    {
-        return new self('Had trouble finding snapshot files', 0, $previousException);
-    }
-
-    /**
      * Could not import a snapshot file - because it doesn't exist.
      *
      * @param string $path The path of the file being imported.
@@ -44,6 +33,20 @@ class AdaptSnapshotException extends AdaptException
         return $previousException
             ? new self("The import of \"$path\" failed", 0, $previousException)
             : new self("The import of \"$path\" failed");
+    }
+
+    /**
+     * The snapshot file could not be deleted.
+     *
+     * @param string         $path              The path of the snapshot file.
+     * @param Throwable|null $previousException The original exception.
+     * @return self
+     */
+    public static function deleteFailed($path, $previousException = null): self
+    {
+        return $previousException
+            ? new self("The snapshot \"$path\" could not be removed", 0, $previousException)
+            : new self("The snapshot \"$path\" could not be removed");
     }
 
 

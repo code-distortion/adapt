@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
@@ -15,6 +15,7 @@ use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptBrowserTestException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -23,17 +24,16 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Config\Repository;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\ParallelTesting;
 use Laravel\Dusk\Browser;
-use PDOException;
+use Throwable;
 
 /**
  * Bootstrap Adapt for Laravel tests.
  */
 class BootTestLaravel extends BootTestAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
     use HasMutexTrait;
 
     /** @var string[] The paths to the temporary config files, created during browser tests. */
@@ -116,7 +116,6 @@ class BootTestLaravel extends BootTestAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure($this->transactionClosure)
             ->log($this->log)
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -187,6 +186,7 @@ class BootTestLaravel extends BootTestAbstract
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
+        $isParallelTest = mb_strlen($paraTestDBModifier) > 0;
 
         $c = Settings::LARAVEL_CONFIG_NAME;
         $pb = $this->propBag;
@@ -196,9 +196,14 @@ class BootTestLaravel extends BootTestAbstract
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
 
-        $database = $pb->config("database.connections.$connection.database");
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
+        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
+        $initialImports = $propVal ?? $configVal;
+
+        $database = (string) $pb->config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -212,9 +217,9 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges($pb->adaptConfig('check_for_source_changes'))
-            ->hashPaths($this->checkLaravelHashPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildHash(null)->buildSettings($pb->adaptConfig('pre_migration_imports', 'preMigrationImports'), $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
+            ->cacheInvalidationMethod($pb->adaptConfig('cache_invalidation_method'))
+            ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
+            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
             ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings($pb->adaptConfig('database.mysql.executables.mysql'), $pb->adaptConfig('database.mysql.executables.mysqldump'))->postgresSettings($pb->adaptConfig('database.pgsql.executables.psql'), $pb->adaptConfig('database.pgsql.executables.pg_dump'))
             ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds', null, Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
@@ -239,6 +244,8 @@ class BootTestLaravel extends BootTestAbstract
         return LaravelSupport::resolveSeeders(
             $this->propBag->hasProp('seeders'),
             $this->propBag->prop('seeders', null),
+            $this->propBag->hasProp('seeder'),
+            $this->propBag->prop('seeder', null),
             $this->propBag->hasProp('seed'),
             $this->propBag->prop('seed', null),
             config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
@@ -378,16 +385,16 @@ class BootTestLaravel extends BootTestAbstract
         }
 
         $logTimer = $this->log->newTimer();
-        $this->log->debug('Looking for stale things to remove');
+        $this->log->vDebug('Looking for stale things to remove');
 
         $removedCount = $this->purgeStaleDatabases();
         $removedCount += $this->purgeStaleSnapshots();
         $removedCount += $this->removeOrphanedTempConfigFiles();
 
         $message = $removedCount
-            ? 'Time taken for removal'
-            : 'Nothing found to remove';
-        $this->log->debug($message, $logTimer, true);
+            ? 'Total time taken for removal'
+            : 'Nothing found to remove - total time taken';
+        $this->log->vDebug($message, $logTimer, true);
 
         $this->releaseMutexLock();
     }
@@ -416,20 +423,42 @@ class BootTestLaravel extends BootTestAbstract
 
         $connections = LaravelSupport::configArray('database.connections');
         foreach (array_keys($connections) as $connection) {
+
+            $logTimer = $this->log->newTimer();
+
             try {
                 $builder = $this->createBuilder((string) $connection);
-                foreach ($builder->buildDatabaseMetaInfos() as $databaseMetaInfo) {
+            } catch (Throwable $e) {
 
-                    if ($databaseMetaInfo->shouldPurgeNow()) {
-                        $databaseMetaInfo->delete();
-                        $removedCount++;
-                    }
-                }
-            } catch (AdaptConfigException $e) {
-                // ignore exceptions caused because the database can't be connected to
+                // this is expected, as connections will probably exist where the database can't be connected to
                 // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
-            } catch (PDOException $e) {
-                // same as above
+                $driver = $this->propBag->config("database.connections.$connection.driver");
+                $connDetails = "(connection: \"$connection\", driver: \"$driver\")";
+                $this->log->vvWarning("Could not retrieve database list $connDetails", $logTimer);
+
+                continue;
+            }
+
+            foreach ($builder->buildDatabaseMetaInfos() as $dbMetaInfo) {
+
+                if (!$dbMetaInfo->shouldPurgeNow()) {
+                    continue;
+                }
+
+                $logTimer2 = $this->log->newTimer();
+
+                $connDetails = "(connection: \"$dbMetaInfo->connection\", driver: \"$dbMetaInfo->driver\")";
+                $dbMsg = "stale database - \"$dbMetaInfo->name\" $connDetails";
+
+                try {
+                    if ($dbMetaInfo->delete()) {
+                        $removedCount++;
+                        $this->log->vvDebug("Removed $dbMsg", $logTimer2);
+                    }
+                } catch (Throwable $e) {
+//                    $this->log->vError("Could not remove $dbMsg", $logTimer2);
+                    Exceptions::logException($this->log, $e);
+                }
             }
         }
         return $removedCount;
@@ -442,14 +471,24 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeStaleSnapshots(): int
     {
-        $removedCount = 0;
-
         $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
+        $removedCount = 0;
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
 
-            if ($snapshotMetaInfo->shouldPurgeNow()) {
-                $snapshotMetaInfo->delete();
-                $removedCount++;
+            if (!$snapshotMetaInfo->shouldPurgeNow()) {
+                continue;
+            }
+
+            $logTimer = $this->log->newTimer();
+
+            try {
+                if ($snapshotMetaInfo->delete()) {
+                    $removedCount++;
+                    $this->log->vvDebug("Removed stale snapshot \"$snapshotMetaInfo->path\"", $logTimer);
+                }
+            } catch (Throwable $e) {
+//                $this->log->vError("Could not remove stale snapshot \"$snapshotMetaInfo->path\"", $logTimer);
+                Exceptions::logException($this->log, $e);
             }
         }
         return $removedCount;
@@ -479,7 +518,7 @@ class BootTestLaravel extends BootTestAbstract
             $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
             if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
-                $this->log->debug("Removed orphaned temporary config file \"$filename\"");
+                $this->log->vDebug("Removed orphaned temporary config file \"$filename\"");
                 $removedCount++;
             }
         }

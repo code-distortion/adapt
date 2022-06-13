@@ -33,16 +33,16 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
     /**
      * Check to see if the database can be reused.
      *
-     * @param string|null $buildHash    The current build-hash.
-     * @param string|null $scenarioHash The current scenario-hash.
-     * @param string|null $projectName  The project-name.
-     * @param string      $database     The database being built.
+     * @param string|null $buildChecksum    The current build-checksum.
+     * @param string|null $scenarioChecksum The current scenario-checksum.
+     * @param string|null $projectName      The project-name.
+     * @param string      $database         The database being built.
      * @return boolean
      * @throws AdaptBuildException When the database is owned by another project.
      */
     public function dbIsCleanForReuse(
-        $buildHash,
-        $scenarioHash,
+        $buildChecksum,
+        $scenarioChecksum,
         $projectName,
         $database
     ): bool {
@@ -72,24 +72,20 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
             return false;
         }
 
-        if ($reuseInfo->build_hash !== $buildHash) {
-            $this->cantReuseReason = "the build-hash doesn't match "
-                . "{$this->renderComparison($reuseInfo->build_hash, $buildHash)}";
+        if ($reuseInfo->build_checksum !== $buildChecksum) {
+            $this->cantReuseReason = "the build-checksum doesn't match "
+                . "{$this->renderComparison($reuseInfo->build_checksum, $buildChecksum)}";
             return false;
         }
 
-        if ($reuseInfo->scenario_hash !== $scenarioHash) {
-            $this->cantReuseReason = "the scenario-hash doesn't match "
-                . "{$this->renderComparison($reuseInfo->scenario_hash, $scenarioHash)}";
+        if ($reuseInfo->scenario_checksum !== $scenarioChecksum) {
+            $this->cantReuseReason = "the scenario-checksum doesn't match "
+                . "{$this->renderComparison($reuseInfo->scenario_checksum, $scenarioChecksum)}";
             return false;
         }
 
         if (($reuseInfo->transaction_reusable === 0) || ($reuseInfo->transaction_reusable === false)) {
-            $this->cantReuseReason = "the re-use transaction was committed";
-//            $this->di->log->warning(
-//                'The previous transaction for database "' . $database . '" '
-//                . 'was committed instead of being rolled-back'
-//            );
+            $this->cantReuseReason = "the wrapper-transaction was committed";
             return false;
         }
 

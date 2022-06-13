@@ -2,26 +2,33 @@
 
 namespace CodeDistortion\Adapt\Initialise;
 
+use CodeDistortion\Adapt\AdaptDatabase;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Migrations\DatabaseMigrationRepository;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
-use PDOException;
 
 /**
  * Allow Laravel tests to use Adapt.
  *
  * @mixin LaravelTestCase
  */
-trait InitialiseLaravelAdapt
+trait InitialiseAdapt
 {
     /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseLaravelAdapt. */
     private $adaptPreBootTestLaravel;
@@ -36,11 +43,20 @@ trait InitialiseLaravelAdapt
      */
     public static function initialiseAdaptIfNeeded($test)
     {
-        if (!in_array(LaravelAdapt::class, class_uses_recursive(get_class($test)))) {
+        $found = false;
+        $traits = [AdaptDatabase::class, LaravelAdapt::class];
+        foreach ($traits as $trait) {
+            if (in_array($trait, class_uses_recursive(get_class($test)))) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
             return;
         }
 
-        /** @var InitialiseLaravelAdapt $test */
+        /** @var InitialiseAdapt $test */
         $test->initialiseAdapt();
     }
 
@@ -52,12 +68,23 @@ trait InitialiseLaravelAdapt
      *
      * @before
      * @return void
+     * @throws AdaptBootException When Laravel's database-building traits are also present.
      */
     public function initialiseAdapt()
     {
         // only initialise once
         if ($this->adaptPreBootTestLaravel) {
             return;
+        }
+
+
+
+        // check to make sure Laravel's RefreshDatabase, DatabaseTransactions and DatabaseMigrations
+        // traits aren't also being used
+        foreach ([RefreshDatabase::class, DatabaseTransactions::class, DatabaseMigrations::class] as $trait) {
+            if (in_array($trait, class_uses_recursive(get_class($this)), true)) {
+                throw AdaptBootException::laravelDatabaseTraitDetected($trait);
+            }
         }
 
 
@@ -71,10 +98,12 @@ trait InitialiseLaravelAdapt
             'scenarioTestDBs',
             'useSnapshotsWhenReusingDB',
             'useSnapshotsWhenNotReusingDB',
-            'preMigrationImports',
+            'preMigrationImports', // @deprecated
+            'initialImports',
             'migrations',
             'seeders',
-            'seed',
+            'seeder', // for compatability with Laravel
+            'seed', // for compatability with Laravel
             'remapConnections',
             'defaultConnection',
             'isBrowserTest',
@@ -87,52 +116,7 @@ trait InitialiseLaravelAdapt
             }
         }
 
-
-
-        // start a database transaction on the given connection
-        // (ADAPTED FROM Laravel Framework's RefreshDatabase::beginDatabaseTransaction())
-        $buildTransactionClosure = function (string $conn) {
-
-            /** @var $this LaravelTestCase */
-            $database = $this->app->make('db');
-            $connection = $database->connection($conn);
-
-            // this allows this code to run with older versions of Laravel versions
-            $useEventDispatcher = (method_exists($connection, 'unsetEventDispatcher'));
-            if ($useEventDispatcher) {
-                $dispatcher = $connection->getEventDispatcher();
-                $connection->unsetEventDispatcher();
-                $connection->beginTransaction();
-                $connection->setEventDispatcher($dispatcher);
-            } else {
-                $connection->beginTransaction();
-            }
-
-            $this->beforeApplicationDestroyed(
-                function () use ($database, $conn, $useEventDispatcher) {
-                    $connection = $database->connection($conn);
-                    if ($useEventDispatcher) {
-                        $dispatcher = $connection->getEventDispatcher();
-                        $connection->unsetEventDispatcher();
-
-                        try {
-                            $connection->rollback();
-                        } catch (PDOException $e) {
-                            // act gracefully if the transaction was committed already? - no
-                        }
-
-                        $connection->setEventDispatcher($dispatcher);
-                        $connection->disconnect();
-                    } else {
-                        $connection->rollback();
-                    }
-                }
-            );
-        };
-
-
-
-        // allow for a custom build process via databaseInit(…)
+        // allow for a custom build process via this test class's databaseInit(…) method
         // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
         if (method_exists(static::class, Settings::LARAVEL_CUSTOM_BUILD_METHOD)) {
@@ -150,22 +134,53 @@ trait InitialiseLaravelAdapt
             get_class($this),
             $this->getName(),
             $propBag,
-            $buildTransactionClosure,
             $buildInitCallback,
             $this instanceof DuskTestCase
         );
+
+        // callback - for compatability with Laravel's `RefreshDatabase`
+        $beforeRefreshingDatabase = function () {
+            if (method_exists($this, 'beforeRefreshingDatabase')) {
+                $this->beforeRefreshingDatabase();
+            }
+        };
+
+        // callback - for compatability with Laravel's `RefreshDatabase`
+        $afterRefreshingDatabase = function () {
+            if (method_exists($this, 'afterRefreshingDatabase')) {
+                $this->afterRefreshingDatabase();
+            }
+        };
+
+        // unset Artisan, so as to not interfere with mocks inside tests
+        $unsetArtisan = function () {
+            /** @var \Illuminate\Contracts\Console\Kernel $kernel */
+            $kernel = $this->app[Kernel::class];
+            method_exists($kernel, 'setArtisan')
+                ? $kernel->setArtisan(null)
+                : PHPSupport::updatePrivateProperty($kernel, 'artisan', null); // Laravel <= 5.2
+        };
 
 
 
         // tell the test to run the set-up and tear-down methods at the right time
         /** @var $this LaravelTestCase */
-        $this->afterApplicationCreated(function () {
-            $this->adaptPreBootTestLaravel->adaptSetUp();
+        $this->afterApplicationCreated(
+            function () use ($beforeRefreshingDatabase, $afterRefreshingDatabase, $unsetArtisan) {
 
-            $this->beforeApplicationDestroyed(function () {
-                $this->adaptPreBootTestLaravel->adaptTearDown();
-            });
-        });
+                $this->adaptPreBootTestLaravel->adaptSetUp(
+                    $beforeRefreshingDatabase,
+                    $afterRefreshingDatabase,
+                    $unsetArtisan
+                );
+
+                $this->beforeApplicationDestroyed(
+                    function () {
+                        return $this->adaptPreBootTestLaravel->adaptTearDown();
+                    }
+                );
+            }
+        );
     }
 
 
@@ -208,11 +223,24 @@ trait InitialiseLaravelAdapt
     /**
      * Have the Browsers pass the current (test) config to the server when they make requests.
      *
+     * @deprecated
      * @param \Laravel\Dusk\Browser $browser     The browser to update with the current config.
      * @param \Laravel\Dusk\Browser ...$browsers Any additional browsers to update with the current config.
      * @return void
      */
     public function shareConfig($browser, ...$browsers)
+    {
+        call_user_func_array([$this, 'useAdapt'], func_get_args());
+    }
+
+    /**
+     * Have the Browsers pass the current (test) config to the server when they make requests.
+     *
+     * @param \Laravel\Dusk\Browser $browser     The browser to update with the current config.
+     * @param \Laravel\Dusk\Browser ...$browsers Any additional browsers to update with the current config.
+     * @return void
+     */
+    public function useAdapt($browser, ...$browsers)
     {
         // normalise the list of browsers
         $allBrowsers = [];

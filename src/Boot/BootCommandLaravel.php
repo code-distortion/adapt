@@ -2,7 +2,7 @@
 
 namespace CodeDistortion\Adapt\Boot;
 
-use CodeDistortion\Adapt\Boot\Traits\CheckLaravelHashPathsTrait;
+use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
@@ -24,7 +24,7 @@ use CodeDistortion\Adapt\Support\StorageDir;
  */
 class BootCommandLaravel extends BootCommandAbstract
 {
-    use CheckLaravelHashPathsTrait;
+    use CheckLaravelChecksumPathsTrait;
 
 
     /**
@@ -75,8 +75,6 @@ class BootCommandLaravel extends BootCommandAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-            })
             ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -89,7 +87,7 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false);
+        return new LaravelLog((bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'), (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'), (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'));
     }
 
     /**
@@ -104,9 +102,9 @@ class BootCommandLaravel extends BootCommandAbstract
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
 
-        $database = config("database.connections.$connection.database");
+        $database = (string) config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameNotAString($database);
+            throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
         return (new ConfigDTO())
@@ -116,12 +114,30 @@ class BootCommandLaravel extends BootCommandAbstract
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
+            ->databaseModifier('')
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->checkForSourceChanges(config("$c.check_for_source_changes"))
-            ->hashPaths($this->checkLaravelHashPaths(config("$c.look_for_changes_in")))
-            ->preCalculatedBuildHash(null)->buildSettings(config("$c.pre_migration_imports"), config("$c.migrations"), config("$c.seeders"), config("$c.remote_build_url"), false, false, config("session.driver"), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools(config("$c.reuse.transactions"), config("$c.reuse.journals"), config("$c.verify_databases"), config("$c.scenario_test_dbs"))->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
+            ->cacheInvalidationMethod(config("$c.cache_invalidation_method"))
+            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->preCalculatedBuildChecksum(null)->buildSettings(
+            // accept the deprecated config('...pre_migration_imports') setting
+                config("$c.pre_migration_imports") ?? config("$c.initial_imports"),
+                config("$c.migrations"),
+                config("$c.seeders"),
+                config("$c.remote_build_url"),
+                false,
+                false,
+                false,
+                config("session.driver"),
+                null
+            )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools(
+            // accept the deprecated config('...reuse_test_dbs') setting
+                config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions"),
+                config("$c.reuse.journals"),
+                config("$c.verify_databases"),
+                config("$c.scenario_test_dbs")
+            )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
             ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
 

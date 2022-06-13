@@ -24,18 +24,18 @@ interface NameInterface
     /**
      * Build a scenario database name.
      *
-     * @param boolean     $usingScenarios Whether scenarios are being used or not.
-     * @param string|null $dbNameHashPart The current database part, based on the snapshot hash.
+     * @param boolean     $usingScenarios     Whether scenarios are being used or not.
+     * @param string|null $dbNameChecksumPart The current database part, based on the snapshot checksum.
      * @return string
      * @throws AdaptBuildException When the database name is invalid.
      */
-    public function generateDBName($usingScenarios, $dbNameHashPart): string;
+    public function generateDBName($usingScenarios, $dbNameChecksumPart): string;
 
     /**
      * Generate the path (including filename) for the snapshot file.
      *
-     * @param string $snapshotFilenameHashPart The current filename part, based on the snapshot hash.
+     * @param string $snapshotFilenameChecksumPart The current filename part, based on the snapshot checksum.
      * @return string
      */
-    public function generateSnapshotPath($snapshotFilenameHashPart): string;
+    public function generateSnapshotPath($snapshotFilenameChecksumPart): string;
 }

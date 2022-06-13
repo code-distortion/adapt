@@ -44,8 +44,8 @@ trait DatabaseBuilderTestTrait
     /** @var string The current workspace migrations directory. */
     private $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
 
-    /** @var string The current workspace pre-migration-imports directory. */
-    private $wsPreMigrationsDir = 'tests/workspaces/current/database/pre-migration-imports';
+    /** @var string The current workspace initial-imports directory. */
+    private $wsInitialImportsDir = 'tests/workspaces/current/database/initial-imports';
 
     /** @var string The current workspace seeds directory. */
     private $wsSeedsDir = 'tests/workspaces/current/database/seeds';
@@ -62,8 +62,6 @@ trait DatabaseBuilderTestTrait
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->dbTransactionClosure(function () {
-            })
             ->log($this->newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
@@ -76,7 +74,8 @@ trait DatabaseBuilderTestTrait
      */
     private function newLog(): LogInterface
     {
-        return new LaravelLog(false, false);
+        return new LaravelLog(false, false, 0);
+//        return new LaravelLog(true, false, 2);
     }
 
     /**
@@ -88,28 +87,30 @@ trait DatabaseBuilderTestTrait
     private function newConfigDTO(string $connection): ConfigDTO
     {
         return (new ConfigDTO())
-            ->projectName('')
+            ->projectName(null)
             ->testName('A test')
             ->connection($connection)
             ->connectionExists(true)
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
+            ->databaseModifier('')
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
-            ->checkForSourceChanges(true)
-            ->hashPaths([
+            ->cacheInvalidationMethod('content')
+            ->checksumPaths([
                 $this->wsFactoriesDir,
                 $this->wsMigrationsDir,
-                $this->wsPreMigrationsDir,
+                $this->wsInitialImportsDir,
                 $this->wsSeedsDir,
             ])
-            ->preCalculatedBuildHash(null)
+            ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 [],
                 $this->wsMigrationsDir,
                 [DatabaseSeeder::class],
                 null,
+                false,
                 false,
                 false,
                 'database',
@@ -164,8 +165,8 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig($configDTO = null, $di = null)
     {
-        // generate a build-hash based on the current look_for_changes_in etc. dirs
-        $this->newHasher($configDTO, $di)->getBuildHash();
+        // generate a build-checksum based on the current look_for_changes_in etc. dirs
+        $this->newHasher($configDTO, $di)->getBuildChecksum();
     }
 
     /**

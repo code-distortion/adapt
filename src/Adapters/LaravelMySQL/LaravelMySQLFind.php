@@ -4,10 +4,9 @@ namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
 use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractFind;
 use CodeDistortion\Adapt\Adapters\Interfaces\FindInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\AbstractLaravelPDO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
+use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\Settings;
-use PDO;
 use Throwable;
 
 /**
@@ -16,30 +15,43 @@ use Throwable;
 class LaravelMySQLFind extends AbstractFind implements FindInterface
 {
     /**
-     * Look for databases and build DatabaseMetaInfo objects for them.
+     * Generate the list of existing databases.
      *
-     * Only pick databases that have "reuse" meta-info stored.
-     *
-     * @param string|null $origDBName The original database that this instance is for - will be ignored when null.
-     * @param string|null $buildHash  The current build-hash.
-     * @return DatabaseMetaInfo[]
+     * @return string[]
      */
-    public function findDatabases($origDBName, $buildHash): array
+    protected function listDatabases(): array
     {
-        $databaseMetaInfos = [];
-        $pdo = $this->di->db->newPDO();
-        foreach ($pdo->listDatabases() as $database) {
+        return $this->di->db->newPDO()->listDatabases();
+    }
 
-            $table = Settings::REUSE_TABLE;
+    /**
+     * Check if this database should be ignored.
+     *
+     * @param string $database The database to check.
+     * @return boolean
+     */
+    protected function shouldIgnoreDatabase($database): bool
+    {
+        // ignore MySQL's default databases
+        return in_array($database, ['information_schema', 'mysql', 'performance_schema', 'sys']);
+    }
 
-            $databaseMetaInfos[] = $this->buildDatabaseMetaInfo(
-                $this->di->db->getConnection(),
-                $database,
-                $pdo->fetchReuseTableInfo("SELECT * FROM `$database`.`$table` LIMIT 0, 1"),
-                $buildHash
-            );
-        }
-        return array_values(array_filter($databaseMetaInfos));
+    /**
+     * Build DatabaseMetaInfo objects for a database.
+     *
+     * @param string      $database      The database to use.
+     * @param string|null $buildChecksum The current build-checksum.
+     * @return DatabaseMetaInfo|null
+     */
+    protected function buildDatabaseMetaInfo($database, $buildChecksum)
+    {
+        $pdo = $this->di->db->newPDO($database);
+        return $this->buildDatabaseMetaInfoX(
+            $this->di->db->getConnection(),
+            $database,
+            $pdo->fetchReuseTableInfo("SELECT * FROM `$database`.`" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
+            $buildChecksum
+        );
     }
 
     /**
@@ -47,19 +59,19 @@ class LaravelMySQLFind extends AbstractFind implements FindInterface
      *
      * @param DatabaseMetaInfo $databaseMetaInfo The info object representing the database.
      * @return boolean
+     * @throws AdaptBuildException When the database cannot be removed.
      */
     protected function removeDatabase($databaseMetaInfo): bool
     {
-        $logTimer = $this->di->log->newTimer();
-
-        $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
-        $pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`", $databaseMetaInfo->name);
-
-        $stale = (!$databaseMetaInfo->isValid ? ' stale' : '');
-        $driver = $databaseMetaInfo->driver;
-        $this->di->log->debug("Removed$stale $driver database: \"$databaseMetaInfo->name\"", $logTimer);
-
-        return true;
+        try {
+            $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
+            $pdo->dropDatabase("DROP DATABASE IF EXISTS `$databaseMetaInfo->name`", $databaseMetaInfo->name);
+            return true;
+        } catch (AdaptBuildException $e) {
+            throw $e; // just rethrow as is
+        } catch (Throwable $e) {
+            throw AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
+        }
     }
 
     /**
