@@ -292,7 +292,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
     }
 
     /**
-     * Test the adapt:remove command
+     * Test the adapt:clear command
      *
      * @test
      * @dataProvider removeDBCachesDataProvider
@@ -316,7 +316,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
         $this->expectCommandOutput(
-            'adapt:remove',
+            'adapt:clear',
             ['--force' => true],
             'There are no databases or snapshot files to remove.'
         );
@@ -333,7 +333,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
 
         Settings::resetStaticProps();
         $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:remove', ['--force' => true], $expectedOutput);
+        $this->expectCommandOutput('adapt:clear', ['--force' => true], $expectedOutput);
     }
 
 

@@ -193,8 +193,8 @@ return [
     | 'modified' will be quicker
     | null - turned off
     |
-    | If nedeed, you can remove old databases yourself by running:
-    | "php artisan adapt:remove"
+    | If needed, you can remove old databases yourself by running:
+    | "php artisan adapt:clear"
     |
     | ?string - 'modified' / 'content' / null
     |

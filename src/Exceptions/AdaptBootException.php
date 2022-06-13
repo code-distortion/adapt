@@ -34,7 +34,7 @@ class AdaptBootException extends AdaptException
      */
     public static function parallelTestingSaysRebuildDBs(): self
     {
-        return new self('Instead of using --recreate-databases, please use "php artisan adapt:remove (--force)"');
+        return new self('Instead of using --recreate-databases, please use "php artisan adapt:clear (--force)"');
     }
 
     /**

@@ -14,7 +14,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
     use CommandFunctionalityTrait;
 
     /** @var string The name and signature of the console command. */
-    protected $signature = 'adapt:remove '
+    protected $signature = 'adapt:clear '
                             . '{--F|force} ';
 
     /** @var string The console command description. */
