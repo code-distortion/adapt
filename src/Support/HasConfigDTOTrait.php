@@ -213,17 +213,17 @@ trait HasConfigDTOTrait
      *
      * @param boolean $reuseTransaction Reuse databases with a transaction?.
      * @param boolean $reuseJournal     Reuse databases with a journal?.
-     * @param boolean $scenarioTestDBs  Create databases as needed for the database-scenario?.
+     * @param boolean $scenarios        Create databases as needed for the database-scenario?.
      * @return static
      */
     public function cacheTools(
         $reuseTransaction,
         $reuseJournal,
-        $scenarioTestDBs
+        $scenarios
     ): self {
         $this->configDTO->reuseTransaction($reuseTransaction);
         $this->configDTO->reuseJournal($reuseJournal);
-        $this->configDTO->scenarioTestDBs($scenarioTestDBs);
+        $this->configDTO->scenarios($scenarios);
         return $this;
     }
 
@@ -301,13 +301,25 @@ trait HasConfigDTOTrait
     /**
      * Turn the scenario-test-dbs setting on (or off).
      *
+     * @param boolean $scenarios Create databases as needed for the database-scenario?.
+     * @return static
+     */
+    public function scenarios($scenarios = true): self
+    {
+        $this->configDTO->scenarios($scenarios);
+        return $this;
+    }
+
+    /**
+     * Turn the scenario-test-dbs setting on (or off).
+     *
+     * @deprecated
      * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
      * @return static
      */
     public function scenarioTestDBs($scenarioTestDBs = true): self
     {
-        $this->configDTO->scenarioTestDBs($scenarioTestDBs);
-        return $this;
+        return $this->scenarios($scenarioTestDBs);
     }
 
     /**
@@ -315,10 +327,21 @@ trait HasConfigDTOTrait
      *
      * @return static
      */
+    public function noScenarios(): self
+    {
+        $this->configDTO->scenarios(false);
+        return $this;
+    }
+
+    /**
+     * Turn the scenario-test-dbs setting off.
+     *
+     * @deprecated
+     * @return static
+     */
     public function noScenarioTestDBs(): self
     {
-        $this->configDTO->scenarioTestDBs(false);
-        return $this;
+        return $this->noScenarios();
     }
 
     /**

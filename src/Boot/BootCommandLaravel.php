@@ -118,7 +118,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod(config("$c.cache_invalidation_method"))
+            ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
             ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildChecksum(null)->buildSettings(
             // accept the deprecated config('...pre_migration_imports') setting
@@ -136,7 +136,8 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions"),
                 config("$c.reuse.journals"),
                 config("$c.verify_databases"),
-                config("$c.scenario_test_dbs")
+                // accept the deprecated config('...scenario_test_dbs') setting
+                config("$c.scenario_test_dbs") ?? config("$c.scenarios")
             )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
             ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
     }

@@ -1199,8 +1199,8 @@ class DatabaseBuilder
             ->journalReusable($configDTO->shouldUseJournal())
             ->verifyDatabase($configDTO->verifyDatabase)
             ->forceRebuild($configDTO->forceRebuild)
-            ->scenarioTestDBs(
-                $configDTO->usingScenarioTestDBs(),
+            ->scenarios(
+                $configDTO->usingScenarios(),
                 $buildingLocally ? $this->hasher->getBuildChecksum() : null,
                 $buildingLocally ? $this->hasher->currentSnapshotChecksum() : null,
                 $buildingLocally ? $this->hasher->currentScenarioChecksum() : null

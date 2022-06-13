@@ -418,7 +418,7 @@ class MyFeatureTest extends TestCase
      *
      * @var boolean
      */
-    protected bool $scenarioTestDBs = true;
+    protected bool $scenarios = true;
 
     /**
      * Enable snapshots, and specify when to take them - when reusing the
@@ -556,7 +556,7 @@ class MyFeatureTest extends TestCase
             ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
             ->reuseTransaction() // or ->noReuseTransaction()
             ->reuseJournal() // or ->noReuseJournal()
-            ->scenarioTestDBs() // or ->noScenarioTestDBs()
+            ->scenarios() // or ->noScenarios()
             ->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB) // or ->noSnapshots()
             ->forceRebuild() // or ->dontForceRebuild()
             ->isBrowserTest() // or isNotBrowserTest()

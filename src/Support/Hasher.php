@@ -374,7 +374,7 @@ class Hasher
      */
     private function generateScenarioChecksum(array $seeders)
     {
-        if (!$this->configDTO->usingScenarioTestDBs()) {
+        if (!$this->configDTO->usingScenarios()) {
             return null;
         }
 
@@ -383,7 +383,7 @@ class Hasher
             'projectName' => $this->configDTO->projectName,
 //            'connection' => $this->configDTO->connection, // not included, so that multiple connections can share
             'origDatabase' => $this->configDTO->origDatabase,
-            'usingScenarios' => $this->configDTO->scenarioTestDBs,
+            'usingScenarios' => $this->configDTO->scenarios,
             'reuseTransaction' => $this->configDTO->shouldUseTransaction(),
             'reuseJournal' => $this->configDTO->shouldUseJournal(),
             'verifyStructure' => $this->configDTO->shouldVerifyStructure(),

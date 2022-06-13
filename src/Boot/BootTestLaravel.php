@@ -191,15 +191,24 @@ class BootTestLaravel extends BootTestAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         $pb = $this->propBag;
 
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
+        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
+        $initialImports = $propVal ?? $configVal;
+
         // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
         $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
 
-        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
-        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
-        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
-        $initialImports = $propVal ?? $configVal;
+        // accept the deprecated $scenarioTestDBs and config('...scenario_test_dbs') settings
+        $propVal = $pb->prop('scenarioTestDBs', null) ?? $pb->prop('scenarios', null);
+        $configVal = config("$c.scenario_test_dbs") ?? config("$c.scenarios");
+        $scenarios = $propVal ?? $configVal;
+
+        $cacheInvalidationMethod =
+            $pb->adaptConfig('check_for_source_changes')
+            ?? $pb->adaptConfig('cache_invalidation_method');
 
         $database = (string) $pb->config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
@@ -217,9 +226,9 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod($pb->adaptConfig('cache_invalidation_method'))
+            ->cacheInvalidationMethod($cacheInvalidationMethod)
             ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'))->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
+            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $scenarios)->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
             ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings($pb->adaptConfig('database.mysql.executables.mysql'), $pb->adaptConfig('database.mysql.executables.mysqldump'))->postgresSettings($pb->adaptConfig('database.pgsql.executables.psql'), $pb->adaptConfig('database.pgsql.executables.pg_dump'))
             ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds', null, Settings::DEFAULT_STALE_GRACE_SECONDS));
     }

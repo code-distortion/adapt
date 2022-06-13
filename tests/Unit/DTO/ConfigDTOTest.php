@@ -99,7 +99,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'cacheInvalidationMethod 4' => [
                 'method' => 'cacheInvalidationMethod',
                 'params' => ['cacheInvalidationMethod' => true],
-                'outcome' => ['cacheInvalidationMethod' => 'content'],
+                'outcome' => ['cacheInvalidationMethod' => 'modified'],
             ],
             'cacheInvalidationMethod 5' => [
                 'method' => 'cacheInvalidationMethod',
@@ -279,7 +279,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'reuseTransaction' => false,
                     'reuseJournal' => true,
                     'verifyDatabase' => false,
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
             'cacheTools 2' => [
@@ -288,7 +288,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'reuseTransaction' => false,
                     'reuseJournal' => false,
                     'verifyDatabase' => true,
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
             'cacheTools 3' => [
@@ -297,7 +297,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'reuseTransaction' => true,
                     'reuseJournal' => true,
                     'verifyDatabase' => false,
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
             'cacheTools 4' => [
@@ -306,7 +306,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                     'reuseTransaction' => true,
                     'reuseJournal' => false,
                     'verifyDatabase' => true,
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
 
@@ -331,10 +331,10 @@ class ConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'scenarioTestDBs' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios' => [
+                'method' => 'scenarios',
                 'params' => [
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
 
@@ -1028,24 +1028,24 @@ class ConfigDTOTest extends PHPUnitTestCase
 
 
     /**
-     * Test ConfigDTO->usingScenarioTestDBs().
+     * Test ConfigDTO->usingScenarios().
      *
      * @test
      * @return void
      */
-    public function test_using_scenario_test_dbs()
+    public function test_using_scenarios()
     {
         $this->assertTrue(
-            (new ConfigDTO())->scenarioTestDBs(true)->dbSupportsScenarios(true)->usingScenarioTestDBs()
+            (new ConfigDTO())->scenarios(true)->dbSupportsScenarios(true)->usingScenarios()
         );
         $this->assertFalse(
-            (new ConfigDTO())->scenarioTestDBs(true)->dbSupportsScenarios(false)->usingScenarioTestDBs()
+            (new ConfigDTO())->scenarios(true)->dbSupportsScenarios(false)->usingScenarios()
         );
         $this->assertFalse(
-            (new ConfigDTO())->scenarioTestDBs(false)->dbSupportsScenarios(true)->usingScenarioTestDBs()
+            (new ConfigDTO())->scenarios(false)->dbSupportsScenarios(true)->usingScenarios()
         );
         $this->assertFalse(
-            (new ConfigDTO())->scenarioTestDBs(false)->dbSupportsScenarios(false)->usingScenarioTestDBs()
+            (new ConfigDTO())->scenarios(false)->dbSupportsScenarios(false)->usingScenarios()
         );
     }
 

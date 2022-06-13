@@ -272,7 +272,7 @@ class ResolvedSettingsDTO
      * @param string|null $scenarioChecksum The calculated scenario-checksum.
      * @return static
      */
-    public function scenarioTestDBs(
+    public function scenarios(
         $usingScenarios,
         $buildChecksum,
         $snapshotChecksum,

@@ -12,12 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added `AdaptDatabase` trait to replace `LaravelAdapt` (which is now deprecated, but will still work)
 - Added the `initial_imports` config setting to replace `pre_migration_imports` (which is now deprecated, but will still work)
 - Added the `$initialImports` test-class property to replace `$preMigrationImports` (which is now deprecated, but will still work)
+- Added the `scenarios` config setting to replace `scenario_test_dbs` (which is now deprecated, but will still work)
+- Added the `$scenarios` test-class property to replace `$scenarioTestDBs` (which is now deprecated, but will still work)
+- Added the `cache_invalidation_method` config setting to replace `check_for_source_changes` (which is now deprecated, but will still work)
 - Added `$this->useAdapt(..)` to replace `$this->shareConfig(..)` (which is now deprecated, but will still work), when browser testing
 - Added support for Laravel's `$seeder` test-class property, to indicate which seeder class to run
 - Added support for `RefreshDatbase`'s `beforeRefreshingDatabase()` and `afterRefreshingDatabase()` test-class callbacks, which are now called before and after preparing the database, respectively
 - Added a new log verbosity setting (0 = minimal, 2 = most details)
 - Improved logging output
-- Added the option to create file checksums based on their modified times
+- Added the option to create file checksums based on their modified times, and made this default
 - Adapt can't run at the same time as Laravel's RefreshDatabase, DatabaseTransactions and DatabaseMigrations traits. Added detection for these, and when also present in a test, an exception is thrown
 
 ### Fixed
@@ -30,7 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed (breaking)
 - Renamed the `adapt:list-db-caches` command to `adapt:list`
 - Renamed the `adapt:remove-db-caches` command to `adapt:clear` (to follow the convention from Laravel's other clearing commands)
-- Renamed the `check_for_source_changes` config setting to `cache_invalidation_method` - and it now has the possible values "modified" / "content" / null
+- Renamed the .env value ADAPT_SCENARIO_TEST_DBS to ADAPT_SCENARIOS
+- Renamed the .env value ADAPT_CHECK_FOR_SOURCE_CHANGES to ADAPT_CACHE_INVALIDATION_METHOD
 
 
 

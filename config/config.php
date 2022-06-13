@@ -68,7 +68,7 @@ return [
     | An scenario database will be called something like:
     | "test_your_database_name_17bd3c_d266ab43ac75"
     |
-    | This config setting can be overridden by adding the $scenarioTestDBs
+    | This config setting can be overridden by adding the $scenarios
     | property to your test-class.
     |
     | This is turned off automatically when browser testing (e.g. Dusk).
@@ -77,7 +77,7 @@ return [
     |
     */
 
-    'scenario_test_dbs' => env('ADAPT_SCENARIO_TEST_DBS', true),
+    'scenarios' => env('ADAPT_SCENARIOS', true),
 
     /*
     |--------------------------------------------------------------------------
