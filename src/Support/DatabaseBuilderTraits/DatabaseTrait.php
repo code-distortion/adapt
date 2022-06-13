@@ -30,7 +30,9 @@ trait DatabaseTrait
      */
     private function pickDatabaseName(): string
     {
-        $dbNameChecksumPart = $this->configDTO->usingScenarioTestDBs() ? $this->generateDatabaseNameChecksumPart() : null;
+        $dbNameChecksumPart = $this->configDTO->usingScenarioTestDBs()
+            ? $this->generateDatabaseNameChecksumPart()
+            : null;
 
         return $this->dbAdapter()->name->generateDBName($this->configDTO->usingScenarioTestDBs(), $dbNameChecksumPart);
     }

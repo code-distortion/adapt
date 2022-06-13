@@ -35,7 +35,7 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
     protected function shouldIgnoreDatabase(string $database): bool
     {
         // ignore other files
-        $temp = preg_split('/[\\\\\/]+/', $database);
+        $temp = (array) preg_split('/[\\\\\/]+/', $database);
         $filename = array_pop($temp);
         return in_array($filename, ['.gitignore', 'purge-lock']);
     }
@@ -76,10 +76,10 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
                 throw AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name);
             }
             return true;
+        } catch (AdaptBuildException $e) {
+            throw $e; // just rethrow as is
         } catch (Throwable $e) {
-            throw $e instanceof AdaptBuildException
-                ? $e
-                : AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
+            throw AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
         }
     }
 

@@ -92,15 +92,15 @@ class LaravelSQLiteBuild implements BuildInterface
         $this->createDB();
     }
 
-    /**
-     * Determine if the database exists for the given connection.
-     *
-     * @return boolean
-     */
-    private function databaseExists(): bool
-    {
-        return $this->isMemoryDatabase() || $this->di->filesystem->fileExists((string) $this->configDTO->database);
-    }
+//    /**
+//     * Determine if the database exists for the given connection.
+//     *
+//     * @return boolean
+//     */
+//    private function databaseExists(): bool
+//    {
+//        return $this->isMemoryDatabase() || $this->di->filesystem->fileExists((string) $this->configDTO->database);
+//    }
 
     /**
      * Wipe the database.

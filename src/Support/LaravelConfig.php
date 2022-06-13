@@ -108,6 +108,7 @@ class LaravelConfig
         try {
             return Arr::has($array, $key);
         } catch (Throwable $e) {
+            // for older versions of Laravel
             return array_has($array, $key);
         }
     }

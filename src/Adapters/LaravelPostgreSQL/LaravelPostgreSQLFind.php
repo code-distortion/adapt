@@ -67,10 +67,10 @@ class LaravelPostgreSQLFind extends AbstractFind implements FindInterface
             $pdo = $this->di->db->newPDO(null, $databaseMetaInfo->connection);
             $pdo->dropDatabase("DROP DATABASE IF EXISTS \"$databaseMetaInfo->name\"", $databaseMetaInfo->name);
             return true;
+        } catch (AdaptBuildException $e) {
+            throw $e; // just rethrow as is
         } catch (Throwable $e) {
-            throw $e instanceof AdaptBuildException
-                ? $e
-                : AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
+            throw AdaptBuildException::couldNotDropDatabase($databaseMetaInfo->name, $e);
         }
     }
 

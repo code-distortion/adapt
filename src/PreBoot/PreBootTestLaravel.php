@@ -74,6 +74,9 @@ class PreBootTestLaravel
     /**
      * Prepare and boot Adapt.
      *
+     * @param callable $beforeRefreshingDatabase Callback to call the test's beforeRefreshingDatabase() method.
+     * @param callable $afterRefreshingDatabase  Callback to call the test's afterRefreshingDatabase() method.
+     * @param callable $unsetArtisan             Callback to clear Artisan from Laravel's App.
      * @return void
      * @throws Throwable When something goes wrong.
      */

@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Application;
@@ -249,8 +250,9 @@ class LaravelSupport
      */
     public static function startTransaction(string $connection): void
     {
-        $connection = static::getConnectionInterface($connection);
-        if (static::useEventDispatcher($connection)) {
+        $connection = self::getConnectionInterface($connection);
+        if (self::useEventDispatcher($connection)) {
+            /** @var Connection $connection */
             $dispatcher = $connection->getEventDispatcher();
             $connection->unsetEventDispatcher();
             $connection->beginTransaction();
@@ -271,9 +273,10 @@ class LaravelSupport
      */
     public static function rollBackTransaction(string $connection): void
     {
-        $connection = static::getConnectionInterface($connection);
-        if (static::useEventDispatcher($connection)) {
+        $connection = self::getConnectionInterface($connection);
+        if (self::useEventDispatcher($connection)) {
 
+            /** @var Connection $connection */
             $dispatcher = $connection->getEventDispatcher();
             $connection->unsetEventDispatcher();
             try {
@@ -298,7 +301,6 @@ class LaravelSupport
      */
     private static function getConnectionInterface(string $connection): ConnectionInterface
     {
-        /** @var LaravelTestCase $this */
         /** @var ConnectionResolverInterface $database */
         $database = app('db');
         return $database->connection($connection);

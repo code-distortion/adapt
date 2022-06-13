@@ -178,8 +178,9 @@ class LaravelLog implements LogInterface
     /**
      * Actually log the message to the desired locations.
      *
-     * @param string $logLevel The level to log the message at.
-     * @param string $message  The message to log.
+     * @param string  $logLevel  The level to log the message at.
+     * @param string  $message   The message to log.
+     * @param integer $verbosity The message's verbosity.
      * @return void
      */
     private function output(string $logLevel, string $message, int $verbosity): void

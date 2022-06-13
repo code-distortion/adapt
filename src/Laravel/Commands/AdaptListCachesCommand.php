@@ -64,7 +64,10 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $driver = reset($databaseMetaDTOs)->driver;
+            reset($databaseMetaDTOs);
+            $key = key($databaseMetaDTOs);
+            $driver = $databaseMetaDTOs[$key]->driver;
+
             $this->info("- Connection \"$connection\" (driver $driver):");
 
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {

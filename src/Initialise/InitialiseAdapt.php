@@ -68,6 +68,7 @@ trait InitialiseAdapt
      *
      * @before
      * @return void
+     * @throws AdaptBootException When Laravel's database-building traits are also present.
      */
     public function initialiseAdapt(): void
     {

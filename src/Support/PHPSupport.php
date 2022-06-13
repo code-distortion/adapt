@@ -19,6 +19,10 @@ class PHPSupport
      */
     public static function readStaticPrivateProperty(string $class, string $propertyName)
     {
+        if (!class_exists($class)) {
+            return null;
+        }
+
         $reflection = new ReflectionClass($class);
 
         if (!$reflection->hasProperty($propertyName)) {

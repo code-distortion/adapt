@@ -135,7 +135,7 @@ abstract class AbstractFind implements FindInterface
         );
 
         $databaseMetaInfo = new DatabaseMetaInfo(
-            $this->configDTO->driver,
+            (string) $this->configDTO->driver,
             $connection,
             $name,
             DateTime::createFromFormat('Y-m-d H:i:s', $reuseInfo->last_used ?? null, new DateTimeZone('UTC')) ?: null,

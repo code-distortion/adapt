@@ -140,6 +140,11 @@ class DatabaseBuilder
      */
     private function logTotalTimeTaken(int $logTimer): void
     {
+        // for phpstan - it will exist
+        if (!$this->resolvedSettingsDTO) {
+            return;
+        }
+
         $database = $this->configDTO->database;
         $connection = $this->configDTO->connection;
         $existed = $this->resolvedSettingsDTO->databaseExistedBefore;
@@ -325,7 +330,8 @@ class DatabaseBuilder
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
-            $this->resolvedSettingsDTO->databaseWasReused(true); // it was re-used this time
+            // it was re-used this time
+            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->databaseWasReused(true) : null;
 
             $connection = $this->configDTO->connection;
             $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
@@ -366,7 +372,8 @@ class DatabaseBuilder
     {
         $this->initialise();
 
-        $this->hasher->buildChecksumWasPreCalculated($this->configDTO->preCalculatedBuildChecksum); // only used when not null
+        // is only used when not null
+        $this->hasher->buildChecksumWasPreCalculated($this->configDTO->preCalculatedBuildChecksum);
 
         $this->resolvedSettingsDTO = $this->buildResolvedSettingsDTO($this->pickDatabaseName());
 
@@ -592,7 +599,9 @@ class DatabaseBuilder
         $this->dbAdapter()->build->resetDB($exists);
 //        $this->createReuseMetaDataTable();
 
-        $this->resolvedSettingsDTO->databaseExistedBefore($exists);
+        $this->resolvedSettingsDTO // for phpstan
+            ? $this->resolvedSettingsDTO->databaseExistedBefore($exists)
+            : null;
     }
 
     /**
@@ -1036,7 +1045,7 @@ class DatabaseBuilder
         foreach ($filePaths as $path) {
 
             // ignore other files
-            $temp = preg_split('/[\\\\\/]+/', $path);
+            $temp = (array) preg_split('/[\\\\\/]+/', $path);
             $filename = array_pop($temp);
             if (in_array($filename, ['.gitignore', 'purge-lock'])) {
                 continue;
@@ -1109,6 +1118,7 @@ class DatabaseBuilder
      *
      * @param SnapshotMetaInfo $snapshotMetaInfo The info object representing the snapshot file.
      * @return boolean
+     * @throws AdaptSnapshotException When the snapshot can't be removed.
      */
     private function removeSnapshotFile(SnapshotMetaInfo $snapshotMetaInfo): bool
     {
@@ -1121,10 +1131,10 @@ class DatabaseBuilder
                 throw AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path);
             }
             return true;
+        } catch (AdaptSnapshotException $e) {
+            throw $e; // just rethrow as is
         } catch (Throwable $e) {
-            throw $e instanceof AdaptSnapshotException
-                ? $e
-                : AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path, $e);
+            throw AdaptSnapshotException::deleteFailed($snapshotMetaInfo->path, $e);
         }
     }
 

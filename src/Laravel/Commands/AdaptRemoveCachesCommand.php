@@ -85,7 +85,10 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
         $this->warn(PHP_EOL . 'These test-databases will be DELETED:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $driver = reset($databaseMetaDTOs)->driver;
+            reset($databaseMetaDTOs);
+            $key = key($databaseMetaDTOs);
+            $driver = $databaseMetaDTOs[$key]->driver;
+
             $this->warn("- Connection \"$connection\" (driver $driver):");
 
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {
@@ -137,7 +140,10 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
 
-            $driver = reset($databaseMetaDTOs)->driver;
+            reset($databaseMetaDTOs);
+            $key = key($databaseMetaDTOs);
+            $driver = $databaseMetaDTOs[$key]->driver;
+
             $this->info("- Connection \"$connection\" (driver $driver):");
 
             foreach ($databaseMetaDTOs as $databaseMetaDTO) {

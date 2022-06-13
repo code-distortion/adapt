@@ -15,7 +15,7 @@ class AdaptBootException extends AdaptException
      */
     public static function laravelDatabaseTraitDetected(string $trait): self
     {
-        $temp = preg_split('/[\\\\\/]+/', $trait);
+        $temp = (array) preg_split('/[\\\\\/]+/', $trait);
         $trait = array_pop($temp);
 
         return new self(

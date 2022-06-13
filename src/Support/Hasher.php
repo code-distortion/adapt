@@ -56,7 +56,7 @@ class Hasher
 
 
     /**
-     * A remote Adapt installation generated a build-checksum. Remember it for subsequent requests (to save on build-time).
+     * A remote Adapt installation generated a build-checksum. Remember it for subsequent requests (to save time).
      *
      * @param string $remoteBuildUrl The remote-build url.
      * @param string $buildChecksum  The build-checksum that the remote Adapt installation calculated.
@@ -84,7 +84,8 @@ class Hasher
      * Generate the build-checksum part for snapshot filenames.
      *
      * @param boolean $useBuildChecksum Use the current build-checksum (if available).
-     * @param boolean $force            Force the build-checksum to be generated, even if it's turned off via the config.
+     * @param boolean $force            Force the build-checksum to be generated, even if it's turned off via the
+     *                                  config.
      * @return string
      */
     public function getBuildChecksumFilenamePart(bool $useBuildChecksum = true, bool $force = false): string
@@ -272,7 +273,7 @@ class Hasher
      * Take the list of files and generate a checksum for the contents of each.
      *
      * @param string[] $paths The files to checksum.
-     * @return array<string, string|null>
+     * @return array<string, string|integer|null>
      */
     private function checksumFiles(array $paths): array
     {
@@ -294,7 +295,8 @@ class Hasher
      */
     public function currentSnapshotChecksum(): ?string
     {
-        return $this->currentSnapshotChecksum ??= $this->generateSnapshotChecksum($this->configDTO->pickSeedersToInclude());
+        return $this->currentSnapshotChecksum
+            ??= $this->generateSnapshotChecksum($this->configDTO->pickSeedersToInclude());
     }
 
     /**
@@ -334,7 +336,8 @@ class Hasher
      */
     public function currentScenarioChecksum(): ?string
     {
-        return $this->currentScenarioChecksum ??= $this->generateScenarioChecksum($this->configDTO->pickSeedersToInclude());
+        return $this->currentScenarioChecksum
+            ??= $this->generateScenarioChecksum($this->configDTO->pickSeedersToInclude());
     }
 
     /**
@@ -342,7 +345,7 @@ class Hasher
      *
      * Note: database name "dby_xxxxxx_yyyyyyyyyyyy" - for the "y" part.
      *
-     * It's based on the settings *being used in this situation*: snapshot checksum, project-name, original-database name,
+     * It's based on the settings *being used in this situation*: snapshot-checksum, project-name, original-db name,
      * is-browser-test setting, database reusability (transaction and journal) settings, and verification setting.
      *
      * @param string[] $seeders The seeders that will be run.
