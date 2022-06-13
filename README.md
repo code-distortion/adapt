@@ -134,7 +134,7 @@ You can alter the default settings by publishing the `config/code_distortion.ada
 php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceProvider" --tag="config"
 ```
 
-> ***Note:*** If you'd like to add custom environment values, put them in your `.env.testing` file if you use one (rather than `.env`).
+> ***Note:*** If you'd like to add custom environment values, put them in your `.env.testing` file (rather than `.env`).
 
 
 
@@ -142,7 +142,7 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 
 ### TL-DR - Quick-Start
 
-- Step 1 - Replace the `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits in your test classes with `LaravelAdapt`.
+- Step 1 - Replace the `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits in your test classes with `AdaptDatabase`.
 
 - Step 2 - Run your tests like normal:
 
@@ -156,7 +156,7 @@ php artisan vendor:publish --provider="CodeDistortion\Adapt\AdaptLaravelServiceP
 
 ### PHPUnit Usage
 
-Use the `LaravelAdapt` trait in your test-classes instead of `RefreshDatabase`, `DatabaseTransactions` or `DatabaseMigrations`.
+Use the `AdaptDatabase` trait in your test-classes instead of `RefreshDatabase`, `DatabaseTransactions` or `DatabaseMigrations`.
 
 Then just run your tests like normal. If you like you can [customise Adapt's settings](#customisation) on a per-test basis.
 
@@ -166,7 +166,7 @@ Then just run your tests like normal. If you like you can [customise Adapt's set
 
 namespace Tests\Feature;
 
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use CodeDistortion\Adapt\AdaptDatabase; // **** add this ****
 //use Illuminate\Foundation\Testing\DatabaseMigrations;   // not needed
 //use Illuminate\Foundation\Testing\DatabaseTransactions; // not needed
 //use Illuminate\Foundation\Testing\RefreshDatabase;      // not needed
@@ -174,7 +174,7 @@ use Tests\TestCase;
 
 class MyFeatureTest extends TestCase
 {
-    use LaravelAdapt; // **** add this ****
+    use AdaptDatabase; // **** add this ****
 //  use DatabaseMigrations;   // not needed
 //  use DatabaseTransactions; // not needed
 //  use RefreshDatabase;      // not needed
@@ -199,7 +199,7 @@ If you're using an old version of PHPUnit and want to populate database data in 
 
 namespace Tests;
 
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use CodeDistortion\Adapt\AdaptDatabase; // **** add this ****
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -211,8 +211,8 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
-        LaravelAdapt::initialiseAdaptIfNeeded($this);
+        // **** add this - triggers when the AdaptDatabase trait is specified on your test ****
+        AdaptDatabase::initialiseAdaptIfNeeded($this);
     }
 }
 ```
@@ -225,7 +225,7 @@ abstract class TestCase extends BaseTestCase
 
 PEST lets you [assign classes and traits to your Pest tests](https://pestphp.com/docs/plugins/laravel#using-test-traits) with the `uses(…)` helper function.
 
-Add `uses(LaravelAdapt::class);` to the tests you'd like a database for.
+Add `uses(AdaptDatabase::class);` to the tests you'd like a database for.
 
 Adapt's settings can be [customised](#pest-customisation) on a per-test basis when using PEST.
 
@@ -234,9 +234,9 @@ Adapt's settings can be [customised](#pest-customisation) on a per-test basis wh
 // tests/Feature/MyFeatureTest.php
 
 use App\User;
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use CodeDistortion\Adapt\AdaptDatabase; // **** add this ****
 
-uses(LaravelAdapt::class); // **** add this ****
+uses(AdaptDatabase::class); // **** add this ****
 
 beforeEach(fn () => factory(User::class)->create());
 
@@ -255,8 +255,8 @@ Adapt can prepare databases for your [Dusk](https://laravel.com/docs/9.x/dusk) b
 
 Simply create your Dusk tests like normal, and make these two minor changes:
 
-- Replace the usual `DatabaseMigrations` with the `LaravelAdapt` trait, and
-- When you've created your browser instance, tell it to use your test-databases by adding `$this->shareConfig($browser);` (see below).
+- Replace the usual `DatabaseMigrations` with the `AdaptDatabase` trait, and
+- When you've created your browser instance, tell it to use your test-databases by adding `$this->useAdapt($browser);` (see below).
 
 ``` php
 <?php
@@ -265,21 +265,21 @@ Simply create your Dusk tests like normal, and make these two minor changes:
 namespace Tests\Browser;
 
 use App\Models\User;
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use CodeDistortion\Adapt\AdaptDatabase; // **** add this ****
 //use Illuminate\Foundation\Testing\DatabaseMigrations; // not needed
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
 class MyDuskTest extends DuskTestCase
 {
-    use LaravelAdapt; // **** add this ****
+    use AdaptDatabase; // **** add this ****
 //  use DatabaseMigrations; // not needed
 
     public function testBasicExample()
     {
         $this->browse(function (Browser $browser) {
 
-            $this->shareConfig($browser); // **** add this ****
+            $this->useAdapt($browser); // **** add this ****
 
             $user = User::factory()->create();
             $browser->visit('/')->assertSee("$user->id $user->name");
@@ -342,11 +342,11 @@ As [mentioned above](#dusk-browser-test-usage), running tests using `php artisan
 
 ### Artisan Console Commands
 
-`php artisan adapt:list-db-caches` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
+`php artisan adapt:list` - Lists the databases and [snapshot files](#database-snapshots) that Adapt has created.
 
 You won't need to clear old databases and snapshot files as Adapt does this automatically, however you can if you like:
 
-`php artisan adapt:remove-db-caches`
+`php artisan adapt:clear`
 
 
 
@@ -383,12 +383,12 @@ Add any of the following properties to your test-class when needed.
 namespace Tests\Feature;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
-use CodeDistortion\Adapt\LaravelAdapt;
+use CodeDistortion\Adapt\AdaptDatabase;
 use Tests\TestCase;
 
 class MyFeatureTest extends TestCase
 {
-    use LaravelAdapt;
+    use AdaptDatabase;
 
     /**
      * Enable / disable database building. This is useful when you want to use
@@ -444,14 +444,14 @@ class MyFeatureTest extends TestCase
      * Specify database dump files to import before migrations run.
      *
      * NOTE: It's important that these dumps don't contain output from seeders
-     * if those seeders are to be run by Adapt as needed afterwards.
+     * if those seeders are to also be run by Adapt afterwards.
      *
-     * NOTE: pre_migration_imports aren't available for SQLite :memory:
+     * NOTE: initial_imports aren't available for SQLite :memory:
      * databases.
      *
      * @var array<string, string>|array<string, string[]>
      */
-    protected array $preMigrationImports = [
+    protected array $initialImports = [
         'mysql' => ['database/dumps/mysql/my-database.sql'],
         'pgsql' => ['database/dumps/pgsql/my-database.sql'],
         'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
@@ -503,7 +503,7 @@ class MyFeatureTest extends TestCase
      * causes outside requests to your website) needs to access the same
      * database that your test built.
      *
-     * If you don't specify this value,  Adapt will automatically
+     * If you don't specify this value, Adapt will automatically
      * detect if a browser test is running.
      *
      * @var boolean
@@ -538,18 +538,19 @@ class MyFeatureTest extends TestCase
      */
     protected function databaseInit(DatabaseBuilder $builder): void
     {
-        $preMigrationImports =  [
+        $initialImports =  [
             'mysql' => ['database/dumps/mysql/my-database.sql'],
             'pgsql' => ['database/dumps/pgsql/my-database.sql'],
             'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
         ];
 
-        // the DatabaseBuilder $builder is pre-built to match your config settings
+        // the DatabaseBuilder $builder is pre-configured to match your config settings
+        // for the "default" database connection
         // you can override them with any of the following…
         $builder
-            ->connection('primary-mysql') // specify another connection to build a db for
-            ->checkForSourceChanges() // or ->dontCheckForSourceChanges()
-            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
+            ->connection('primary') // specify another connection to build a db for
+            ->cacheInvalidationMethod('modified') // or ->noCacheInvalidationMethod()
+            ->initialImports($initialImports) // or ->noInitialImports()
             ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
             ->seeders(['DatabaseSeeder']) // or ->noSeeders()
             ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
@@ -561,12 +562,11 @@ class MyFeatureTest extends TestCase
             ->isBrowserTest() // or isNotBrowserTest()
             ->makeDefault(); // make the "default" Laravel connection point to this database
 
-        // create a database for another connection
-        $connection = 'secondary-mysql';
+        // you can create a database for another connection
+        $connection = 'secondary';
         $builder2 = $this->newBuilder($connection);
-        /** @var DatabaseBuilder $builder2 **/
         $builder2
-            ->preMigrationImports($preMigrationImports) // or ->noPreMigrationImports()
+            ->initialImports($initialImports) // or ->noInitialImports()
             // …
             ->makeDefault(); // make the "default" Laravel connection point to this database
     }
@@ -584,15 +584,15 @@ You can add custom Adapt settings to your PEST tests by creating a trait with th
 
 ``` php
 <?php
-// tests/MyLaravelAdapt.php
+// tests/MyAdaptDatabase.php
 
 namespace Tests;
 
-use CodeDistortion\Adapt\LaravelAdapt;
+use CodeDistortion\Adapt\AdaptDatabase;
 
-trait MyLaravelAdapt
+trait MyAdaptDatabase
 {
-    use LaravelAdapt;
+    use AdaptDatabase;
 
     protected string $seeders = ['DatabaseSeeder', 'ShoppingCartSeeder'];
     // etc as above in the PHPUnit Customisation section…
@@ -606,9 +606,9 @@ and include it in your test:
 // tests/Feature/MyFeatureTest.php
 
 use App\User;
-use Tests\MyLaravelAdapt; // **** add this ****
+use Tests\MyAdaptDatabase; // **** add this ****
 
-uses(MyLaravelAdapt::class); // **** add this ****
+uses(MyAdaptDatabase::class); // **** add this ****
 
 beforeEach(fn () => factory(User::class)->create());
 
@@ -681,14 +681,14 @@ By default, these directories are looked through for changes:
 
 These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look_for_changes_in` config setting (the `pre_migration_imports` and `migrations` files are included automatically).
+This list of directories can be configured via the `look_for_changes_in` config setting (the `initial_imports` and `migrations` files are included automatically).
 
 > Cache invalidation can be disabled to save some time, however this is only really useful on systems where this step is slow.
 >
 > You can see how much time this might save by turning logging on via the `log.laravel` or `log.stdout` config setting. e.g.
 >
 > ```
-> Generated the build-hash - of the files that can be used to build the database (22ms)
+> Generated the build-checksum - of the files that can be used to build the database (22ms)
 > ```
 > 
 > You can turn it off by turning the `check_for_source_changes` config setting off. However, if you do, it's *your* responsibility to remove databases when they change.
@@ -696,7 +696,7 @@ This list of directories can be configured via the `look_for_changes_in` config 
 > You can remove the existing test-databases using:
 >
 > ``` bash
-> php artisan adapt:remove
+> php artisan adapt:clear
 > ```
 
 
@@ -709,7 +709,7 @@ Here are various testing scenarios and comments about each:
 
 ### Using the "default" database connection
 
-Projects using the "default" database connection is the most common scenario. After adding the `LaravelAdapt` trait to your test-classes, a test-database will be created for the default connection.
+Projects using the "default" database connection is the most common scenario. After adding the `AdaptDatabase` trait to your test-classes, a test-database will be created for the default connection.
 
 You probably won't need to change any configuration settings.
 
@@ -725,7 +725,7 @@ Adapt can build extra databases for you. So it knows what to build, [add the dat
 …
 class MyFeatureTest extends TestCase
 {
-    use LaravelAdapt;
+    use AdaptDatabase;
     
     protected function databaseInit(DatabaseBuilder $builder): void
     {
@@ -746,7 +746,7 @@ class MyFeatureTest extends TestCase
     …
 }
 
-// somewhere else
+// you can then use the databases somewhere inside a test
 DB::connection('primary-mysql')->select(…);
 DB::connection('secondary-mysql')->select(…);
 ```
@@ -785,7 +785,7 @@ If you'd like to specify seeders, or run different ones for different tests, see
 …
 class MyFeatureTest extends TestCase
 {
-    use LaravelAdapt;
+    use AdaptDatabase;
 
     protected array $seeders = ['SomeOtherDatabaseSeeder'];
 
@@ -817,13 +817,13 @@ Or run ParaTest directly:
 > 
 > Because Adapt dynamically decides which database/s to use based on the settings for each test, it's not practical to pre-determine which ones to rebuild until they are needed. And because of the nature of parallel testing, it's also not possible to simply remove *all* of the databases before running the tests.
 > 
-> Instead, simply run `php artisan adapt:remove` or `php artisan adapt:remove --force` before running your tests.
+> Instead, simply run `php artisan adapt:clear` or `php artisan adapt:clear --force` before running your tests.
 
 
 
 ### Dusk browser tests
 
-Once you've added `$this->shareConfig($browser);` to your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
+Once you've added `$this->useAdapt($browser);` to your [Dusk](https://laravel.com/docs/9.x/dusk) browser tests, you'll be able to run your browser tests alongside your other tests. Including when running them in parallel.
 
 See the [dusk browser testing section](#dusk-browser-test-usage) for more details.
 
@@ -831,7 +831,7 @@ See the [dusk browser testing section](#dusk-browser-test-usage) for more detail
 
 ### Importing custom database dump files
 
-To import your own database dump sql file, put it in your filesystem and add it to the `pre_migration_imports` config setting (or `$preMigrationImports` test-class property). There's a spot there to add files for each type of database.
+To import your own database dump sql file, put it in your filesystem and add it to the `initail_imports` config setting (or `$initialImports` test-class property). There's a spot there to add files for each type of database.
 
 This might save time if you have lots of migrations to run, or be useful if you have some other funky data set-up going on.
 
@@ -847,7 +847,7 @@ This might save time if you have lots of migrations to run, or be useful if you 
 
 As [mentioned above](#re-using-databases-within-a-test-run), tests are run inside transactions that are rolled-back afterwards - leaving the database in a clean state which can be reused. If this transaction is committed, the database would need to be rebuilt.
 
-If your *own code* uses transactions as well, this will cause the wrapper transaction to be committed. It can also happen unintentionally (e.g. when truncating or altering a MySQL table).
+If your *own code* uses transactions as well, this will cause the wrapper-transaction to be committed. It can also happen unintentionally (e.g. when truncating or altering a MySQL table).
 
 Adapt detects when this happens and throws an `AdaptTransactionException` to let you know which test caused it.
 
@@ -869,7 +869,7 @@ Adapt uses the `@before` [docblock annotation](https://phpunit.readthedocs.io/en
 
 namespace Tests;
 
-use CodeDistortion\Adapt\LaravelAdapt; // **** add this ****
+use CodeDistortion\Adapt\AdaptDatabase; // **** add this ****
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -881,8 +881,8 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // **** add this - triggers when the LaravelAdapt trait is specified on your test ****
-        LaravelAdapt::initialiseAdaptIfNeeded($this);
+        // **** add this - triggers when the AdaptDatabase trait is specified on your test ****
+        AdaptDatabase::initialiseAdaptIfNeeded($this);
     }
 }
 ```
