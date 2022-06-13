@@ -327,7 +327,7 @@ class ConfigDTO
         if (in_array($cacheInvalidationMethod, ['content', 'modified', null], true)) {
             $this->cacheInvalidationMethod = $cacheInvalidationMethod;
         } else {
-            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'content' : null;
+            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'modified' : null;
         }
 
         return $this;

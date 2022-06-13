@@ -122,7 +122,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod(config("$c.cache_invalidation_method"))
+            ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
             ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(

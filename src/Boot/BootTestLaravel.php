@@ -206,6 +206,10 @@ class BootTestLaravel extends BootTestAbstract
         $configVal = config("$c.scenario_test_dbs") ?? config("$c.scenarios");
         $scenarios = $propVal ?? $configVal;
 
+        $cacheInvalidationMethod =
+            $pb->adaptConfig('check_for_source_changes')
+            ?? $pb->adaptConfig('cache_invalidation_method');
+
         $database = (string) $pb->config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
             throw AdaptBootException::databaseNameIsInvalid($database);
@@ -222,7 +226,7 @@ class BootTestLaravel extends BootTestAbstract
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod($pb->adaptConfig('cache_invalidation_method'))
+            ->cacheInvalidationMethod($cacheInvalidationMethod)
             ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(
