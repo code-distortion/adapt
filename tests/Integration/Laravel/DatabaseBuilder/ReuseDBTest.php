@@ -35,88 +35,88 @@ class ReuseDBTest extends LaravelTestCase
         $this->markTestIncomplete('need to add reuseJournal into the settings');
 
         return [
-            'reuseTransaction false, scenarioTestDBs false, isBrowserTest false' => [
+            'reuseTransaction false, scenarios false, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTransaction true, scenarioTestDBs false, isBrowserTest false' => [
+            'reuseTransaction true, scenarios false, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
-            'reuseTransaction false, scenarioTestDBs true, isBrowserTest false' => [
+            'reuseTransaction false, scenarios true, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
-                    ->scenarioTestDBs(true)
+                    ->scenarios(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.80cb3b-4d0a942a4f44.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTransaction true, scenarioTestDBs true, isBrowserTest false' => [
+            'reuseTransaction true, scenarios true, isBrowserTest false' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(true)
+                    ->scenarios(true)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.80cb3b-3c25506a6206.sqlite',
                 'expectedUserCount' => 1,
                 'expectedException' => null,
             ],
-            'reuseTransaction false, scenarioTestDBs false, isBrowserTest true' => [
+            'reuseTransaction false, scenarios false, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTransaction true, scenarioTestDBs false, isBrowserTest true' => [
+            'reuseTransaction true, scenarios false, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTransaction false, scenarioTestDBs true, isBrowserTest true' => [
+            'reuseTransaction false, scenarios true, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
-                    ->scenarioTestDBs(true)
+                    ->scenarios(true)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.80cb3b-64d73e5bd418.sqlite',
                 'expectedUserCount' => 0,
                 'expectedException' => null,
             ],
-            'reuseTransaction true, scenarioTestDBs true, isBrowserTest true' => [
+            'reuseTransaction true, scenarios true, isBrowserTest true' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(true)
+                    ->scenarios(true)
                     ->isBrowserTest(true),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 0",
                 'expectedDBName' => $this->wsAdaptStorageDir . '/test-database.80cb3b-11d5e7e68fce.sqlite',
@@ -128,7 +128,7 @@ class ReuseDBTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
                     "UPDATE `" . Settings::REUSE_TABLE . "` "
@@ -141,7 +141,7 @@ class ReuseDBTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' =>
                     "UPDATE `" . Settings::REUSE_TABLE . "` "
@@ -154,7 +154,7 @@ class ReuseDBTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "UPDATE `" . Settings::REUSE_TABLE . "` SET `inside_transaction` = 1",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
@@ -165,7 +165,7 @@ class ReuseDBTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "DELETE FROM `" . Settings::REUSE_TABLE . "`",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',
@@ -176,7 +176,7 @@ class ReuseDBTest extends LaravelTestCase
                 'config' => $this->newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
-                    ->scenarioTestDBs(false)
+                    ->scenarios(false)
                     ->isBrowserTest(false),
                 'updateReuseTableQuery' => "DROP TABLE `" . Settings::REUSE_TABLE . "`",
                 'expectedDBName' => $this->wsDatabaseDir . '/database.sqlite',

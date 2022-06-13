@@ -128,7 +128,7 @@ class ConfigDTO
     public bool $verifyDatabase;
 
     /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
-    public bool $scenarioTestDBs;
+    public bool $scenarios;
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
     public $useSnapshotsWhenReusingDB;
@@ -622,19 +622,19 @@ class ConfigDTO
      * @param boolean $reuseTransaction Reuse databases with a transaction?.
      * @param boolean $reuseJournal     Reuse databases with a journal?.
      * @param boolean $verifyDatabase   Perform a check of the db structure and content after each test?.
-     * @param boolean $scenarioTestDBs  Create databases as needed for the database-scenario?.
+     * @param boolean $scenarios        Create databases as needed for the database-scenario?.
      * @return static
      */
     public function cacheTools(
         bool $reuseTransaction,
         bool $reuseJournal,
         bool $verifyDatabase,
-        bool $scenarioTestDBs
+        bool $scenarios
     ): self {
         $this->reuseTransaction = $reuseTransaction;
         $this->reuseJournal = $reuseJournal;
         $this->verifyDatabase = $verifyDatabase;
-        $this->scenarioTestDBs = $scenarioTestDBs;
+        $this->scenarios = $scenarios;
         return $this;
     }
 
@@ -675,14 +675,14 @@ class ConfigDTO
     }
 
     /**
-     * Turn the scenario-test-dbs setting on or off.
+     * Turn the scenarios setting on or off.
      *
-     * @param boolean $scenarioTestDBs Create databases as needed for the database-scenario?.
+     * @param boolean $scenarios Create databases as needed for the database-scenario?.
      * @return static
      */
-    public function scenarioTestDBs(bool $scenarioTestDBs): self
+    public function scenarios(bool $scenarios): self
     {
-        $this->scenarioTestDBs = $scenarioTestDBs;
+        $this->scenarios = $scenarios;
         return $this;
     }
 
@@ -962,13 +962,13 @@ class ConfigDTO
 
 
     /**
-     * Resolve whether scenarioTestDBs is to be used.
+     * Resolve whether scenarios are to be used.
      *
      * @return boolean
      */
-    public function usingScenarioTestDBs(): bool
+    public function usingScenarios(): bool
     {
-        return $this->dbSupportsScenarios && $this->scenarioTestDBs;
+        return $this->dbSupportsScenarios && $this->scenarios;
     }
 
     /**

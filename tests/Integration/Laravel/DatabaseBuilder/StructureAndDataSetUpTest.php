@@ -88,7 +88,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
 
             'sqlite - scenario-test-dbs off' => [
                 'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
-                    ->scenarioTestDBs(false),
+                    ->scenarios(false),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
                     ->databaseName("$this->wsAdaptStorageDir/database.sqlite")
                     ->expectedTables(['____adapt____']),

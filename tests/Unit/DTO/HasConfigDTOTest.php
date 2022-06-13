@@ -190,7 +190,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'outcome' => [
                     'reuseTransaction' => false,
                     'reuseJournal' => true,
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
             'cacheTools 2' => [
@@ -199,7 +199,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'outcome' => [
                     'reuseTransaction' => false,
                     'reuseJournal' => false,
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
             'cacheTools 3' => [
@@ -208,7 +208,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'outcome' => [
                     'reuseTransaction' => true,
                     'reuseJournal' => true,
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
             'cacheTools 4' => [
@@ -217,7 +217,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 'outcome' => [
                     'reuseTransaction' => true,
                     'reuseJournal' => false,
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
 
@@ -265,25 +265,25 @@ class HasConfigDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'scenarioTestDBs 1' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios 1' => [
+                'method' => 'scenarios',
                 'params' => [true],
                 'outcome' => [
-                    'scenarioTestDBs' => true,
+                    'scenarios' => true,
                 ],
             ],
-            'scenarioTestDBs 2' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios 2' => [
+                'method' => 'scenarios',
                 'params' => [false],
                 'outcome' => [
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
-            'noScenarioTestDBs' => [
-                'method' => 'noScenarioTestDBs',
+            'noScenarios' => [
+                'method' => 'noScenarios',
                 'params' => [],
                 'outcome' => [
-                    'scenarioTestDBs' => false,
+                    'scenarios' => false,
                 ],
             ],
 

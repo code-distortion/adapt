@@ -133,7 +133,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 $remoteConfigDTO->reuseTransaction,
                 $remoteConfigDTO->reuseJournal,
                 $remoteConfigDTO->verifyDatabase,
-                $remoteConfigDTO->scenarioTestDBs,
+                $remoteConfigDTO->scenarios,
             )
             ->snapshots(
                 $remoteConfigDTO->useSnapshotsWhenReusingDB,

@@ -191,15 +191,20 @@ class BootTestLaravel extends BootTestAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         $pb = $this->propBag;
 
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
+        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
+        $initialImports = $propVal ?? $configVal;
+
         // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
         $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
         $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
         $reuseTransaction = $propVal ?? $configVal;
 
-        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
-        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
-        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
-        $initialImports = $propVal ?? $configVal;
+        // accept the deprecated $scenarioTestDBs and config('...scenario_test_dbs') settings
+        $propVal = $pb->prop('scenarioTestDBs', null) ?? $pb->prop('scenarios', null);
+        $configVal = config("$c.scenario_test_dbs") ?? config("$c.scenarios");
+        $scenarios = $propVal ?? $configVal;
 
         $database = (string) $pb->config("database.connections.$connection.database");
         if (!mb_strlen($database)) {
@@ -243,7 +248,7 @@ class BootTestLaravel extends BootTestAbstract
                 $reuseTransaction,
                 $pb->adaptConfig('reuse.journals', 'reuseJournal'),
                 $pb->adaptConfig('verify_databases'),
-                $pb->adaptConfig('scenario_test_dbs', 'scenarioTestDBs'),
+                $scenarios,
             )
             ->snapshots(
                 $pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'),

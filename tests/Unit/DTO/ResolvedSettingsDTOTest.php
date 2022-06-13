@@ -135,8 +135,8 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                 ],
             ],
 
-            'scenarioTestDBs 1' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios 1' => [
+                'method' => 'scenarios',
                 'params' => [
                     'usingScenarios' => true,
                     'buildChecksum' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -144,8 +144,8 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                     'scenarioChecksum' => 'cccccccccccccccccccccccccccccccc',
                 ],
             ],
-            'scenarioTestDBs 2' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios 2' => [
+                'method' => 'scenarios',
                 'params' => [
                     'usingScenarios' => true,
                     'buildChecksum' => null,
@@ -153,8 +153,8 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
                     'scenarioChecksum' => null,
                 ],
             ],
-            'scenarioTestDBs 3' => [
-                'method' => 'scenarioTestDBs',
+            'scenarios 3' => [
+                'method' => 'scenarios',
                 'params' => [
                     'usingScenarios' => false,
                     'buildChecksum' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',

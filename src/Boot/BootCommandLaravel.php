@@ -150,7 +150,8 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions"),
                 config("$c.reuse.journals"),
                 config("$c.verify_databases"),
-                config("$c.scenario_test_dbs"),
+                // accept the deprecated config('...scenario_test_dbs') setting
+                config("$c.scenario_test_dbs") ?? config("$c.scenarios"),
             )
             ->snapshots(
                 config("$c.use_snapshots_when_reusing_db"),

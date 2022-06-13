@@ -95,7 +95,8 @@ trait InitialiseAdapt
             'reuseTestDBs', // @deprecated
             'reuseTransaction',
             'reuseJournal',
-            'scenarioTestDBs',
+            'scenarioTestDBs', // @deprecated
+            'scenarios',
             'useSnapshotsWhenReusingDB',
             'useSnapshotsWhenNotReusingDB',
             'preMigrationImports', // @deprecated
