@@ -144,10 +144,7 @@ class Hasher
             ? "Generated a content-based build-checksum"
             : "Generated a modified-time based build-checksum";
 
-        $this->di->log->vDebug(
-            $message,
-            $logTimer
-        );
+        $this->di->log->vDebug($message, $logTimer);
 
         return $buildChecksum;
     }
@@ -164,7 +161,33 @@ class Hasher
             $this->resolveMigrationPaths(),
             $this->resolveChecksumFilePaths()
         )));
+        $paths = $this->ignoreUnwantedChecksumFiles($paths);
         sort($paths);
+        return $paths;
+    }
+
+    /**
+     * Remove certain files from the list of files to generate a checksum from.
+     *
+     * @param array<string, string> $paths The list of files that were found.
+     * @return string[]
+     */
+    private function ignoreUnwantedChecksumFiles(array $paths): array
+    {
+        // this helps avoid the problem testbench gives between versions
+        // version 3.4
+        // "vendor/orchestra/testbench-core/fixture/database/migrations/.gitkeep" => "d41d8cd98f00b204e9800998ecf8427e"
+        // newer versions
+        // "vendor/orchestra/testbench-core/laravel/database/migrations/.gitkeep" => "d41d8cd98f00b204e9800998ecf8427e"
+
+        foreach ($paths as $index => $path) {
+            $temp = (array) preg_split('/[\\\\\/]+/', $path);
+            $filename = array_pop($temp);
+
+            if (in_array($filename, ['.gitkeep'])) {
+                unset($paths[$index]);
+            }
+        }
         return $paths;
     }
 

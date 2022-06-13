@@ -44,7 +44,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -61,7 +61,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -82,8 +82,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-0320bdd00911.sqlite',
                 ],
             ],
             [
@@ -104,8 +104,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-059d0b188354.sqlite',
                 ],
             ],
             [
@@ -128,9 +128,9 @@ class CommandsTest extends LaravelTestCase
                     . "- [file2]\n"
                     . "- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-0320bdd00911.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.8370a3-059d0b188354.sqlite',
                 ],
             ],
         ];
@@ -199,7 +199,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -216,7 +216,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -237,8 +237,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-0320bdd00911.sqlite',
                 ],
             ],
             [
@@ -259,8 +259,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-059d0b188354.sqlite',
                 ],
             ],
             [
@@ -283,9 +283,9 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- DELETED [file2]\n"
                     . "- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.8370a3-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.8370a3-0320bdd00911.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.8370a3-059d0b188354.sqlite',
                 ],
             ],
         ];
