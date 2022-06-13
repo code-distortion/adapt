@@ -75,6 +75,7 @@ trait DatabaseBuilderTestTrait
     private function newLog(): LogInterface
     {
         return new LaravelLog(false, false, 0);
+//        return new LaravelLog(true, false, 2);
     }
 
     /**
@@ -86,7 +87,7 @@ trait DatabaseBuilderTestTrait
     private function newConfigDTO(string $connection): ConfigDTO
     {
         return (new ConfigDTO())
-            ->projectName('')
+            ->projectName(null)
             ->testName('A test')
             ->connection($connection)
             ->connectionExists(true)

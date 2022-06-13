@@ -44,7 +44,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -61,7 +61,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -82,8 +82,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
                 ],
             ],
             [
@@ -104,8 +104,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
                 ],
             ],
             [
@@ -128,9 +128,9 @@ class CommandsTest extends LaravelTestCase
                     . "- [file2]\n"
                     . "- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.80cb3b-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
                 ],
             ],
         ];
@@ -199,7 +199,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -216,7 +216,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
                 ],
             ],
             [
@@ -237,8 +237,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
                 ],
             ],
             [
@@ -259,8 +259,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
                 ],
             ],
             [
@@ -283,9 +283,9 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- DELETED [file2]\n"
                     . "- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/test-database.80cb3b-ebdd5d1c06d6.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshot.database.80cb3b-8bd51f9f0b21.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshot.database.80cb3b-a34cd538e35f.sqlite',
+                    '[file1]' => '[adapt-test-storage]/test-database.9b943b-0161442c4a3a.sqlite',
+                    '[file2]' => '[adapt-test-storage]/snapshot.database.9b943b-0320bdd00911.sqlite',
+                    '[file3]' => '[adapt-test-storage]/snapshot.database.9b943b-059d0b188354.sqlite',
                 ],
             ],
         ];
@@ -355,7 +355,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
             $size = file_exists($file)
                 ? StringSupport::readableSize((int) filesize($file))
                 : 0;
-            $substitutions[$key] = "$file $size";
+            $substitutions[$key] = "\"$file\" $size";
         }
 
         return str_replace(array_keys($substitutions), $substitutions, $expectedOutput);

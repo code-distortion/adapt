@@ -170,7 +170,7 @@ class DatabaseMetaInfo
             }
         }
 
-        return $this->name
+        return "\"$this->name\""
             . ' ' . Str::readableSize($this->getSize())
             . $purgeMessage;
     }
