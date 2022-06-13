@@ -99,7 +99,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             'cacheInvalidationMethod 4' => [
                 'method' => 'cacheInvalidationMethod',
                 'params' => ['cacheInvalidationMethod' => true],
-                'outcome' => ['cacheInvalidationMethod' => 'content'],
+                'outcome' => ['cacheInvalidationMethod' => 'modified'],
             ],
             'cacheInvalidationMethod 5' => [
                 'method' => 'cacheInvalidationMethod',
