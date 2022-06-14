@@ -35,7 +35,7 @@ class Settings
     public const REUSE_TABLE = self::ADAPT_TABLE_PREFIX . '___';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    public const REUSE_TABLE_VERSION = '6';
+    public const REUSE_TABLE_VERSION = '7';
 
 
 
@@ -63,6 +63,9 @@ class Settings
 
     /** @var string The name of the singleton that's registered with Laravel, contains the connection database list. */
     public const REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME = 'adapt-connection-dbs';
+
+    /** @var string The name used to store the remote-build response in the service container. */
+    public const SERVICE_CONTAINER_REMOTE_BUILD_RESPONSE = 'adapt-remote-build-response';
 
 
 

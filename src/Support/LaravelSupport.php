@@ -9,8 +9,8 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PDOException;
 
 /**
@@ -63,6 +63,19 @@ class LaravelSupport
             if (!is_null(config("database.connections.$connection.database"))) {
                 config(["database.connections.$connection.database" => $database]);
             }
+        }
+    }
+
+    /**
+     * Disconnect from databases that already have a connection.
+     *
+     * @return void
+     */
+    public static function disconnectFromConnectedDatabases(): void
+    {
+        $alreadyConnected = array_keys(DB::getConnections());
+        foreach ($alreadyConnected as $connection) {
+            DB::disconnect($connection);
         }
     }
 
@@ -162,18 +175,19 @@ class LaravelSupport
     }
 
     /**
-     * Record the list of connections that have been prepared, and their corresponding databases with the framework.
+     * Register a scoped value with Laravel's service container.
      *
-     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @param string $name The name of the scoped value.
+     * @param callable $callback The callback to run to populate the value.
      * @return void
      */
-    public static function registerPreparedConnectionDBsWithFramework(array $connectionDatabases): void
+    public static function registerScoped(string $name, callable $callback): void
     {
         /** @var Application $app */
         $app = app();
         method_exists($app, 'scoped')
-            ? $app->scoped(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases)
-            : $app->singleton(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, fn() => $connectionDatabases);
+            ? $app->scoped($name, $callback)
+            : $app->singleton($name, $callback);
     }
 
     /**

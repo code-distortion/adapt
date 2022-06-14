@@ -12,6 +12,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelConfig;
 use CodeDistortion\Adapt\Support\LaravelEnv;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
 use Throwable;
@@ -19,7 +20,7 @@ use Throwable;
 /**
  * Pre-Bootstrap for Laravel tests.
  *
- * Used so Laravel specific pre-booting code doesn't need to exist in the InitialiseLaravelAdapt trait.
+ * Used so Laravel specific pre-booting code doesn't need to exist in the InitialiseAdapt trait.
  */
 class PreBootTestLaravel
 {
@@ -96,6 +97,11 @@ class PreBootTestLaravel
             $this->prepareLaravelConfig();
 
             $beforeRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
+
+            // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
+            // when using scenarios, this is the wrong database to use
+            // disconnect now to start a fresh
+            LaravelSupport::disconnectFromConnectedDatabases();
 
             $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
             $this->adaptBootTestLaravel->runBuildSteps();

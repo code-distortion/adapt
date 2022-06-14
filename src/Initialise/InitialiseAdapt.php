@@ -15,7 +15,6 @@ use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +29,7 @@ use Laravel\Dusk\TestCase as DuskTestCase;
  */
 trait InitialiseAdapt
 {
-    /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseLaravelAdapt. */
+    /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseAdapt. */
     private ?PreBootTestLaravel $adaptPreBootTestLaravel = null;
 
 

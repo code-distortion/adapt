@@ -326,7 +326,10 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function registerPreparedConnectionDBsWithFramework(array $connectionDatabases): void
     {
-        LaravelSupport::registerPreparedConnectionDBsWithFramework($connectionDatabases);
+        LaravelSupport::registerScoped(
+            Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME,
+            fn() => $connectionDatabases
+        );
     }
 
 

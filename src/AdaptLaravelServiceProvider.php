@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
+use CodeDistortion\Adapt\Laravel\Middleware\ReplaceResponseWithRemoteBuildResponseMiddleware;
 use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
@@ -30,6 +31,14 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 {
     /** @var string The path to the config file in the filesystem. */
     private string $configPath = __DIR__ . '/../config/config.php';
+
+    /**
+     * The response after building the database, so the middleware can return the clean version (un-changed by other
+     * middleware).
+     *
+     * @var ResponseFactory|Response|null
+     */
+    private $remoteBuildResponse = null;
 
 
 
@@ -55,10 +64,11 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         $this->initialiseCommands();
         $this->initialiseMiddleware();
         $this->initialiseRoutes($router);
+        $this->initialiseServiceContainer();
 
-        /** @var Request $request */
-        $request = request(); // request is obtained this way because older versions of Laravel don't inject it
-        $this->detectAdaptRequest($request);
+//        /** @var Request $request */
+//        $request = request(); // request is obtained this way because older versions of Laravel don't inject it
+//        $this->detectAdaptRequest($request);
     }
 
 
@@ -68,7 +78,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function initialiseConfig(): void
+    private function initialiseConfig(): void
     {
         $this->mergeConfigFrom($this->configPath, Settings::LARAVEL_CONFIG_NAME);
     }
@@ -78,7 +88,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function publishConfig(): void
+    private function publishConfig(): void
     {
         if (!$this->app->runningInConsole()) {
             return;
@@ -100,7 +110,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function initialiseCommands(): void
+    private function initialiseCommands(): void
     {
         if (!$this->app->runningInConsole()) {
             return;
@@ -119,7 +129,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function initialiseMiddleware(): void
+    private function initialiseMiddleware(): void
     {
         if ($this->app->runningInConsole()) {
             return;
@@ -131,6 +141,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         /** @var Kernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
         $httpKernel->prependMiddleware(RemoteShareMiddleware::class);
+        $httpKernel->prependMiddleware(ReplaceResponseWithRemoteBuildResponseMiddleware::class);
     }
 
 
@@ -141,7 +152,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * @param Router $router Laravel's router.
      * @return void
      */
-    protected function initialiseRoutes(Router $router): void
+    private function initialiseRoutes(Router $router): void
     {
         if ($this->app->runningInConsole()) {
             return;
@@ -164,6 +175,23 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
 
 
+    /**
+     * Register things in the service-container.
+     *
+     * @return void
+     */
+    private function initialiseServiceContainer(): void
+    {
+        // the response generated when remote-building
+        // stored in the service container, so it can be returned clean, without things like debugbar adding to it
+        LaravelSupport::registerScoped(
+            Settings::SERVICE_CONTAINER_REMOTE_BUILD_RESPONSE,
+            fn() => $this->remoteBuildResponse
+        );
+    }
+
+
+
 
 
     /**
@@ -181,11 +209,20 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             LaravelSupport::useTestingConfig();
             $log = $this->newLog();
 
-            return $this->executeBuilder($request, $log);
+            // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
+            // when using scenarios, this is the wrong database to use
+            // disconnect now to start a fresh
+            LaravelSupport::disconnectFromConnectedDatabases();
+
+            $this->remoteBuildResponse = $this->executeBuilder($request, $log);
 
         } catch (Throwable $e) {
-            return $this->handleException($e, $log);
+            $this->remoteBuildResponse = $this->handleException($e, $log);
         }
+
+        // this blank response will be swapped out with the $this->remoteBuildResponse in the
+        // ReplaceResponseWithRemoteBuildResponseMiddleware
+        return response('');
     }
 
     /**
@@ -276,23 +313,23 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
 
 
-    /**
-     * Detect if the request is from an external instance of Adapt.
-     *
-     * This is done here in the service-provider so the "testing" environment can be set sooner than when the
-     * middleware runs. (this is done because things like Telescope seem to force a connection to the .env database
-     * before the middleware runs).
-     *
-     * @param Request $request The request to inspect.
-     * @return void
-     * @throws AdaptRemoteShareException Thrown if the remote-share header/cookie is present but invalid.
-     */
-    private function detectAdaptRequest(Request $request): void
-    {
-        if (!LaravelSupport::buildRemoteShareDTOFromRequest($request)) {
-            return;
-        }
-
-        LaravelSupport::useTestingConfig();
-    }
+//    /**
+//     * Detect if the request is from an external instance of Adapt.
+//     *
+//     * This is done here in the service-provider so the "testing" environment can be set sooner than when the
+//     * middleware runs. (this is done because things like Telescope seem to force a connection to the .env database
+//     * before the middleware runs).
+//     *
+//     * @param Request $request The request to inspect.
+//     * @return void
+//     * @throws AdaptRemoteShareException Thrown if the remote-share header/cookie is present but invalid.
+//     */
+//    private function detectAdaptRequest(Request $request): void
+//    {
+//        if (!LaravelSupport::buildRemoteShareDTOFromRequest($request)) {
+//            return;
+//        }
+//
+//        LaravelSupport::useTestingConfig();
+//    }
 }

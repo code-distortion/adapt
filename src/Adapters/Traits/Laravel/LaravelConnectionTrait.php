@@ -2,6 +2,10 @@
 
 namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
+use CodeDistortion\Adapt\Support\PHPSupport;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Support\Facades\DB;
+
 /**
  * Database-adapter methods related to managing a Laravel database connection.
  */
@@ -31,17 +35,51 @@ trait LaravelConnectionTrait
         $this->configDTO->database($database);
 
         $connection = $this->configDTO->connection;
+        $changing = config("database.connections.$connection.database") != $database;
 
         if ($applyLogging) {
-
-            $message = config("database.connections.$connection.database") == $database
-                ? "Leaving the database for connection \"$connection\" unchanged as \"$database\""
-                : "Changed the database for connection \"$connection\" to \"$database\"";
-
+            $message = $changing
+                ? "Changed the database for connection \"$connection\" to \"$database\""
+                : "Leaving the database for connection \"$connection\" unchanged as \"$database\"";
             $this->di->log->vDebug($message);
         }
 
+        if (!$changing) {
+            return;
+        }
+
         config(["database.connections.$connection.database" => $database]);
+
+        $newConfig = config("database.connections.$connection");
+
+        try {
+            $connectionObj = DB::connection($connection);
+            $connectionObj->setDatabaseName($database);
+            $this->updateConnectionConfig($connectionObj, $newConfig);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // swallow this exception
+            // it's thrown when the database server can't be connected to. e.g. this can happen when using sqlite
+        }
+    }
+
+    /**
+     * Force the connection object to use the update-to-date config settings (especially the database name).
+     *
+     * @param ConnectionInterface                   $connectionObj The connection object to update.
+     * @param array<string, string|boolean|integer> $newConfig     The new config values to store.
+     * @return void
+     */
+    private function updateConnectionConfig(ConnectionInterface $connectionObj, array $newConfig): void
+    {
+        $oldConfig = $connectionObj->getConfig(null);
+        $updatedConfig = array_merge($oldConfig, $newConfig);
+
+        $unneededFields = array_diff(array_keys($newConfig), array_keys($oldConfig));
+        foreach ($unneededFields as $field) {
+            unset($updatedConfig[$field]);
+        }
+
+        PHPSupport::updatePrivateProperty($connectionObj, 'config', $updatedConfig);
     }
 
     /**
