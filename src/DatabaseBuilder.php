@@ -433,7 +433,7 @@ class DatabaseBuilder
                 $this->updateMetaTableLastUsed();
             } else {
                 $this->buildDBFresh();
-                $this->createReuseMetaDataTable();
+//                $this->createReuseMetaDataTable();
             }
 
             return $canReuse;
@@ -597,7 +597,6 @@ class DatabaseBuilder
     {
         $exists = $this->di->db->currentDatabaseExists();
         $this->dbAdapter()->build->resetDB($exists);
-//        $this->createReuseMetaDataTable();
 
         $this->resolvedSettingsDTO // for phpstan
             ? $this->resolvedSettingsDTO->databaseExistedBefore($exists)
@@ -619,6 +618,7 @@ class DatabaseBuilder
                 $this->seed($seedersLeftToRun);
                 $this->takeSnapshotAfterSeeders();
             }
+            $this->updateMetaTableLastUsed();
             $this->setUpVerification();
             $this->setUpJournaling();
         } else {
@@ -636,6 +636,8 @@ class DatabaseBuilder
         // the db may have been reset above in buildDBFresh(),
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
+
+        $this->createReuseMetaDataTable();
 
         $this->importInitialImports();
         $this->migrate();
