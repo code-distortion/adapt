@@ -20,8 +20,8 @@ class RemoteShareDTO
      */
     public int $dtoVersion;
 
-    /** @var string|null The location of the temporary config file. */
-    public ?string $tempConfigPath;
+    /** @var string|null The location of the sharable config file. */
+    public ?string $sharableConfigPath;
 
     /** @var array<string, string> The connections and the names of their prepared databases. */
     public array $connectionDBs;
@@ -51,14 +51,14 @@ class RemoteShareDTO
     }
 
     /**
-     * Set the temp-config-path, the location of the temporary config file.
+     * Set the sharable-config-path, the location of the sharable config file.
      *
-     * @param string|null $tempConfigPath The path to the temporary config file.
+     * @param string|null $sharableConfigPath The path to the sharable config file.
      * @return static
      */
-    public function tempConfigFile(?string $tempConfigPath): self
+    public function sharableConfigFile(?string $sharableConfigPath): self
     {
-        $this->tempConfigPath = $tempConfigPath;
+        $this->sharableConfigPath = $sharableConfigPath;
         return $this;
     }
 

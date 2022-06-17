@@ -9,11 +9,9 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
-use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
@@ -76,8 +74,8 @@ trait DatabaseBuilderTestTrait
      */
     private function newLog(): LogInterface
     {
-        return LaravelSupport::newLaravelLogger(stdOut: false, laravel: false, verbosity: 0);
-//        return LaravelSupport::newLaravelLogger(stdOut: true, laravel: false, verbosity: 2);
+        return LaravelSupport::newLaravelLogger(false, false, 0);
+//        return LaravelSupport::newLaravelLogger(true, false, 2);
     }
 
     /**
@@ -204,7 +202,7 @@ trait DatabaseBuilderTestTrait
         $this->createGitIgnoreFile($destDir . '/.gitignore');
         $this->loadConfigs($destDir . '/config');
 
-        StorageDir::ensureStorageDirExists($this->wsAdaptStorageDir, new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirsExist($this->wsAdaptStorageDir, new Filesystem(), $this->newLog());
     }
 
     /**

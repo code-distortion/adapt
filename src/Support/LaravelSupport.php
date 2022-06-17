@@ -98,6 +98,19 @@ class LaravelSupport
     }
 
     /**
+     * Get the storage directory.
+     *
+     * @return string
+     */
+    public static function storageDir(): string
+    {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
+    }
+
+    /**
      * Get a value from Laravel's config, and make sure it's a string.
      *
      * @param string $key     The config key to get.

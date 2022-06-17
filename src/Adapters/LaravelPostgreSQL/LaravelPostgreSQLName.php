@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Adapters\LaravelPostgreSQL;
 use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to naming Laravel/PostgreSQL database things.
@@ -47,7 +48,7 @@ class LaravelPostgreSQLName implements NameInterface
         $prefix = $this->configDTO->snapshotPrefix;
         $filename = $prefix . $this->configDTO->origDatabase . '.' . $snapshotFilenameChecksumPart . '.pgsql';
         $filename = str_replace('_', '-', $filename);
-        return $this->configDTO->storageDir . '/' . $filename;
+        return Settings::snapshotDir($this->configDTO->storageDir, $filename);
     }
 
     /**

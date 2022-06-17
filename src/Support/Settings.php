@@ -135,4 +135,68 @@ class Settings
     ): void {
         Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
     }
+
+
+
+
+
+    /**
+     * Resolve the base storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function baseStorageDir(string $baseDir, ?string $filename = null): string
+    {
+        return self::buildDir($baseDir, $filename);
+    }
+
+    /**
+     * Resolve the database storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function databaseDir(string $baseDir, ?string $filename = null): string
+    {
+        return self::buildDir("$baseDir/databases", $filename);
+    }
+
+    /**
+     * Resolve the snapshot storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function snapshotDir(string $baseDir, ?string $filename = null): string
+    {
+        return self::buildDir("$baseDir/snapshots", $filename);
+    }
+
+    /**
+     * Resolve the share-config storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function shareConfigDir(string $baseDir, ?string $filename = null): string
+    {
+        return self::buildDir("$baseDir/share-configs", $filename);
+    }
+
+    /**
+     * Append a filename to a directory.
+     *
+     * @param string      $dir      The directory to use.
+     * @param string|null $filename The filename to add (optional).
+     * @return string
+     */
+    private static function buildDir(string $dir, ?string $filename = null): string
+    {
+        return mb_strlen($filename) ? "$dir/$filename" : "$dir";
+    }
 }

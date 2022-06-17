@@ -54,12 +54,12 @@ interface BootTestInterface
 //    public function setDI(DIContainer $di): self;
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self;
+    public function ensureStorageDirsExist(): self;
 
 
 

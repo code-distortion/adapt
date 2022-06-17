@@ -6,7 +6,6 @@ use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Exceptions;
@@ -291,7 +290,7 @@ class PreBootTestLaravel
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
             ->initCallback($this->buildInitCallback)
-            ->ensureStorageDirExists();
+            ->ensureStorageDirsExist();
     }
 
 

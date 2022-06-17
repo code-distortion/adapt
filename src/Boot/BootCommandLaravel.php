@@ -5,12 +5,10 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
@@ -28,15 +26,15 @@ class BootCommandLaravel extends BootCommandAbstract
 
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self
+    public function ensureStorageDirsExist(): self
     {
-        StorageDir::ensureStorageDirExists(
-            $this->storageDir(),
+        StorageDir::ensureStorageDirsExist(
+            LaravelSupport::storageDir(),
             new Filesystem(),
             LaravelSupport::newLaravelLogger()
         );
@@ -57,7 +55,6 @@ class BootCommandLaravel extends BootCommandAbstract
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
-        StorageDir::ensureStorageDirExists($configDTO->storageDir, $di->filesystem, $di->log);
 
         return new DatabaseBuilder(
             'laravel',
@@ -109,7 +106,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->databaseModifier('')
-            ->storageDir($this->storageDir())
+            ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
@@ -159,19 +156,6 @@ class BootCommandLaravel extends BootCommandAbstract
             ->staleGraceSeconds(
                 config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS),
             );
-    }
-
-    /**
-     * Get the storage directory.
-     *
-     * @return string
-     */
-    private function storageDir(): string
-    {
-        $c = Settings::LARAVEL_CONFIG_NAME;
-        $return = config("$c.storage_dir");
-        $return = is_string($return) ? $return : '';
-        return rtrim($return, '\\/');
     }
 
     /**

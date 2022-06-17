@@ -10,27 +10,27 @@ use Throwable;
 class AdaptBrowserTestException extends AdaptException
 {
     /**
-     * Thrown when a temporary config file could not be written to.
+     * Thrown when a sharable config file could not be written to.
      *
-     * @param string $path The path to the temporary config file.
+     * @param string $path The path to the sharable config file.
      * @return self
      */
-    public static function tempConfigFileNotSaved(string $path): self
+    public static function sharableConfigFileNotSaved(string $path): self
     {
-        return new self("The temporary config file \"$path\" could not be created");
+        return new self("The sharable config file \"$path\" could not be created");
     }
 
     /**
-     * Thrown when a temporary config file could not be read from.
+     * Thrown when a sharable config file could not be read from.
      *
-     * @param string         $path              The path to the temporary config file.
+     * @param string         $path              The path to the sharable config file.
      * @param Throwable|null $previousException The original exception.
      * @return self
      */
-    public static function tempConfigFileNotLoaded(string $path, ?Throwable $previousException = null): self
+    public static function sharableConfigFileNotLoaded(string $path, ?Throwable $previousException = null): self
     {
         return $previousException
-            ? new self("The temporary config file \"$path\" could not be loaded", 0, $previousException)
-            : new self("The temporary config file \"$path\" could not be loaded");
+            ? new self("The sharable config file \"$path\" could not be loaded", 0, $previousException)
+            : new self("The sharable config file \"$path\" could not be loaded");
     }
 }

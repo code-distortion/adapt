@@ -27,14 +27,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
 
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self
+    public function ensureStorageDirsExist(): self
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
+        StorageDir::ensureStorageDirsExist(LaravelSupport::storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -104,7 +104,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfigDTO->databaseModifier)
-            ->storageDir($this->storageDir())
+            ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
@@ -151,18 +151,5 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->staleGraceSeconds(
                 config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS),
             );
-    }
-
-    /**
-     * Get the storage directory.
-     *
-     * @return string
-     */
-    private function storageDir(): string
-    {
-        $c = Settings::LARAVEL_CONFIG_NAME;
-        $return = config("$c.storage_dir");
-        $return = is_string($return) ? $return : '';
-        return rtrim($return, '\\/');
     }
 }

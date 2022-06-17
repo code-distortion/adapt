@@ -2,8 +2,6 @@
 
 namespace CodeDistortion\Adapt\Exceptions;
 
-use CodeDistortion\Adapt\Support\StringSupport;
-use League\CommonMark\Node\StringContainerHelper;
 use Throwable;
 
 /**

@@ -21,12 +21,12 @@ interface BootRemoteBuildInterface
     public function log(LogInterface $log): self;
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists(): self;
+    public function ensureStorageDirsExist(): self;
 
     /**
      * Create a new DatabaseBuilder object and set its initial values.

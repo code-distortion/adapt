@@ -1066,7 +1066,7 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         try {
-            $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
+            $filePaths = $this->di->filesystem->filesInDir(Settings::snapshotDir($this->configDTO->storageDir));
             $this->di->log->vvDebug("Retrieved snapshot list", $logTimer);
         } catch (Throwable $e) {
             $this->di->log->vvWarning("Could not retrieve snapshot list", $logTimer);
@@ -1080,11 +1080,11 @@ class DatabaseBuilder
         foreach ($filePaths as $path) {
 
             // ignore other files
-            $temp = (array) preg_split('/[\\\\\/]+/', $path);
-            $filename = array_pop($temp);
-            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
-                continue;
-            }
+//            $temp = (array) preg_split('/[\\\\\/]+/', $path);
+//            $filename = array_pop($temp);
+//            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
+//                continue;
+//            }
 
             $attemptedCount++;
 

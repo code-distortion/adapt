@@ -4,10 +4,8 @@ namespace CodeDistortion\Adapt;
 
 use CodeDistortion\Adapt\Boot\BootRemoteBuildLaravel;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
-use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptListCachesCommand;
 use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
@@ -209,7 +207,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             LaravelSupport::useTestingConfig();
 
             // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
-            $log = LaravelSupport::newLaravelLogger(stdOut: false);
+            $log = LaravelSupport::newLaravelLogger(false);
 
             // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
             // when using scenarios, this is the wrong database to use
@@ -276,7 +274,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
     {
         return (new BootRemoteBuildLaravel())
             ->log($log)
-            ->ensureStorageDirExists()
+            ->ensureStorageDirsExist()
             ->makeNewBuilder($configDTO);
     }
 

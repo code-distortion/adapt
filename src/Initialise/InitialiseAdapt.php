@@ -275,7 +275,7 @@ trait InitialiseAdapt
         }
 
         $remoteShareDTO = (new RemoteShareDTO())
-            ->tempConfigFile(null)
+            ->sharableConfigFile(null)
             ->connectionDBs($connectionDBs);
 
         $value = $includeKey

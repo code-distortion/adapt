@@ -137,7 +137,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
             }
 
         } catch (AdaptJournalException $e) {
-            throw $e; // simply re-throw it
+            throw $e; // just rethrow as is
         } catch (Throwable $e) {
             throw AdaptJournalException::cannotCreateJournalTable($srcTable, $e);
         }
