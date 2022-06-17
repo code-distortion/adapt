@@ -97,12 +97,12 @@ class RemoteShareMiddleware
             throw AdaptBrowserTestException::tempConfigFileNotLoaded($remoteShareDTO->tempConfigPath);
         }
 
+        $this->replaceWholeConfig($configData);
+
         // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
         // when using scenarios, this is the wrong database to use
         // disconnect now to start a fresh
-        LaravelSupport::disconnectFromConnectedDatabases();
-
-        $this->replaceWholeConfig($configData);
+        LaravelSupport::disconnectFromConnectedDatabases(LaravelSupport::newLaravelLogger());
 
         return true;
     }
@@ -140,12 +140,13 @@ class RemoteShareMiddleware
             return false;
         }
 
+        LaravelSupport::useTestingConfig();
+
         // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
         // when using scenarios, this is the wrong database to use
         // disconnect now to start a fresh
-        LaravelSupport::disconnectFromConnectedDatabases();
+        LaravelSupport::disconnectFromConnectedDatabases(LaravelSupport::newLaravelLogger());
 
-        LaravelSupport::useTestingConfig(); // already called in the AdaptLaravelServiceProvider
         LaravelSupport::useConnectionDatabases($remoteShareDTO->connectionDBs);
 
         return true;

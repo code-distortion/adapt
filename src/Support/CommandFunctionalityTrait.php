@@ -66,18 +66,4 @@ trait CommandFunctionalityTrait
         $builder = $bootCommandLaravel->makeNewBuilder($connection);
         $cacheListDTO->snapshots($builder->buildSnapshotMetaInfos());
     }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog(
-            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'),
-            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
-            (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'),
-        );
-    }
 }

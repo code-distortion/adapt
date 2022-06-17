@@ -35,7 +35,11 @@ class BootCommandLaravel extends BootCommandAbstract
      */
     public function ensureStorageDirExists(): self
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirExists(
+            $this->storageDir(),
+            new Filesystem(),
+            LaravelSupport::newLaravelLogger()
+        );
         return $this;
     }
 
@@ -75,23 +79,9 @@ class BootCommandLaravel extends BootCommandAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->log($this->newLog())
+            ->log(LaravelSupport::newLaravelLogger())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog(
-            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'),
-            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
-            (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'),
-        );
     }
 
     /**

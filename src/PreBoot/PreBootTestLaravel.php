@@ -90,7 +90,7 @@ class PreBootTestLaravel
         // the logger needs Laravel's config settings to be built,
         // so it needs to be built here instead of earlier in the constructor
         // (as Laravel hadn't booted by that point)
-        $this->log = $this->newLog();
+        $this->log = LaravelSupport::newLaravelLogger();
 
         try {
 
@@ -101,7 +101,7 @@ class PreBootTestLaravel
             // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
             // when using scenarios, this is the wrong database to use
             // disconnect now to start a fresh
-            LaravelSupport::disconnectFromConnectedDatabases();
+            LaravelSupport::disconnectFromConnectedDatabases($this->log);
 
             $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
             $this->adaptBootTestLaravel->runBuildSteps();
@@ -132,22 +132,6 @@ class PreBootTestLaravel
         } finally {
             $this->adaptBootTestLaravel->runPostTestCleanUp();
         }
-    }
-
-
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog(
-            (bool) $this->propBag->adaptConfig('log.stdout'),
-            (bool) $this->propBag->adaptConfig('log.laravel'),
-            (int) $this->propBag->adaptConfig('log.verbosity'),
-        );
     }
 
 

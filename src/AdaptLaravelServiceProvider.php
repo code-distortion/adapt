@@ -207,12 +207,14 @@ class AdaptLaravelServiceProvider extends ServiceProvider
 
             LaravelSupport::runFromBasePathDir();
             LaravelSupport::useTestingConfig();
-            $log = $this->newLog();
+
+            // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
+            $log = LaravelSupport::newLaravelLogger(stdOut: false);
 
             // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
             // when using scenarios, this is the wrong database to use
             // disconnect now to start a fresh
-            LaravelSupport::disconnectFromConnectedDatabases();
+            LaravelSupport::disconnectFromConnectedDatabases($log);
 
             $this->remoteBuildResponse = $this->executeBuilder($request, $log);
 
@@ -223,21 +225,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         // this blank response will be swapped out with the $this->remoteBuildResponse in the
         // ReplaceResponseWithRemoteBuildResponseMiddleware
         return response('');
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
-        return new LaravelLog(
-            false,
-            (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'),
-            (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'),
-        );
     }
 
     /**

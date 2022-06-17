@@ -2,6 +2,8 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -71,10 +73,11 @@ class LaravelSupport
      *
      * @return void
      */
-    public static function disconnectFromConnectedDatabases(): void
+    public static function disconnectFromConnectedDatabases(LogInterface $log): void
     {
         $alreadyConnected = array_keys(DB::getConnections());
         foreach ($alreadyConnected as $connection) {
+            $log->vDebug("Disconnecting established database connection \"$connection\"");
             DB::disconnect($connection);
         }
     }
@@ -130,6 +133,29 @@ class LaravelSupport
             return $value;
         }
         return [];
+    }
+
+    /**
+     * Build a new LaravelLog object, uses the config settings as default values.
+     *
+     * @param boolean|null $stdout    Display messages to stdout?.
+     * @param boolean|null $laravel   Add messages to Laravel's standard log.
+     * @param integer|null $verbosity The current verbosity level - output at this level or lower will be displayed.
+     * @return LaravelLog
+     */
+    public static function newLaravelLogger(
+        ?bool $stdout = null,
+        ?bool $laravel = null,
+        ?int $verbosity = null,
+    ): LaravelLog {
+
+        $config = config(Settings::LARAVEL_CONFIG_NAME);
+
+        return new LaravelLog(
+            (bool) ($stdout ?? $config['log']['stdout'] ?? false),
+            (bool) ($laravel ?? $config['log']['laravel'] ?? false),
+            (int) ($verbosity ?? $config['log']['verbosity'] ?? 0),
+        );
     }
 
     /**

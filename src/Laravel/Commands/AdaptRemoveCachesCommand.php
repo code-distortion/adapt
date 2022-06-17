@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Throwable;
 
 /**
@@ -31,7 +32,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
     {
         $cacheListDTO = $this->getCacheList();
 
-        $log = $this->newLog();
+        $log = LaravelSupport::newLaravelLogger();
         $log->vDebug("\n");
 
         if (!$cacheListDTO->containsAnyCache()) {
@@ -135,7 +136,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
             }
         }
 
-        $log = $this->newLog();
+        $log = LaravelSupport::newLaravelLogger();
 
         $this->info(PHP_EOL . 'Test-databases:' . PHP_EOL);
         foreach ($cacheListDTO->databases as $connection => $databaseMetaDTOs) {
@@ -179,7 +180,7 @@ class AdaptRemoveCachesCommand extends AbstractAdaptCommand
             return;
         }
 
-        $log = $this->newLog();
+        $log = LaravelSupport::newLaravelLogger();
 
         $this->info(PHP_EOL . 'Snapshots:' . PHP_EOL);
         foreach ($cacheListDTO->snapshots as $snapshotMetaInfo) {
