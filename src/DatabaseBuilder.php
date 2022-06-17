@@ -330,12 +330,11 @@ class DatabaseBuilder
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
-            // it was re-used this time
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->databaseWasReused(true) : null;
+            $this->resolvedSettingsDTO?->databaseWasReused(true); // it was re-used this time
 
             $connection = $this->configDTO->connection;
-            $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
-            $buildChecksum = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildChecksum : null;
+            $database = (string) $this->resolvedSettingsDTO?->database;
+            $buildChecksum = $this->resolvedSettingsDTO?->buildChecksum;
             $this->configDTO->remoteBuildUrl = null; // stop debug output from showing that it's being built remotely
             $this->hasher->buildChecksumWasPreCalculated($buildChecksum);
 
@@ -350,7 +349,7 @@ class DatabaseBuilder
             $this->logTheUsedSettings();
             $this->useDatabase($database);
             $this->di->log->vDebug("The existing database \"$database\" can be reused");
-            $this->updateMetaTableLastUsed();
+            $this->updateMetaTable();
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -430,7 +429,7 @@ class DatabaseBuilder
             );
 
             if ($canReuse) {
-                $this->updateMetaTableLastUsed();
+                $this->updateMetaTable();
             } else {
                 $this->buildDBFresh();
 //                $this->createReuseMetaDataTable();
@@ -505,7 +504,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function createReuseMetaDataTableIfSnapshotFilesAreSimplyCopied(): void
+    private function createReuseMetaDataTableIfImportFilesAreSimplyCopied(): void
     {
         if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             return;
@@ -519,7 +518,7 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function createReuseMetaDataTableIfSnapshotsFilesAreNotSimplyCopied(): void
+    private function createReuseMetaDataTableIfImportFilesAreNotSimplyCopied(): void
     {
         if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
             return;
@@ -559,11 +558,11 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function updateMetaTableLastUsed(): void
+    private function updateMetaTable(): void
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
+        $this->dbAdapter()->reuseMetaData->updateMetaTable($this->hasher->currentScenarioChecksum());
 
         $this->di->log->vDebug("Refreshed the re-use meta-data", $logTimer);
     }
@@ -630,9 +629,7 @@ class DatabaseBuilder
         $exists = $this->di->db->currentDatabaseExists();
         $this->dbAdapter()->build->resetDB($exists);
 
-        $this->resolvedSettingsDTO // for phpstan
-            ? $this->resolvedSettingsDTO->databaseExistedBefore($exists)
-            : null;
+        $this->resolvedSettingsDTO?->databaseExistedBefore($exists);
     }
 
     /**
@@ -646,12 +643,12 @@ class DatabaseBuilder
         $seedersLeftToRun = [];
 
         if ($this->trySnapshots($seeders, $seedersLeftToRun)) {
-            $this->createReuseMetaDataTable();
+//            $this->createReuseMetaDataTable();
+            $this->updateMetaTable();
             if (count($seedersLeftToRun)) {
                 $this->seed($seedersLeftToRun);
                 $this->takeSnapshotAfterSeeders();
             }
-//            $this->updateMetaTableLastUsed();
             $this->setUpVerification();
             $this->setUpJournaling();
         } else {
@@ -670,9 +667,9 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
-        $this->createReuseMetaDataTableIfSnapshotsFilesAreNotSimplyCopied();
+        $this->createReuseMetaDataTableIfImportFilesAreNotSimplyCopied();
         $this->importInitialImports();
-        $this->createReuseMetaDataTableIfSnapshotFilesAreSimplyCopied();
+        $this->createReuseMetaDataTableIfImportFilesAreSimplyCopied();
         $this->migrate();
         $this->takeSnapshotAfterMigrations();
         $this->seed();
@@ -813,12 +810,12 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
+//        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
 
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
-        $this->createReuseMetaDataTable(); // put the meta-table back
+//        $this->createReuseMetaDataTable(); // put the meta-table back
 
         $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }

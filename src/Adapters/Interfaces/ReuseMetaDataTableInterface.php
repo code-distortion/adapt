@@ -38,11 +38,12 @@ interface ReuseMetaDataTableInterface
     ): void;
 
     /**
-     * Update the last-used field in the meta-table.
+     * Update the scenario-checksum and last-used fields in the meta-table.
      *
+     * @param string|null $scenarioChecksum The current scenario-checksum.
      * @return void
      */
-    public function updateMetaTableLastUsed(): void;
+    public function updateMetaTable(?string $scenarioChecksum): void;
 
     /**
      * Remove the re-use meta-data table.
