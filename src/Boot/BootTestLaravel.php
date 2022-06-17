@@ -236,6 +236,7 @@ class BootTestLaravel extends BootTestAbstract
                 $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'),
                 $pb->prop('isBrowserTest', $this->browserTestDetected),
                 $isParallelTest,
+                $this->usingPest,
                 false,
                 $pb->config('session.driver'),
                 null,

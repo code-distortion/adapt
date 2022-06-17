@@ -117,6 +117,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 null, // don't forward again
                 $remoteConfigDTO->isBrowserTest,
                 $remoteConfigDTO->isParallelTest,
+                $remoteConfigDTO->usingPest,
                 true, // yes, a remote database is being built here now, locally
                 config("session.driver"),
                 $remoteConfigDTO->sessionDriver,

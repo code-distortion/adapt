@@ -26,6 +26,9 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var boolean Whether a browser test is being run. */
     protected bool $browserTestDetected = false;
 
+    /** @var boolean Whether Pest is being used for this test or not. */
+    protected bool $usingPest = false;
+
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback;
 
@@ -82,6 +85,18 @@ abstract class BootTestAbstract implements BootTestInterface
     public function browserTestDetected(bool $browserTestDetected): self
     {
         $this->browserTestDetected = $browserTestDetected;
+        return $this;
+    }
+
+    /**
+     * Specify whether Pest is being used or not.
+     *
+     * @param boolean $usingPest Whether Pest is being used for this test or not.
+     * @return static
+     */
+    public function usingPest(bool $usingPest): self
+    {
+        $this->usingPest = $usingPest;
         return $this;
     }
 

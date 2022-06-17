@@ -1234,6 +1234,7 @@ class DatabaseBuilder
             )
             ->isBrowserTest($configDTO->isBrowserTest)
             ->isParallelTest($configDTO->isParallelTest)
+            ->usingPest($configDTO->usingPest)
             ->sessionDriver($configDTO->sessionDriver)
             ->transactionReusable($configDTO->shouldUseTransaction())
             ->journalReusable($configDTO->shouldUseJournal())

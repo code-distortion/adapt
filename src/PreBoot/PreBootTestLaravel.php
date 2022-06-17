@@ -44,6 +44,9 @@ class PreBootTestLaravel
     /** @var boolean Whether the current test is a browser test or not. */
     private bool $isBrowserTest;
 
+    /** @var boolean Whether Pest is being used for this test or not. */
+    private bool $usingPest;
+
 
 
     /**
@@ -54,19 +57,22 @@ class PreBootTestLaravel
      * @param PropBagDTO    $propBag           The properties specified in the test-class.
      * @param callable|null $buildInitCallback The callback that calls the custom databaseInit() build process.
      * @param boolean       $isBrowserTest     Whether the current test is a browser test or not.
+     * @param boolean       $usingPest         Whether Pest is being used for this test or not.
      */
     public function __construct(
         string $testClass,
         string $testName,
         PropBagDTO $propBag,
         ?callable $buildInitCallback,
-        bool $isBrowserTest
+        bool $isBrowserTest,
+        bool $usingPest
     ) {
         $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
         $this->buildInitCallback = $buildInitCallback;
         $this->isBrowserTest = $isBrowserTest;
+        $this->usingPest = $usingPest;
     }
 
 
@@ -289,6 +295,7 @@ class PreBootTestLaravel
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
+            ->usingPest($this->usingPest)
             ->initCallback($this->buildInitCallback)
             ->ensureStorageDirsExist();
     }

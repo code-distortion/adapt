@@ -121,6 +121,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 false,
                 false,
                 false,
+                false,
                 config("session.driver"),
                 null,
             )

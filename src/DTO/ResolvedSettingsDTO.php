@@ -84,6 +84,9 @@ class ResolvedSettingsDTO
     /** @var boolean Is parallel testing being run? Is just for informational purposes. */
     public bool $isParallelTest;
 
+    /** @var boolean Whether Pest is being used for this test or not. */
+    public bool $usingPest;
+
     /** @var string|null The session-driver being used. */
     public ?string $sessionDriver;
 
@@ -311,6 +314,18 @@ class ResolvedSettingsDTO
     }
 
     /**
+     * Turn the using-pest setting on or off (is just for informational purposes).
+     *
+     * @param boolean $usingPest Whether Pest is being used for this test or not.
+     * @return static
+     */
+    public function usingPest(bool $usingPest): self
+    {
+        $this->usingPest = $usingPest;
+        return $this;
+    }
+
+    /**
      * Set the session-driver that's being used.
      *
      * @param string|null $sessionDriver The session-driver being used.
@@ -510,6 +525,7 @@ class ResolvedSettingsDTO
             'Verify db after?' => $this->renderBoolean($this->verifyDatabase),
             'For a browser test?' => $isBrowserTest,
             'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
+            'Is a Pest test?' => $this->renderBoolean($this->usingPest, 'Yes', ''),
             'Build-checksum:' => $this->escapeString($this->buildChecksum, 'n/a'),
             'Snapshot-checksum:' => $this->escapeString($this->snapshotChecksum, 'n/a'),
             'Scenario-checksum:' => $this->escapeString($this->scenarioChecksum, 'n/a'),
