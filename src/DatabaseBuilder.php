@@ -501,6 +501,34 @@ class DatabaseBuilder
     }
 
     /**
+     * Create the re-use meta-data table - only when snapshot files are simply copied.
+     *
+     * @return void
+     */
+    private function createReuseMetaDataTableIfSnapshotFilesAreSimplyCopied(): void
+    {
+        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
+        }
+
+        $this->createReuseMetaDataTable();
+    }
+
+    /**
+     * Create the re-use meta-data table - only when snapshot files are NOT simply copied.
+     *
+     * @return void
+     */
+    private function createReuseMetaDataTableIfSnapshotsFilesAreNotSimplyCopied(): void
+    {
+        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
+        }
+
+        $this->createReuseMetaDataTable();
+    }
+
+    /**
      * Create the re-use meta-data table.
      *
      * @return void
@@ -571,9 +599,11 @@ class DatabaseBuilder
      */
     private function resetDBIfSnapshotFilesAreSimplyCopied(): void
     {
-        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->resetDB();
+        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
         }
+
+        $this->resetDB();
     }
 
     /**
@@ -583,9 +613,11 @@ class DatabaseBuilder
      */
     private function resetDBIfSnapshotsFilesAreNotSimplyCopied(): void
     {
-        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->resetDB();
+        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
         }
+
+        $this->resetDB();
     }
 
     /**
@@ -614,11 +646,12 @@ class DatabaseBuilder
         $seedersLeftToRun = [];
 
         if ($this->trySnapshots($seeders, $seedersLeftToRun)) {
+            $this->createReuseMetaDataTable();
             if (count($seedersLeftToRun)) {
                 $this->seed($seedersLeftToRun);
                 $this->takeSnapshotAfterSeeders();
             }
-            $this->updateMetaTableLastUsed();
+//            $this->updateMetaTableLastUsed();
             $this->setUpVerification();
             $this->setUpJournaling();
         } else {
@@ -637,9 +670,9 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
-        $this->createReuseMetaDataTable();
-
+        $this->createReuseMetaDataTableIfSnapshotsFilesAreNotSimplyCopied();
         $this->importInitialImports();
+        $this->createReuseMetaDataTableIfSnapshotFilesAreSimplyCopied();
         $this->migrate();
         $this->takeSnapshotAfterMigrations();
         $this->seed();
@@ -780,12 +813,12 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-//        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
+        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
 
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
 
-//        $this->createReuseMetaDataTable(); // put the meta-table back
+        $this->createReuseMetaDataTable(); // put the meta-table back
 
         $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
