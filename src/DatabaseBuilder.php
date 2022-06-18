@@ -10,6 +10,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
+use CodeDistortion\Adapt\DTO\VersionsDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteBuildException;
@@ -19,12 +20,13 @@ use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ConfigAdapterAndDriverTra
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\DatabaseTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\LogTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\OnlyExecuteOnceTrait;
-use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ReuseTransactionTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ReuseJournalTrait;
+use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\ReuseTransactionTrait;
 use CodeDistortion\Adapt\Support\DatabaseBuilderTraits\VerificationTrait;
 use CodeDistortion\Adapt\Support\HasConfigDTOTrait;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\Settings;
+use CodeDistortion\Adapt\Support\VersionSupport;
 use DateTime;
 use DateTimeZone;
 use GuzzleHttp\Client as HttpClient;
@@ -904,6 +906,9 @@ class DatabaseBuilder
             : "Database \"$database\" was built. Remote preparation time";
         $this->di->log->vDebug($message, $logTimer);
 
+        $this->resolvedSettingsDTO->remoteVersionsDTO = $this->resolvedSettingsDTO->versionsDTO;
+        $this->resolvedSettingsDTO->versionsDTO = $this->buildVersionsDTO();
+
         if (!$this->configDTO->shouldInitialise()) {
             $this->di->log->vDebug("Not using connection \"$connection\" locally");
             return;
@@ -1232,7 +1237,28 @@ class DatabaseBuilder
                 $buildingLocally ? $this->hasher->currentSnapshotChecksum() : null,
                 $buildingLocally ? $this->hasher->currentScenarioChecksum() : null
             )
-            ->databaseWasReused(true);
+            ->databaseWasReused(true)
+            ->versionsDTO($this->buildVersionsDTO())
+            ->remoteVersionsDTO(null);
+    }
+
+    /**
+     * Build a VersionsDTO based on the current software.
+     *
+     * @return VersionsDTO|null
+     */
+    private function buildVersionsDTO(): ?VersionsDTO
+    {
+        $connection = $this->configDTO->connection;
+        $driver = $this->configDTO->driver;
+
+        $versionsDTO =
+            Settings::getResolvedVersionsDTO($connection, $driver)
+            ?? VersionSupport::buildVersionDTO($this->dbAdapter(), $this->di->log);
+
+        Settings::storeResolvedVersionsDTO($connection, $driver, $versionsDTO);
+
+        return $versionsDTO;
     }
 
     /**

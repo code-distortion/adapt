@@ -42,11 +42,22 @@ trait LogTrait
             return;
         }
 
+        if ($this->resolvedSettingsDTO->versionsDTO) {
+            $heading = $this->resolvedSettingsDTO->remoteVersionsDTO ? 'Local Software' : 'Software';
+            $lines = $this->di->log->padList($this->resolvedSettingsDTO->versionsDTO->renderVersions());
+            $this->di->log->logBox($lines, $heading, 'vDebug');
+        }
+
+        if ($this->resolvedSettingsDTO->remoteVersionsDTO) {
+            $lines = $this->di->log->padList($this->resolvedSettingsDTO->remoteVersionsDTO->renderVersions());
+            $this->di->log->logBox($lines, 'Remote Software', 'vDebug');
+        }
+
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSources());
         $this->di->log->logBox($lines, 'Build Sources', 'vDebug');
 
-        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildEnvironmentSettings());
-        $this->di->log->logBox($lines, 'Build Environment', 'vDebug');
+        $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderBuildSettings());
+        $this->di->log->logBox($lines, 'Build Settings', 'vDebug');
 
         $lines = $this->di->log->padList($this->resolvedSettingsDTO->renderResolvedDatabaseSettings());
         $this->di->log->logBox($lines, 'Resolved Database', 'vDebug');

@@ -2,17 +2,14 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
-use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Resolves default setting values when needed.
  */
-class ConfigDTO
+class ConfigDTO extends AbstractDTO
 {
-    use DTOBuildTrait;
-
     /**
      * The ConfigDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *
@@ -69,7 +66,7 @@ class ConfigDTO
     public array $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
-    public $migrations;
+    public bool|string $migrations;
 
     /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
     public array $seeders;
@@ -134,10 +131,10 @@ class ConfigDTO
     public bool $scenarios;
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
-    public $useSnapshotsWhenReusingDB;
+    public string|bool $useSnapshotsWhenReusingDB;
 
     /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
-    public $useSnapshotsWhenNotReusingDB;
+    public string|bool $useSnapshotsWhenNotReusingDB;
 
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public bool $forceRebuild;
@@ -382,7 +379,7 @@ class ConfigDTO
      */
     public function buildSettings(
         array $initialImports,
-        $migrations,
+        bool|string $migrations,
         array $seeders,
         ?string $remoteBuildUrl,
         bool $isBrowserTest,
@@ -714,8 +711,8 @@ class ConfigDTO
      * @return static
      */
     public function snapshots(
-        $useSnapshotsWhenReusingDB,
-        $useSnapshotsWhenNotReusingDB
+        string|bool $useSnapshotsWhenReusingDB,
+        string|bool $useSnapshotsWhenNotReusingDB
     ): self {
         $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
         $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;

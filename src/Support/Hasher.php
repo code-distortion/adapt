@@ -141,8 +141,8 @@ class Hasher
         ]));
 
         $message = $this->configDTO->cacheInvalidationMethod == 'content'
-            ? "Generated a content-based build-checksum"
-            : "Generated a modified-time based build-checksum";
+            ? "Generated a content-based build-source checksum"
+            : "Generated a modified-time based build-source checksum";
 
         $this->di->log->vDebug($message, $logTimer);
 

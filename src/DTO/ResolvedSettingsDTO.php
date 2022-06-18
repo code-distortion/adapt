@@ -2,18 +2,13 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
-use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 
 /**
  * A DTO to record the various inputs and settings used by Adapt when building a database.
  */
-class ResolvedSettingsDTO
+class ResolvedSettingsDTO extends AbstractDTO
 {
-    use DTOBuildTrait;
-
-
-
     /** @var string|null The name of the current project. */
     public ?string $projectName;
 
@@ -58,7 +53,7 @@ class ResolvedSettingsDTO
     public array $initialImports;
 
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
-    public $migrations;
+    public bool|string $migrations;
 
     /** @var boolean Whether seeding is allowed or not. */
     public bool $isSeedingAllowed;
@@ -107,6 +102,14 @@ class ResolvedSettingsDTO
 
     /** @var boolean Whether the database was reused or not (for logging). */
     public bool $databaseWasReused;
+
+
+
+    /** @var VersionsDTO|null The versions of things being used. */
+    public ?VersionsDTO $versionsDTO;
+
+    /** @var VersionsDTO|null The versions of things being used remotely. */
+    public ?VersionsDTO $remoteVersionsDTO;
 
 
 
@@ -415,6 +418,30 @@ class ResolvedSettingsDTO
         return $this;
     }
 
+    /**
+     * Set the VersionsDTO.
+     *
+     * @param VersionsDTO|null $versionsDTO The VersionsDTO, already built.
+     * @return static
+     */
+    public function versionsDTO(?VersionsDTO $versionsDTO): self
+    {
+        $this->versionsDTO = $versionsDTO;
+        return $this;
+    }
+
+    /**
+     * Set the remote VersionsDTO.
+     *
+     * @param VersionsDTO|null $versionsDTO The VersionsDTO, already built.
+     * @return static
+     */
+    public function remoteVersionsDTO(?VersionsDTO $versionsDTO): self
+    {
+        $this->remoteVersionsDTO = $versionsDTO;
+        return $this;
+    }
+
 
 
 
@@ -453,7 +480,7 @@ class ResolvedSettingsDTO
 
 
     /**
-     * Render the "build settings" ready to be logged.
+     * Render the "build sources", ready to be logged.
      *
      * @return array<string, string>
      */
@@ -496,11 +523,11 @@ class ResolvedSettingsDTO
 
 
     /**
-     * Render the "build-environment" settings ready to be logged.
+     * Render the "build settings", ready to be logged.
      *
      * @return array<string, string>
      */
-    public function renderBuildEnvironmentSettings(): array
+    public function renderBuildSettings(): array
     {
         $isBrowserTest = $this->renderBoolean(
             $this->isBrowserTest,
@@ -517,6 +544,10 @@ class ResolvedSettingsDTO
             'None, it will be rebuilt for each test'
         );
 
+        $usingPest = $this->versionsDTO?->pest
+            ? $this->renderBoolean($this->usingPest)
+            : $this->renderBoolean($this->usingPest, 'Yes', '');
+
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
@@ -525,7 +556,7 @@ class ResolvedSettingsDTO
             'Verify db after?' => $this->renderBoolean($this->verifyDatabase),
             'For a browser test?' => $isBrowserTest,
             'Parallel testing?' => $this->renderBoolean($this->isParallelTest),
-            'Is a Pest test?' => $this->renderBoolean($this->usingPest, 'Yes', ''),
+            'Is a Pest test?' => $usingPest,
             'Build-checksum:' => $this->escapeString($this->buildChecksum, 'n/a'),
             'Snapshot-checksum:' => $this->escapeString($this->snapshotChecksum, 'n/a'),
             'Scenario-checksum:' => $this->escapeString($this->scenarioChecksum, 'n/a'),
@@ -533,7 +564,7 @@ class ResolvedSettingsDTO
     }
 
     /**
-     * Render the "resolved database" details ready to be logged.
+     * Render the "resolved database" details, ready to be logged.
      *
      * @return array<string, string>
      */

@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLName;
 use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLReuseMetaDataTable;
 use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLReuseTransaction;
 use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLSnapshot;
+use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLVersion;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 
@@ -36,5 +37,6 @@ class LaravelPostgreSQLAdapter extends DBAdapter
         $this->reuseTransaction = new LaravelPostgreSQLReuseTransaction($di, $configDTO);
         $this->reuseJournal = new LaravelPostgreSQLReuseJournal($di, $configDTO, $this->verifier);
         $this->snapshot = new LaravelPostgreSQLSnapshot($di, $configDTO);
+        $this->version = new LaravelPostgreSQLVersion($di, $configDTO);
     }
 }

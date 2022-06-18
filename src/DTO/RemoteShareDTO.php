@@ -2,17 +2,14 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
-use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * The details that get shared between installations to convey which databases / config settings to use.
  */
-class RemoteShareDTO
+class RemoteShareDTO extends AbstractDTO
 {
-    use DTOBuildTrait;
-
     /**
      * The RemoteShareDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *

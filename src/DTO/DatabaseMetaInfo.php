@@ -10,7 +10,7 @@ use DateTimeZone;
 /**
  * Store some meta-data about a database.
  */
-class DatabaseMetaInfo
+class DatabaseMetaInfo extends AbstractDTO
 {
     /** @var string The Laravel driver used to access this database. */
     public string $driver;

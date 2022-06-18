@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseJournalInterface;
 use CodeDistortion\Adapt\Adapters\Interfaces\SnapshotInterface;
 use CodeDistortion\Adapt\Adapters\Interfaces\VerifierInterface;
+use CodeDistortion\Adapt\Adapters\Interfaces\VersionInterface;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 
@@ -45,6 +46,9 @@ abstract class DBAdapter
 
     /** @var SnapshotInterface The "snapshot" part of this database-adapter. */
     public SnapshotInterface $snapshot;
+
+    /** @var VersionInterface The "version" part of this database-adapter. */
+    public VersionInterface $version;
 
 
     /**

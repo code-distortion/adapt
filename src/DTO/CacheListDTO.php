@@ -5,7 +5,7 @@ namespace CodeDistortion\Adapt\DTO;
 /**
  * Contains a list of snapshot files and databases.
  */
-class CacheListDTO
+class CacheListDTO extends AbstractDTO
 {
     /** @var SnapshotMetaInfo[] The list of snapshot files. */
     public array $snapshots = [];

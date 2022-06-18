@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Adapters\LaravelSQLite\LaravelSQLiteReuseMetaDataTable;
 use CodeDistortion\Adapt\Adapters\LaravelSQLite\LaravelSQLiteReuseTransaction;
 use CodeDistortion\Adapt\Adapters\LaravelSQLite\LaravelSQLiteSnapshot;
 use CodeDistortion\Adapt\Adapters\LaravelSQLite\LaravelSQLiteVerifier;
+use CodeDistortion\Adapt\Adapters\LaravelSQLite\LaravelSQLiteVersion;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 
@@ -36,5 +37,6 @@ class LaravelSQLiteAdapter extends DBAdapter
         $this->reuseTransaction = new LaravelSqLiteReuseTransaction($di, $configDTO);
         $this->reuseJournal = new LaravelSQLiteReuseJournal($di, $configDTO, $this->verifier);
         $this->snapshot = new LaravelSQLiteSnapshot($di, $configDTO);
+        $this->version = new LaravelSQLiteVersion($di, $configDTO);
     }
 }

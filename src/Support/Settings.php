@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
 use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLSnapshot;
 use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
+use CodeDistortion\Adapt\DTO\VersionsDTO;
 
 /**
  * Common Adapt settings.
@@ -91,6 +92,9 @@ class Settings
     /** @var ResolvedSettingsDTO[] The ResolvedSettingsDTOs from recently built databases. */
     public static array $resolvedSettingsDTOs = [];
 
+    /** @var VersionsDTO[] The VersionsDTO from recently built databases. */
+    public static array $resolvedVersionsDTOs = [];
+
 
 
 
@@ -104,6 +108,7 @@ class Settings
     {
         static::$isFirstTest = true;
         Settings::$resolvedSettingsDTOs = [];
+        Settings::$resolvedVersionsDTOs = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
         LaravelPostgreSQLSnapshot::resetStaticProps();
@@ -134,6 +139,36 @@ class Settings
         ResolvedSettingsDTO $resolvedSettingsDTO
     ): void {
         Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
+    }
+
+
+
+    /**
+     * Get a recently resolved VersionsDTO.
+     *
+     * @param string      $connection The connection being used.
+     * @param string|null $driver     The driver being used.
+     * @return ResolvedSettingsDTO|null
+     */
+    public static function getResolvedVersionsDTO(string $connection, ?string $driver): ?VersionsDTO
+    {
+        return Settings::$resolvedVersionsDTOs[$connection][(string) $driver] ?? null;
+    }
+
+    /**
+     * Store recently resolved VersionsDTO for reference later.
+     *
+     * @param string      $connection  The connection being used.
+     * @param string|null $driver      The driver being used.
+     * @param VersionsDTO $versionsDTO A recently resolved ResolvedSettingsDTO.
+     * @return void
+     */
+    public static function storeResolvedVersionsDTO(
+        string $connection,
+        ?string $driver,
+        VersionsDTO $versionsDTO
+    ): void {
+        Settings::$resolvedVersionsDTOs[$connection][(string) $driver] = $versionsDTO;
     }
 
 
