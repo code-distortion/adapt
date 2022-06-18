@@ -35,6 +35,23 @@ abstract class AbstractLaravelPDO
     }
 
 
+
+    /**
+     * Run a select query.
+     *
+     * @param string $query The query to run.
+     * @return array|null
+     */
+    public function select($query)
+    {
+        $pdoStatement = $this->pdo->query($query);
+        if (!$pdoStatement) {
+            return null;
+        }
+
+        return $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Create a new database.
      *
@@ -97,7 +114,7 @@ abstract class AbstractLaravelPDO
             }
             return $databases;
 
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
         }
         return [];
     }
@@ -125,7 +142,7 @@ abstract class AbstractLaravelPDO
             $row = reset($rows);
             return ($row ? (object) $row : null);
 
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
         }
         return null;
     }
@@ -152,7 +169,7 @@ abstract class AbstractLaravelPDO
 
             return (int) array_shift($row);
 
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
         }
         return false;
     }

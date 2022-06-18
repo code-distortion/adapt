@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLReuseTransaction;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLReuseJournal;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLVerifier;
+use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLVersion;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 
@@ -36,5 +37,6 @@ class LaravelMySQLAdapter extends DBAdapter
         $this->reuseTransaction = new LaravelMySQLReuseTransaction($di, $configDTO);
         $this->reuseJournal = new LaravelMySQLReuseJournal($di, $configDTO, $this->verifier);
         $this->snapshot = new LaravelMySQLSnapshot($di, $configDTO);
+        $this->version = new LaravelMySQLVersion($di, $configDTO);
     }
 }

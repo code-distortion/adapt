@@ -7,7 +7,7 @@ use CodeDistortion\Adapt\Exceptions\AdaptPropBagDTOException;
 /**
  * Contain a list of properties and their values.
  */
-abstract class PropBagDTO
+abstract class PropBagDTO extends AbstractDTO
 {
     /** @var mixed[] The properties and their values. */
     private $props = [];

@@ -27,5 +27,6 @@ rm -rf config src
 mv _config config
 mv _src src
 
-#git add . --all
+#git add src --all
+#git add tests --all
 #git commit -m "Merge branch 'latest'"

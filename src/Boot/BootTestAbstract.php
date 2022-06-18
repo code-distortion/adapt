@@ -170,7 +170,7 @@ abstract class BootTestAbstract implements BootTestInterface
             $builder->runPostBuildSteps();
         }
 
-        $this->log->vDebug("Ready for the test to run");
+        $this->log->vDebug("The test will run now");
     }
 
     /**

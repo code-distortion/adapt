@@ -10,7 +10,7 @@ use DateTimeZone;
 /**
  * Store some meta-data about a snapshot file.
  */
-class SnapshotMetaInfo
+class SnapshotMetaInfo extends AbstractDTO
 {
     /** @var string The snapshot's path. */
     public $path;

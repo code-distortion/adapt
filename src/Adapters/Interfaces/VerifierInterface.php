@@ -7,7 +7,7 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptJournalException;
 
 /**
-Database-adapter methods related to verifying a database's structure and content.
+ * Database-adapter methods related to verifying a database's structure and content.
  */
 interface VerifierInterface
 {

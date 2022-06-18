@@ -2,17 +2,14 @@
 
 namespace CodeDistortion\Adapt\DTO;
 
-use CodeDistortion\Adapt\DTO\Traits\DTOBuildTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Resolves default setting values when needed.
  */
-class ConfigDTO
+class ConfigDTO extends AbstractDTO
 {
-    use DTOBuildTrait;
-
     /**
      * The ConfigDTO version. An exception will be thrown when there's a mismatch between installations of Adapt.
      *

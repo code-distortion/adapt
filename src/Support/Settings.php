@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\Adapters\LaravelMySQL\LaravelMySQLSnapshot;
 use CodeDistortion\Adapt\Adapters\LaravelPostgreSQL\LaravelPostgreSQLSnapshot;
 use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
+use CodeDistortion\Adapt\DTO\VersionsDTO;
 
 /**
  * Common Adapt settings.
@@ -12,7 +13,7 @@ use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    const PACKAGE_VERSION = '0.11.0';
+    const PACKAGE_VERSION = '0.11.1';
 
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
@@ -50,10 +51,10 @@ class Settings
 
 
     /** @var integer Included when prepping a db remotely between Adapt installations. Mismatch causes an exception. */
-    const CONFIG_DTO_VERSION = 5;
+    const CONFIG_DTO_VERSION = 6;
 
     /** @var integer Included in the remote-share payload between Adapt installations. Mismatch causes an exception. */
-    const REMOTE_SHARE_DTO_VERSION = 5;
+    const REMOTE_SHARE_DTO_VERSION = 6;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
     const REMOTE_SHARE_KEY = 'adapt-remote-share';
@@ -91,6 +92,9 @@ class Settings
     /** @var ResolvedSettingsDTO[] The ResolvedSettingsDTOs from recently built databases. */
     public static $resolvedSettingsDTOs = [];
 
+    /** @var VersionsDTO[] The VersionsDTO from recently built databases. */
+    public static $resolvedVersionsDTOs = [];
+
 
 
 
@@ -104,6 +108,7 @@ class Settings
     {
         static::$isFirstTest = true;
         Settings::$resolvedSettingsDTOs = [];
+        Settings::$resolvedVersionsDTOs = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
         LaravelPostgreSQLSnapshot::resetStaticProps();
@@ -134,6 +139,36 @@ class Settings
         $resolvedSettingsDTO
     ) {
         Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
+    }
+
+
+
+    /**
+     * Get a recently resolved VersionsDTO.
+     *
+     * @param string      $connection The connection being used.
+     * @param string|null $driver     The driver being used.
+     * @return \CodeDistortion\Adapt\DTO\VersionsDTO|null
+     */
+    public static function getResolvedVersionsDTO($connection, $driver)
+    {
+        return Settings::$resolvedVersionsDTOs[$connection][(string) $driver] ?? null;
+    }
+
+    /**
+     * Store recently resolved VersionsDTO for reference later.
+     *
+     * @param string      $connection  The connection being used.
+     * @param string|null $driver      The driver being used.
+     * @param VersionsDTO $versionsDTO A recently resolved ResolvedSettingsDTO.
+     * @return void
+     */
+    public static function storeResolvedVersionsDTO(
+        $connection,
+        $driver,
+        $versionsDTO
+    ) {
+        Settings::$resolvedVersionsDTOs[$connection][(string) $driver] = $versionsDTO;
     }
 
 
