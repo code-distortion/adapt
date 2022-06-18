@@ -7,6 +7,9 @@ namespace CodeDistortion\Adapt\DTO;
  */
 class VersionsDTO extends AbstractDTO
 {
+    /** @var string|null The Operating System version. */
+    public $os;
+
     /** @var string|null The PHP version. */
     public $php;
 
@@ -32,6 +35,18 @@ class VersionsDTO extends AbstractDTO
     public $sqlite;
 
 
+
+    /**
+     * Set the Operating System version.
+     *
+     * @param string|null $version The Operating System version.
+     * @return static
+     */
+    public function osVersion($version): self
+    {
+        $this->os = $version;
+        return $this;
+    }
 
     /**
      * Set the PHP version.
@@ -139,6 +154,7 @@ class VersionsDTO extends AbstractDTO
     public function renderVersions(): array
     {
         return array_filter([
+            'OS:' => $this->os,
             'PHP:' => $this->php,
             'Laravel:' => $this->laravel,
             'PHPUnit:' => $this->phpunit,
