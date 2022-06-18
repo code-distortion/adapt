@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.11.1] - 2022-06-19
+
+### ADDED
+- Laravel connects to the database in some situations before Adapt runs (e.g. when using debug-bar during remote requests). Adapt now disconnects from these database connections first, so the correct database/s can be re-connected to
+- Added separate storage directories for file-based databases (i.e. SQLite), snapshot files, and share-config files
+- Added a GitHub issue template
+- To help with debugging - The version of PHP, Laravel, PHPUnit, Pest, Adapt, MySQL, PostgreSQL, SQLite are logged
+- Included when Pest is being used in the logs
+
+
+
 ## [0.11.0] - 2022-06-13
 
 ### Added
@@ -20,21 +31,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added support for `RefreshDatbase`'s `beforeRefreshingDatabase()` and `afterRefreshingDatabase()` test-class callbacks, which are now called before and after preparing the database, respectively
 - Added a new log verbosity setting (0 = minimal, 2 = most details)
 - Improved logging output
-- Added the option to create file checksums based on their modified times, and made this default
-- Adapt can't run at the same time as Laravel's RefreshDatabase, DatabaseTransactions and DatabaseMigrations traits. Added detection for these, and when also present in a test, an exception is thrown
+- Added the option to create file checksums based on their modified times
+- Adapt can't run at the same time as Laravel's `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits. Added detection for these, and when also present in a test, an exception is thrown
 
 ### Fixed
 - Disabled the snapshot setting for SQLite :memory: tests
 
 ### Changed
 - Renamed *build-hash*, *snapshot-hash* and *scenario-hash* to *build-checksum*, *snapshot-checksum* and *scenario-checksum* (appears in the logs)
-- Changed the default method when checking for file changes from "content" to the new method "modified" - which looks at the files' modified times
+- Changed the default method when checking for file changes from "content" to the new method "modified"
 
 ### Changed (breaking)
 - Renamed the `adapt:list-db-caches` command to `adapt:list`
 - Renamed the `adapt:remove-db-caches` command to `adapt:clear` (to follow the convention from Laravel's other clearing commands)
-- Renamed the .env value ADAPT_SCENARIO_TEST_DBS to ADAPT_SCENARIOS
-- Renamed the .env value ADAPT_CHECK_FOR_SOURCE_CHANGES to ADAPT_CACHE_INVALIDATION_METHOD
+- Renamed the `ADAPT_SCENARIO_TEST_DBS` .env value to `ADAPT_SCENARIOS`
+- Renamed the `ADAPT_CHECK_FOR_SOURCE_CHANGES` .env value to `ADAPT_CACHE_INVALIDATION_METHOD`
 
 
 
