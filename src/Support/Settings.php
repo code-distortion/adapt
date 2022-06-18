@@ -13,7 +13,7 @@ use CodeDistortion\Adapt\DTO\VersionsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    public const PACKAGE_VERSION = '0.11.0';
+    public const PACKAGE_VERSION = '0.11.1';
 
     /** @var string The name of the Adapt config file. */
     public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
@@ -51,10 +51,10 @@ class Settings
 
 
     /** @var integer Included when prepping a db remotely between Adapt installations. Mismatch causes an exception. */
-    public const CONFIG_DTO_VERSION = 5;
+    public const CONFIG_DTO_VERSION = 6;
 
     /** @var integer Included in the remote-share payload between Adapt installations. Mismatch causes an exception. */
-    public const REMOTE_SHARE_DTO_VERSION = 5;
+    public const REMOTE_SHARE_DTO_VERSION = 6;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
     public const REMOTE_SHARE_KEY = 'adapt-remote-share';
