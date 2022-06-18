@@ -4,7 +4,9 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Support\PHPSupport;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Database-adapter methods related to managing a Laravel database connection.
@@ -56,9 +58,14 @@ trait LaravelConnectionTrait
             $connectionObj = DB::connection($connection);
             $connectionObj->setDatabaseName($database);
             $this->updateConnectionConfig($connectionObj, $newConfig);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // swallow this exception
-            // it's thrown when the database server can't be connected to. e.g. this can happen when using sqlite
+        } catch (QueryException $exception) {
+            // swallow these exceptions
+            // depending on the version (of Laravel?), one of these are thrown when the
+            // database server can't be connected to. e.g. this can happen when using SQLite
+        } catch (InvalidArgumentException $exception) {
+            // swallow these exceptions
+            // depending on the version (of Laravel?), one of these are thrown when the
+            // database server can't be connected to. e.g. this can happen when using SQLite
         }
     }
 
