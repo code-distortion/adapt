@@ -15,7 +15,6 @@ use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +29,7 @@ use Laravel\Dusk\TestCase as DuskTestCase;
  */
 trait InitialiseAdapt
 {
-    /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseLaravelAdapt. */
+    /** @var PreBootTestLaravel|null Used so Laravel pre-booting code doesn't exist in InitialiseAdapt. */
     private $adaptPreBootTestLaravel;
 
 
@@ -81,6 +80,7 @@ trait InitialiseAdapt
 
         // check to make sure Laravel's RefreshDatabase, DatabaseTransactions and DatabaseMigrations
         // traits aren't also being used
+        // note: class_uses_recursive is a part of Laravel
         foreach ([RefreshDatabase::class, DatabaseTransactions::class, DatabaseMigrations::class] as $trait) {
             if (in_array($trait, class_uses_recursive(get_class($this)), true)) {
                 throw AdaptBootException::laravelDatabaseTraitDetected($trait);
@@ -127,6 +127,15 @@ trait InitialiseAdapt
             };
         }
 
+        // detect if Pest is being used
+        $usingPest = false;
+        foreach (class_uses($this) as $trait) {
+            if (mb_substr($trait, 0, mb_strlen('Pest\\')) == 'Pest\\') {
+                $usingPest = true;
+                break;
+            }
+        }
+
 
 
         // create a new pre-boot object to perform the boot work
@@ -136,7 +145,8 @@ trait InitialiseAdapt
             $this->getName(),
             $propBag,
             $buildInitCallback,
-            $this instanceof DuskTestCase
+            $this instanceof DuskTestCase,
+            $usingPest
         );
 
         // callback - for compatability with Laravel's `RefreshDatabase`
@@ -278,7 +288,7 @@ trait InitialiseAdapt
         }
 
         $remoteShareDTO = (new RemoteShareDTO())
-            ->tempConfigFile(null)
+            ->sharableConfigFile(null)
             ->connectionDBs($connectionDBs);
 
         $value = $includeKey

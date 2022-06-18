@@ -35,7 +35,7 @@ class Settings
     const REUSE_TABLE = self::ADAPT_TABLE_PREFIX . '___';
 
     /** @var string A version representing the way the reuse-table is structured and used. */
-    const REUSE_TABLE_VERSION = '6';
+    const REUSE_TABLE_VERSION = '7';
 
 
 
@@ -63,6 +63,9 @@ class Settings
 
     /** @var string The name of the singleton that's registered with Laravel, contains the connection database list. */
     const REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME = 'adapt-connection-dbs';
+
+    /** @var string The name used to store the remote-build response in the service container. */
+    const SERVICE_CONTAINER_REMOTE_BUILD_RESPONSE = 'adapt-remote-build-response';
 
 
 
@@ -131,5 +134,69 @@ class Settings
         $resolvedSettingsDTO
     ) {
         Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
+    }
+
+
+
+
+
+    /**
+     * Resolve the base storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function baseStorageDir($baseDir, $filename = null): string
+    {
+        return self::buildDir($baseDir, $filename);
+    }
+
+    /**
+     * Resolve the database storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function databaseDir($baseDir, $filename = null): string
+    {
+        return self::buildDir("$baseDir/databases", $filename);
+    }
+
+    /**
+     * Resolve the snapshot storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function snapshotDir($baseDir, $filename = null): string
+    {
+        return self::buildDir("$baseDir/snapshots", $filename);
+    }
+
+    /**
+     * Resolve the share-config storage directory.
+     *
+     * @param string      $baseDir  The base directory for all stored files.
+     * @param string|null $filename An optional filename to add.
+     * @return string
+     */
+    public static function shareConfigDir($baseDir, $filename = null): string
+    {
+        return self::buildDir("$baseDir/share-configs", $filename);
+    }
+
+    /**
+     * Append a filename to a directory.
+     *
+     * @param string      $dir      The directory to use.
+     * @param string|null $filename The filename to add (optional).
+     * @return string
+     */
+    private static function buildDir(string $dir, $filename = null): string
+    {
+        return mb_strlen((string) $filename) ? "$dir/$filename" : "$dir";
     }
 }

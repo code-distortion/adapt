@@ -42,7 +42,7 @@ class LaravelDB
     /**
      * Get the current connection's host (if relevant).
      *
-     * @return ?string
+     * @return string|null
      */
     public function getHost()
     {
@@ -107,8 +107,8 @@ class LaravelDB
         try {
             /** @var \Illuminate\Database\MySqlConnection $mysqlConnection */
             $mysqlConnection = DB::connection($this->connection);
-            $mysqlConnection->getPdo();
-            return true;
+            $pdo = $mysqlConnection->getPdo();
+            return !is_null($pdo);
         } catch (Throwable $e) {
             return false;
         }

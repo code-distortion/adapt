@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\NameInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\SQLite\SQLiteHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
+use CodeDistortion\Adapt\Support\Settings;
 
 /**
  * Database-adapter methods related to naming Laravel/SQLite database things.
@@ -45,7 +46,7 @@ class LaravelSQLiteName implements NameInterface
             $filename = $database;
         }
 
-        return $this->configDTO->storageDir . '/' . $filename;
+        return Settings::databaseDir($this->configDTO->storageDir, $filename);
     }
 
     /**
@@ -59,6 +60,6 @@ class LaravelSQLiteName implements NameInterface
         $filename = $this->pickBaseFilename($this->configDTO->origDatabase);
         $filename = $this->configDTO->snapshotPrefix . $filename . '.' . $snapshotFilenameChecksumPart . '.sqlite';
         $filename = str_replace('_', '-', $filename);
-        return $this->configDTO->storageDir . '/' . $filename;
+        return Settings::snapshotDir($this->configDTO->storageDir, $filename);
     }
 }

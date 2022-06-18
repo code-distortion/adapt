@@ -147,7 +147,7 @@ class DatabaseBuilder
 
         if ($this->di->log->currentVerbosity() == 0) {
             $message = "$reusing $connection database \"$database\" $emoji";
-            $this->di->log->debug($message, $logTimer, false);
+            $this->di->log->debug($message, $logTimer);
         } else {
             $message = "$reusing database \"$database\" - total preparation time $emoji";
             $this->di->log->vDebug($message, $logTimer, true);
@@ -323,12 +323,11 @@ class DatabaseBuilder
             }
 
             $this->resolvedSettingsDTO = $this->getTheRelevantPreviousResolvedSettingsDTO();
-            // it was re-used this time
-            $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->databaseWasReused(true) : null;
+            ($resolvedSettingsDTO = $this->resolvedSettingsDTO) ? $resolvedSettingsDTO->databaseWasReused(true) : null; // it was re-used this time
 
             $connection = $this->configDTO->connection;
-            $database = $this->resolvedSettingsDTO ? (string) $this->resolvedSettingsDTO->database : '';
-            $buildChecksum = $this->resolvedSettingsDTO ? $this->resolvedSettingsDTO->buildChecksum : null;
+            $database = (string) (($resolvedSettingsDTO = $this->resolvedSettingsDTO) ? $resolvedSettingsDTO->database : null);
+            $buildChecksum = ($resolvedSettingsDTO = $this->resolvedSettingsDTO) ? $resolvedSettingsDTO->buildChecksum : null;
             $this->configDTO->remoteBuildUrl = null; // stop debug output from showing that it's being built remotely
             $this->hasher->buildChecksumWasPreCalculated($buildChecksum);
 
@@ -343,7 +342,7 @@ class DatabaseBuilder
             $this->logTheUsedSettings();
             $this->useDatabase($database);
             $this->di->log->vDebug("The existing database \"$database\" can be reused");
-            $this->updateMetaTableLastUsed();
+            $this->updateMetaTable();
 
         } catch (Throwable $e) {
             throw $this->transformAnAccessDeniedException($e);
@@ -376,9 +375,7 @@ class DatabaseBuilder
 
         $reused = $this->buildOrReuseDBLocally($forceRebuild);
 
-        if ($this->resolvedSettingsDTO) { // for phpstan
-            $this->resolvedSettingsDTO->databaseWasReused($reused);
-        }
+        ($resolvedSettingsDTO = $this->resolvedSettingsDTO) ? $resolvedSettingsDTO->databaseWasReused($reused) : null;
     }
 
     /**
@@ -413,21 +410,15 @@ class DatabaseBuilder
         try {
             $logTimer = $this->di->log->newTimer();
 
-            $database = (string) $this->configDTO->database;
             $canReuse = $this->canReuseDB(
                 $this->hasher->getBuildChecksum(),
                 $this->hasher->currentScenarioChecksum(),
-                $database,
+                (string) $this->configDTO->database,
                 $forceRebuild,
                 $logTimer
             );
 
-            if ($canReuse) {
-                $this->updateMetaTableLastUsed();
-            } else {
-                $this->buildDBFresh();
-                $this->createReuseMetaDataTable();
-            }
+            $canReuse ? $this->updateMetaTable() : $this->buildDBFresh();
 
             return $canReuse;
 
@@ -494,6 +485,34 @@ class DatabaseBuilder
     }
 
     /**
+     * Create the re-use meta-data table - only when snapshot files are simply copied.
+     *
+     * @return void
+     */
+    private function createReuseMetaDataTableIfImportFilesAreSimplyCopied()
+    {
+        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
+        }
+
+        $this->createReuseMetaDataTable();
+    }
+
+    /**
+     * Create the re-use meta-data table - only when snapshot files are NOT simply copied.
+     *
+     * @return void
+     */
+    private function createReuseMetaDataTableIfImportFilesAreNotSimplyCopied()
+    {
+        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
+        }
+
+        $this->createReuseMetaDataTable();
+    }
+
+    /**
      * Create the re-use meta-data table.
      *
      * @return void
@@ -524,11 +543,11 @@ class DatabaseBuilder
      *
      * @return void
      */
-    private function updateMetaTableLastUsed()
+    private function updateMetaTable()
     {
         $logTimer = $this->di->log->newTimer();
 
-        $this->dbAdapter()->reuseMetaData->updateMetaTableLastUsed();
+        $this->dbAdapter()->reuseMetaData->updateMetaTable($this->hasher->currentScenarioChecksum());
 
         $this->di->log->vDebug("Refreshed the re-use meta-data", $logTimer);
     }
@@ -564,9 +583,11 @@ class DatabaseBuilder
      */
     private function resetDBIfSnapshotFilesAreSimplyCopied()
     {
-        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->resetDB();
+        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
         }
+
+        $this->resetDB();
     }
 
     /**
@@ -576,9 +597,11 @@ class DatabaseBuilder
      */
     private function resetDBIfSnapshotsFilesAreNotSimplyCopied()
     {
-        if (!$this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
-            $this->resetDB();
+        if ($this->dbAdapter()->snapshot->snapshotFilesAreSimplyCopied()) {
+            return;
         }
+
+        $this->resetDB();
     }
 
     /**
@@ -590,11 +613,8 @@ class DatabaseBuilder
     {
         $exists = $this->di->db->currentDatabaseExists();
         $this->dbAdapter()->build->resetDB($exists);
-//        $this->createReuseMetaDataTable();
 
-        $this->resolvedSettingsDTO // for phpstan
-            ? $this->resolvedSettingsDTO->databaseExistedBefore($exists)
-            : null;
+        ($resolvedSettingsDTO = $this->resolvedSettingsDTO) ? $resolvedSettingsDTO->databaseExistedBefore($exists) : null;
     }
 
     /**
@@ -608,6 +628,7 @@ class DatabaseBuilder
         $seedersLeftToRun = [];
 
         if ($this->trySnapshots($seeders, $seedersLeftToRun)) {
+            $this->updateMetaTable();
             if (count($seedersLeftToRun)) {
                 $this->seed($seedersLeftToRun);
                 $this->takeSnapshotAfterSeeders();
@@ -630,7 +651,9 @@ class DatabaseBuilder
         // if it wasn't, do it now to make sure it exists and is empty
         $this->resetDBIfSnapshotFilesAreSimplyCopied();
 
+        $this->createReuseMetaDataTableIfImportFilesAreNotSimplyCopied();
         $this->importInitialImports();
+        $this->createReuseMetaDataTableIfImportFilesAreSimplyCopied();
         $this->migrate();
         $this->takeSnapshotAfterMigrations();
         $this->seed();
@@ -771,12 +794,8 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-//        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
-
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
-
-//        $this->createReuseMetaDataTable(); // put the meta-table back
 
         $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
@@ -879,7 +898,6 @@ class DatabaseBuilder
         $this->di->log->vDebug($message, $logTimer);
 
         if (!$this->configDTO->shouldInitialise()) {
-//            $this->configDTO->database($database);
             $this->di->log->vDebug("Not using connection \"$connection\" locally");
             return;
         }
@@ -1024,7 +1042,7 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         try {
-            $filePaths = $this->di->filesystem->filesInDir($this->configDTO->storageDir);
+            $filePaths = $this->di->filesystem->filesInDir(Settings::snapshotDir($this->configDTO->storageDir));
             $this->di->log->vvDebug("Retrieved snapshot list", $logTimer);
         } catch (Throwable $e) {
             $this->di->log->vvWarning("Could not retrieve snapshot list", $logTimer);
@@ -1038,11 +1056,11 @@ class DatabaseBuilder
         foreach ($filePaths as $path) {
 
             // ignore other files
-            $temp = (array) preg_split('/[\\\\\/]+/', $path);
-            $filename = array_pop($temp);
-            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
-                continue;
-            }
+//            $temp = (array) preg_split('/[\\\\\/]+/', $path);
+//            $filename = array_pop($temp);
+//            if (in_array($filename, ['.gitignore', 'purge-lock'])) {
+//                continue;
+//            }
 
             $attemptedCount++;
 
@@ -1194,6 +1212,7 @@ class DatabaseBuilder
             )->snapshotType($configDTO->snapshotType(), is_string($configDTO->useSnapshotsWhenReusingDB) ? $configDTO->useSnapshotsWhenReusingDB : null, is_string($configDTO->useSnapshotsWhenNotReusingDB) ? $configDTO->useSnapshotsWhenNotReusingDB : null)
             ->isBrowserTest($configDTO->isBrowserTest)
             ->isParallelTest($configDTO->isParallelTest)
+            ->usingPest($configDTO->usingPest)
             ->sessionDriver($configDTO->sessionDriver)
             ->transactionReusable($configDTO->shouldUseTransaction())
             ->journalReusable($configDTO->shouldUseJournal())

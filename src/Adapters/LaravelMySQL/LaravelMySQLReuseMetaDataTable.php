@@ -86,13 +86,17 @@ class LaravelMySQLReuseMetaDataTable extends AbstractReuseMetaDataTable implemen
     }
 
     /**
-     * Update the last-used field in the meta-table.
+     * Update the scenario-checksum and last-used fields in the meta-table.
      *
+     * @param string|null $scenarioChecksum The current scenario-checksum.
      * @return void
      */
-    public function updateMetaTableLastUsed()
+    public function updateMetaTable($scenarioChecksum)
     {
-        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `last_used` = ?", [$this->nowUtcString()]);
+        $this->di->db->update(
+            "UPDATE `" . Settings::REUSE_TABLE . "` SET `scenario_checksum` = ?, `last_used` = ?",
+            [$scenarioChecksum, $this->nowUtcString()]
+        );
     }
 
     /**

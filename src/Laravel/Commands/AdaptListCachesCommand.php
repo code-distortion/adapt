@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Laravel\Commands;
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Support\CommandFunctionalityTrait;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 
 /**
  * Command to list the Adapt snapshot and test-databases.
@@ -30,8 +31,7 @@ class AdaptListCachesCommand extends AbstractAdaptCommand
     {
         $cacheListDTO = $this->getCacheList();
 
-        $log = $this->newLog();
-        $log->vDebug("\n");
+        LaravelSupport::newLaravelLogger()->vDebug("\n");
 
         if (!$cacheListDTO->containsAnyCache()) {
             $this->info('');

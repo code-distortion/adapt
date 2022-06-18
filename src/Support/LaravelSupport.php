@@ -2,6 +2,8 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -9,8 +11,8 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PDOException;
 
 /**
@@ -67,6 +69,21 @@ class LaravelSupport
     }
 
     /**
+     * Disconnect from databases that already have a connection.
+     *
+     * @param LogInterface $log The object to log with.
+     * @return void
+     */
+    public static function disconnectFromConnectedDatabases($log)
+    {
+        $alreadyConnected = array_keys(DB::getConnections());
+        foreach ($alreadyConnected as $connection) {
+            $log->vDebug("Disconnecting established database connection \"$connection\"");
+            DB::disconnect($connection);
+        }
+    }
+
+    /**
      * make sure the code is running from the Laravel base dir.
      *
      * e.g. /var/www/html instead of /var/www/html/public
@@ -79,6 +96,19 @@ class LaravelSupport
     public static function runFromBasePathDir()
     {
         chdir(base_path());
+    }
+
+    /**
+     * Get the storage directory.
+     *
+     * @return string
+     */
+    public static function storageDir(): string
+    {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        $return = config("$c.storage_dir");
+        $return = is_string($return) ? $return : '';
+        return rtrim($return, '\\/');
     }
 
     /**
@@ -117,6 +147,20 @@ class LaravelSupport
             return $value;
         }
         return [];
+    }
+
+    /**
+     * Build a new LaravelLog object, uses the config settings as default values.
+     *
+     * @param boolean|null $stdout    Display messages to stdout?.
+     * @param boolean|null $laravel   Add messages to Laravel's standard log.
+     * @param integer|null $verbosity The current verbosity level - output at this level or lower will be displayed.
+     * @return LaravelLog
+     */
+    public static function newLaravelLogger($stdout = null, $laravel = null, $verbosity = null): LaravelLog
+    {
+        $config = config(Settings::LARAVEL_CONFIG_NAME);
+        return new LaravelLog((bool) ($stdout ?? $config['log']['stdout'] ?? false), (bool) ($laravel ?? $config['log']['laravel'] ?? false), (int) ($verbosity ?? $config['log']['verbosity'] ?? 0));
     }
 
     /**
@@ -162,22 +206,19 @@ class LaravelSupport
     }
 
     /**
-     * Record the list of connections that have been prepared, and their corresponding databases with the framework.
+     * Register a scoped value with Laravel's service container.
      *
-     * @param array<string,string> $connectionDatabases The connections and the databases created for them.
+     * @param string   $name     The name of the scoped value.
+     * @param callable $callback The callback to run to populate the value.
      * @return void
      */
-    public static function registerPreparedConnectionDBsWithFramework($connectionDatabases)
+    public static function registerScoped($name, $callback)
     {
         /** @var Application $app */
         $app = app();
         method_exists($app, 'scoped')
-            ? $app->scoped(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
-                return $connectionDatabases;
-            })
-            : $app->singleton(Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME, function () use ($connectionDatabases) {
-                return $connectionDatabases;
-            });
+            ? $app->scoped($name, $callback)
+            : $app->singleton($name, $callback);
     }
 
     /**

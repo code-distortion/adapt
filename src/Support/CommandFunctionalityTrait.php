@@ -3,8 +3,6 @@
 namespace CodeDistortion\Adapt\Support;
 
 use CodeDistortion\Adapt\Boot\BootCommandLaravel;
-use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\CacheListDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use PDOException;
@@ -21,7 +19,7 @@ trait CommandFunctionalityTrait
      */
     protected function getCacheList(): CacheListDTO
     {
-        $bootCommandLaravel = (new BootCommandLaravel())->ensureStorageDirExists();
+        $bootCommandLaravel = (new BootCommandLaravel())->ensureStorageDirsExist();
         $cacheListDTO = new CacheListDTO();
 
         $this->findDatabases($bootCommandLaravel, $cacheListDTO);
@@ -65,15 +63,5 @@ trait CommandFunctionalityTrait
         $connection = LaravelSupport::configString('database.default');
         $builder = $bootCommandLaravel->makeNewBuilder($connection);
         $cacheListDTO->snapshots($builder->buildSnapshotMetaInfos());
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog((bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'), (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'), (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'));
     }
 }

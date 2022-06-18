@@ -83,6 +83,9 @@ class ConfigDTO
     /** @var boolean Is parallel testing being run? Is just for informational purposes. */
     public $isParallelTest;
 
+    /** @var boolean Whether Pest is being used for this test or not. */
+    public $usingPest;
+
     /** @var boolean Is this process building a db locally for another remote Adapt installation?. */
     public $isRemoteBuild;
 
@@ -369,6 +372,7 @@ class ConfigDTO
      * @param string|null         $remoteBuildUrl            The remote Adapt installation to send "build" requests to.
      * @param boolean             $isBrowserTest             Is a browser test running?.
      * @param boolean             $isParallelTest            Is parallel testing being run?.
+     * @param boolean             $usingPest                 Whether Pest is being used for this test or not.
      * @param boolean             $isRemoteBuild             Is this process building a db for another Adapt
      *                                                       installation?.
      * @param string              $sessionDriver             The session driver being used.
@@ -383,6 +387,7 @@ class ConfigDTO
         $remoteBuildUrl,
         $isBrowserTest,
         $isParallelTest,
+        $usingPest,
         $isRemoteBuild,
         $sessionDriver,
         $remoteCallerSessionDriver
@@ -394,6 +399,7 @@ class ConfigDTO
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
         $this->isParallelTest = $isParallelTest;
+        $this->usingPest = $usingPest;
         $this->isRemoteBuild = $isRemoteBuild;
         $this->sessionDriver = $sessionDriver;
         $this->remoteCallerSessionDriver = $remoteCallerSessionDriver;
@@ -472,6 +478,18 @@ class ConfigDTO
     public function isParallelTest($isParallelTest): self
     {
         $this->isParallelTest = $isParallelTest;
+        return $this;
+    }
+
+    /**
+     * Turn the using-pest setting on or off (is just for informational purposes).
+     *
+     * @param boolean $usingPest Whether Pest is being used for this test or not.
+     * @return static
+     */
+    public function usingPest($usingPest): self
+    {
+        $this->usingPest = $usingPest;
         return $this;
     }
 

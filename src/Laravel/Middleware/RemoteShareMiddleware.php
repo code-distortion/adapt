@@ -12,11 +12,10 @@ use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Config;
 use Throwable;
 
 /**
- * Adapt Middleware - used to load temporary config files during browser tests.
+ * Adapt Middleware - used to load sharable config files during browser tests.
  *
  * Is only added to local and testing environments.
  */
@@ -42,7 +41,7 @@ class RemoteShareMiddleware
         $remoteShareDTO = LaravelSupport::buildRemoteShareDTOFromRequest($request);
         $shareCookieValue = LaravelSupport::readCookieValue($request, Settings::REMOTE_SHARE_KEY);
 
-        $used = $this->useTemporaryConfig($remoteShareDTO) ?: $this->useConnectionDBs($remoteShareDTO);
+        $used = $this->useSharableConfig($remoteShareDTO) ?: $this->useConnectionDBs($remoteShareDTO);
 
         // make it look like the cookie never existed
         $request->cookies->remove(Settings::REMOTE_SHARE_KEY);
@@ -64,41 +63,46 @@ class RemoteShareMiddleware
 
 
     /**
-     * Load the temporary config file the cookie or header points to.
+     * Load the sharable config file the cookie or header points to.
      *
      * @param RemoteShareDTO|null $remoteShareDTO The RemoteShareDTO, built from the request.
      * @return boolean
-     * @throws AdaptBrowserTestException When there was a problem loading the temporary config.
+     * @throws AdaptBrowserTestException When there was a problem loading the sharable config.
      */
-    private function useTemporaryConfig($remoteShareDTO): bool
+    private function useSharableConfig($remoteShareDTO): bool
     {
         if (!$remoteShareDTO) {
             return false;
         }
 
-        if (!$remoteShareDTO->tempConfigPath) {
+        if (!$remoteShareDTO->sharableConfigPath) {
             return false;
         }
 
-        if (!(new Filesystem())->fileExists($remoteShareDTO->tempConfigPath)) {
+        if (!(new Filesystem())->fileExists($remoteShareDTO->sharableConfigPath)) {
             // don't throw, the config details might have been passed from a remote Adapt instance
             // and the config file won't exist here, which is fine
-//            throw AdaptBrowserTestException::tempConfigFileNotLoaded($tempCachePath);
+//            throw AdaptBrowserTestException::sharableConfigFileNotLoaded($remoteShareDTO->sharableConfigPath);
             return false;
         }
 
         $configData = null;
         try {
-            $configData = require $remoteShareDTO->tempConfigPath;
+            $configData = require $remoteShareDTO->sharableConfigPath;
         } catch (Throwable $e) {
-            throw AdaptBrowserTestException::tempConfigFileNotLoaded($remoteShareDTO->tempConfigPath, $e);
+            throw AdaptBrowserTestException::sharableConfigFileNotLoaded($remoteShareDTO->sharableConfigPath, $e);
         }
 
         if (!is_array($configData)) {
-            throw AdaptBrowserTestException::tempConfigFileNotLoaded($remoteShareDTO->tempConfigPath);
+            throw AdaptBrowserTestException::sharableConfigFileNotLoaded($remoteShareDTO->sharableConfigPath);
         }
 
         $this->replaceWholeConfig($configData);
+
+        // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
+        // when using scenarios, this is the wrong database to use
+        // disconnect now to start a fresh
+        LaravelSupport::disconnectFromConnectedDatabases(LaravelSupport::newLaravelLogger());
 
         return true;
     }
@@ -136,7 +140,13 @@ class RemoteShareMiddleware
             return false;
         }
 
-//        LaravelSupport::useTestingConfig(); // already called in the AdaptLaravelServiceProvider
+        LaravelSupport::useTestingConfig();
+
+        // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
+        // when using scenarios, this is the wrong database to use
+        // disconnect now to start a fresh
+        LaravelSupport::disconnectFromConnectedDatabases(LaravelSupport::newLaravelLogger());
+
         LaravelSupport::useConnectionDatabases($remoteShareDTO->connectionDBs);
 
         return true;

@@ -6,12 +6,12 @@ use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelConfig;
 use CodeDistortion\Adapt\Support\LaravelEnv;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Laravel\Dusk\Browser;
 use Throwable;
@@ -19,7 +19,7 @@ use Throwable;
 /**
  * Pre-Bootstrap for Laravel tests.
  *
- * Used so Laravel specific pre-booting code doesn't need to exist in the InitialiseLaravelAdapt trait.
+ * Used so Laravel specific pre-booting code doesn't need to exist in the InitialiseAdapt trait.
  */
 class PreBootTestLaravel
 {
@@ -44,6 +44,9 @@ class PreBootTestLaravel
     /** @var boolean Whether the current test is a browser test or not. */
     private $isBrowserTest;
 
+    /** @var boolean Whether Pest is being used for this test or not. */
+    private $usingPest;
+
 
 
     /**
@@ -54,19 +57,22 @@ class PreBootTestLaravel
      * @param PropBagDTO    $propBag           The properties specified in the test-class.
      * @param callable|null $buildInitCallback The callback that calls the custom databaseInit() build process.
      * @param boolean       $isBrowserTest     Whether the current test is a browser test or not.
+     * @param boolean       $usingPest         Whether Pest is being used for this test or not.
      */
     public function __construct(
         string $testClass,
         string $testName,
         PropBagDTO $propBag,
         $buildInitCallback,
-        bool $isBrowserTest
+        bool $isBrowserTest,
+        bool $usingPest
     ) {
         $this->testClass = $testClass;
         $this->testName = $testName;
         $this->propBag = $propBag;
         $this->buildInitCallback = $buildInitCallback;
         $this->isBrowserTest = $isBrowserTest;
+        $this->usingPest = $usingPest;
     }
 
 
@@ -89,13 +95,18 @@ class PreBootTestLaravel
         // the logger needs Laravel's config settings to be built,
         // so it needs to be built here instead of earlier in the constructor
         // (as Laravel hadn't booted by that point)
-        $this->log = $this->newLog();
+        $this->log = LaravelSupport::newLaravelLogger();
 
         try {
 
             $this->prepareLaravelConfig();
 
             $beforeRefreshingDatabase(); // for compatability with Laravel's `RefreshDatabase`
+
+            // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).
+            // when using scenarios, this is the wrong database to use
+            // disconnect now to start a fresh
+            LaravelSupport::disconnectFromConnectedDatabases($this->log);
 
             $this->adaptBootTestLaravel = $this->buildBootObject($this->log);
             $this->adaptBootTestLaravel->runBuildSteps();
@@ -126,18 +137,6 @@ class PreBootTestLaravel
         } finally {
             $this->adaptBootTestLaravel->runPostTestCleanUp();
         }
-    }
-
-
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog((bool) $this->propBag->adaptConfig('log.stdout'), (bool) $this->propBag->adaptConfig('log.laravel'), (int) $this->propBag->adaptConfig('log.verbosity'));
     }
 
 
@@ -296,8 +295,9 @@ class PreBootTestLaravel
             ->testName($this->testClass . '::' . $this->testName)
             ->props($this->propBag)
             ->browserTestDetected($this->isBrowserTest)
+            ->usingPest($this->usingPest)
             ->initCallback($this->buildInitCallback)
-            ->ensureStorageDirExists();
+            ->ensureStorageDirsExist();
     }
 
 

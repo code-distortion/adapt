@@ -37,7 +37,7 @@ abstract class AbstractAdaptCommand extends Command
             $this->performHandleWork();
 
         } catch (Throwable $e) {
-            Exceptions::logException($this->newLog(), $e, true);
+            Exceptions::logException(LaravelSupport::newLaravelLogger(), $e, true);
             throw $e;
         }
     }

@@ -5,12 +5,10 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
 use CodeDistortion\Adapt\DI\DIContainer;
-use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
-use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
@@ -28,14 +26,18 @@ class BootCommandLaravel extends BootCommandAbstract
 
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists()
+    public function ensureStorageDirsExist()
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirsExist(
+            LaravelSupport::storageDir(),
+            new Filesystem(),
+            LaravelSupport::newLaravelLogger()
+        );
         return $this;
     }
 
@@ -53,7 +55,6 @@ class BootCommandLaravel extends BootCommandAbstract
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
-        StorageDir::ensureStorageDirExists($configDTO->storageDir, $di->filesystem, $di->log);
 
         return new DatabaseBuilder(
             'laravel',
@@ -75,19 +76,9 @@ class BootCommandLaravel extends BootCommandAbstract
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->log($this->newLog())
+            ->log(LaravelSupport::newLaravelLogger())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
-    }
-
-    /**
-     * Build a new Log instance.
-     *
-     * @return LogInterface
-     */
-    private function newLog(): LogInterface
-    {
-        return new LaravelLog((bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.stdout'), (bool) config(Settings::LARAVEL_CONFIG_NAME . '.log.laravel'), (int) config(Settings::LARAVEL_CONFIG_NAME . '.log.verbosity'));
     }
 
     /**
@@ -115,7 +106,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->databaseModifier('')
-            ->storageDir($this->storageDir())
+            ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
@@ -126,6 +117,7 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.migrations"),
                 config("$c.seeders"),
                 config("$c.remote_build_url"),
+                false,
                 false,
                 false,
                 false,
@@ -140,19 +132,6 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("$c.scenario_test_dbs") ?? config("$c.scenarios")
             )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
             ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
-    }
-
-    /**
-     * Get the storage directory.
-     *
-     * @return string
-     */
-    private function storageDir(): string
-    {
-        $c = Settings::LARAVEL_CONFIG_NAME;
-        $return = config("$c.storage_dir");
-        $return = is_string($return) ? $return : '';
-        return rtrim($return, '\\/');
     }
 
     /**

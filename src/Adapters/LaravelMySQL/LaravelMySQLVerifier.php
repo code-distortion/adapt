@@ -143,7 +143,7 @@ class LaravelMySQLVerifier implements VerifierInterface
             . "`data_checksum` varchar(32) NULL DEFAULT NULL, "
             . "PRIMARY KEY(`table`)"
             . ")";
-        $this->di->db->directExec($query);
+        $this->di->db->statement($query);
     }
 
     /**

@@ -36,8 +36,8 @@ class BootTestLaravel extends BootTestAbstract
     use CheckLaravelChecksumPathsTrait;
     use HasMutexTrait;
 
-    /** @var string[] The paths to the temporary config files, created during browser tests. */
-    private $tempConfigPaths = [];
+    /** @var string[] The paths to the sharable config files, created during browser tests. */
+    private $sharableConfigPaths = [];
 
 
 
@@ -92,14 +92,14 @@ class BootTestLaravel extends BootTestAbstract
 
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists()
+    public function ensureStorageDirsExist()
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
+        StorageDir::ensureStorageDirsExist($this->storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -228,7 +228,7 @@ class BootTestLaravel extends BootTestAbstract
             ->databasePrefix('')
             ->cacheInvalidationMethod($cacheInvalidationMethod)
             ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $scenarios)->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
+            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, $this->usingPest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $scenarios)->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
             ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings($pb->adaptConfig('database.mysql.executables.mysql'), $pb->adaptConfig('database.mysql.executables.mysqldump'))->postgresSettings($pb->adaptConfig('database.pgsql.executables.psql'), $pb->adaptConfig('database.pgsql.executables.pg_dump'))
             ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds', null, Settings::DEFAULT_STALE_GRACE_SECONDS));
     }
@@ -285,7 +285,12 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function registerPreparedConnectionDBsWithFramework($connectionDatabases)
     {
-        LaravelSupport::registerPreparedConnectionDBsWithFramework($connectionDatabases);
+        LaravelSupport::registerScoped(
+            Settings::REMOTE_SHARE_CONNECTIONS_SINGLETON_NAME,
+            function () use ($connectionDatabases) {
+                return $connectionDatabases;
+            }
+        );
     }
 
 
@@ -304,10 +309,10 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        $this->tempConfigPaths[] = $tempConfigPath = $this->storeTemporaryConfig();
+        $this->sharableConfigPaths[] = $sharableConfigPath = $this->storeSharableConfig();
 
         $remoteShareDTO = (new RemoteShareDTO())
-            ->tempConfigFile($tempConfigPath)
+            ->sharableConfigFile($sharableConfigPath)
             ->connectionDBs($connectionDBs);
 
         foreach ($browsers as $browser) {
@@ -338,17 +343,17 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Store the current config in a new temporary config file, and return its filename.
+     * Store the current config in a new sharable config file, and return its filename.
      *
      * @return string
-     * @throws AdaptBrowserTestException When the temporary config file could not be saved.
+     * @throws AdaptBrowserTestException When the sharable config file could not be saved.
      */
-    private function storeTemporaryConfig(): string
+    private function storeSharableConfig(): string
     {
         $dateTime = (new DateTime('now', new DateTimeZone('UTC')))->format('YmdHis');
         $rand = md5(uniqid((string) mt_rand(), true));
         $filename = "config.$dateTime.$rand.php";
-        $path = "{$this->storageDir()}/$filename";
+        $path = Settings::shareConfigDir($this->storageDir(), $filename);
 
         /** @var Repository $config */
         $config = config();
@@ -358,7 +363,7 @@ class BootTestLaravel extends BootTestAbstract
             . PHP_EOL;
 
         if (!(new Filesystem())->writeFile($path, 'w', $content)) {
-            throw AdaptBrowserTestException::tempConfigFileNotSaved($path);
+            throw AdaptBrowserTestException::sharableConfigFileNotSaved($path);
         }
         return $path;
     }
@@ -370,8 +375,8 @@ class BootTestLaravel extends BootTestAbstract
      */
     public function runPostTestCleanUp()
     {
-        // remove the temporary config files that were created in this test run (if this is a browser test)
-        foreach ($this->tempConfigPaths as $path) {
+        // remove the sharable config files that were created in this test run (if this is a browser test)
+        foreach ($this->sharableConfigPaths as $path) {
             @unlink($path);
         }
     }
@@ -389,7 +394,7 @@ class BootTestLaravel extends BootTestAbstract
             return;
         }
 
-        if (!$this->getMutexLock("{$this->storageDir()}/purge-lock")) {
+        if (!$this->getMutexLock(Settings::baseStorageDir($this->storageDir(), "purge-lock"))) {
             return;
         }
 
@@ -398,7 +403,7 @@ class BootTestLaravel extends BootTestAbstract
 
         $removedCount = $this->purgeStaleDatabases();
         $removedCount += $this->purgeStaleSnapshots();
-        $removedCount += $this->removeOrphanedTempConfigFiles();
+        $removedCount += $this->removeOrphanedSharableConfigFiles();
 
         $message = $removedCount
             ? 'Total time taken for removal'
@@ -504,19 +509,21 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Remove old (i.e. orphaned) temporary config files.
+     * Remove old (i.e. orphaned) sharable config files.
      *
      * @return integer
      */
-    private function removeOrphanedTempConfigFiles(): int
+    private function removeOrphanedSharableConfigFiles(): int
     {
         $removedCount = 0;
 
+        $dir = Settings::shareConfigDir($this->storageDir());
+
         $nowUTC = new DateTime('now', new DateTimeZone('UTC'));
-        $paths = (new Filesystem())->filesInDir($this->storageDir());
+        $paths = (new Filesystem())->filesInDir($dir);
         foreach ($paths as $path) {
 
-            $filename = mb_substr($path, mb_strlen($this->storageDir() . '/'));
+            $filename = mb_substr($path, mb_strlen($dir));
             $createdAtUTC = $this->detectConfigCreatedAt($filename);
 
             if (!$createdAtUTC) {
@@ -527,7 +534,7 @@ class BootTestLaravel extends BootTestAbstract
             $purgeAfterUTC = (clone $createdAtUTC)->add(new DateInterval("PT8H"));
             if ($purgeAfterUTC <= $nowUTC) {
                 @unlink($path);
-                $this->log->vDebug("Removed orphaned temporary config file \"$filename\"");
+                $this->log->vDebug("Removed orphaned sharable config file \"$filename\"");
                 $removedCount++;
             }
         }
@@ -536,9 +543,9 @@ class BootTestLaravel extends BootTestAbstract
     }
 
     /**
-     * Look at a temporary config file's name and determine when it was created.
+     * Look at a sharable config file's name and determine when it was created.
      *
-     * @param string $filename The name of the temporary config file.
+     * @param string $filename The name of the sharable config file.
      * @return DateTime|null
      */
     private function detectConfigCreatedAt(string $filename)

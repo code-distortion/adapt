@@ -27,14 +27,14 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
 
 
     /**
-     * Ensure the storage-directory exists.
+     * Ensure the storage-directories exist.
      *
      * @return static
      * @throws AdaptConfigException When the storage directory cannot be created.
      */
-    public function ensureStorageDirExists()
+    public function ensureStorageDirsExist()
     {
-        StorageDir::ensureStorageDirExists($this->storageDir(), new Filesystem(), $this->log);
+        StorageDir::ensureStorageDirsExist(LaravelSupport::storageDir(), new Filesystem(), $this->log);
         return $this;
     }
 
@@ -104,7 +104,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
             ->databaseModifier($remoteConfigDTO->databaseModifier)
-            ->storageDir($this->storageDir())
+            ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
             ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
@@ -117,24 +117,12 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 // don't forward again
                 $remoteConfigDTO->isBrowserTest,
                 $remoteConfigDTO->isParallelTest,
+                $remoteConfigDTO->usingPest,
                 true,
                 // yes, a remote database is being built here now, locally
                 config("session.driver"),
                 $remoteConfigDTO->sessionDriver
             )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarios)->snapshots($remoteConfigDTO->useSnapshotsWhenReusingDB, $remoteConfigDTO->useSnapshotsWhenNotReusingDB)
             ->forceRebuild($remoteConfigDTO->forceRebuild)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
-    }
-
-    /**
-     * Get the storage directory.
-     *
-     * @return string
-     */
-    private function storageDir(): string
-    {
-        $c = Settings::LARAVEL_CONFIG_NAME;
-        $return = config("$c.storage_dir");
-        $return = is_string($return) ? $return : '';
-        return rtrim($return, '\\/');
     }
 }

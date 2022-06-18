@@ -21,8 +21,8 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
      */
     protected function listDatabases(): array
     {
-        return $this->di->filesystem->dirExists($this->configDTO->storageDir)
-            ? $this->di->filesystem->filesInDir($this->configDTO->storageDir)
+        return $this->di->filesystem->dirExists(Settings::databaseDir($this->configDTO->storageDir))
+            ? $this->di->filesystem->filesInDir(Settings::databaseDir($this->configDTO->storageDir))
             : [];
     }
 
@@ -34,10 +34,11 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
      */
     protected function shouldIgnoreDatabase($database): bool
     {
-        // ignore other files
-        $temp = (array) preg_split('/[\\\\\/]+/', $database);
-        $filename = array_pop($temp);
-        return in_array($filename, ['.gitignore', 'purge-lock']);
+        return false;
+//        // ignore other files
+//        $temp = (array) preg_split('/[\\\\\/]+/', $database);
+//        $filename = array_pop($temp);
+//        return in_array($filename, ['.gitignore', 'purge-lock']);
     }
 
     /**

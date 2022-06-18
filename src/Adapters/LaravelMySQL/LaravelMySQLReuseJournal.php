@@ -88,7 +88,7 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
     {
         $table = Settings::JOURNAL_CHANGE_TRACKER_TABLE;
         $query = "CREATE TABLE `$table` (`table` varchar(63) NOT NULL, PRIMARY KEY(`table`))";
-        $this->di->db->directExec($query);
+        $this->di->db->statement($query);
     }
 
 
@@ -131,13 +131,13 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
             $journalQuery = $this->replaceTableNameAndAddNewFields($journalQuery, $srcTable, $journalTable);
 
             try {
-                $this->di->db->directExec($journalQuery);
+                $this->di->db->statement($journalQuery);
             } catch (PDOException $e) {
                 throw AdaptJournalException::journalCreateTableQueryFailed($srcTable, $e);
             }
 
         } catch (AdaptJournalException $e) {
-            throw $e; // simply re-throw it
+            throw $e; // just rethrow as is
         } catch (Throwable $e) {
             throw AdaptJournalException::cannotCreateJournalTable($srcTable, $e);
         }
