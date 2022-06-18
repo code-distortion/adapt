@@ -23,6 +23,7 @@ class VersionSupport
         $logTimer = $log->newTimer();
 
         $versionsDTO = new VersionsDTO();
+        $versionsDTO->osVersion(PHP_OS);
         $versionsDTO->phpVersion(phpversion());
         self::resolvePackageVersions($versionsDTO);
         $dbAdapter->version->resolveDatabaseVersion($versionsDTO);
