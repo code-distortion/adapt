@@ -154,7 +154,7 @@ class DatabaseBuilder
 
         if ($this->di->log->currentVerbosity() == 0) {
             $message = "$reusing $connection database \"$database\" $emoji";
-            $this->di->log->debug($message, $logTimer, false);
+            $this->di->log->debug($message, $logTimer);
         } else {
             $message = "$reusing database \"$database\" - total preparation time $emoji";
             $this->di->log->vDebug($message, $logTimer, true);
@@ -382,9 +382,7 @@ class DatabaseBuilder
 
         $reused = $this->buildOrReuseDBLocally($forceRebuild);
 
-        if ($this->resolvedSettingsDTO) { // for phpstan
-            $this->resolvedSettingsDTO->databaseWasReused($reused);
-        }
+        $this->resolvedSettingsDTO?->databaseWasReused($reused);
     }
 
     /**
@@ -419,21 +417,15 @@ class DatabaseBuilder
         try {
             $logTimer = $this->di->log->newTimer();
 
-            $database = (string) $this->configDTO->database;
             $canReuse = $this->canReuseDB(
                 $this->hasher->getBuildChecksum(),
                 $this->hasher->currentScenarioChecksum(),
-                $database,
+                (string) $this->configDTO->database,
                 $forceRebuild,
                 $logTimer
             );
 
-            if ($canReuse) {
-                $this->updateMetaTable();
-            } else {
-                $this->buildDBFresh();
-//                $this->createReuseMetaDataTable();
-            }
+            $canReuse ? $this->updateMetaTable() : $this->buildDBFresh();
 
             return $canReuse;
 
@@ -643,7 +635,6 @@ class DatabaseBuilder
         $seedersLeftToRun = [];
 
         if ($this->trySnapshots($seeders, $seedersLeftToRun)) {
-//            $this->createReuseMetaDataTable();
             $this->updateMetaTable();
             if (count($seedersLeftToRun)) {
                 $this->seed($seedersLeftToRun);
@@ -810,12 +801,8 @@ class DatabaseBuilder
 
         $logTimer = $this->di->log->newTimer();
 
-//        $this->dbAdapter()->reuseMetaData->removeReuseMetaTable(); // remove the meta-table, ready for the snapshot
-
         $snapshotPath = $this->generateSnapshotPath($seeders);
         $this->dbAdapter()->snapshot->takeSnapshot($snapshotPath);
-
-//        $this->createReuseMetaDataTable(); // put the meta-table back
 
         $this->di->log->vDebug('Snapshot save: "' . $snapshotPath . '" - successful', $logTimer);
     }
@@ -918,7 +905,6 @@ class DatabaseBuilder
         $this->di->log->vDebug($message, $logTimer);
 
         if (!$this->configDTO->shouldInitialise()) {
-//            $this->configDTO->database($database);
             $this->di->log->vDebug("Not using connection \"$connection\" locally");
             return;
         }

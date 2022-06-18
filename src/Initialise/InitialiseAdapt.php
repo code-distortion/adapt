@@ -127,6 +127,7 @@ trait InitialiseAdapt
             };
         }
 
+        // detect if Pest is being used
         $usingPest = false;
         foreach (class_uses($this) as $trait) {
             if (mb_substr($trait, 0, mb_strlen('Pest\\')) == 'Pest\\') {

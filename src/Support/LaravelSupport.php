@@ -71,6 +71,7 @@ class LaravelSupport
     /**
      * Disconnect from databases that already have a connection.
      *
+     * @param LogInterface $log The object to log with.
      * @return void
      */
     public static function disconnectFromConnectedDatabases(LogInterface $log): void
@@ -187,12 +188,12 @@ class LaravelSupport
      */
     public static function resolveSeeders(
         bool $hasSeedersProp,
-        $seedersProp,
+        mixed $seedersProp,
         bool $hasSeederProp,
-        $seederProp,
+        mixed $seederProp,
         bool $hasSeedProp,
-        $seedProp,
-        $seedersConfig
+        mixed $seedProp,
+        mixed $seedersConfig
     ): array {
 
         // use the $seeders property first if it exists
@@ -216,7 +217,7 @@ class LaravelSupport
     /**
      * Register a scoped value with Laravel's service container.
      *
-     * @param string $name The name of the scoped value.
+     * @param string   $name     The name of the scoped value.
      * @param callable $callback The callback to run to populate the value.
      * @return void
      */

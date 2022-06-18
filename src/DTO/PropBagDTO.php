@@ -19,7 +19,7 @@ abstract class PropBagDTO
      * @param mixed  $value The value to set.
      * @return static
      */
-    public function addProp(string $name, $value): self
+    public function addProp(string $name, mixed $value): self
     {
         $this->props[$name] = $value;
         return $this;
@@ -35,7 +35,7 @@ abstract class PropBagDTO
      * @return mixed
      * @throws AdaptPropBagDTOException When the property hasn't been set.
      */
-    public function prop(?string $name, $default = null)
+    public function prop(?string $name, mixed $default = null)
     {
         if (!$this->hasProp($name)) {
             $hasDefault = (func_num_args() >= 2);
@@ -66,7 +66,7 @@ abstract class PropBagDTO
      * @param mixed       $default   The default value.
      * @return mixed
      */
-    abstract public function adaptConfig(string $configKey, ?string $propName = null, $default = null);
+    abstract public function adaptConfig(string $configKey, ?string $propName = null, mixed $default = null);
 
     /**
      * Get a property from $this - but fall back to config values when not present.
@@ -76,5 +76,5 @@ abstract class PropBagDTO
      * @param mixed       $default   The default value.
      * @return mixed
      */
-    abstract public function config(string $configKey, ?string $propName = null, $default = null);
+    abstract public function config(string $configKey, ?string $propName = null, mixed $default = null);
 }

@@ -42,7 +42,7 @@ class PHPSupport
      * @param mixed  $newValue     The value to set.
      * @return void
      */
-    public static function updatePrivateProperty(object $object, string $propertyName, $newValue): void
+    public static function updatePrivateProperty(object $object, string $propertyName, mixed $newValue): void
     {
         $reflection = new ReflectionObject($object);
 

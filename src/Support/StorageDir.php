@@ -35,9 +35,10 @@ class StorageDir
     /**
      * Create a directory if it doesn't exist.
      *
-     * @param string              $dir        The storage directory to check/create.
-     * @param FilesystemInterface $filesystem The filesystem object to use.
-     * @param LogInterface        $log        The log object to use.
+     * @param string              $dir             The storage directory to check/create.
+     * @param FilesystemInterface $filesystem      The filesystem object to use.
+     * @param LogInterface        $log             The log object to use.
+     * @param boolean             $createGitIgnore Whether to create a .gitignore file or not.
      * @return void
      * @throws AdaptConfigException When the directory could not be created.
      */

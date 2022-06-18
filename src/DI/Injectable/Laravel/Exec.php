@@ -15,7 +15,7 @@ class Exec
      * @param mixed  $returnVal Will contain the script's exit-code.
      * @return string|boolean
      */
-    public function run(string $command, &$output, &$returnVal)
+    public function run(string $command, mixed &$output, mixed &$returnVal)
     {
         $command = "($command) 2>&1"; // redirect stderr to stdout
         return exec($command, $output, $returnVal);

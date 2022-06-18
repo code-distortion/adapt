@@ -206,7 +206,8 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             LaravelSupport::runFromBasePathDir();
             LaravelSupport::useTestingConfig();
 
-            // don't use stdout debugging, it will ruin the response being generated that the calling Adapt instance reads.
+            // don't use stdout debugging,
+            // it will ruin the response being generated that the calling Adapt instance reads.
             $log = LaravelSupport::newLaravelLogger(false);
 
             // Laravel connects to the database in some situations before reaching here (e.g. when using debug-bar).

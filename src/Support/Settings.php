@@ -197,6 +197,6 @@ class Settings
      */
     private static function buildDir(string $dir, ?string $filename = null): string
     {
-        return mb_strlen($filename) ? "$dir/$filename" : "$dir";
+        return mb_strlen((string) $filename) ? "$dir/$filename" : "$dir";
     }
 }
