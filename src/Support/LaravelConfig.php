@@ -71,11 +71,22 @@ class LaravelConfig
         $app = app();
         $baseDir = rtrim($app->configPath(), '\\/') . '/';
 
+        $adaptPublishPath = static::configPublishPath();
+
         foreach ($publishGroups as $publishGroup) {
             foreach ($publishGroup as $srcPath => $publishPath) {
 
                 if (mb_substr($publishPath, 0, mb_strlen($baseDir)) != $baseDir) {
                     continue;
+                }
+
+                // use Adapt's "real" config instead of the "publishable" one
+                if ($publishPath == $adaptPublishPath) {
+                    $srcPath = str_replace(
+                        Settings::LARAVEL_PUBLISHABLE_CONFIG,
+                        Settings::LARAVEL_REAL_CONFIG,
+                        $srcPath
+                    );
                 }
 
                 $configFilename = mb_substr($publishPath, mb_strlen($baseDir));
@@ -200,7 +211,15 @@ class LaravelConfig
 
 
 
-
+    /**
+     * Resolve the location that Adapt's config is published to.
+     *
+     * @return string
+     */
+    public static function configPublishPath(): string
+    {
+        return config_path(Settings::LARAVEL_CONFIG_NAME . '.php');
+    }
 
     /**
      * Re-evaluate a particular config file, based on the current env(..) values.

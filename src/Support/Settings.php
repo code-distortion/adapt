@@ -18,6 +18,12 @@ class Settings
     /** @var string The name of the Adapt config file. */
     public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
+    /** @var string The config file that gets published. */
+    public const LARAVEL_PUBLISHABLE_CONFIG = '/config/config.publishable.php';
+
+    /** @var string The config file that gets used. */
+    public const LARAVEL_REAL_CONFIG = '/config/config.real.php';
+
     /** @var string The .env.testing file to use. */
     public const LARAVEL_ENV_TESTING_FILE = '.env.testing';
 

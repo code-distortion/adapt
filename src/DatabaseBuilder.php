@@ -129,6 +129,7 @@ class DatabaseBuilder
         $this->onlyExecuteOnce();
         $this->prePreparationChecks();
         $this->prepareDB();
+
         $this->logTotalTimeTaken($logTimer);
 
         return $this;

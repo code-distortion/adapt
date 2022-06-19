@@ -11,6 +11,7 @@ use CodeDistortion\Adapt\Laravel\Commands\AdaptRemoveCachesCommand;
 use CodeDistortion\Adapt\Laravel\Middleware\RemoteShareMiddleware;
 use CodeDistortion\Adapt\Laravel\Middleware\ReplaceResponseWithRemoteBuildResponseMiddleware;
 use CodeDistortion\Adapt\Support\Exceptions;
+use CodeDistortion\Adapt\Support\LaravelConfig;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -27,9 +28,6 @@ use Throwable;
  */
 class AdaptLaravelServiceProvider extends ServiceProvider
 {
-    /** @var string The path to the config file in the filesystem. */
-    private string $configPath = __DIR__ . '/../config/config.php';
-
     /**
      * The response after building the database, so the middleware can return the clean version (un-changed by other
      * middleware).
@@ -78,7 +76,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function initialiseConfig(): void
     {
-        $this->mergeConfigFrom($this->configPath, Settings::LARAVEL_CONFIG_NAME);
+        $this->mergeConfigFrom(__DIR__ . '/..' . Settings::LARAVEL_REAL_CONFIG, Settings::LARAVEL_CONFIG_NAME);
     }
 
     /**
@@ -88,15 +86,12 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     private function publishConfig(): void
     {
-        if (!$this->app->runningInConsole()) {
-            return;
-        }
         if ($this->app->environment('testing')) {
             return;
         }
 
         $this->publishes(
-            [$this->configPath => config_path(Settings::LARAVEL_CONFIG_NAME . '.php'),],
+            [__DIR__ . '/..' . Settings::LARAVEL_PUBLISHABLE_CONFIG => LaravelConfig::configPublishPath()],
             'config'
         );
     }
@@ -215,7 +210,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
             // disconnect now to start a fresh
             LaravelSupport::disconnectFromConnectedDatabases($log);
 
-            $this->remoteBuildResponse = $this->executeBuilder($request, $log);
+            $this->remoteBuildResponse = $this->buildAndExecuteBuilder($request, $log);
 
         } catch (Throwable $e) {
             $this->remoteBuildResponse = $this->handleException($e, $log);
@@ -234,7 +229,7 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      * @return ResponseFactory|Response
      * @throws AdaptBootException When the ConfigDTO can't be built from its payload.
      */
-    private function executeBuilder(Request $request, LogInterface $log)
+    private function buildAndExecuteBuilder(Request $request, LogInterface $log)
     {
         $payload = $request->input('configDTO');
         $payload = is_string($payload) ? $payload : ''; // phpstan
