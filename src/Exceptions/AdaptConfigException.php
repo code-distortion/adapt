@@ -190,4 +190,15 @@ class AdaptConfigException extends AdaptException
             : 'Please review the $remapConnections test-class property';
         return new self("Cannot interpret remap-database string \"$orig\". $errorPart");
     }
+
+    /**
+     * When a connection would be prepared by more than one DatabaseBuilder.
+     *
+     * @param string $connection The duplicated connection.
+     * @return self
+     */
+    public static function sameConnectionBeingBuiltTwice(string $connection): self
+    {
+        return new self("The \"$connection\" connection is being prepared more than once");
+    }
 }

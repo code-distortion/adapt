@@ -150,7 +150,9 @@ abstract class BootTestAbstract implements BootTestInterface
         $this->initBuilders();
         $this->purgeStaleThings();
 
-        foreach ($this->pickBuildersToExecute() as $builder) {
+        $builders = $this->pickBuildersToExecute();
+        $this->checkForDuplicateConnections($builders);
+        foreach ($builders as $builder) {
             $builder->execute();
         }
 
@@ -279,6 +281,28 @@ abstract class BootTestAbstract implements BootTestInterface
         }
         return false;
     }
+
+    /**
+     * Check to make sure that no two builders try to prepare for the same connection.
+     *
+     * @param DatabaseBuilder[] $builders The builders to check.
+     * @return void
+     * @throws AdaptConfigException When a connection would be prepared by more than one DatabaseBuilder.
+     */
+    private function checkForDuplicateConnections(array $builders): void
+    {
+        $connections = [];
+        foreach ($builders as $builder) {
+
+            $connection = $builder->getConnection();
+            if (in_array($connection, $connections)) {
+                throw AdaptConfigException::sameConnectionBeingBuiltTwice($connection);
+            }
+            $connections[] = $connection;
+        }
+    }
+
+
 
     /**
      * Pick the connections' databases, and register them with the framework.
