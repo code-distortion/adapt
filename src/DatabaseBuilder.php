@@ -192,6 +192,8 @@ class DatabaseBuilder
         $a = $isLast && $this->configDTO->shouldUseTransaction() && !$b && !$c && !$d;
 
         $logTimer = $this->di->log->newTimer();
+
+        $this->checkForRolledBackTransaction();
         $this->rollBackTransaction();
         $this->checkForCommittedTransaction($logTimer, $a);
 

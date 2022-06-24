@@ -42,9 +42,25 @@ interface ReuseTransactionInterface
     public function rollBackTransaction(): void;
 
     /**
+     * Check if the transaction was rolled-back.
+     *
+     * (to be run before Adapt rolls back the transaction).
+     *
+     * @return boolean
+     */
+    public function wasTransactionRolledBack(): bool;
+
+    /**
      * Check if the transaction was committed.
      *
      * @return boolean
      */
     public function wasTransactionCommitted(): bool;
+
+    /**
+     * It was detected that the transaction was rolled-back, record this so the database is rebuilt next time.
+     *
+     * @return void
+     */
+    public function recordThatTransactionWasRolledBack(): void;
 }

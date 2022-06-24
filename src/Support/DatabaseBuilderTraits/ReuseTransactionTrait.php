@@ -46,12 +46,38 @@ trait ReuseTransactionTrait
     }
 
     /**
-     * Check to see if any of the transaction was committed (if relevant), and generate a warning.
+     * Check to see if any of the transaction was rolled-back (if relevant).
+     *
+     * @return void
+     * @throws AdaptTransactionException When the test rolled-back the wrapper-transaction.
+     */
+    private function checkForRolledBackTransaction(): void
+    {
+        if (!$this->configDTO->shouldUseTransaction()) {
+            return;
+        }
+
+        if (!$this->dbAdapter()->reuseTransaction->wasTransactionRolledBack()) {
+            return;
+        }
+
+        $this->dbAdapter()->reuseTransaction->recordThatTransactionWasRolledBack();
+
+//        $this->di->log->vWarning(
+//            "The wrapper-transaction was rolled-back in database \"{$this->configDTO->database}\"",
+//            $addNewLineAfter
+//        );
+
+        throw AdaptTransactionException::aTestRolledBackTheWrapperTransaction();
+    }
+
+    /**
+     * Check to see if any of the transaction was committed (if relevant).
      *
      * @param integer $logTimer        The timer that started before rolling the transaction back.
      * @param boolean $addNewLineAfter Whether a new line should be added after logging or not.
      * @return void
-     * @throws AdaptTransactionException When the test committed the test-transaction.
+     * @throws AdaptTransactionException When the test committed the wrapper-transaction.
      */
     private function checkForCommittedTransaction(int $logTimer, bool $addNewLineAfter): void
     {
@@ -73,6 +99,6 @@ trait ReuseTransactionTrait
 //            $addNewLineAfter
 //        );
 
-        throw AdaptTransactionException::aTestCommittedTheWrapperTransaction($this->configDTO->testName);
+        throw AdaptTransactionException::aTestCommittedTheWrapperTransaction();
     }
 }

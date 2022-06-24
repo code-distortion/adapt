@@ -2,22 +2,17 @@
 
 namespace CodeDistortion\Adapt\Adapters\LaravelMySQL;
 
+use CodeDistortion\Adapt\Adapters\AbstractClasses\AbstractReuseTransaction;
 use CodeDistortion\Adapt\Adapters\Interfaces\ReuseTransactionInterface;
-use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\Settings;
-use stdClass;
 use Throwable;
 
 /**
  * Database-adapter methods related to managing Laravel/MySQL reuse through transactions.
  */
-class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
+class LaravelMySQLReuseTransaction extends AbstractReuseTransaction implements ReuseTransactionInterface
 {
-    use InjectTrait;
-
-
-
     /**
      * Determine if a transaction can be used on this database (for database re-use).
      *
@@ -53,24 +48,31 @@ class LaravelMySQLReuseTransaction implements ReuseTransactionInterface
     }
 
     /**
-     * Check if the transaction was committed.
+     * Load the transaction-reusable value from Adapt's reuse-info table.
      *
-     * @return boolean
+     * @return integer|null
      */
-    public function wasTransactionCommitted(): bool
+    protected function loadTransactionReusable(): ?int
     {
         try {
             $rows = $this->di->db->select(
                 "SELECT `transaction_reusable` FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"
             );
 
-            /** @var stdClass|null $reuseInfo */
-            $reuseInfo = $rows[0] ?? null;
+            return $rows[0]?->transaction_reusable ?? null;
 
-            return ($reuseInfo->transaction_reusable ?? null) === 0;
-
-        } catch (Throwable $e) {
-            return false;
+        } catch (Throwable) {
+            return null;
         }
+    }
+
+    /**
+     * It was detected that the transaction was rolled-back, record this so the database is rebuilt next time.
+     *
+     * @return void
+     */
+    public function recordThatTransactionWasRolledBack(): void
+    {
+        $this->di->db->update("UPDATE `" . Settings::REUSE_TABLE . "` SET `transaction_reusable` = 0");
     }
 }
