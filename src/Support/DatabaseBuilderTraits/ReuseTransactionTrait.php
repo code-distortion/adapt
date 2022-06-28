@@ -26,7 +26,8 @@ trait ReuseTransactionTrait
         $this->dbAdapter()->reuseTransaction->startTransaction();
 
         $this->di->log->vDebug(
-            "Started the wrapper-transaction in database \"{$this->configDTO->database}\"",
+            "Started the wrapper-transaction in \"{$this->configDTO->connection}\" "
+            . "database \"{$this->configDTO->database}\"",
             $logTimer
         );
     }
@@ -64,7 +65,8 @@ trait ReuseTransactionTrait
         $this->dbAdapter()->reuseTransaction->recordThatTransactionWasRolledBack();
 
 //        $this->di->log->vWarning(
-//            "The wrapper-transaction was rolled-back in database \"{$this->configDTO->database}\"",
+//            "The wrapper-transaction was rolled-back in \"{$this->configDTO->connection}\" database "
+//            . "\"{$this->configDTO->database}\"",
 //            $addNewLineAfter
 //        );
 
@@ -87,7 +89,8 @@ trait ReuseTransactionTrait
 
         if (!$this->dbAdapter()->reuseTransaction->wasTransactionCommitted()) {
             $this->di->log->vDebug(
-                "Rolled back the wrapper-transaction in database \"{$this->configDTO->database}\"",
+                "Rolled back the wrapper-transaction in \"{$this->configDTO->connection}\" "
+                . "database \"{$this->configDTO->database}\"",
                 $logTimer,
                 $addNewLineAfter
             );

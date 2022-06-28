@@ -25,7 +25,8 @@ class StorageDir
         string $storageDir,
         FilesystemInterface $filesystem,
         LogInterface $log
-    ) {
+    ): void {
+
         StorageDir::ensureStorageDirExists($storageDir, $filesystem, $log, true);
         StorageDir::ensureStorageDirExists(Settings::databaseDir($storageDir), $filesystem, $log, false);
         StorageDir::ensureStorageDirExists(Settings::snapshotDir($storageDir), $filesystem, $log, false);
@@ -53,36 +54,60 @@ class StorageDir
             throw AdaptConfigException::cannotCreateStorageDir($dir);
         }
 
-        if ($filesystem->pathExists($dir)) {
-            if ($filesystem->isFile($dir)) {
-                throw AdaptConfigException::storageDirIsAFile($dir);
-            }
-        } else {
+        try {
 
-            try {
-                $logTimer = $log->newTimer();
+            if ($filesystem->pathExists($dir)) {
+                if ($filesystem->isFile($dir)) {
+                    throw AdaptConfigException::storageDirIsAFile($dir);
+                }
 
-                // create the storage directory
+            } else {
                 if (!$filesystem->mkdir($dir, 0744, true)) {
                     throw AdaptConfigException::cannotCreateStorageDir($dir);
                 }
-
-                // create a .gitignore file
-                if ($createGitIgnore) {
-                    $filesystem->writeFile("$dir/.gitignore", 'w', '*' . PHP_EOL . '!.gitignore' . PHP_EOL);
-                }
-
-                $log->vDebug("Created adapt-test-storage dir: \"$dir\"", $logTimer);
-
-            } catch (AdaptConfigException $e) {
-                throw $e; // just rethrow as is
-            } catch (Throwable $e) {
-                throw AdaptConfigException::cannotCreateStorageDir($dir, $e);
+                $log->vDebug("Created Adapt storage dir: \"$dir\"");
             }
 
-            if (!$filesystem->dirExists($dir)) {
-                throw AdaptConfigException::cannotCreateStorageDir($dir);
-            }
+            static::createGitIgnoreIfNeeded($dir, $filesystem, $log, $createGitIgnore);
+
+        } catch (AdaptConfigException $e) {
+            throw $e; // just rethrow as is
+        } catch (Throwable $e) {
+            throw AdaptConfigException::cannotCreateStorageDir($dir, $e);
         }
+    }
+
+    /**
+     * Create the .gitignore file if it doesn't exist (and is needed).
+     *
+     * @param string              $dir             The storage directory to check/create.
+     * @param FilesystemInterface $filesystem      The filesystem object to use.
+     * @param LogInterface        $log             The log object to use.
+     * @param boolean             $createGitIgnore Whether to create a .gitignore file or not.
+     * @return void
+     * @throws AdaptConfigException When the .gitignore file can't be created.
+     */
+    private static function createGitIgnoreIfNeeded(
+        string $dir,
+        FilesystemInterface $filesystem,
+        LogInterface $log,
+        bool $createGitIgnore
+    ): void {
+
+        if (!$createGitIgnore) {
+            return;
+        }
+
+        $path = "$dir/.gitignore";
+
+        if ($filesystem->pathExists($path)) {
+            return;
+        }
+
+        if (!$filesystem->writeFile($path, 'w', '*' . PHP_EOL . '!.gitignore' . PHP_EOL)) {
+            throw AdaptConfigException::cannotCreateGitIgnoreFile($path);
+        }
+
+        $log->vDebug("Created .gitignore file: \"$path\"");
     }
 }

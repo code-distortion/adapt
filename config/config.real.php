@@ -1,5 +1,7 @@
 <?php
 
+use CodeDistortion\Adapt\Support\Settings;
+
 return [
 
     /*
@@ -11,7 +13,7 @@ return [
      | specify a unique project name here to ensure that Adapt doesn't
      | interfere with Adapt test-databases from other projects.
      |
-     | string
+     | string / null
      |
      */
 
@@ -22,58 +24,129 @@ return [
      | Build Databases
      |--------------------------------------------------------------------------
      |
-     | Turn database building on or off. This config setting can be overridden
-     | by adding the $buildDatabases property to your test-class.
+     | Database building functionality can be turned on or off altogether. This
+     | config setting can be overridden by adding the $buildDatabases
+     | property to your test-class.
      |
-     | boolean
+     | true / false
      |
      */
 
     'build_databases' => true,
 
     /*
+     |--------------------------------------------------------------------------
+     | Default Database Connection
+     |--------------------------------------------------------------------------
+     |
+     | Set the "default" database connection to use when your tests run. This
+     | config setting can be overridden by adding the $defaultConnection
+     | property to your test-class.
+     |
+     | string / null
+     |
+     */
+
+    'default_connection' => env('ADAPT_DEFAULT_CONNECTION', null),
+
+    /*
     |--------------------------------------------------------------------------
-    | Reuse Test-Databases
+    | Database Build-Sources
     |--------------------------------------------------------------------------
     |
-    | Databases can be re-used when their contents can be kept in a known
-    | state, saving time. This can be achieved using transactions, or
-    | via a journal process.
+    | These are the things that the database is built from.
     |
-    | These config settings can be overridden by adding the
-    | $reuseTransaction and $reuseJournal properties to
-    | your test-class.
+    | INITIAL-IMPORTS: Custom sql-dumps, imported before migrations & seeders.
+    | e.g. [
+    |     'mysql' => [database_path('initial-imports/mysql/db.sql')],
+    |     'sqlite' => [database_path('initial-imports/sqlite/db.sqlite')],
+    |     'pgsql' => [database_path('initial-imports/postgres/db.sql')],
+    | ];
     |
-    | NOTE: Journal based re-use is EXPERIMENTAL, and is currently only
-    | available for MySQL databases.
+    | > NOTE: initial_imports aren't available for SQLite :memory: databases.
     |
-    | array<string, boolean>
+    | MIGRATIONS: Runs your migrations. You can specify a custom location.
+    | e.g. 'database/other-migrations'
+    |
+    | SEEDERS: Runs particular seeders.
+    | e.g. ['DatabaseSeeder', 'AnotherSeeder']
+    |
+    | These can be overridden by adding the $initialImports, $migrations
+    | and $seeders properties to your test-classes.
+    |
+    | build_sources.initial_imports.mysql:  string / string[]
+    | build_sources.initial_imports.pgsql:  string / string[]
+    | build_sources.initial_imports.sqlite: string / string[]
+    | build_sources.migrations:             true / false / string
+    | build_sources.seeders:                string / string[]
     |
     */
 
-    'reuse' => [
-        'transactions' => env('ADAPT_REUSE_TRANSACTIONS', true),
-        'journals' => env('ADAPT_REUSE_JOURNALS', false),
+    'build_sources' => [
+
+        'initial_imports' => [
+            'mysql' => [],
+            'pgsql' => [],
+            'sqlite' => [], // NOTE: SQLite files are simply copied
+        ],
+
+        'migrations' => true,
+
+        'seeders' => [],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | "Scenario" Test-Databases
+    | Database Re-use
     |--------------------------------------------------------------------------
     |
-    | A new database (based on the original database name) will be created
-    | for each "scenario" the tests need. This is best used with the
-    | "reuse" setting above.
+    | Databases can be re-used to save time, provided their contents are
+    | returned to a known state after each test. These are the methods
+    | that can be used to return databases to their original state.s
     |
-    | An scenario database will be called something like:
-    | "test_your_database_name_17bd3c_d266ab43ac75"
+    | TRANSACTIONS: Wraps each test inside a transaction that's rolled back
+    | afterward.
     |
-    | This config setting can be overridden by adding the $scenarios
-    | property to your test-class.
+    | JOURNALING: Tracks changes, and un-does them afterward.
     |
-    | This is turned off automatically when browser testing (e.g. Dusk).
+    | > WARNING: Journal based re-use is EXPERIMENTAL, and is currently only
+    | > available for MySQL databases.
     |
-    | boolean
+    | SNAPSHOTS: SQL-dumps can be taken at certain points to skip the building
+    | process next time. Snapshots will only be taken when transactions and
+    | journaling aren't used, unless the "!" prefix is added.
+    |
+    | These can be overridden by adding the $transactions, $journals and
+    | $snapshots properties to your test-classes.
+    |
+    | reuse.transactions: true / false
+    | reuse.journals:     true / false
+    | reuse.snapshots:    false
+    |                     / "afterMigrations" / "afterSeeders" / "both"
+    |                     / "!afterMigrations" / "!afterSeeders" / "!both"
+    |
+    */
+
+    'reuse_methods' => [
+
+        'transactions' => env('ADAPT_REUSE_TRANSACTIONS', true),
+
+        'journals' => env('ADAPT_REUSE_JOURNALS', false),
+
+        'snapshots' => env('ADAPT_REUSE_SNAPSHOTS', 'afterSeeders'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scenarios
+    |--------------------------------------------------------------------------
+    |
+    | A new database will be created for each "scenario" needed.
+    |
+    | A scenario database will be called something like:
+    | "your_test_database_name_17bd3c_d266ab43ac75"
+    |
+    | true / false
     |
     */
 
@@ -81,184 +154,84 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Database Snapshots
+    | Cache Invalidation - Detecting Changes to Source-Files
     |--------------------------------------------------------------------------
     |
-    | Database dumps/copies can be taken and imported automatically when
-    | needed, saving migration + seeding time.
+    | New databases will be built when changes to source-files are detected.
+    | Old databases and snapshot files are considered to be "stale", and
+    | will be removed automatically after a grace-period.
     |
-    | These config settings can be overridden by adding the
-    | $useSnapshotsWhenReusingDB and $useSnapshotsWhenNotReusingDB
-    | properties to your test-class.
+    | ENABLED: Turns cache invalidation on or off.
     |
-    | boolean|string
+    | LOCATIONS: Changes to files in these locations will be looked for.
     |
-    | possible values: false, 'afterMigrations', 'afterSeeders', 'both'
+    | CHECKSUM_METHOD: The method used to detect changes. Either based on file
+    | modified timestamps, or by looking at their content (which is slower).
+    |
+    | PURGE_STALE: Stale databases and snapshots will be looked for and
+    | removed when enabled.
+    |
+    | cache_invalidation.enabled:         true / false
+    | cache_invalidation.locations:       string[]
+    | cache_invalidation.checksum_method: "modified" / "content"
+    | cache_invalidation.purge_stale:     true / false
     |
     */
 
-    'use_snapshots_when_reusing_db' => env('ADAPT_USE_SNAPSHOTS_WHEN_REUSING_DB', false),
-    'use_snapshots_when_not_reusing_db' => env('ADAPT_USE_SNAPSHOTS_WHEN_NOT_REUSING_DB', 'afterMigrations'),
+    'cache_invalidation' => [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Files to Import Before Migrations & Seeders are Run
-    |--------------------------------------------------------------------------
-    |
-    | If you have your own database-dump/s that you'd like to be imported
-    | BEFORE migrations run, list them here. This config setting can be
-    | overridden by adding the $initialImports property to your
-    | test-class.
-    |
-    | NOTE: It's important that these dumps don't contain output from seeders
-    | if those seeders are also going to be run by Adapt afterwards.
-    |
-    | array<string, string>|array<string, string[]>
-    |
-    | e.g. [
-    |   'mysql' => [database_path('dumps/mysql/my-database.sql')],
-    |   'sqlite' => [database_path('dumps/sqlite/my-database.sqlite')], // SQLite files are simply copied
-    |   'pgsql' => [database_path('dumps/postgres/my-database.sql')],
-    | ];
-    |
-    */
+        'enabled' => env('ADAPT_CACHE_INVALIDATION_ENABLED', true),
 
-    'initial_imports' => [
-        'mysql' => [],
-        'sqlite' => [],
-        'pgsql' => [],
+        'locations' => [
+            database_path('migrations'),
+            database_path('seeders'), // Laravel 8 and after
+//            database_path('seeds'), // before Laravel 8
+            database_path('factories'),
+        ],
+
+        'checksum_method' => env('ADAPT_CACHE_INVALIDATION_CHECKSUM_METHOD', 'modified'),
+
+        'purge_stale' => env('ADAPT_CACHE_INVALIDATION_PURGE_STALE', true),
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Run Migrations
-    |--------------------------------------------------------------------------
-    |
-    | Your test-databases can be migrated before use. This can be true/false,
-    | or the LOCATION of the migration files. This config setting can be
-    | overridden by adding the $migrations property to your test-class.
-    |
-    | boolean|string
-    |
-    | e.g. true, false, 'database/migrations'
-    |
-    */
-
-    'migrations' => true,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Seeders To Run
-    |--------------------------------------------------------------------------
-    |
-    | These seeders will be run for you automatically when the database is
-    | prepared. This config setting can be overridden by adding the
-    | $seeders property to your test-class.
-    |
-    | NOTE: Seeders are only run when migrations (above) are turned on.
-    |
-    | string|string[]
-    |
-    | e.g. ['DatabaseSeeder']
-    |
-    */
-
-    'seeders' => [],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Storage Location
-    |--------------------------------------------------------------------------
-    |
-    | Database-snapshots (for quicker loading) and disk-based databases will
-    | be stored in this directory. It will be created automatically.
-    |
-    | string
-    |
-    | e.g. database_path('adapt-test-storage')
-    |
-    */
-
-    'storage_dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Detect Changes to Source Files
-    |--------------------------------------------------------------------------
-    |
-    | Adapt will detect when source files (like migrations, seeders and
-    | factories) change. When they do, new databases will be built.
-    |
-    | 'content' will be more reliable
-    | 'modified' will be quicker
-    | null - turned off
-    |
-    | If needed, you can remove old databases yourself by running:
-    | "php artisan adapt:clear"
-    |
-    | ?string - 'modified' / 'content' / null
-    |
-    */
-
-    'cache_invalidation_method' => env('ADAPT_CACHE_INVALIDATION_METHOD', 'modified'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Files That Alter Test-Databases Building
-    |--------------------------------------------------------------------------
-    |
-    | Changes to files in these directories will invalidate existing
-    | test-databases and snapshots (they'll be rebuilt).
-    |
-    | "initial_imports" and "migration" files are included automatically.
-    |
-    | string[]
-    |
-    */
-
-    'look_for_changes_in' => [
-        database_path('factories'),
-        database_path('seeders'), // Laravel 8 and after
-//        database_path('seeds'), // before Laravel 8
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Purging of Stale Test-Databases And Snapshot Files
-    |--------------------------------------------------------------------------
-    |
-    | Test-databases and snapshot files become stale when their source files
-    | change. When this setting is turned on, these will be removed after a
-    | "while" (this gives you a chance to change code branches without
-    | them being removed straight away).
-    |
-    | NOTE: This setting is disabled automatically when using the
-    | "remote_build_url" config setting below.
-    |
-    | boolean
-    |
-    */
-
-    'remove_stale_things' => env('ADAPT_REMOVE_STALE_THINGS', true),
 
     /*
     |--------------------------------------------------------------------------
     | Database Verification
     |--------------------------------------------------------------------------
     |
-    | The database structure and content will be verified after each test has
-    | completed to ensure it hasn't changed. This is disabled by default and
-    | isn't generally necessary. It was added as a safety-check when using
-    | the experimental journal-based re-use option above.
+    | The database structure and content can be verified after each test, to
+    | ensure they haven't changed. This was added as a safety-check when
+    | using the experimental journal-based re-use option above. It's
+    | disabled by default, and isn't otherwise necessary.
     |
-    | NOTE: Database verification EXPERIMENTAL, and is currently only
-    | available for MySQL databases.
+    | > WARNING: Database verification EXPERIMENTAL, and is currently only
+    | > available for MySQL databases.
     |
-    | boolean
+    | true / false
     |
     */
 
     'verify_databases' => env('ADAPT_VERIFY_DATABASES', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remote Database Building
+    |--------------------------------------------------------------------------
+    |
+    | Adapt can be configured to use another installation of Adapt to build
+    | databases, instead of doing it itself. The other installation must
+    | be web-accessible to this instance.
+    |
+    | This config setting can be overridden by adding the $remoteBuildUrl
+    | property to your test-class.
+    |
+    | string / null
+    |
+    | e.g. 'https://other-site.local/'
+    |
+    */
+
+    'remote_build_url' => env('ADAPT_REMOTE_BUILD_URL', null),
 
     /*
     |--------------------------------------------------------------------------
@@ -274,7 +247,7 @@ return [
     |
     | "mysql < sqlite, mysql2 < sqlite2";
     |
-    | e.g. You can make the settings here more important than your test-class
+    | You can make the settings here more important than your test-class
     | settings by adding "!".
     |
     | "!mysql < sqlite"
@@ -287,25 +260,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Remote Database Building
+    | Storage Location
     |--------------------------------------------------------------------------
     |
-    | Adapt can be configured to use another installation of Adapt to
-    | build databases instead of doing it itself. This may be
-    | useful when sharing a database between projects.
+    | Adapt will store files in this directory. It is created automatically.
     |
-    | The other installation must be web-accessible to the first.
+    | string
     |
-    | This config setting can be overridden by adding the
-    | $remoteBuildUrl property to your test-class.
-    |
-    | string|null
-    |
-    | e.g. 'https://other-site.local/'
+    | e.g. database_path('adapt-test-storage')
     |
     */
 
-    'remote_build_url' => env('ADAPT_REMOTE_BUILD_URL', null),
+    'storage_dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
 
     /*
      |--------------------------------------------------------------------------
@@ -331,11 +297,13 @@ return [
     | Database Settings And Executables
     |--------------------------------------------------------------------------
     |
-    | Settings specific to each type of database, including the location
-    | of their executable files in case they aren't in your system-
-    | path.
+    | Settings specific to each type of database, including the location of
+    | their executable files (in case they aren't in your system-path).
     |
-    | array (see below)
+    | database.mysql.executables.mysql:     string
+    | database.mysql.executables.mysqldump: string
+    | database.pgsql.executables.psql:      string
+    | database.pgsql.executables.pg_dump:   string
     |
     */
 
@@ -353,5 +321,13 @@ return [
             ],
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Other settings
+    |--------------------------------------------------------------------------
+    */
+
+    'stale_grace_seconds' => env('ADAPT_STALE_GRACE_SECONDS', Settings::DEFAULT_STALE_GRACE_SECONDS),
 
 ];

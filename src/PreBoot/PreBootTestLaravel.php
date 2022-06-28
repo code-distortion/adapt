@@ -161,11 +161,11 @@ class PreBootTestLaravel
      */
     private function initLaravelDefaultConnection(): void
     {
-        if (!$this->propBag->hasProp('defaultConnection')) {
+        $connection = $this->propBag->adaptConfig('default_connection', 'defaultConnection');
+        if (!$connection) {
             return;
         }
 
-        $connection = $this->propBag->prop('defaultConnection');
         $connection = is_string($connection) ? $connection : ''; // phpstan
         if (!config("database.connections.$connection")) {
             throw AdaptConfigException::invalidDefaultConnection($connection);

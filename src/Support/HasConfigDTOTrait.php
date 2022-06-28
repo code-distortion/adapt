@@ -50,10 +50,11 @@ trait HasConfigDTOTrait
     /**
      * Set the method to use when checking for source-file changes.
      *
-     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
+     * @deprecated
+     * @param string $cacheInvalidationMethod The method to use - 'modified' / 'content'
      * @return static
      */
-    public function cacheInvalidationMethod($cacheInvalidationMethod): self
+    public function cacheInvalidationMethod(string $cacheInvalidationMethod): self
     {
         $this->configDTO->cacheInvalidationMethod($cacheInvalidationMethod);
         return $this;
@@ -62,6 +63,7 @@ trait HasConfigDTOTrait
     /**
      * Turn checking for source-file changes off.
      *
+     * @deprecated
      * @return static
      */
     public function noCacheInvalidationMethod(): self
@@ -145,7 +147,7 @@ trait HasConfigDTOTrait
      * @param boolean|string $migrations Should the migrations be run? / the path of the migrations to run.
      * @return static
      */
-    public function migrations($migrations = true): self
+    public function migrations(bool|string $migrations = true): self
     {
         $this->configDTO->migrations($migrations);
         return $this;
@@ -236,25 +238,38 @@ trait HasConfigDTOTrait
      */
     public function reuseTestDBs(bool $reuseTestDBs = true): self
     {
-        $this->reuseTransaction($reuseTestDBs);
+        $this->configDTO->reuseTransaction($reuseTestDBs);
         return $this;
     }
 
     /**
-     * Turn the reuse-test-dbs setting off.
+     * Turn database transaction re-use setting on (or off).
      *
      * @deprecated
      * @return static
      */
     public function noReuseTestDBs(): self
     {
-        $this->reuseTransaction(false);
+        $this->configDTO->reuseTransaction(false);
         return $this;
     }
 
     /**
-     * Turn database re-use using transaction setting on (or off).
+     * Turn database transaction re-use setting on (or off).
      *
+     * @param boolean $transaction Reuse databases with a transaction?.
+     * @return static
+     */
+    public function transaction(bool $transaction = true): self
+    {
+        $this->configDTO->reuseTransaction($transaction);
+        return $this;
+    }
+
+    /**
+     * Turn database transaction re-use setting on (or off).
+     *
+     * @deprecated
      * @param boolean $reuseTransaction Reuse databases with a transaction?.
      * @return static
      */
@@ -265,8 +280,20 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn database re-use using transaction setting off.
+     * Turn database transaction re-use setting off.
      *
+     * @return static
+     */
+    public function noTransaction(): self
+    {
+        $this->configDTO->reuseTransaction(false);
+        return $this;
+    }
+
+    /**
+     * Turn database transaction re-use setting off.
+     *
+     * @transaction
      * @return static
      */
     public function noReuseTransaction(): self
@@ -278,6 +305,19 @@ trait HasConfigDTOTrait
     /**
      * Turn database re-use using journaling setting on (or off).
      *
+     * @param boolean $journal Reuse databases with a journal?.
+     * @return static
+     */
+    public function journal(bool $journal = true): self
+    {
+        $this->configDTO->reuseJournal($journal);
+        return $this;
+    }
+
+    /**
+     * Turn database re-use using journaling setting on (or off).
+     *
+     * @deprecated
      * @param boolean $reuseJournal Reuse databases with a journal?.
      * @return static
      */
@@ -288,8 +328,20 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn database re-use using journaling setting off.
+     * Turn database journaling re-use setting off.
      *
+     * @return static
+     */
+    public function noJournal(): self
+    {
+        $this->configDTO->reuseJournal(false);
+        return $this;
+    }
+
+    /**
+     * Turn database journaling re-use setting off.
+     *
+     * @deprecated
      * @return static
      */
     public function noReuseJournal(): self
@@ -301,6 +353,7 @@ trait HasConfigDTOTrait
     /**
      * Turn the scenario-test-dbs setting on (or off).
      *
+     * @deprecated
      * @param boolean $scenarios Create databases as needed for the database-scenario?.
      * @return static
      */
@@ -325,6 +378,7 @@ trait HasConfigDTOTrait
     /**
      * Turn the scenario-test-dbs setting off.
      *
+     * @deprecated
      * @return static
      */
     public function noScenarios(): self
@@ -345,17 +399,17 @@ trait HasConfigDTOTrait
     }
 
     /**
-     * Turn the snapshots setting on.
+     * Set the snapshot settings.
      *
-     * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
-     * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
+     * @param string|boolean|null $snapshots Take and import snapshots when reusing databases?
+     *                                       false
+     *                                       / "afterMigrations" / "afterSeeders" / "both"
+     *                                       / "!afterMigrations" / "!afterSeeders" / "!both"
      * @return static
      */
-    public function snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB): self
+    public function snapshots(string|bool|null $snapshots): self
     {
-        $this->configDTO->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB);
+        $this->configDTO->snapshots($snapshots);
         return $this;
     }
 
@@ -366,7 +420,7 @@ trait HasConfigDTOTrait
      */
     public function noSnapshots(): self
     {
-        $this->configDTO->snapshots(false, false);
+        $this->configDTO->snapshots(null);
         return $this;
     }
 
@@ -427,6 +481,19 @@ trait HasConfigDTOTrait
     }
 
     /**
+     * Set the connectionExists value.
+     *
+     * @param boolean $connectionExists Whether the connection exists or not (it's ok to not exist locally when the
+     *                                  building remotely).
+     * @return static
+     */
+    public function connectionExists(bool $connectionExists): self
+    {
+        $this->configDTO->connectionExists = $connectionExists;
+        return $this;
+    }
+
+    /**
      * Retrieve the database being used.
      *
      * @return string|null
@@ -434,6 +501,18 @@ trait HasConfigDTOTrait
     public function getDatabase(): ?string
     {
         return $this->configDTO->database;
+    }
+
+    /**
+     * Set the name of the database before being altered.
+     *
+     * @param string $origDatabase The name of the original database.
+     * @return static
+     */
+    public function origDatabase(string $origDatabase): self
+    {
+        $this->configDTO->origDatabase($origDatabase);
+        return $this;
     }
 
 

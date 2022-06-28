@@ -101,15 +101,7 @@ class DatabaseBuilder
         $this->hasher = $hasher;
         $this->pickDriverClosure = $pickDriverClosure;
 
-        // update $configDTO with some extra settings now that the driver is known
-        $this->configDTO->dbAdapterSupport(
-            $this->dbAdapter()->build->supportsReuse(),
-            $this->dbAdapter()->snapshot->supportsSnapshots(),
-            $this->dbAdapter()->build->supportsScenarios(),
-            $this->dbAdapter()->reuseTransaction->supportsTransactions(),
-            $this->dbAdapter()->reuseJournal->supportsJournaling(),
-            $this->dbAdapter()->verifier->supportsVerification(),
-        );
+        $this->recordDriverAbilities();
     }
 
 
@@ -127,6 +119,8 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         $this->onlyExecuteOnce();
+        $this->resetDbAdapter();
+        $this->recordDriverAbilities();
         $this->prePreparationChecks();
         $this->prepareDB();
 
@@ -206,6 +200,25 @@ class DatabaseBuilder
     }
 
 
+
+    /**
+     * Record extra details about the driver's abilities.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function recordDriverAbilities(): void
+    {
+        // update $configDTO with some extra settings now that the driver is known
+        $this->configDTO->dbAdapterSupport(
+            $this->dbAdapter()->build->supportsReuse(),
+            $this->dbAdapter()->snapshot->supportsSnapshots(),
+            $this->dbAdapter()->build->supportsScenarios(),
+            $this->dbAdapter()->reuseTransaction->supportsTransactions(),
+            $this->dbAdapter()->reuseJournal->supportsJournaling(),
+            $this->dbAdapter()->verifier->supportsVerification(),
+        );
+    }
 
     /**
      * Perform any checks that that need to happen before building a database.

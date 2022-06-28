@@ -97,6 +97,7 @@ trait DatabaseBuilderTestTrait
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
+            ->cacheInvalidationEnabled(true)
             ->cacheInvalidationMethod('content')
             ->checksumPaths([
                 $this->wsFactoriesDir,
@@ -166,7 +167,7 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig(?ConfigDTO $configDTO = null, ?DIContainer $di = null): void
     {
-        // generate a build-checksum based on the current look_for_changes_in etc. dirs
+        // generate a build-checksum based on the current cache_invalidation.locations
         $this->newHasher($configDTO, $di)->getBuildChecksum();
     }
 

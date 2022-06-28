@@ -551,7 +551,7 @@ class ResolvedSettingsDTO extends AbstractDTO
         return array_filter([
             'Project name:' => $this->escapeString($this->projectName),
             'Using scenarios?' => $this->renderBoolean($this->usingScenarios),
-            'Re-use type:' => $isReusable,
+            'Re-use method:' => $isReusable,
 //            '- Force-rebuild?' => $this->renderBoolean($this->forceRebuild),
             'Verify db after?' => $this->renderBoolean($this->verifyDatabase),
             'For a browser test?' => $isBrowserTest,

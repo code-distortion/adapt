@@ -53,7 +53,7 @@ class VersionSupport
 
         $versionsDTO->phpUnitVersion(static::getPackageVersion($composerLock, 'phpunit/phpunit'));
         $versionsDTO->pestVersion(static::getPackageVersion($composerLock, 'pestphp/pest'));
-        $versionsDTO->adaptVersion(static::getPackageVersion($composerLock, 'code-distortion/adapt'));
+        $versionsDTO->adaptVersion(Settings::PACKAGE_VERSION);
     }
 
     /**

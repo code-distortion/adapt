@@ -93,12 +93,15 @@ trait InitialiseAdapt
         $propNames = [
             'buildDatabases',
             'reuseTestDBs', // @deprecated
-            'reuseTransaction',
-            'reuseJournal',
+            'reuseTransaction', // @deprecated
+            'transactions',
+            'reuseJournal', // @deprecated
+            'journals',
             'scenarioTestDBs', // @deprecated
             'scenarios',
-            'useSnapshotsWhenReusingDB',
-            'useSnapshotsWhenNotReusingDB',
+            'useSnapshotsWhenReusingDB', // @deprecated
+            'useSnapshotsWhenNotReusingDB', // @deprecated
+            'snapshots',
             'preMigrationImports', // @deprecated
             'initialImports',
             'migrations',

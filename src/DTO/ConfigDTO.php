@@ -52,10 +52,13 @@ class ConfigDTO extends AbstractDTO
     /** @var string The prefix to add to database names. */
     public string $databasePrefix;
 
+    /** @var boolean Whether cache-invalidation is enabled or not. */
+    public bool $cacheInvalidationEnabled;
+
     /** @var string|null The method to check source-files for changes - 'content' / 'modified' / null. */
     public ?string $cacheInvalidationMethod;
 
-    /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
+    /** @var string[] The files and directories to look through. Changes to files will invalidate dbs and snapshots. */
     public array $checksumPaths;
 
     /** @var string|null The build-checksum if it has already been calculated - passed to remote Adapt installations. */
@@ -130,11 +133,14 @@ class ConfigDTO extends AbstractDTO
     /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
     public bool $scenarios;
 
-    /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
-    public string|bool $useSnapshotsWhenReusingDB;
+    /** @var string|null Enable snapshots, and specify when to take them. */
+    public ?string $snapshots;
 
-    /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
-    public string|bool $useSnapshotsWhenNotReusingDB;
+    /** @var string|null Snapshots when reusing the database. Derived from $snapshots. */
+    public ?string $useSnapshotsWhenReusingDB;
+
+    /** @var string|null Snapshots when NOT reusing the database. Derived from $snapshots. */
+    public ?string $useSnapshotsWhenNotReusingDB;
 
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public bool $forceRebuild;
@@ -317,18 +323,28 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
-     * Set the method to use when checking for source-file changes.
+     * Set the cache-invalidation-enabled setting.
      *
-     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
+     * @param boolean $cacheInvalidationEnabled Whether cache-invalidation is enabled or not.
      * @return static
      */
-    public function cacheInvalidationMethod($cacheInvalidationMethod): self
+    public function cacheInvalidationEnabled(bool $cacheInvalidationEnabled): self
     {
-        if (in_array($cacheInvalidationMethod, ['content', 'modified', null], true)) {
-            $this->cacheInvalidationMethod = $cacheInvalidationMethod;
-        } else {
-            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'modified' : null;
-        }
+        $this->cacheInvalidationEnabled = $cacheInvalidationEnabled;
+        return $this;
+    }
+
+    /**
+     * Set the method to use when checking for source-file changes.
+     *
+     * @param string $cacheInvalidationMethod The method to use - 'modified' / 'content'.
+     * @return static
+     */
+    public function cacheInvalidationMethod(string $cacheInvalidationMethod): self
+    {
+        $this->cacheInvalidationMethod = in_array($cacheInvalidationMethod, ['modified', 'content'], true)
+            ? $cacheInvalidationMethod
+            : 'modified'; //default
 
         return $this;
     }
@@ -702,21 +718,69 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
-     * Set the snapshot settings.
+     * Set the snapshot setting.
      *
-     * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
-     * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
+     * @param string|boolean|null $snapshots Take and import snapshots when reusing databases?
+     *                                       false
+     *                                       / "afterMigrations" / "afterSeeders" / "both"
+     *                                       / "!afterMigrations" / "!afterSeeders" / "!both"
      * @return static
      */
-    public function snapshots(
-        string|bool $useSnapshotsWhenReusingDB,
-        string|bool $useSnapshotsWhenNotReusingDB
-    ): self {
-        $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
-        $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
+    public function snapshots(string|bool|null $snapshots): self
+    {
+        $this->snapshots = $this->cleanSnapshotValue($snapshots);
+
+        $this->useSnapshotsWhenNotReusingDB = $this->snapshotBase($this->snapshots);
+
+        $this->useSnapshotsWhenReusingDB = $this->snapshotIsImportant($this->snapshots)
+            ? $this->useSnapshotsWhenNotReusingDB
+            : null;
+
         return $this;
+    }
+
+    /**
+     * Check that the $snapshots setting is ok.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return string|bool|null
+     */
+    private function cleanSnapshotValue(string|bool|null $snapshots): string|bool|null
+    {
+        $possible = [
+            null, 'afterMigrations', 'afterSeeders', 'both', '!afterMigrations', '!afterSeeders', '!both'
+        ];
+
+        return in_array($snapshots, $possible, true)
+            ? $snapshots
+            : null;
+    }
+
+    /**
+     * Check if $snapshots are important.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return bool
+     */
+    private function snapshotIsImportant(string|bool|null $snapshots): bool
+    {
+        if (!is_string($snapshots)) {
+            return false;
+        }
+        return mb_substr($snapshots, 0, 1) == '!';
+    }
+
+    /**
+     * Get the snapshot base value.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return string|boolean|null
+     */
+    private function snapshotBase(string|bool|null $snapshots): string|bool|null
+    {
+        return $this->snapshotIsImportant($snapshots)
+            ? mb_substr($snapshots, 1)
+            : $snapshots;
     }
 
     /**
@@ -1017,7 +1081,7 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
-     * Check which type of snapshots are bing used.
+     * Check which type of snapshots are being used.
      *
      * @return string|null
      */

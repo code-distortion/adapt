@@ -33,7 +33,7 @@ abstract class BootTestAbstract implements BootTestInterface
     private $initCallback;
 
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
-    private array $builders = [];
+    protected array $builders = [];
 
 //    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
@@ -151,6 +151,7 @@ abstract class BootTestAbstract implements BootTestInterface
         $this->purgeStaleThings();
 
         $builders = $this->pickBuildersToExecute();
+
         $this->checkForDuplicateConnections($builders);
         foreach ($builders as $builder) {
             $builder->execute();
@@ -225,6 +226,8 @@ abstract class BootTestAbstract implements BootTestInterface
 
         $callback = $this->initCallback;
         $callback($builder);
+
+        $this->reCheckIfConnectionsExist();
     }
 
     /**
@@ -233,6 +236,14 @@ abstract class BootTestAbstract implements BootTestInterface
      * @return DatabaseBuilder
      */
     abstract protected function newDefaultBuilder(): DatabaseBuilder;
+
+    /**
+     * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
+     * might have changed them).
+     *
+     * @return void
+     */
+    abstract protected function reCheckIfConnectionsExist(): void;
 
     /**
      * Pick the list of Builders that haven't been executed yet.
