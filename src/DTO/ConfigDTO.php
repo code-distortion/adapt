@@ -882,6 +882,16 @@ class ConfigDTO extends AbstractDTO
         return $usePaths;
     }
 
+    /**
+     * Check if there are any initial imports for the current connection.
+     *
+     * @return boolean
+     */
+    public function hasInitialImports(): bool
+    {
+        return count($this->pickInitialImports()) > 0;
+    }
+
 
 
 
@@ -1111,7 +1121,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if ($this->migrations === false) {
+        if (($this->migrations === false) && (!$this->hasInitialImports())) {
             return false;
         }
 
@@ -1132,7 +1142,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if ($this->migrations === false) {
+        if (($this->migrations === false) && (!$this->hasInitialImports())) {
             return false;
         }
 
