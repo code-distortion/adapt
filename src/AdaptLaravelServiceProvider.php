@@ -45,6 +45,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if (!$this->app->environment('local', 'testing')) {
+            return;
+        }
+
         $this->initialiseConfig();
     }
 
@@ -56,6 +60,10 @@ class AdaptLaravelServiceProvider extends ServiceProvider
      */
     public function boot(Router $router): void
     {
+        if (!$this->app->environment('local', 'testing')) {
+            return;
+        }
+
         $this->publishConfig();
         $this->initialiseCommands();
         $this->initialiseMiddleware();
@@ -127,9 +135,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             return;
         }
-        if (!$this->app->environment('local', 'testing')) {
-            return;
-        }
 
         /** @var Kernel $httpKernel */
         $httpKernel = $this->app->make(HttpKernel::class);
@@ -148,9 +153,6 @@ class AdaptLaravelServiceProvider extends ServiceProvider
     private function initialiseRoutes(Router $router): void
     {
         if ($this->app->runningInConsole()) {
-            return;
-        }
-        if (!$this->app->environment('local', 'testing')) {
             return;
         }
 
