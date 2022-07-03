@@ -124,7 +124,7 @@ class DatabaseDefinition
      * @param boolean $isBrowserTest Is this test a browser-test?.
      * @return static
      */
-    public function isBrowserTest(bool $isBrowserTest = true): self
+    public function isABrowserTest(bool $isBrowserTest = true): self
     {
         $this->configDTO->isBrowserTest($isBrowserTest);
         return $this;
