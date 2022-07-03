@@ -90,6 +90,7 @@ trait DatabaseBuilderTestTrait
             ->projectName(null)
             ->testName('A test')
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(true)
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
@@ -127,7 +128,7 @@ trait DatabaseBuilderTestTrait
                 true,
             )
             ->cacheTools(true, false, false, true)
-            ->snapshots(false, 'afterMigrations')
+            ->snapshots('afterMigrations')
             ->forceRebuild(false)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');

@@ -34,7 +34,7 @@ class SnapshotTest extends LaravelTestCase
         return [
             'Snapshots disabled' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(false, false)
+                    ->snapshots(null)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [],
                 'expectedDatabase' => null,
@@ -44,7 +44,7 @@ class SnapshotTest extends LaravelTestCase
 
             'Takes snapshot after migrations' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false)
+                    ->snapshots('!afterMigrations')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -55,7 +55,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false)
+                    ->snapshots('!afterSeeders')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
@@ -66,7 +66,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -79,7 +79,7 @@ class SnapshotTest extends LaravelTestCase
 
             'Takes snapshot after migrations (no seeders)' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false)
+                    ->snapshots('!afterMigrations')
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -90,7 +90,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after seeders (no seeders)' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false)
+                    ->snapshots('!afterSeeders')
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -101,7 +101,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after migrations and seeders (no seeders)' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -113,7 +113,7 @@ class SnapshotTest extends LaravelTestCase
 
             'Takes snapshot after migrations - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false)
+                    ->snapshots('!afterMigrations')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -125,7 +125,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after seeders - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false)
+                    ->snapshots('!afterSeeders')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -137,7 +137,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after migrations and seeders - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -151,7 +151,7 @@ class SnapshotTest extends LaravelTestCase
 
             'Takes snapshot after migrations (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false)
+                    ->snapshots('!afterMigrations')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -163,7 +163,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after seeders (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false)
+                    ->snapshots('!afterSeeders')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -175,7 +175,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Takes snapshot after migrations and seeders (no seeders) - with initial-import' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -188,7 +188,7 @@ class SnapshotTest extends LaravelTestCase
 
             'Imports before seeder snapshot - Takes snapshot before and after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -200,7 +200,7 @@ class SnapshotTest extends LaravelTestCase
             ],
             'Imports after seeder snapshot - Takes snapshot before and after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([UserSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
@@ -215,7 +215,7 @@ class SnapshotTest extends LaravelTestCase
             'Using database-modifier - Takes snapshot before and after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->databaseModifier('1')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
@@ -229,7 +229,7 @@ class SnapshotTest extends LaravelTestCase
             'Using database-modifier - Imports before seeder snapshot - Takes snapshot before and after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->databaseModifier('1')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
@@ -242,7 +242,7 @@ class SnapshotTest extends LaravelTestCase
             'Using database-modifier - Imports after seeder snapshot - Takes snapshot before and after migrations and seeders' => [
                 'config' => $this->newConfigDTO('sqlite')
                     ->databaseModifier('1')
-                    ->snapshots('both', false)
+                    ->snapshots('!both')
                     ->seeders([UserSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
