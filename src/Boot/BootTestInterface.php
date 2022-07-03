@@ -3,8 +3,10 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use Laravel\Dusk\Browser;
 
@@ -94,15 +96,25 @@ interface BootTestInterface
 
 
     /**
-     * Let the databaseInit(…) method generate a new DatabaseBuilder.
-     *
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     * Create a new DatabaseDefinition object based on a connection, and add it to the list to use later.
      *
      * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException When the connection doesn't exist.
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    public function newBuilder(string $connection): DatabaseBuilder;
+    public function newDatabaseDefinitionFromConnection(string $connection): DatabaseDefinition;
+
+    /**
+     * Create a new DatabaseBuilder object based on a connection, and add it to the list to execute later.
+     *
+     * @param string  $connection The database connection to prepare.
+     * @param boolean $addToList  Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    public function newDatabaseBuilderFromConnection(string $connection, bool $addToList = true): DatabaseBuilder;
+
+
 
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.

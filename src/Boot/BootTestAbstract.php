@@ -3,10 +3,14 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
@@ -32,8 +36,11 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback;
 
+    /** @var DatabaseDefinition[] The DatabaseDefinitions made by this object (so they can be used afterwards). */
+    protected array $databaseDefinitions = [];
+
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
-    protected array $builders = [];
+    protected array $databaseBuilders = [];
 
 //    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
@@ -125,14 +132,25 @@ abstract class BootTestAbstract implements BootTestInterface
 //    }
 
     /**
-     * Store the give DatabaseBuilder.
+     * Store the given DatabaseBuilder.
      *
      * @param DatabaseBuilder $builder The database builder to store.
      * @return void
      */
-    public function addBuilder(DatabaseBuilder $builder): void
+    public function addDatabaseBuilder(DatabaseBuilder $builder): void
     {
-        $this->builders[] = $builder;
+        $this->databaseBuilders[] = $builder;
+    }
+
+    /**
+     * Store the given DatabaseDefinition.
+     *
+     * @param DatabaseDefinition $databaseDefinition The DatabaseDefinition to store.
+     * @return void
+     */
+    public function addDatabaseDefinition(DatabaseDefinition $databaseDefinition): void
+    {
+        $this->databaseDefinitions[] = $databaseDefinition;
     }
 
 
@@ -147,7 +165,8 @@ abstract class BootTestAbstract implements BootTestInterface
         $this->isAllowedToRun();
 
 //        $this->resolveDI();
-        $this->initBuilders();
+        $this->prepareDatabaseDefinitions();
+        $this->prepareDatabaseBuilders();
         $this->purgeStaleThings();
 
         $builders = $this->pickBuildersToExecute();
@@ -184,8 +203,8 @@ abstract class BootTestAbstract implements BootTestInterface
     public function runPostTestSteps(): void
     {
         $count = 0;
-        foreach ($this->builders as $builder) {
-            $isLast = (++$count == count($this->builders));
+        foreach ($this->databaseBuilders as $builder) {
+            $isLast = (++$count == count($this->databaseBuilders));
             $builder->runPostTestSteps($isLast);
         }
     }
@@ -207,35 +226,93 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     abstract protected function isAllowedToRun(): void;
 
+
+
     /**
      * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
      *
      * @return void
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    private function initBuilders(): void
+    private function prepareDatabaseDefinitions(): void
     {
         if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
             return;
         }
 
-        $builder = $this->newDefaultBuilder();
-
         if (!$this->initCallback) {
+            $this->newDefaultDatabaseDefinition();
             return;
         }
 
         $callback = $this->initCallback;
-        $callback($builder);
+
+        $parameterClass = PHPSupport::getCallableFirstParameterType($callback);
+
+        $parameterClass == DatabaseBuilder::class
+            ? $callback($this->newDefaultDatabaseBuilder()) // @deprecated
+            : $callback($this->newDefaultDatabaseDefinition());
+    }
+
+    /**
+     * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
+     *
+     * @return void
+     */
+    private function prepareDatabaseBuilders(): void
+    {
+        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
+            return;
+        }
+
+        foreach ($this->databaseDefinitions as $databaseDefinition) {
+            $configDTO = PHPSupport::readPrivateProperty($databaseDefinition, 'configDTO');
+            $builder = $this->newDatabaseBuilderFromConfigDTO($configDTO);
+
+            $makeDefault = PHPSupport::readPrivateProperty($databaseDefinition, 'makeDefault');
+            if ($makeDefault) {
+                $builder->makeDefault(); // @todo
+            }
+        }
 
         $this->reCheckIfConnectionsExist();
     }
 
+
+
     /**
-     * Create a new DatabaseBuilder object based on the "default" database connection.
+     * Create a new DatabaseDefinition object based on the "default" database connection,
+     * and add it to the list to use later.
      *
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    abstract protected function newDefaultDatabaseDefinition(): DatabaseDefinition;
+
+
+
+    /**
+     * Create a new DatabaseDefinition object based on the "default" database connection.
+     *
+     * @param boolean $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    abstract protected function newDefaultDatabaseBuilder(bool $addToList = true): DatabaseBuilder;
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and add it to the list to execute later.
+     *
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
+     * @param boolean   $addToList Add this DatabaseBuilder to the list to use later or not.
      * @return DatabaseBuilder
      */
-    abstract protected function newDefaultBuilder(): DatabaseBuilder;
+    abstract protected function newDatabaseBuilderFromConfigDTO(
+        ConfigDTO $configDTO,
+        bool $addToList = true
+    ): DatabaseBuilder;
+
+
 
     /**
      * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
@@ -245,6 +322,8 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     abstract protected function reCheckIfConnectionsExist(): void;
 
+
+
     /**
      * Pick the list of Builders that haven't been executed yet.
      *
@@ -253,7 +332,7 @@ abstract class BootTestAbstract implements BootTestInterface
     private function pickBuildersToExecute(): array
     {
         $builders = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             if (!$builder->hasExecuted()) {
                 $builders[] = $builder;
             }
@@ -269,7 +348,7 @@ abstract class BootTestAbstract implements BootTestInterface
     private function pickExecutedBuilders(): array
     {
         $builders = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             if ($builder->hasExecuted()) {
                 $builders[] = $builder;
             }
@@ -343,7 +422,7 @@ abstract class BootTestAbstract implements BootTestInterface
     public function buildConnectionDBsList(): array
     {
         $connectionDatabases = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             $connectionDatabases[$builder->getConnection()] = $builder->getResolvedDatabase();
         }
         return $connectionDatabases;

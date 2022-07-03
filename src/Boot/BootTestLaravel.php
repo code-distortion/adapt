@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
@@ -38,7 +39,6 @@ class BootTestLaravel extends BootTestAbstract
 
     /** @var string[] The paths to the sharable config files, created during browser tests. */
     private array $sharableConfigPaths = [];
-
 
 
     /**
@@ -88,9 +88,6 @@ class BootTestLaravel extends BootTestAbstract
     }
 
 
-
-
-
     /**
      * Ensure the storage-directories exist.
      *
@@ -109,7 +106,6 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @param string $connection The connection to start using.
      * @return DIContainer
-     * @throws AdaptBootException When a PropBagDTO hasn't been set yet.
      */
     protected function defaultDI(string $connection): DIContainer
     {
@@ -121,69 +117,97 @@ class BootTestLaravel extends BootTestAbstract
             ->filesystem(new Filesystem());
     }
 
+
+
     /**
-     * Create a new DatabaseBuilder object based on the "default" database connection.
+     * Create a new DatabaseDefinition object based on the "default" database connection,
+     * and add it to the list to use later.
      *
-     * @return DatabaseBuilder
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    protected function newDefaultBuilder(): DatabaseBuilder
+    protected function newDefaultDatabaseDefinition(): DatabaseDefinition
     {
-        return $this->newBuilder(LaravelSupport::configString('database.default'));
+        return $this->newDatabaseDefinitionFromConnection(LaravelSupport::configString('database.default'));
     }
 
     /**
-     * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
-     * might have changed them), and re-pick the origDatabase.
-     *
-     * @return void
-     */
-    protected function reCheckIfConnectionsExist(): void
-    {
-        foreach ($this->builders as $builder) {
-
-            $connection = $builder->getConnection();
-            $connectionExists = !is_null(config("database.connections.$connection"));
-            $builder->connectionExists($connectionExists);
-
-            $database = '';
-            if ($connectionExists) {
-                $database = (string) config("database.connections.$connection.database");
-                $this->isDatabaseNameOk($database);
-            }
-            $builder->origDatabase($database);
-        }
-    }
-
-    /**
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     * Create a new DatabaseDefinition object based on a connection, and add it to the list to use later.
      *
      * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException When the connection doesn't exist.
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    public function newBuilder(string $connection): DatabaseBuilder
+    public function newDatabaseDefinitionFromConnection(string $connection): DatabaseDefinition
     {
-        $builder = $this->createBuilder($connection);
-        $this->addBuilder($builder);
-        return $builder;
+        $configDTO = $this->newConfigDTO($connection, $this->testName);
+        $databaseDefinition = new DatabaseDefinition($configDTO);
+        $this->addDatabaseDefinition($databaseDefinition);
+        return $databaseDefinition;
+    }
+
+
+
+    /**
+     * Create a new DatabaseDefinition object based on the "default" database connection.
+     *
+     * @param boolean $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    protected function newDefaultDatabaseBuilder(bool $addToList = true): DatabaseBuilder
+    {
+        return $this->newDatabaseBuilderFromConnection(LaravelSupport::configString('database.default'), $addToList);
     }
 
     /**
-     * Create a new DatabaseBuilder object and set its initial values.
+     * Create a new DatabaseBuilder object based on a connection, and add it to the list to execute later.
+     *
+     * @param string  $connection The database connection to prepare.
+     * @param boolean $addToList  Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    public function newDatabaseBuilderFromConnection(string $connection, bool $addToList = true): DatabaseBuilder
+    {
+        $configDTO = $this->newConfigDTO($connection, $this->testName);
+        return $this->newDatabaseBuilderFromConfigDTO($configDTO, $addToList);
+    }
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and add it to the list to execute later.
+     *
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
+     * @param boolean   $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     */
+    protected function newDatabaseBuilderFromConfigDTO(ConfigDTO $configDTO, bool $addToList = true): DatabaseBuilder
+    {
+        $databaseBuilder = $this->createDatabaseBuilderFromConfigDTO($configDTO);
+
+        if ($addToList) {
+            $this->addDatabaseBuilder($databaseBuilder);
+        }
+
+        return $databaseBuilder;
+    }
+
+
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and set its initial values.
      *
      * The initial values are based on the config + the properties of the
      * current test-class.
      *
-     * @param string $connection The database connection to prepare.
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
      * @return DatabaseBuilder
      */
-    private function createBuilder(string $connection): DatabaseBuilder
+    private function createDatabaseBuilderFromConfigDTO(ConfigDTO $configDTO): DatabaseBuilder
     {
-        $configDTO = $this->newConfigDTO($connection, $this->testName);
-
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
-        $di = $this->defaultDI($connection);
+        $di = $this->defaultDI($configDTO->connection);
 
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
@@ -197,6 +221,8 @@ class BootTestLaravel extends BootTestAbstract
             $pickDriverClosure
         );
     }
+
+
 
     /**
      * Create a new ConfigDTO object with default values.
@@ -338,6 +364,29 @@ class BootTestLaravel extends BootTestAbstract
                 config("$c.database.pgsql.executables.pg_dump"),
             )
             ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds'));
+    }
+
+    /**
+     * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
+     * might have changed them), and re-pick the origDatabase.
+     *
+     * @return void
+     */
+    protected function reCheckIfConnectionsExist(): void
+    {
+        foreach ($this->databaseBuilders as $builder) {
+
+            $connection = $builder->getConnection();
+            $connectionExists = !is_null(config("database.connections.$connection"));
+            $builder->connectionExists($connectionExists);
+
+            $database = '';
+            if ($connectionExists) {
+                $database = (string) config("database.connections.$connection.database");
+                $this->isDatabaseNameOk($database);
+            }
+            $builder->origDatabase($database);
+        }
     }
 
     /**
@@ -573,7 +622,7 @@ class BootTestLaravel extends BootTestAbstract
             $logTimer = $this->log->newTimer();
 
             try {
-                $builder = $this->createBuilder((string) $connection);
+                $builder = $this->newDatabaseBuilderFromConnection((string) $connection, false);
             } catch (Throwable) {
 
                 // this is expected, as connections will probably exist where the database can't be connected to
@@ -617,7 +666,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeStaleSnapshots(): int
     {
-        $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
+        $builder = $this->newDefaultDatabaseBuilder(false);
         $removedCount = 0;
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
 

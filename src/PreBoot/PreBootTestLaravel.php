@@ -5,8 +5,10 @@ namespace CodeDistortion\Adapt\PreBoot;
 use CodeDistortion\Adapt\Boot\BootTestInterface;
 use CodeDistortion\Adapt\Boot\BootTestLaravel;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Support\Exceptions;
 use CodeDistortion\Adapt\Support\LaravelConfig;
@@ -303,18 +305,31 @@ class PreBootTestLaravel
 
 
     /**
-     * Let the databaseInit(…) method generate a new DatabaseBuilder.
-     *
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     * Let the databaseInit(…) method generate a new DatabaseDefinition.
      *
      * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException When the connection doesn't exist.
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    public function newBuilder(string $connection): DatabaseBuilder
+    public function newDatabaseDefinitionFromConnection(string $connection): DatabaseDefinition
     {
-        return $this->adaptBootTestLaravel->newBuilder($connection);
+        return $this->adaptBootTestLaravel->newDatabaseDefinitionFromConnection($connection);
     }
+
+    /**
+     * Let the databaseInit(…) method generate a new DatabaseBuilder.
+     *
+     * @deprecated
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    public function newDatabaseBuilderFromConnection(string $connection): DatabaseBuilder
+    {
+        return $this->adaptBootTestLaravel->newDatabaseBuilderFromConnection($connection);
+    }
+
+
 
     /**
      * Build the list of connections that Adapt has prepared, and their corresponding databases.

@@ -65,7 +65,7 @@ class LaravelConfig
     private static function loadConfigsAddedByServiceProviders(array $origConfigValues)
     {
         /** @var array<string, array<string, string>> $publishGroups */
-        $publishGroups = PHPSupport::readStaticPrivateProperty(ServiceProvider::class, 'publishGroups');
+        $publishGroups = PHPSupport::readPrivateStaticProperty(ServiceProvider::class, 'publishGroups');
 
         /** @var Application $app */
         $app = app();
