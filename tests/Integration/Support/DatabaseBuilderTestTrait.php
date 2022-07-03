@@ -90,7 +90,7 @@ trait DatabaseBuilderTestTrait
             ->projectName(null)
             ->testName('A test')
             ->connection($connection)
-            ->isDefaultConnection(false)
+            ->isDefaultConnection(null)
             ->connectionExists(true)
             ->origDatabase('database.sqlite')
 //            ->database('test_db')

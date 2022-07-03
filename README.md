@@ -382,7 +382,7 @@ Add any of the following properties to your test-class when needed.
 
 namespace Tests\Feature;
 
-use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\AdaptDatabase;
 use Tests\TestCase;
 
@@ -391,131 +391,95 @@ class MyFeatureTest extends TestCase
     use AdaptDatabase;
 
     /**
-     * Enable / disable database building. This is useful when you want to use
-     * Adapt to handle your Browser (Dusk) tests but don't have a database.
+     * Turn database building on or off.
      *
      * @var boolean
      */
-    protected $buildDatabases = true;
+    protected bool $buildDatabases = true;
 
     /**
-     * Let Adapt re-use databases using a transaction.
-     *
-     * @var boolean
-     */
-    protected bool $reuseTransaction = true;
-
-    /**
-     * Let Adapt re-use databases using journaling (MySQL only).
-     *
-     * @var boolean
-     */
-    protected bool $reuseJournal = true;
-
-    /**
-     * Let Adapt create databases dynamically (with distinct names) based on
-     * the scenario.
-     *
-     * @var boolean
-     */
-    protected bool $scenarios = true;
-
-    /**
-     * Enable snapshots, and specify when to take them - when reusing the
-     * database.
-     *
-     * false, 'afterMigrations', 'afterSeeders', 'both'.
-     *
-     * @var string|boolean
-     */
-    protected $useSnapshotsWhenReusingDB = 'afterMigrations';
-
-    /**
-     * Enable snapshots, and specify when to take them - when NOT reusing the
-     * database.
-     *
-     * false, 'afterMigrations', 'afterSeeders', 'both'.
-     *
-     * @var string|boolean
-     */
-    protected $useSnapshotsWhenNotReusingDB = 'afterMigrations';
-
-    /**
-     * Specify database dump files to import before migrations run.
-     *
-     * NOTE: It's important that these dumps don't contain output from seeders
-     * if those seeders are to also be run by Adapt afterwards.
-     *
-     * NOTE: initial_imports aren't available for SQLite :memory:
-     * databases.
-     *
-     * @var array<string, string>|array<string, string[]>
-     */
-    protected array $initialImports = [
-        'mysql' => ['database/dumps/mysql/my-database.sql'],
-        'pgsql' => ['database/dumps/pgsql/my-database.sql'],
-        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
-    ];
-
-    /**
-     * Specify whether to run migrations or not. You can also specify the
-     * location of the migrations to run.
-     *
-     * @var boolean|string
-     */
-    protected bool $migrations = true;
-//    or
-//    protected string $migrations = 'database/migrations';
-
-    /**
-     * Specify the seeders to run (they will only be run if migrations are
-     * run).
-     *
-     * @var string|string[]
-     */
-    protected string $seeders = 'DatabaseSeeder';
-//    or
-//    protected array $seeders = ['DatabaseSeeder'];
-
-    /**
-     * Overwrite the details of certain database connections with values from
-     * others.
-     *
-     * e.g. overwrite the "mysql" connection with the "sqlite" connection's
-     * details so SQLite is used instead.
-     *
-     * @var string
-     */
-    protected string $remapConnections = 'mysql < sqlite';
-
-    /**
-     * Specify which connection "default" should point to.
+     * Specify which connection "default" should point to when your test runs.
      *
      * @var string
      */
     protected string $defaultConnection = 'mysql';
 
     /**
+     * Specify custom sql-dump files to import before migrations run.
+     *
+     * NOTE: initial_imports aren't available for SQLite :memory: databases.
+     *
+     * @var array<string, string>|array<string, string[]>
+     */
+    protected array $initialImports = [
+        'mysql' => ['database/dumps/mysql/db.sql'],
+        'pgsql' => ['database/dumps/pgsql/db.sql'],
+        'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
+    ];
+
+    /**
+     * Runs your migrations. You can also specify a custom location.
+     *
+     * @var boolean|string
+     */
+    protected bool|string $migrations = true;
+//    or
+//    protected bool|string $migrations = 'database/other_migrations';
+
+    /**
+     * Specify which seeders to run.
+     *
+     * NOTE: Seeders will only be run if migrations are run.
+     *
+     * @var string|string[]
+     */
+    protected string|array $seeders = 'DatabaseSeeder';
+//    or
+//    protected string|array $seeders = ['DatabaseSeeder'];
+
+    /**
      * When browser-tests are being performed, transaction-based database
      * re-use needs to be disabled.
      *
-     * This is because the browser (which runs in a different process and
-     * causes outside requests to your website) needs to access the same
-     * database that your test built.
-     *
      * If you don't specify this value, Adapt will automatically
-     * detect if a browser test is running.
+     * detect if a Dusk browser test is running.
      *
      * @var boolean
      */
     protected bool $isBrowserTest = true;
 
     /**
-     * Adapt can be configured to use another installation of Adapt to
-     * build databases instead of doing it itself. This may be
-     * useful when sharing a database between projects.
+     * Reuse databases using a transaction.
      *
-     * The other installation must be web-accessible to the first.
+     * @var boolean
+     */
+    protected bool $transactions = true;
+
+    /**
+     * Reuse databases using journaling (MySQL only).
+     *
+     * @var boolean
+     */
+    protected bool $journals = true;
+
+    /**
+     * Take snapshots of the database for quick importing later. Snapshots will
+     * only be taken when transactions and journaling aren't used, unless
+     * the "!" prefix is added.
+     *
+     * false
+     * / 'afterMigrations' / 'afterSeeders' / 'both',
+     * / '!afterMigrations' / '!afterSeeders' / '!both'.
+     *
+     * @var string|boolean
+     */
+    protected string|bool $snapshots = 'afterSeeders';
+
+    /**
+     * Adapt can be configured to use another installation of Adapt to
+     * build databases instead of doing it itself.
+     *
+     * NOTE: The other installation must be web-accessible to the this.
      *
      * e.g. 'https://other-site.local/'
      *
@@ -524,51 +488,57 @@ class MyFeatureTest extends TestCase
     protected ?string $remoteBuildUrl = null;
 
     /**
+     * Overwrite the details of certain database connections with values from
+     * others.
+     *
+     * @var string
+     */
+    protected string $remapConnections = 'mysql < sqlite';
+
+    /**
      * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:
-     * $this->newBuilder(string $connection), and then altering its settings.
+     * $this->prepareConnection(string $connection), and then altering its
+     * settings.
      *
-     * Each $builder object starts with the combined settings from the config
+     * Each $database object starts with the combined settings from the config,
      * and properties from this test-class.
      *
-     * @param DatabaseBuilder $builder Used to create the "default"
-     *                                 connection's database.
+     * @param DatabaseDefinition $database Used to create the "default"
+     *                                     connection's database.
      * @return void
      */
-    protected function databaseInit(DatabaseBuilder $builder): void
+    protected function databaseInit(DatabaseDefinition $database): void
     {
         $initialImports =  [
-            'mysql' => ['database/dumps/mysql/my-database.sql'],
-            'pgsql' => ['database/dumps/pgsql/my-database.sql'],
-            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+            'mysql' => ['database/dumps/mysql/db.sql'],
+            'pgsql' => ['database/dumps/pgsql/db.sql'],
+            'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
         ];
 
-        // the DatabaseBuilder $builder is pre-configured to match your config settings
+        // the DatabaseDefinition $database is pre-configured to match your config settings
         // for the "default" database connection
         // you can override them with any of the following…
-        $builder
+        $database
             ->connection('primary') // specify another connection to build a db for
-            ->cacheInvalidationMethod('modified') // or ->noCacheInvalidationMethod()
             ->initialImports($initialImports) // or ->noInitialImports()
-            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
+            ->migrations() // or ->migrations('database/other_migrations') or ->noMigrations()
             ->seeders(['DatabaseSeeder']) // or ->noSeeders()
+            ->isABrowserTest() // or ->isNotABrowserTest()
+            ->transaction() // or ->noTransaction()
+            ->journal() // or ->noJournal()
+            ->snapshots('!afterSeeders') // or ->noSnapshots()
             ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
-            ->reuseTransaction() // or ->noReuseTransaction()
-            ->reuseJournal() // or ->noReuseJournal()
-            ->scenarios() // or ->noScenarios()
-            ->snapshots($useSnapshotsWhenReusingDB, $useSnapshotsWhenNotReusingDB) // or ->noSnapshots()
             ->forceRebuild() // or ->dontForceRebuild()
-            ->isBrowserTest() // or isNotBrowserTest()
             ->makeDefault(); // make the "default" Laravel connection point to this database
 
         // you can create a database for another connection
         $connection = 'secondary';
-        $builder2 = $this->newBuilder($connection);
-        $builder2
-            ->initialImports($initialImports) // or ->noInitialImports()
+        $database2 = $this->prepareConnection($connection);
+        $database2
+            ->initialImports($initialImports); // or ->noInitialImports()
             // …
-            ->makeDefault(); // make the "default" Laravel connection point to this database
     }
 
     // …
@@ -675,13 +645,15 @@ So that you don't run into problems when you update the structure of your databa
 
 By default, these directories are looked through for changes:
 
-- */database/factories*
-- */database/migrations*
-- */database/seeders*
+```
+/database/migrations
+/database/seeders
+/database/factories
+```
 
 These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look_for_changes_in` config setting (the `initial_imports` and `migrations` files are included automatically).
+This list of directories can be configured via the `cache_invalidation.locations` config setting.
 
 > Cache invalidation can be disabled to save some time, however this is only really useful on systems where this step is slow.
 >
@@ -727,18 +699,17 @@ class MyFeatureTest extends TestCase
 {
     use AdaptDatabase;
     
-    protected function databaseInit(DatabaseBuilder $builder): void
+    protected function databaseInit(DatabaseDefinition $database): void
     {
-        // The passed $builder is pre-built to match your config settings.
+        // The passed $database is pre-built to match your config settings.
         // It uses the "default" database connection to begin with. You can
         // tell it to build a test-database for another connection instead
-        $builder->connection('primary-mysql');
+        $database->connection('primary-mysql');
         
         // You can also create a database for a second connection
         $connection = 'secondary-mysql';
-        $builder2 = $this->newBuilder($connection);
-        /** @var DatabaseBuilder $builder2 **/
-        $builder2
+        $database2 = $this->prepareConnection($connection);
+        $database2
             ->migrations('path/to/other/migrations');
             // … etc
     }
@@ -746,7 +717,7 @@ class MyFeatureTest extends TestCase
     …
 }
 
-// you can then use the databases somewhere inside a test
+// you can then use these databases somewhere inside a test
 DB::connection('primary-mysql')->select(…);
 DB::connection('secondary-mysql')->select(…);
 ```
@@ -851,7 +822,7 @@ If your *own code* uses transactions as well, this will cause the wrapper-transa
 
 Adapt detects when this happens and throws an `AdaptTransactionException` to let you know which test caused it.
 
-> To stop the exception from occurring, turn the "reuse" option off for that test - by adding `protected bool $reuseTransaction = false;` [to your test class](#customisation).
+> To stop the exception from occurring, turn the "reuse" option off for that test - by adding `protected bool $transactions = false;` [to your test class](#customisation).
 > 
 > You can also turn it off for *all tests* by updating the `reuse` config settings.
 

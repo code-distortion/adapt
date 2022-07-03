@@ -13,7 +13,7 @@ use CodeDistortion\Adapt\DTO\VersionsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    const PACKAGE_VERSION = '0.11.1';
+    const PACKAGE_VERSION = '0.12.0';
 
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
@@ -87,21 +87,20 @@ class Settings
 
 
 
-    /**
-     * A place for BootTestAbstract's first-test flag, which can't have its own
-     * (it's not shared between the test-classes the trait is included in).
-     *
-     * @var boolean
-     */
-    public static $isFirstTest = true;
-
     /** @var ResolvedSettingsDTO[] The ResolvedSettingsDTOs from recently built databases. */
     public static $resolvedSettingsDTOs = [];
 
     /** @var VersionsDTO[] The VersionsDTO from recently built databases. */
     public static $resolvedVersionsDTOs = [];
 
+    /** @var string[] Connections whose database have been cleaned up already. */
+    public static $purgedConnections = [];
 
+    /** @var boolean Whether the snapshots have been cleaned up yet or not. */
+    public static $hasPurgedSnapshots = false;
+
+    /** @var boolean Whether orphaned sharable config files have been removed yet or not. */
+    public static $removeOrphanedConfigs = false;
 
 
 
@@ -112,9 +111,10 @@ class Settings
      */
     public static function resetStaticProps()
     {
-        static::$isFirstTest = true;
         Settings::$resolvedSettingsDTOs = [];
         Settings::$resolvedVersionsDTOs = [];
+        Settings::$hasPurgedSnapshots = false;
+        Settings::$purgedConnections = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
         LaravelPostgreSQLSnapshot::resetStaticProps();
@@ -175,6 +175,70 @@ class Settings
         $versionsDTO
     ) {
         Settings::$resolvedVersionsDTOs[$connection][(string) $driver] = $versionsDTO;
+    }
+
+
+
+    /**
+     * Check if a connection's databases have been purged.
+     *
+     * @param string $connection The connection to check.
+     * @return boolean
+     */
+    public static function getHasPurgedConnection($connection): bool
+    {
+        return in_array($connection, static::$purgedConnections);
+    }
+
+    /**
+     * Record that a connection's databases have been purged.
+     *
+     * @param string $connection The connection to record.
+     * @return void
+     */
+    public static function setHasPurgedConnection($connection)
+    {
+        static::$purgedConnections[] = $connection;
+    }
+
+    /**
+     * Get the has-purged-snapshots value.
+     *
+     * @return boolean
+     */
+    public static function getHasPurgedSnapshots(): bool
+    {
+        return static::$hasPurgedSnapshots;
+    }
+
+    /**
+     * Set the has-purged-snapshots value.
+     *
+     * @return void
+     */
+    public static function setHasPurgedSnapshots()
+    {
+        static::$hasPurgedSnapshots = true;
+    }
+
+    /**
+     * Get the has-removed-orphaned-configs value.
+     *
+     * @return boolean
+     */
+    public static function getHasRemovedOrphanedConfigs(): bool
+    {
+        return static::$removeOrphanedConfigs;
+    }
+
+    /**
+     * Set the has-removed-orphaned-configs value.
+     *
+     * @return void
+     */
+    public static function setHasRemovedOrphanedConfigs()
+    {
+        static::$removeOrphanedConfigs = true;
     }
 
 

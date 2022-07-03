@@ -144,7 +144,7 @@ class BootCommandLaravel extends BootCommandAbstract
             ->projectName(config("$c.project_name"))
             ->testName($testName)
             ->connection($connection)
-            ->isDefaultConnection(false)
+            ->isDefaultConnection(null)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))

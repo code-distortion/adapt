@@ -498,24 +498,75 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function purgeStaleThings()
     {
-        if (!Settings::$isFirstTest) {
-            return;
-        }
-        Settings::$isFirstTest = false;
-
         if (!$this->hasBuildersThatWillBuildLocally()) {
             return;
         }
 
-        $this->performPurgeOfStaleThings();
+        // find out what to purge
+        $purgeConnections = $this->pickConnectionsToPurge();
+        $purgeSnapshots = !Settings::getHasPurgedSnapshots();
+        $removeOrphanedConfigs = !Settings::getHasRemovedOrphanedConfigs();
+
+        if ((!count($purgeConnections)) && (!$purgeSnapshots) && (!$removeOrphanedConfigs)) {
+            return;
+        }
+
+        // purge them
+        if (
+            !$this->performPurgeOfStaleThings(
+                $purgeConnections,
+                $purgeSnapshots,
+                $removeOrphanedConfigs
+            )
+        ) {
+            return;
+        }
+
+        // record what was purged
+        foreach ($purgeConnections as $connection) {
+            Settings::setHasPurgedConnection($connection);
+        }
+        if ($purgeSnapshots) {
+            Settings::setHasPurgedSnapshots();
+        }
+        if ($removeOrphanedConfigs) {
+            Settings::setHasRemovedOrphanedConfigs();
+        }
+    }
+
+    /**
+     * Generate the list of connections that can be purged.
+     *
+     * @return string[]
+     */
+    private function pickConnectionsToPurge(): array
+    {
+        $connections = [];
+        foreach ($this->databaseBuilders as $databaseBuilder) {
+
+            $connection = $databaseBuilder->getConnection();
+
+            if (!Settings::getHasPurgedConnection($connection)) {
+                $connections[] = $connection;
+            }
+        }
+
+        return $connections;
     }
 
     /**
      * Remove stale databases, snapshots and orphaned config files.
      *
-     * @return void
+     * @param string[] $purgeConnections      The connections to purge stale databases from.
+     * @param boolean  $purgeSnapshots        Whether to purge stale snapshot files or not.
+     * @param boolean  $removeOrphanedConfigs Whether to remove orphaned sharable config files or not.
+     * @return boolean
      */
-    abstract protected function performPurgeOfStaleThings();
+    abstract protected function performPurgeOfStaleThings(
+        $purgeConnections,
+        $purgeSnapshots,
+        $removeOrphanedConfigs
+    ): bool;
 
     /**
      * Work out if stale things are allowed to be purged.
