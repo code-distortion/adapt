@@ -403,14 +403,14 @@ class MyFeatureTest extends TestCase
      *
      * @var boolean
      */
-    protected bool $reuseTransaction = true;
+    protected bool $transactions = true;
 
     /**
      * Let Adapt re-use databases using journaling (MySQL only).
      *
      * @var boolean
      */
-    protected bool $reuseJournal = true;
+    protected bool $journals = true;
 
     /**
      * Let Adapt create databases dynamically (with distinct names) based on
@@ -452,9 +452,9 @@ class MyFeatureTest extends TestCase
      * @var array<string, string>|array<string, string[]>
      */
     protected array $initialImports = [
-        'mysql' => ['database/dumps/mysql/my-database.sql'],
-        'pgsql' => ['database/dumps/pgsql/my-database.sql'],
-        'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+        'mysql' => ['database/dumps/mysql/db.sql'],
+        'pgsql' => ['database/dumps/pgsql/db.sql'],
+        'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
     ];
 
     /**
@@ -465,7 +465,7 @@ class MyFeatureTest extends TestCase
      */
     protected bool $migrations = true;
 //    or
-//    protected string $migrations = 'database/migrations';
+//    protected string $migrations = 'database/other_migrations';
 
     /**
      * Specify the seeders to run (they will only be run if migrations are
@@ -539,9 +539,9 @@ class MyFeatureTest extends TestCase
     protected function databaseInit(DatabaseBuilder $builder): void
     {
         $initialImports =  [
-            'mysql' => ['database/dumps/mysql/my-database.sql'],
-            'pgsql' => ['database/dumps/pgsql/my-database.sql'],
-            'sqlite' => ['database/dumps/sqlite/my-database.sqlite'], // SQLite files are simply copied
+            'mysql' => ['database/dumps/mysql/db.sql'],
+            'pgsql' => ['database/dumps/pgsql/db.sql'],
+            'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
         ];
 
         // the DatabaseBuilder $builder is pre-configured to match your config settings
@@ -551,7 +551,7 @@ class MyFeatureTest extends TestCase
             ->connection('primary') // specify another connection to build a db for
             ->cacheInvalidationMethod('modified') // or ->noCacheInvalidationMethod()
             ->initialImports($initialImports) // or ->noInitialImports()
-            ->migrations() // or ->migrations('database/migrations') or ->noMigrations()
+            ->migrations() // or ->migrations('database/other_migrations') or ->noMigrations()
             ->seeders(['DatabaseSeeder']) // or ->noSeeders()
             ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
             ->reuseTransaction() // or ->noReuseTransaction()
@@ -675,13 +675,15 @@ So that you don't run into problems when you update the structure of your databa
 
 By default, these directories are looked through for changes:
 
-- */database/factories*
-- */database/migrations*
-- */database/seeders*
+```
+/database/migrations
+/database/seeders
+/database/factories
+```
 
 These stale test-databases and snapshots are cleaned up **automatically**, and fresh versions will be built the next time your tests run.
 
-This list of directories can be configured via the `look_for_changes_in` config setting (the `initial_imports` and `migrations` files are included automatically).
+This list of directories can be configured via the `cache_invalidation.locations` config setting.
 
 > Cache invalidation can be disabled to save some time, however this is only really useful on systems where this step is slow.
 >
@@ -746,7 +748,7 @@ class MyFeatureTest extends TestCase
     …
 }
 
-// you can then use the databases somewhere inside a test
+// you can then use these databases somewhere inside a test
 DB::connection('primary-mysql')->select(…);
 DB::connection('secondary-mysql')->select(…);
 ```
@@ -851,7 +853,7 @@ If your *own code* uses transactions as well, this will cause the wrapper-transa
 
 Adapt detects when this happens and throws an `AdaptTransactionException` to let you know which test caused it.
 
-> To stop the exception from occurring, turn the "reuse" option off for that test - by adding `protected bool $reuseTransaction = false;` [to your test class](#customisation).
+> To stop the exception from occurring, turn the "reuse" option off for that test - by adding `protected bool $transactions = false;` [to your test class](#customisation).
 > 
 > You can also turn it off for *all tests* by updating the `reuse` config settings.
 
