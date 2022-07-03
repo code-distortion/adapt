@@ -128,16 +128,17 @@ trait AdaptDatabase
      * Set up the database/s programmatically.
      *
      * You may set up more test-databases by calling:
-     * $this->newBuilder(string $connection), and then altering its settings.
+     * $this->prepareConnection(string $connection), and then altering its
+     * settings.
      *
-     * Each $builder object starts with the combined settings from the config
+     * Each $database object starts with the combined settings from the config,
      * and properties from this test-class.
      *
-     * @param DatabaseBuilder $builder Used to create the "default"
-     *                                 connection's database.
+     * @param DatabaseDefinition $database Used to create the "default"
+     *                                     connection's database.
      * @return void
      */
-//    protected function databaseInit(DatabaseBuilder $builder): void
+//    protected function databaseInit(DatabaseDefinition $database): void
 //    {
 //        $initialImports =  [
 //            'mysql' => ['database/dumps/mysql/db.sql'],
@@ -145,15 +146,15 @@ trait AdaptDatabase
 //            'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
 //        ];
 //
-//        // the DatabaseBuilder $builder is pre-configured to match your config settings
+//        // the DatabaseDefinition $database is pre-configured to match your config settings
 //        // for the "default" database connection
 //        // you can override them with any of the following…
-//        $builder
+//        $database
 //            ->connection('primary') // specify another connection to build a db for
 //            ->initialImports($initialImports) // or ->noInitialImports()
 //            ->migrations() // or ->migrations('database/other_migrations') or ->noMigrations()
 //            ->seeders(['DatabaseSeeder']) // or ->noSeeders()
-//            ->isBrowserTest() // or isNotBrowserTest()
+//            ->isABrowserTest() // or ->isNotABrowserTest()
 //            ->transaction() // or ->noTransaction()
 //            ->journal() // or ->noJournal()
 //            ->snapshots('!afterSeeders') // or ->noSnapshots()
@@ -163,8 +164,8 @@ trait AdaptDatabase
 //
 //        // you can create a database for another connection
 //        $connection = 'secondary';
-//        $builder2 = $this->newBuilder($connection);
-//        $builder2
+//        $database2 = $this->prepareConnection($connection);
+//        $database2
 //            ->initialImports($initialImports); // or ->noInitialImports()
 //            // …
 //    }
