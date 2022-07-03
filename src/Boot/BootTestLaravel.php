@@ -561,24 +561,31 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Remove stale databases, snapshots and orphaned config files.
      *
-     * @return void
+     * @param string[] $purgeConnections      The connections to purge stale databases from.
+     * @param boolean  $purgeSnapshots        Whether to purge stale snapshot files or not.
+     * @param boolean  $removeOrphanedConfigs Whether to remove orphaned sharable config files or not.
+     * @return boolean
      */
-    public function performPurgeOfStaleThings(): void
-    {
+    protected function performPurgeOfStaleThings(
+        array $purgeConnections,
+        bool $purgeSnapshots,
+        bool $removeOrphanedConfigs
+    ): bool {
+
         if (!$this->canPurgeStaleThings()) {
-            return;
+            return false;
         }
 
         if (!$this->getMutexLock(Settings::baseStorageDir($this->storageDir(), "purge-lock"))) {
-            return;
+            return false;
         }
 
         $logTimer = $this->log->newTimer();
         $this->log->vDebug('Looking for stale things to remove');
 
-        $removedCount = $this->purgeStaleDatabases();
-        $removedCount += $this->purgeStaleSnapshots();
-        $removedCount += $this->removeOrphanedSharableConfigFiles();
+        $removedCount = $this->purgeStaleDatabases($purgeConnections);
+        $removedCount += $this->purgeStaleSnapshots($purgeSnapshots);
+        $removedCount += $this->removeOrphanedSharableConfigFiles($removeOrphanedConfigs);
 
         $message = $removedCount
             ? 'Total time taken for removal'
@@ -586,6 +593,8 @@ class BootTestLaravel extends BootTestAbstract
         $this->log->vDebug($message, $logTimer, true);
 
         $this->releaseMutexLock();
+
+        return true;
     }
 
     /**
@@ -611,14 +620,14 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Remove stale databases.
      *
+     * @param string[] $purgeConnections The connections to purge stale databases from.
      * @return integer
      */
-    private function purgeStaleDatabases(): int
+    private function purgeStaleDatabases(array $purgeConnections): int
     {
         $removedCount = 0;
 
-        $connections = LaravelSupport::configArray('database.connections');
-        foreach (array_keys($connections) as $connection) {
+        foreach ($purgeConnections as $connection) {
 
             $logTimer = $this->log->newTimer();
 
@@ -663,10 +672,15 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Remove stale snapshots.
      *
+     * @param boolean $purgeSnapshots Whether to purge stale snapshot files or not.
      * @return integer
      */
-    private function purgeStaleSnapshots(): int
+    private function purgeStaleSnapshots(bool $purgeSnapshots): int
     {
+        if (!$purgeSnapshots) {
+            return 0;
+        }
+
         $builder = $this->newDefaultDatabaseBuilder(false);
         $removedCount = 0;
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
@@ -693,10 +707,15 @@ class BootTestLaravel extends BootTestAbstract
     /**
      * Remove old (i.e. orphaned) sharable config files.
      *
+     * @param boolean $removeOrphanedConfigs Whether to remove orphaned sharable config files or not.
      * @return integer
      */
-    private function removeOrphanedSharableConfigFiles(): int
+    private function removeOrphanedSharableConfigFiles(bool $removeOrphanedConfigs): int
     {
+        if (!$removeOrphanedConfigs) {
+            return 0;
+        }
+
         $removedCount = 0;
 
         $dir = Settings::shareConfigDir($this->storageDir());
