@@ -24,8 +24,12 @@ class ConfigDTO extends AbstractDTO
     public string $testName;
 
 
+
     /** @var string The database connection to prepare. */
     public string $connection;
+
+    /** @var boolean|null Whether this connection should be made the default or not. null = maybe if no others are. */
+    public ?bool $isDefaultConnection;
 
     /** @var boolean Whether the connection exists or not (it's ok to not exist locally when the building remotely). */
     public bool $connectionExists;
@@ -41,6 +45,7 @@ class ConfigDTO extends AbstractDTO
 
     /** @var string A database name modifier (e.g. Paratest adds a TEST_TOKEN env value to make the db unique). */
     public string $databaseModifier = '';
+
 
 
     /** @var string The directory to store database snapshots in. */
@@ -121,6 +126,7 @@ class ConfigDTO extends AbstractDTO
     public bool $dbSupportsVerification;
 
 
+
     /** @var boolean When turned on, databases will be reused using a transaction instead of rebuilding them. */
     public bool $reuseTransaction;
 
@@ -147,7 +153,6 @@ class ConfigDTO extends AbstractDTO
 
 
 
-
     /** @var string The path to the "mysql" executable. */
     public string $mysqlExecutablePath;
 
@@ -159,6 +164,7 @@ class ConfigDTO extends AbstractDTO
 
     /** @var string The path to the "pg_dump" executable. */
     public string $pgDumpExecutablePath;
+
 
 
     /** @var integer The number of seconds grace-period before stale databases and snapshots are to be deleted. */
@@ -222,6 +228,18 @@ class ConfigDTO extends AbstractDTO
     public function connection(string $connection): self
     {
         $this->connection = $connection;
+        return $this;
+    }
+
+    /**
+     * Whether this connection should be made the default or not.
+     *
+     * @param boolean|null $isDefaultConnection Whether to make this connection default or not.
+     * @return static
+     */
+    public function isDefaultConnection(?bool $isDefaultConnection): self
+    {
+        $this->isDefaultConnection = $isDefaultConnection;
         return $this;
     }
 
@@ -852,7 +870,7 @@ class ConfigDTO extends AbstractDTO
      */
     public function pickSeedersToInclude(): array
     {
-        return $this->migrations ? $this->seeders : [];
+        return $this->seedingIsAllowed() ? $this->seeders : [];
     }
 
     /**
@@ -1077,7 +1095,7 @@ class ConfigDTO extends AbstractDTO
      */
     public function seedingIsAllowed(): bool
     {
-        return $this->migrations !== false;
+        return ($this->hasInitialImports()) || ($this->migrations !== false);
     }
 
     /**
@@ -1121,7 +1139,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if (($this->migrations === false) && (!$this->hasInitialImports())) {
+        if ((!$this->hasInitialImports()) && ($this->migrations === false)) {
             return false;
         }
 
@@ -1142,7 +1160,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if (($this->migrations === false) && (!$this->hasInitialImports())) {
+        if ((!$this->hasInitialImports()) && ($this->migrations === false)) {
             return false;
         }
 

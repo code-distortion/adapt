@@ -9,11 +9,6 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
  */
 class DatabaseDefinition
 {
-    /** @var boolean Whether this database's connection should be made default or not. */
-    private $makeDefault = false;
-
-
-
     /**
      * Constructor.
      */
@@ -32,6 +27,17 @@ class DatabaseDefinition
     public function connection(string $connection): self
     {
         $this->configDTO->connection($connection);
+        return $this;
+    }
+
+    /**
+     * Set this builder's database connection to be the "default" one.
+     *
+     * @return static
+     */
+    public function makeDefault(): self
+    {
+        $this->configDTO->isDefaultConnection(true);
         return $this;
     }
 
@@ -129,7 +135,7 @@ class DatabaseDefinition
      *
      * @return static
      */
-    public function isNotBrowserTest(): self
+    public function isNotABrowserTest(): self
     {
         $this->configDTO->isBrowserTest(false);
         return $this;
@@ -248,7 +254,7 @@ class DatabaseDefinition
      */
     public function forceRebuild(bool $forceRebuild = true): self
     {
-        $this->configDTO->forceRebuild = $forceRebuild;
+        $this->configDTO->forceRebuild($forceRebuild);
         return $this;
     }
 
@@ -259,20 +265,7 @@ class DatabaseDefinition
      */
     public function dontForceRebuild(): self
     {
-        $this->configDTO->forceRebuild = false;
-        return $this;
-    }
-
-
-
-    /**
-     * Set this builder's database connection to be the "default" one.
-     *
-     * @return static
-     */
-    public function makeDefault(): self
-    {
-        $this->makeDefault = true;
+        $this->configDTO->forceRebuild(false);
         return $this;
     }
 }

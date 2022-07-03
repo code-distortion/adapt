@@ -214,4 +214,14 @@ class AdaptConfigException extends AdaptException
     {
         return new self("The \"$connection\" connection is being prepared more than once");
     }
+
+    /**
+     * When more than one DatabaseBuilder has been specified as being the "default".
+     *
+     * @return self
+     */
+    public static function tooManyDefaultConnections(): self
+    {
+        return new self("Only one connection can be specified as being the default connection");
+    }
 }

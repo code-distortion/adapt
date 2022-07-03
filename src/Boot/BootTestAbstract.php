@@ -84,6 +84,16 @@ abstract class BootTestAbstract implements BootTestInterface
     }
 
     /**
+     * Check if databases are to be built.
+     *
+     * @return boolean
+     */
+    private function buildingDatabases(): bool
+    {
+        return $this->propBag->adaptConfig('build_databases', 'buildDatabases');
+    }
+
+    /**
      * Specify if a browser test is being run.
      *
      * @param boolean $browserTestDetected Whether or not a browser test is being run.
@@ -154,11 +164,11 @@ abstract class BootTestAbstract implements BootTestInterface
     }
 
 
-
     /**
      * Run the process to build the databases.
      *
      * @return void
+     * @throws AdaptConfigException
      */
     public function runBuildSteps(): void
     {
@@ -167,10 +177,11 @@ abstract class BootTestAbstract implements BootTestInterface
 //        $this->resolveDI();
         $this->prepareDatabaseDefinitions();
         $this->prepareDatabaseBuilders();
+        $this->applyTheDefaultConnection();
+
         $this->purgeStaleThings();
 
         $builders = $this->pickBuildersToExecute();
-
         $this->checkForDuplicateConnections($builders);
         foreach ($builders as $builder) {
             $builder->execute();
@@ -236,7 +247,7 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function prepareDatabaseDefinitions(): void
     {
-        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
+        if (!$this->buildingDatabases()) {
             return;
         }
 
@@ -261,21 +272,53 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     private function prepareDatabaseBuilders(): void
     {
-        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
+        if (!$this->buildingDatabases()) {
             return;
         }
 
         foreach ($this->databaseDefinitions as $databaseDefinition) {
             $configDTO = PHPSupport::readPrivateProperty($databaseDefinition, 'configDTO');
-            $builder = $this->newDatabaseBuilderFromConfigDTO($configDTO);
-
-            $makeDefault = PHPSupport::readPrivateProperty($databaseDefinition, 'makeDefault');
-            if ($makeDefault) {
-                $builder->makeDefault(); // @todo
-            }
+            $this->newDatabaseBuilderFromConfigDTO($configDTO);
         }
 
         $this->reCheckIfConnectionsExist();
+    }
+
+    /**
+     * Pick and apply a default DatabaseBuilder.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function applyTheDefaultConnection(): void
+    {
+        if (!$this->buildingDatabases()) {
+            return;
+        }
+
+        $defaultBuilders = [];
+        foreach ($this->databaseBuilders as $databaseBuilder) {
+            if ($databaseBuilder->getIsDefaultConnection()) {
+                $defaultBuilders[] = $databaseBuilder;
+            }
+        }
+
+        if (!count($defaultBuilders)) {
+            // pick the first that's not false
+            foreach ($this->databaseBuilders as $databaseBuilder) {
+                if ($databaseBuilder->getIsDefaultConnection() !== false) {
+                    $defaultBuilders[] = head($this->databaseBuilders);
+                }
+            }
+        }
+
+        if (count($defaultBuilders) > 1) {
+            throw AdaptConfigException::tooManyDefaultConnections();
+        }
+
+        if (count($defaultBuilders) == 1) {
+            $defaultBuilders[0]->makeDefault();
+        }
     }
 
 

@@ -494,6 +494,16 @@ trait HasConfigDTOTrait
     }
 
     /**
+     * Retrieve the isDefaultConnection value.
+     *
+     * @return boolean|null
+     */
+    public function getIsDefaultConnection(): ?bool
+    {
+        return $this->configDTO->isDefaultConnection;
+    }
+
+    /**
      * Retrieve the database being used.
      *
      * @return string|null

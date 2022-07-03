@@ -106,6 +106,7 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->projectName($remoteConfigDTO->projectName)
             ->testName($remoteConfigDTO->testName)
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
