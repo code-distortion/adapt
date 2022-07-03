@@ -6,9 +6,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.0] - 2022-07-04
+
+### Added
+- Added the `default_connection` config setting
+- Added the `ADAPT_DEFAULT_CONNECTION` .env value
+- Added the `ADAPT_CACHE_INVALIDATION_ENABLED` .env value
+- Added the `cache_invalidation.locations` config setting to replace `look_for_changes_in` (which is now deprecated, but will still work)
+- Added the `cache_invalidation.checksum_method` config setting to replace `cache_invalidation_method` (which is now deprecated, but will still work)
+- Added the `cache_invalidation.purge_stale` config setting to replace `remove_stale_things` (which is now deprecated, but will still work)
+- Added the `build_sources.initial_imports` config setting to replace `initial_imports` (which is now deprecated, but will still work)
+- Added the `build_sources.migrations` config setting to replace `migrations` (which is now deprecated, but will still work)
+- Added the `build_sources.seeders` config setting to replace `seeders` (which is now deprecated, but will still work)
+- Added the `$transactions` config setting to replace `$reuseTransaction` (which is now deprecated, but will still work)
+- Added the `$journals` config setting to replace `$reuseJournal` (which is now deprecated, but will still work)
+- Added the `transaction(..)` DatabaseBuilder method to replace `reuseTransaction(..)` (which is now deprecated, but will still work)
+- Added the `noTransaction()` DatabaseBuilder method to replace `noReuseTransaction()` (which is now deprecated, but will still work)
+- Added the `journal(..)` DatabaseBuilder method to replace `reuseJournal(..)` (which is now deprecated, but will still work)
+- Added the `noJournal()` DatabaseBuilder method to replace `noReuseJournal()` (which is now deprecated, but will still work)
+- Added a check to make sure that a connection isn't being prepared more than once
+- Added detection for when a test rolls-back the wrapper-transaction - throws an exception
+- Improved the code that picks the default connection to use - it now happens after calling `databaseInit(..)` (instead of just setting it as soon as ->makeDefault() is called)
+- Improved the logic that purges stale databases. It now only removes databases from connections that are being prepared (unused connections are ignored). Saves long connection time-outs
+
+### Changed
+- Changed the structure of the config file - Please review your copy to keep it up to date
+- Deprecated the `noCacheInvalidationMethod(..)` DatabaseBuilder method
+- Deprecated the `cacheInvalidationMethod()` DatabaseBuilder method
+- Deprecated the `scenarios(..)` DatabaseBuilder method
+- Deprecated the `noScenarios()` DatabaseBuilder method
+- Seeders are now allowed to run when initial-imports exist but migrations don't
+- Initial-imports are now considered when working out whether snapshots should be taken after running migrations.
+- Replaced `DatabaseBuilder` with `DatabaseDefinition` when calling the user-defined `databaseInit(..)` method (using `DatabaseBuilder` is now deprecated, but will still work)
+
+### Changed (breaking)
+- Added the `ADAPT_CACHE_INVALIDATION_CHECKSUM_METHOD` .env value to replace `ADAPT_CACHE_INVALIDATION_METHOD`
+- Added the `ADAPT_CACHE_INVALIDATION_PURGE_STALE` .env value to replace `ADAPT_REMOVE_STALE_THINGS`
+- Removed the `$scenarios` (and deprecated `$scenarioTestDBs`) test-class properties. It can be set at the config level
+
+
+
 ## [0.11.1] - 2022-06-19
 
-### ADDED
+### Added
 - Laravel connects to the database in some situations before Adapt runs (e.g. when using debug-bar during remote requests). Adapt now disconnects from these database connections first, so the correct database/s can be re-connected to
 - Added separate storage directories for file-based databases (i.e. SQLite), snapshot files, and share-config files
 - Added a GitHub issue template
@@ -124,7 +164,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Deprecated
 - The test-class property `reuseTestDBs` has been replaced with `$reuseTransaction`
-- The config `code_distortion.adapt.reuse_test_dbs` setting has been replaced with `code_distortion.adapt.reuse.transactions`
+- The config `reuse_test_dbs` setting has been replaced with `reuse.transactions`
 - The Builder `reuseTestDBs()` and `noReuseTestDBs()` methods (that you might call in a test's `databaseInit(..)` method) have been replaced with `reuseTransaction()` and `noReuseTransaction()`
 
 
