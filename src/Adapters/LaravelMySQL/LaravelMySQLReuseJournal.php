@@ -342,8 +342,10 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
         $this->recordJournalingStop();
 
         $message = $madeChanges
-            ? "Used the journal to reverse changes to database \"{$this->configDTO->database}\""
-            : "There aren't any journaled changes to reverse for \"{$this->configDTO->database}\"";
+            ? "Used the journal to reverse changes to "
+            : "There aren't any journaled changes to reverse for ";
+        $message .= "\"{$this->configDTO->connection}\" database \"{$this->configDTO->database}\"";
+
         $this->di->log->vDebug($message, $logTimer, $newLineAfter);
     }
 

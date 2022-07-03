@@ -17,6 +17,16 @@ trait ConfigAdapterAndDriverTrait
 
 
     /**
+     * Reset the dbAdapter, force it to be resolved again.
+     *
+     * @return void
+     */
+    private function resetDbAdapter()
+    {
+        $this->dbAdapter = null;
+    }
+
+    /**
      * Create a database adapter to do the database specific work.
      *
      * @return DBAdapter
@@ -40,17 +50,9 @@ trait ConfigAdapterAndDriverTrait
         $dbAdapter = new $adapterClass($this->di, $this->configDTO);
         $this->dbAdapter = $dbAdapter;
 
-        return $this->dbAdapter;
-    }
+        $this->di->db->useConnection($this->configDTO->connection);
 
-    /**
-     * Retrieve the database-driver being used.
-     *
-     * @return string
-     */
-    public function getDriver(): string
-    {
-        return $this->pickDriver();
+        return $this->dbAdapter;
     }
 
     /**

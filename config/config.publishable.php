@@ -1,7 +1,5 @@
 <?php
 
-use CodeDistortion\Adapt\Support\Settings;
-
 return [
 
     /*
@@ -183,10 +181,10 @@ return [
         'enabled' => env('ADAPT_CACHE_INVALIDATION_ENABLED', true),
 
         'locations' => [
-            realpath(base_path('../../../../tests/workspaces/current/database')) . '/migrations',
-//            realpath(base_path('../../../../tests/workspaces/current/database')) . '/seeders', // Laravel 8 and after
-            realpath(base_path('../../../../tests/workspaces/current/database')) . '/seeds',     // before Laravel 8
-            realpath(base_path('../../../../tests/workspaces/current/database')) . '/factories',
+            database_path('migrations'),
+            database_path('seeders'), // Laravel 8 and after
+//            database_path('seeds'), // before Laravel 8
+            database_path('factories'),
         ],
 
         'checksum_method' => env('ADAPT_CACHE_INVALIDATION_CHECKSUM_METHOD', 'modified'),
@@ -271,7 +269,7 @@ return [
     |
     */
 
-    'storage_dir' => realpath(base_path('../../../../tests/workspaces/current/database')) . '/adapt-test-storage',
+    'storage_dir' => env('ADAPT_STORAGE_DIR', database_path('adapt-test-storage')),
 
     /*
      |--------------------------------------------------------------------------
@@ -321,13 +319,5 @@ return [
             ],
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Other settings
-    |--------------------------------------------------------------------------
-    */
-
-    'stale_grace_seconds' => env('ADAPT_STALE_GRACE_SECONDS', Settings::DEFAULT_STALE_GRACE_SECONDS),
 
 ];

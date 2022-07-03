@@ -96,10 +96,17 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
+        $cacheInvalidationLocations = config("$c.look_for_changes_in") ?? config("$c.cache_invalidation.locations");
+        $cacheInvalidationMethod =
+            config("$c.check_for_source_changes")
+            ?? config("$c.cache_invalidation_method")
+            ?? config("$c.cache_invalidation.checksum_method");
+
         return (new ConfigDTO())
             ->projectName($remoteConfigDTO->projectName)
             ->testName($remoteConfigDTO->testName)
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
@@ -107,8 +114,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
             ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
-            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->cacheInvalidationEnabled(config("$c.cache_invalidation.enabled"))
+            ->cacheInvalidationMethod($cacheInvalidationMethod)
+            ->checksumPaths($this->checkLaravelChecksumPaths($cacheInvalidationLocations))
             ->preCalculatedBuildChecksum($remoteConfigDTO->preCalculatedBuildChecksum)->buildSettings(
                 $remoteConfigDTO->initialImports,
                 $remoteConfigDTO->migrations,
@@ -122,7 +130,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
                 // yes, a remote database is being built here now, locally
                 config("session.driver"),
                 $remoteConfigDTO->sessionDriver
-            )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarios)->snapshots($remoteConfigDTO->useSnapshotsWhenReusingDB, $remoteConfigDTO->useSnapshotsWhenNotReusingDB)
-            ->forceRebuild($remoteConfigDTO->forceRebuild)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
+            )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($remoteConfigDTO->reuseTransaction, $remoteConfigDTO->reuseJournal, $remoteConfigDTO->verifyDatabase, $remoteConfigDTO->scenarios)
+            ->snapshots($remoteConfigDTO->snapshots)
+            ->forceRebuild($remoteConfigDTO->forceRebuild)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))
+            ->staleGraceSeconds(config("$c.stale_grace_seconds"));
     }
 }

@@ -112,7 +112,11 @@ class Hasher
             return self::$buildChecksum = self::$buildChecksum ?? $this->generateBuildChecksum();
         }
 
-        if (!$this->configDTO->cacheInvalidationMethod || !$this->configDTO->dbSupportsReUse) {
+        if (!$this->configDTO->dbSupportsReUse) {
+            return null;
+        }
+
+        if (!$this->configDTO->cacheInvalidationEnabled) {
             return null;
         }
 
@@ -141,8 +145,8 @@ class Hasher
         ]));
 
         $message = $this->configDTO->cacheInvalidationMethod == 'content'
-            ? "Generated a content-based build-source checksum"
-            : "Generated a modified-time based build-source checksum";
+            ? "Generated a build-source checksum based on file content"
+            : "Generated a build-source checksum based on file modified timestamps";
 
         $this->di->log->vDebug($message, $logTimer);
 
@@ -156,11 +160,7 @@ class Hasher
      */
     private function buildListOfBuildFiles(): array
     {
-        $paths = array_unique(array_filter(array_merge(
-            $this->resolveInitialImportPaths(),
-            $this->resolveMigrationPaths(),
-            $this->resolveChecksumFilePaths()
-        )));
+        $paths = array_unique(array_filter($this->resolveChecksumFilePaths()));
         $paths = $this->ignoreUnwantedChecksumFiles($paths);
         sort($paths);
         return $paths;
@@ -221,21 +221,21 @@ class Hasher
         );
     }
 
-    /**
-     * Look for migration paths to checksum.
-     *
-     * @return string[]
-     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
-     */
-    private function resolveMigrationPaths(): array
-    {
-        $paths = is_string($this->configDTO->migrations)
-            ? [database_path('migrations'), $this->configDTO->migrations]
-            : [database_path('migrations')];
-        $paths = array_unique($paths);
-
-        return $this->resolvePaths($paths, true, 'migrationsPathInvalid');
-    }
+//    /**
+//     * Look for migration paths to checksum.
+//     *
+//     * @return string[]
+//     * @throws AdaptConfigException When a file does not exist or is a directory that shouldn't be used.
+//     */
+//    private function resolveMigrationPaths(): array
+//    {
+//        $paths = is_string($this->configDTO->migrations)
+//            ? [database_path('migrations'), $this->configDTO->migrations]
+//            : [database_path('migrations')];
+//        $paths = array_unique($paths);
+//
+//        return $this->resolvePaths($paths, true, 'migrationsPathInvalid');
+//    }
 
     /**
      * Look for paths to checksum.

@@ -58,7 +58,7 @@ trait DatabaseTrait
      * @param string $name The name of the database to use.
      * @return void
      */
-    private function useDatabase(string $name)
+    protected function useDatabase($name)
     {
         $this->dbAdapter()->connection->useDatabase($name);
     }

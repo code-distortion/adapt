@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Support;
 use CodeDistortion\Adapt\Adapters\DBAdapter;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
 use CodeDistortion\Adapt\DTO\VersionsDTO;
+use Illuminate\Foundation\Application;
 
 /**
  * Provides functionality related to version detection.
@@ -46,16 +47,20 @@ class VersionSupport
             return;
         }
 
-        $versionsDTO->adaptVersion(static::getPackageVersion($composerLock, 'code-distortion/adapt'));
+        /** @var Application $app */
+        $app = app();
+        $versionsDTO->laravelVersion($app->version());
+
         $versionsDTO->phpUnitVersion(static::getPackageVersion($composerLock, 'phpunit/phpunit'));
         $versionsDTO->pestVersion(static::getPackageVersion($composerLock, 'pestphp/pest'));
-        $versionsDTO->laravelVersion(static::getPackageVersion($composerLock, 'laravel/framework'));
+        $versionsDTO->adaptVersion(Settings::PACKAGE_VERSION);
     }
 
     /**
      * Look inside composer.lock and find the version of a particular package.
      *
-     * @param string $packageName The name of the package to check.
+     * @param string $composerLock The composer.lock file contents.
+     * @param string $packageName  The name of the package to check.
      * @return string|null
      */
     private static function getPackageVersion(string $composerLock, string $packageName)

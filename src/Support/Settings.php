@@ -18,6 +18,12 @@ class Settings
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
 
+    /** @var string The config file that gets published. */
+    const LARAVEL_PUBLISHABLE_CONFIG = '/config/config.publishable.php';
+
+    /** @var string The config file that gets used. */
+    const LARAVEL_REAL_CONFIG = '/config/config.real.php';
+
     /** @var string The .env.testing file to use. */
     const LARAVEL_ENV_TESTING_FILE = '.env.testing';
 
@@ -51,10 +57,10 @@ class Settings
 
 
     /** @var integer Included when prepping a db remotely between Adapt installations. Mismatch causes an exception. */
-    const CONFIG_DTO_VERSION = 6;
+    const CONFIG_DTO_VERSION = 7;
 
     /** @var integer Included in the remote-share payload between Adapt installations. Mismatch causes an exception. */
-    const REMOTE_SHARE_DTO_VERSION = 6;
+    const REMOTE_SHARE_DTO_VERSION = 7;
 
     /** @var string The cookie/http-header used to pass the remote-share date between Adapt installations. */
     const REMOTE_SHARE_KEY = 'adapt-remote-share';

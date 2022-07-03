@@ -28,7 +28,8 @@ trait CheckLaravelChecksumPathsTrait
                 continue;
             }
 
-            // realpath returns null when the file doesn't exist
+            // it's ok if the seeders dir exists
+            // (realpath returns null when the file doesn't exist)
             if ($filesystem->realpath($path)) {
                 continue;
             }

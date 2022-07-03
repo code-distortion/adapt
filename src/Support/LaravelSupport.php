@@ -326,8 +326,8 @@ class LaravelSupport
             $connection->unsetEventDispatcher();
             try {
                 $connection->rollback();
-            } catch (PDOException $e) {
-                // act gracefully if the transaction was committed already? - no
+            } catch (PDOException $exception) {
+                // act gracefully if the transaction was committed already?
             }
             $connection->setEventDispatcher($dispatcher);
 //            $connection->disconnect();

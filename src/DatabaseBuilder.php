@@ -101,8 +101,7 @@ class DatabaseBuilder
         $this->hasher = $hasher;
         $this->pickDriverClosure = $pickDriverClosure;
 
-        // update $configDTO with some extra settings now that the driver is known
-        $this->configDTO->dbAdapterSupport($this->dbAdapter()->build->supportsReuse(), $this->dbAdapter()->snapshot->supportsSnapshots(), $this->dbAdapter()->build->supportsScenarios(), $this->dbAdapter()->reuseTransaction->supportsTransactions(), $this->dbAdapter()->reuseJournal->supportsJournaling(), $this->dbAdapter()->verifier->supportsVerification());
+        $this->recordDriverAbilities();
     }
 
 
@@ -120,8 +119,11 @@ class DatabaseBuilder
         $logTimer = $this->di->log->newTimer();
 
         $this->onlyExecuteOnce();
+        $this->resetDbAdapter();
+        $this->recordDriverAbilities();
         $this->prePreparationChecks();
         $this->prepareDB();
+
         $this->logTotalTimeTaken($logTimer);
 
         return $this;
@@ -184,6 +186,8 @@ class DatabaseBuilder
         $a = $isLast && $this->configDTO->shouldUseTransaction() && !$b && !$c && !$d;
 
         $logTimer = $this->di->log->newTimer();
+
+        $this->checkForRolledBackTransaction();
         $this->rollBackTransaction();
         $this->checkForCommittedTransaction($logTimer, $a);
 
@@ -196,6 +200,18 @@ class DatabaseBuilder
     }
 
 
+
+    /**
+     * Record extra details about the driver's abilities.
+     *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function recordDriverAbilities()
+    {
+        // update $configDTO with some extra settings now that the driver is known
+        $this->configDTO->dbAdapterSupport($this->dbAdapter()->build->supportsReuse(), $this->dbAdapter()->snapshot->supportsSnapshots(), $this->dbAdapter()->build->supportsScenarios(), $this->dbAdapter()->reuseTransaction->supportsTransactions(), $this->dbAdapter()->reuseJournal->supportsJournaling(), $this->dbAdapter()->verifier->supportsVerification());
+    }
 
     /**
      * Perform any checks that that need to happen before building a database.

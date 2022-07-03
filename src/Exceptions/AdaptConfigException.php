@@ -49,6 +49,17 @@ class AdaptConfigException extends AdaptException
     }
 
     /**
+     * A .gitignore file could not be created.
+     *
+     * @param string $path The location of the .gitignore file.
+     * @return self
+     */
+    public static function cannotCreateGitIgnoreFile($path): self
+    {
+        return new self("Could not create the .gitignore file \"$path\". Please review the \"storage_dir\" setting");
+    }
+
+    /**
      * An initial-import path could not be read.
      *
      * @param string $path The invalid path.
@@ -58,12 +69,12 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             "Couldn't open initial-import file \"$path\". "
-            . "Please review the \"initial_imports\" config setting"
+            . "Please review the \"build_sources.initial_imports\" config setting"
         );
     }
 
     /**
-     * The migrations path could not be read.
+     * The migrations' path could not be read.
      *
      * @param string $path The invalid path.
      * @return self
@@ -71,7 +82,8 @@ class AdaptConfigException extends AdaptException
     public static function migrationsPathInvalid($path): self
     {
         return new self(
-            "The migrations directory \"$path\" does not exist. Please review the \"migrations\" config setting"
+            "The migrations directory \"$path\" does not exist. "
+            . "Please review the \"build_sources.migrations\" config setting, or \$migrations test-class property"
         );
     }
 
@@ -84,7 +96,8 @@ class AdaptConfigException extends AdaptException
     public static function databaseRelatedFilesPathInvalid($path): self
     {
         return new self(
-            "Couldn't open file or directory \"$path\". Please review the \"look_for_changes_in\" config setting"
+            "Couldn't open file or directory \"$path\". "
+            . "Please review the \"cache_invalidation.locations\" config setting"
         );
     }
 
@@ -98,7 +111,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             "Couldn't open file or directory \"$path\". "
-            . "Please review the \"look_for_changes_in\" config setting. "
+            . "Please review the \"cache_invalidation.locations\" config setting. "
             . "Note: Laravel renamed the seeders directory from \"database/seeds\" to \"database/seeders\" in Laravel 8"
         );
     }
@@ -128,7 +141,7 @@ class AdaptConfigException extends AdaptException
     {
         return new self(
             "The default connection \"$connection\" does not exist. "
-            . "Please check the \$defaultConnection test-class property"
+            . "Please check the \"default_connection\" config setting, or \$defaultConnection test-class property"
         );
     }
 
@@ -154,8 +167,8 @@ class AdaptConfigException extends AdaptException
     public static function missingDestRemapConnection($connection, $isConfig): self
     {
         $errorPart = $isConfig
-            ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property';
+            ? 'Please check the "remap_connections" config setting'
+            : 'Please check the $remapConnections test-class property';
         return new self("Cannot remap the connection \"$connection\" as it doesn't exist. $errorPart");
     }
 
@@ -170,8 +183,8 @@ class AdaptConfigException extends AdaptException
     public static function missingSrcRemapConnection($connection, $isConfig): self
     {
         $errorPart = $isConfig
-            ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property';
+            ? 'Please check the "remap_connections" config setting'
+            : 'Please check the $remapConnections test-class property';
         return new self("Cannot remap using the connection \"$connection\" as it doesn't exist. $errorPart");
     }
 
@@ -186,8 +199,29 @@ class AdaptConfigException extends AdaptException
     public static function invalidConnectionRemapString($orig, $isConfig): self
     {
         $errorPart = $isConfig
-            ? 'Please review the "remap_connections" config setting'
-            : 'Please review the $remapConnections test-class property';
+            ? 'Please check the "remap_connections" config setting'
+            : 'Please check the $remapConnections test-class property';
         return new self("Cannot interpret remap-database string \"$orig\". $errorPart");
+    }
+
+    /**
+     * When a connection would be prepared by more than one DatabaseBuilder.
+     *
+     * @param string $connection The duplicated connection.
+     * @return self
+     */
+    public static function sameConnectionBeingBuiltTwice($connection): self
+    {
+        return new self("The \"$connection\" connection is being prepared more than once");
+    }
+
+    /**
+     * When more than one DatabaseBuilder has been specified as being the "default".
+     *
+     * @return self
+     */
+    public static function tooManyDefaultConnections(): self
+    {
+        return new self("Only one connection can be specified as being the default connection");
     }
 }

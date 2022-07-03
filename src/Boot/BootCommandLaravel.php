@@ -98,10 +98,53 @@ class BootCommandLaravel extends BootCommandAbstract
             throw AdaptBootException::databaseNameIsInvalid($database);
         }
 
+        $cacheInvalidationLocations = config("$c.look_for_changes_in") ?? config("$c.cache_invalidation.locations");
+        $cacheInvalidationMethod =
+            config("$c.check_for_source_changes")
+            ?? config("$c.cache_invalidation_method")
+            ?? config("$c.cache_invalidation.checksum_method");
+
+        $initialImports =
+            config("$c.pre_migration_imports")
+            ?? config("$c.initial_imports")
+            ?? config("$c.build_sources.initial_imports");
+
+        $migrations =
+            config("$c.migrations")
+            ?? config("$c.build_sources.migrations");
+
+        $seeders =
+            config("$c.seeders")
+            ?? config("$c.build_sources.seeders");
+
+        $transaction =
+            config("$c.reuse_test_dbs")
+            ?? config("$c.reuse.transactions")
+            ?? config("$c.reuse_methods.transactions");
+
+        $journal = config("$c.reuse.journals") ?? config("$c.reuse_methods.journals");
+
+
+
+        $snapshots = config("$c.reuse_methods.snapshots");
+
+        // accept the deprecated config('...use_snapshots_when_not_reusing_db') setting
+        if (config("$c.use_snapshots_when_not_reusing_db")) {
+            $snapshots = config("$c.use_snapshots_when_not_reusing_db");
+        }
+
+        // accept the deprecated config('...use_snapshots_when_reusing_db') setting
+        if (config("$c.use_snapshots_when_reusing_db")) {
+            $snapshots = '!' . config("$c.use_snapshots_when_reusing_db");
+        }
+
+
+
         return (new ConfigDTO())
             ->projectName(config("$c.project_name"))
             ->testName($testName)
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
 //            ->database(config("database.connections.$connection.database"))
@@ -109,13 +152,14 @@ class BootCommandLaravel extends BootCommandAbstract
             ->storageDir(LaravelSupport::storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
-            ->cacheInvalidationMethod(config("$c.check_for_source_changes") ?? config("$c.cache_invalidation_method"))
-            ->checksumPaths($this->checkLaravelChecksumPaths(config("$c.look_for_changes_in")))
+            ->cacheInvalidationEnabled(config("$c.cache_invalidation.enabled"))
+            ->cacheInvalidationMethod($cacheInvalidationMethod)
+            ->checksumPaths($this->checkLaravelChecksumPaths($cacheInvalidationLocations))
             ->preCalculatedBuildChecksum(null)->buildSettings(
             // accept the deprecated config('...pre_migration_imports') setting
-                config("$c.pre_migration_imports") ?? config("$c.initial_imports"),
-                config("$c.migrations"),
-                config("$c.seeders"),
+                $initialImports,
+                $migrations,
+                $seeders,
                 config("$c.remote_build_url"),
                 false,
                 false,
@@ -124,14 +168,15 @@ class BootCommandLaravel extends BootCommandAbstract
                 config("session.driver"),
                 null
             )->dbAdapterSupport(true, true, true, true, true, true)->cacheTools(
-            // accept the deprecated config('...reuse_test_dbs') setting
-                config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions"),
-                config("$c.reuse.journals"),
+                $transaction,
+                $journal,
                 config("$c.verify_databases"),
                 // accept the deprecated config('...scenario_test_dbs') setting
                 config("$c.scenario_test_dbs") ?? config("$c.scenarios")
-            )->snapshots(config("$c.use_snapshots_when_reusing_db"), config("$c.use_snapshots_when_not_reusing_db"))
-            ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))->staleGraceSeconds(config("$c.stale_grace_seconds", Settings::DEFAULT_STALE_GRACE_SECONDS));
+            )
+            ->snapshots($snapshots)
+            ->forceRebuild(false)->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))
+            ->staleGraceSeconds(config("$c.stale_grace_seconds"));
     }
 
     /**
@@ -142,9 +187,15 @@ class BootCommandLaravel extends BootCommandAbstract
     public function canPurgeStaleThings(): bool
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
+
+        if (config("$c.cache_invalidation.enabled") === false) {
+            return false;
+        }
+
         if (config("$c.remote_build_url")) {
             return false;
         }
-        return (bool) config("$c.remove_stale_things", true);
+
+        return (bool) (config("$c.remove_stale_things") ?? config("$c.cache_invalidation.purge_stale") ?? true);
     }
 }

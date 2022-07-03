@@ -90,6 +90,7 @@ trait DatabaseBuilderTestTrait
             ->projectName(null)
             ->testName('A test')
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(true)
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
@@ -97,6 +98,7 @@ trait DatabaseBuilderTestTrait
             ->storageDir($this->wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
+            ->cacheInvalidationEnabled(true)
             ->cacheInvalidationMethod('content')
             ->checksumPaths([
                 $this->wsFactoriesDir,
@@ -126,7 +128,7 @@ trait DatabaseBuilderTestTrait
                 true
             )
             ->cacheTools(true, false, false, true)
-            ->snapshots(false, 'afterMigrations')
+            ->snapshots('afterMigrations')
             ->forceRebuild(false)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');
@@ -166,7 +168,7 @@ trait DatabaseBuilderTestTrait
      */
     public function useConfig($configDTO = null, $di = null)
     {
-        // generate a build-checksum based on the current look_for_changes_in etc. dirs
+        // generate a build-checksum based on the current cache_invalidation.locations
         $this->newHasher($configDTO, $di)->getBuildChecksum();
     }
 

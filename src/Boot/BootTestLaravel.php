@@ -5,6 +5,7 @@ namespace CodeDistortion\Adapt\Boot;
 use CodeDistortion\Adapt\Boot\Traits\CheckLaravelChecksumPathsTrait;
 use CodeDistortion\Adapt\Boot\Traits\HasMutexTrait;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Exec;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
@@ -38,7 +39,6 @@ class BootTestLaravel extends BootTestAbstract
 
     /** @var string[] The paths to the sharable config files, created during browser tests. */
     private $sharableConfigPaths = [];
-
 
 
     /**
@@ -88,9 +88,6 @@ class BootTestLaravel extends BootTestAbstract
     }
 
 
-
-
-
     /**
      * Ensure the storage-directories exist.
      *
@@ -109,7 +106,6 @@ class BootTestLaravel extends BootTestAbstract
      *
      * @param string $connection The connection to start using.
      * @return DIContainer
-     * @throws AdaptBootException When a PropBagDTO hasn't been set yet.
      */
     protected function defaultDI($connection): DIContainer
     {
@@ -121,46 +117,97 @@ class BootTestLaravel extends BootTestAbstract
             ->filesystem(new Filesystem());
     }
 
+
+
     /**
-     * Create a new DatabaseBuilder object based on the "default" database connection.
+     * Create a new DatabaseDefinition object based on the "default" database connection,
+     * and add it to the list to use later.
      *
-     * @return DatabaseBuilder
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    protected function newDefaultBuilder(): DatabaseBuilder
+    protected function newDefaultDatabaseDefinition(): DatabaseDefinition
     {
-        return $this->newBuilder(LaravelSupport::configString('database.default'));
+        return $this->newDatabaseDefinitionFromConnection(LaravelSupport::configString('database.default'));
     }
 
     /**
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
+     * Create a new DatabaseDefinition object based on a connection, and add it to the list to use later.
      *
      * @param string $connection The database connection to prepare.
-     * @return DatabaseBuilder
-     * @throws AdaptConfigException When the connection doesn't exist.
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
      */
-    public function newBuilder($connection): DatabaseBuilder
+    public function newDatabaseDefinitionFromConnection($connection): DatabaseDefinition
     {
-        $builder = $this->createBuilder($connection);
-        $this->addBuilder($builder);
-        return $builder;
+        $configDTO = $this->newConfigDTO($connection, $this->testName);
+        $databaseDefinition = new DatabaseDefinition($configDTO);
+        $this->addDatabaseDefinition($databaseDefinition);
+        return $databaseDefinition;
+    }
+
+
+
+    /**
+     * Create a new DatabaseDefinition object based on the "default" database connection.
+     *
+     * @param boolean $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    protected function newDefaultDatabaseBuilder($addToList = true): DatabaseBuilder
+    {
+        return $this->newDatabaseBuilderFromConnection(LaravelSupport::configString('database.default'), $addToList);
     }
 
     /**
-     * Create a new DatabaseBuilder object and set its initial values.
+     * Create a new DatabaseBuilder object based on a connection, and add it to the list to execute later.
+     *
+     * @param string  $connection The database connection to prepare.
+     * @param boolean $addToList  Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    public function newDatabaseBuilderFromConnection($connection, $addToList = true): DatabaseBuilder
+    {
+        $configDTO = $this->newConfigDTO($connection, $this->testName);
+        return $this->newDatabaseBuilderFromConfigDTO($configDTO, $addToList);
+    }
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and add it to the list to execute later.
+     *
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
+     * @param boolean   $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     */
+    protected function newDatabaseBuilderFromConfigDTO($configDTO, $addToList = true): DatabaseBuilder
+    {
+        $databaseBuilder = $this->createDatabaseBuilderFromConfigDTO($configDTO);
+
+        if ($addToList) {
+            $this->addDatabaseBuilder($databaseBuilder);
+        }
+
+        return $databaseBuilder;
+    }
+
+
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and set its initial values.
      *
      * The initial values are based on the config + the properties of the
      * current test-class.
      *
-     * @param string $connection The database connection to prepare.
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
      * @return DatabaseBuilder
      */
-    private function createBuilder(string $connection): DatabaseBuilder
+    private function createDatabaseBuilderFromConfigDTO(ConfigDTO $configDTO): DatabaseBuilder
     {
-        $configDTO = $this->newConfigDTO($connection, $this->testName);
-
         // @todo - work out how to inject the DIContainer
         // - clone the one that was passed in? pass in a closure to create one?
-        $di = $this->defaultDI($connection);
+        $di = $this->defaultDI($configDTO->connection);
 
         $pickDriverClosure = function (string $connection): string {
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
@@ -174,6 +221,8 @@ class BootTestLaravel extends BootTestAbstract
             $pickDriverClosure
         );
     }
+
+
 
     /**
      * Create a new ConfigDTO object with default values.
@@ -191,46 +240,134 @@ class BootTestLaravel extends BootTestAbstract
         $c = Settings::LARAVEL_CONFIG_NAME;
         $pb = $this->propBag;
 
-        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
-        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
-        $configVal = config("$c.pre_migration_imports") ?? config("$c.initial_imports");
-        $initialImports = $propVal ?? $configVal;
 
-        // accept the deprecated $reuseTestDBs and config('...reuse_test_dbs') settings
-        $propVal = $pb->prop('reuseTestDBs', null) ?? $pb->prop('reuseTransaction', null);
-        $configVal = config("$c.reuse_test_dbs") ?? config("$c.reuse.transactions");
-        $reuseTransaction = $propVal ?? $configVal;
-
-        // accept the deprecated $scenarioTestDBs and config('...scenario_test_dbs') settings
-        $propVal = $pb->prop('scenarioTestDBs', null) ?? $pb->prop('scenarios', null);
-        $configVal = config("$c.scenario_test_dbs") ?? config("$c.scenarios");
-        $scenarios = $propVal ?? $configVal;
-
-        $cacheInvalidationMethod =
-            $pb->adaptConfig('check_for_source_changes')
-            ?? $pb->adaptConfig('cache_invalidation_method');
 
         $database = (string) $pb->config("database.connections.$connection.database");
-        if (!mb_strlen($database)) {
-            throw AdaptBootException::databaseNameIsInvalid($database);
+        $this->isDatabaseNameOk($database);
+
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('preMigrationImports', null) ?? $pb->prop('initialImports', null);
+        $configVal =
+            config("$c.pre_migration_imports")
+            ?? config("$c.initial_imports")
+            ?? config("$c.build_sources.initial_imports");
+
+        $initialImports = $configVal ?? [];
+        $propVal = $propVal ?? [];
+        foreach ($propVal as $key => $value) {
+            $initialImports[$key] = $value;
+        }
+
+        // accept the deprecated $reuseTestDBs, $reuseTransaction and config('...reuse_test_dbs') settings
+        $propVal = $pb->prop('reuseTestDBs', null)
+            ?? $pb->prop('reuseTransaction', null)
+            ?? $pb->prop('transactions', null);
+        $configVal =
+            config("$c.reuse_test_dbs")
+            ?? config("$c.reuse.transactions")
+            ?? config("$c.reuse_methods.transactions");
+        $transaction = $propVal ?? $configVal;
+
+        // accept the deprecated $journals and config('reuse.journals') settings
+        $propVal = $pb->prop('reuseJournal', null) ?? $pb->prop('journals', null);
+        $configVal = config("$c.reuse.journals") ?? config("$c.reuse_methods.journals");
+        $journal = $propVal ?? $configVal;
+
+        // accept the deprecated config('...scenario_test_dbs') settings
+        $scenarios = config("$c.scenario_test_dbs") ?? config("$c.scenarios");
+
+        $cacheInvalidationLocations = config("$c.look_for_changes_in") ?? config("$c.cache_invalidation.locations");
+        $cacheInvalidationMethod =
+            config("$c.check_for_source_changes")
+            ?? config("$c.cache_invalidation_method")
+            ?? config("$c.cache_invalidation.checksum_method");
+
+        // accept the deprecated $preMigrationImports and config('...pre_migration_imports') settings
+        $propVal = $pb->prop('migrations', null);
+        $configVal =
+            config("$c.migrations")
+            ?? config("$c.build_sources.migrations");
+        $migrations = $propVal ?? $configVal;
+
+
+
+        $snapshots = $pb->adaptConfig('reuse_methods.snapshots', 'snapshots');
+
+        // accept the deprecated $useSnapshotsWhenNotReusingDB
+        // and config('...use_snapshots_when_not_reusing_db') settings
+        $snapshotsWhenNotReusingDB = $pb->adaptConfig(
+            'use_snapshots_when_not_reusing_db',
+            'useSnapshotsWhenNotReusingDB'
+        );
+        if (!is_null($snapshotsWhenNotReusingDB)) {
+            $snapshots = $snapshotsWhenNotReusingDB;
+        }
+
+        // accept the deprecated $useSnapshotsWhenReusingDB and config('...use_snapshots_when_reusing_db') settings
+        $useSnapshotsWhenReusingDB = $pb->adaptConfig(
+            'use_snapshots_when_reusing_db',
+            'useSnapshotsWhenReusingDB'
+        );
+        if (!is_null($useSnapshotsWhenReusingDB)) {
+            $snapshots = "!$useSnapshotsWhenReusingDB";
         }
 
         return (new ConfigDTO())
-            ->projectName($pb->adaptConfig('project_name'))
+            ->projectName(config("$c.project_name"))
             ->testName($testName)
             ->connection($connection)
+            ->isDefaultConnection(false)
             ->connectionExists(!is_null(config("database.connections.$connection")))
             ->origDatabase($database)
-//            ->database($pb->adaptConfigString("database.connections.$connection.database"))
+//            ->database($pb->adaptConfig("database.connections.$connection.database"))
             ->databaseModifier($paraTestDBModifier)
             ->storageDir($this->storageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('')
+            ->cacheInvalidationEnabled(config("$c.cache_invalidation.enabled"))
             ->cacheInvalidationMethod($cacheInvalidationMethod)
-            ->checksumPaths($this->checkLaravelChecksumPaths($pb->adaptConfig('look_for_changes_in')))
-            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $pb->adaptConfig('migrations', 'migrations'), $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, $this->usingPest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($reuseTransaction, $pb->adaptConfig('reuse.journals', 'reuseJournal'), $pb->adaptConfig('verify_databases'), $scenarios)->snapshots($pb->adaptConfig('use_snapshots_when_reusing_db', 'useSnapshotsWhenReusingDB'), $pb->adaptConfig('use_snapshots_when_not_reusing_db', 'useSnapshotsWhenNotReusingDB'))
-            ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings($pb->adaptConfig('database.mysql.executables.mysql'), $pb->adaptConfig('database.mysql.executables.mysqldump'))->postgresSettings($pb->adaptConfig('database.pgsql.executables.psql'), $pb->adaptConfig('database.pgsql.executables.pg_dump'))
-            ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds', null, Settings::DEFAULT_STALE_GRACE_SECONDS));
+            ->checksumPaths($this->checkLaravelChecksumPaths($cacheInvalidationLocations))
+            ->preCalculatedBuildChecksum(null)->buildSettings($initialImports, $migrations, $this->resolveSeeders(), $pb->adaptConfig('remote_build_url', 'remoteBuildUrl'), $pb->prop('isBrowserTest', $this->browserTestDetected), $isParallelTest, $this->usingPest, false, $pb->config('session.driver'), null)->dbAdapterSupport(true, true, true, true, true, true)->cacheTools($transaction, $journal, config("$c.verify_databases"), $scenarios)
+            ->snapshots($snapshots)
+            ->forceRebuild($this->parallelTestingSaysRebuildDBs())->mysqlSettings(config("$c.database.mysql.executables.mysql"), config("$c.database.mysql.executables.mysqldump"))->postgresSettings(config("$c.database.pgsql.executables.psql"), config("$c.database.pgsql.executables.pg_dump"))
+            ->staleGraceSeconds($pb->adaptConfig('stale_grace_seconds'));
+    }
+
+    /**
+     * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
+     * might have changed them), and re-pick the origDatabase.
+     *
+     * @return void
+     */
+    protected function reCheckIfConnectionsExist()
+    {
+        foreach ($this->databaseBuilders as $builder) {
+
+            $connection = $builder->getConnection();
+            $connectionExists = !is_null(config("database.connections.$connection"));
+            $builder->connectionExists($connectionExists);
+
+            $database = '';
+            if ($connectionExists) {
+                $database = (string) config("database.connections.$connection.database");
+                $this->isDatabaseNameOk($database);
+            }
+            $builder->origDatabase($database);
+        }
+    }
+
+    /**
+     * Double check that the database name is ok.
+     *
+     * @param string $database The original database name.
+     * @return void
+     * @throws AdaptBootException
+     */
+    private function isDatabaseNameOk(string $database)
+    {
+        if (!mb_strlen($database)) {
+            throw AdaptBootException::databaseNameIsInvalid($database);
+        }
     }
 
     /**
@@ -240,7 +377,8 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function storageDir(): string
     {
-        return rtrim($this->propBag->adaptConfig('storage_dir'), '\\/');
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        return rtrim(config("$c.storage_dir"), '\\/');
     }
 
     /**
@@ -250,6 +388,11 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function resolveSeeders(): array
     {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+        $seeders =
+            config("$c.seeders")
+            ?? config("$c.build_sources.seeders");
+
         return LaravelSupport::resolveSeeders(
             $this->propBag->hasProp('seeders'),
             $this->propBag->prop('seeders', null),
@@ -257,7 +400,7 @@ class BootTestLaravel extends BootTestAbstract
             $this->propBag->prop('seeder', null),
             $this->propBag->hasProp('seed'),
             $this->propBag->prop('seed', null),
-            config(Settings::LARAVEL_CONFIG_NAME . '.seeders')
+            $seeders
         );
     }
 
@@ -420,10 +563,17 @@ class BootTestLaravel extends BootTestAbstract
      */
     protected function canPurgeStaleThings(): bool
     {
-        if ($this->propBag->adaptConfig('remote_build_url')) {
+        $c = Settings::LARAVEL_CONFIG_NAME;
+
+        if (config("$c.cache_invalidation.enabled") === false) {
             return false;
         }
-        return (bool) $this->propBag->adaptConfig('remove_stale_things', null, true);
+
+        if (config("$c.remote_build_url")) {
+            return false;
+        }
+
+        return (bool) (config("$c.remove_stale_things") ?? config("$c.cache_invalidation.purge_stale") ?? true);
     }
 
     /**
@@ -441,8 +591,8 @@ class BootTestLaravel extends BootTestAbstract
             $logTimer = $this->log->newTimer();
 
             try {
-                $builder = $this->createBuilder((string) $connection);
-            } catch (Throwable $e) {
+                $builder = $this->newDatabaseBuilderFromConnection((string) $connection, false);
+            } catch (Throwable $exception) {
 
                 // this is expected, as connections will probably exist where the database can't be connected to
                 // e.g. other connections that aren't intended to be used. e.g. 'sqlsrv'
@@ -485,7 +635,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function purgeStaleSnapshots(): int
     {
-        $builder = $this->createBuilder(LaravelSupport::configString('database.default'));
+        $builder = $this->newDefaultDatabaseBuilder(false);
         $removedCount = 0;
         foreach ($builder->buildSnapshotMetaInfos() as $snapshotMetaInfo) {
 

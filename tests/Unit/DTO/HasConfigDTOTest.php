@@ -60,34 +60,6 @@ class HasConfigDTOTest extends PHPUnitTestCase
                     'cacheInvalidationMethod' => 'modified',
                 ],
             ],
-            'cacheInvalidationMethod 3' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => [null],
-                'outcome' => [
-                    'cacheInvalidationMethod' => null,
-                ],
-            ],
-            'cacheInvalidationMethod 4' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => [true],
-                'outcome' => [
-                    'cacheInvalidationMethod' => 'modified',
-                ],
-            ],
-            'cacheInvalidationMethod 5' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => [false],
-                'outcome' => [
-                    'cacheInvalidationMethod' => null,
-                ],
-            ],
-            'noCacheInvalidationMethod' => [
-                'method' => 'noCacheInvalidationMethod',
-                'params' => [],
-                'outcome' => [
-                    'cacheInvalidationMethod' => null,
-                ],
-            ],
 
             'initialImports 1' => [
                 'method' => 'initialImports',
@@ -289,42 +261,18 @@ class HasConfigDTOTest extends PHPUnitTestCase
 
             'snapshots 1' => [
                 'method' => 'snapshots',
-                'params' => ['afterMigrations', false],
+                'params' => ['afterMigrations'],
                 'outcome' => [
-                    'useSnapshotsWhenReusingDB' => 'afterMigrations',
-                    'useSnapshotsWhenNotReusingDB' => false,
-                ],
-            ],
-            'snapshots 2' => [
-                'method' => 'snapshots',
-                'params' => ['afterSeeders', 'afterMigrations'],
-                'outcome' => [
-                    'useSnapshotsWhenReusingDB' => 'afterSeeders',
+                    'useSnapshotsWhenReusingDB' => null,
                     'useSnapshotsWhenNotReusingDB' => 'afterMigrations',
-                ],
-            ],
-            'snapshots 3' => [
-                'method' => 'snapshots',
-                'params' => ['both', 'afterSeeders'],
-                'outcome' => [
-                    'useSnapshotsWhenReusingDB' => 'both',
-                    'useSnapshotsWhenNotReusingDB' => 'afterSeeders',
-                ],
-            ],
-            'snapshots 4' => [
-                'method' => 'snapshots',
-                'params' => [false, 'both'],
-                'outcome' => [
-                    'useSnapshotsWhenReusingDB' => false,
-                    'useSnapshotsWhenNotReusingDB' => 'both',
                 ],
             ],
             'noSnapshots' => [
                 'method' => 'noSnapshots',
                 'params' => [],
                 'outcome' => [
-                    'useSnapshotsWhenReusingDB' => false,
-                    'useSnapshotsWhenNotReusingDB' => false,
+                    'useSnapshotsWhenReusingDB' => null,
+                    'useSnapshotsWhenNotReusingDB' => null,
                 ],
             ],
 
@@ -394,9 +342,9 @@ class HasConfigDTOTest extends PHPUnitTestCase
         $object = new HasConfigDTOClass($configDTO);
 
         $callable = [$object, $method];
-        if (is_callable($callable)) {
+//        if (is_callable($callable)) {
             call_user_func_array($callable, $params);
-        }
+//        }
 
         foreach ($outcome as $field => $value) {
             $this->assertSame($value, $configDTO->$field);

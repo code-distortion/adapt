@@ -156,9 +156,9 @@ class StructureAndDataSetUpTest extends LaravelTestCase
                     ])
                     ->seeders([InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-2bed70196779.sqlite")
+                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-3f664106200a.sqlite")
                     ->expectedTables(['initial_import', '____adapt____'])
-                    ->addExpectedValues($evInitialImportOne)
+                    ->addExpectedValues($evInitialImportOneThree)
             ],
 
             'sqlite - initial-imports - migrations - seeders (one)' => [

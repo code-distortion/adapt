@@ -49,7 +49,7 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(false, false),
+                    ->snapshots(null),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -66,7 +66,7 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false),
+                    ->snapshots('!afterMigrations'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -88,7 +88,7 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false),
+                    ->snapshots('!afterSeeders'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -110,7 +110,7 @@ class CommandsTest extends LaravelTestCase
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false),
+                    ->snapshots('!both'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -204,7 +204,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots(false, false),
+                    ->snapshots(null),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -221,7 +221,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterMigrations', false),
+                    ->snapshots('!afterMigrations'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -243,7 +243,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('afterSeeders', false),
+                    ->snapshots('!afterSeeders'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -265,7 +265,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
             ],
             [
                 'config' => $this->newConfigDTO('sqlite')
-                    ->snapshots('both', false),
+                    ->snapshots('!both'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"

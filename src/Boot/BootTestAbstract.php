@@ -3,10 +3,14 @@
 namespace CodeDistortion\Adapt\Boot;
 
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DI\DIContainer;
 use CodeDistortion\Adapt\DI\Injectable\Interfaces\LogInterface;
+use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\DTO\PropBagDTO;
+use CodeDistortion\Adapt\Exceptions\AdaptBootException;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 
 /**
@@ -32,8 +36,11 @@ abstract class BootTestAbstract implements BootTestInterface
     /** @var callable|null The callback closure to call that will initialise the DatabaseBuilder/s. */
     private $initCallback;
 
+    /** @var DatabaseDefinition[] The DatabaseDefinitions made by this object (so they can be used afterwards). */
+    protected $databaseDefinitions = [];
+
     /** @var DatabaseBuilder[] The database builders made by this object (so they can be executed afterwards). */
-    private $builders = [];
+    protected $databaseBuilders = [];
 
 //    /** @var DIContainer|null The DIContainer to be used. */
 //    protected ?DIContainer $di = null;
@@ -74,6 +81,16 @@ abstract class BootTestAbstract implements BootTestInterface
     {
         $this->propBag = $propBag;
         return $this;
+    }
+
+    /**
+     * Check if databases are to be built.
+     *
+     * @return boolean
+     */
+    private function buildingDatabases(): bool
+    {
+        return $this->propBag->adaptConfig('build_databases', 'buildDatabases');
     }
 
     /**
@@ -125,32 +142,48 @@ abstract class BootTestAbstract implements BootTestInterface
 //    }
 
     /**
-     * Store the give DatabaseBuilder.
+     * Store the given DatabaseBuilder.
      *
      * @param DatabaseBuilder $builder The database builder to store.
      * @return void
      */
-    public function addBuilder($builder)
+    public function addDatabaseBuilder($builder)
     {
-        $this->builders[] = $builder;
+        $this->databaseBuilders[] = $builder;
     }
 
+    /**
+     * Store the given DatabaseDefinition.
+     *
+     * @param DatabaseDefinition $databaseDefinition The DatabaseDefinition to store.
+     * @return void
+     */
+    public function addDatabaseDefinition($databaseDefinition)
+    {
+        $this->databaseDefinitions[] = $databaseDefinition;
+    }
 
 
     /**
      * Run the process to build the databases.
      *
      * @return void
+     * @throws AdaptConfigException
      */
     public function runBuildSteps()
     {
         $this->isAllowedToRun();
 
 //        $this->resolveDI();
-        $this->initBuilders();
+        $this->prepareDatabaseDefinitions();
+        $this->prepareDatabaseBuilders();
+        $this->applyTheDefaultConnection();
+
         $this->purgeStaleThings();
 
-        foreach ($this->pickBuildersToExecute() as $builder) {
+        $builders = $this->pickBuildersToExecute();
+        $this->checkForDuplicateConnections($builders);
+        foreach ($builders as $builder) {
             $builder->execute();
         }
 
@@ -181,8 +214,8 @@ abstract class BootTestAbstract implements BootTestInterface
     public function runPostTestSteps()
     {
         $count = 0;
-        foreach ($this->builders as $builder) {
-            $isLast = (++$count == count($this->builders));
+        foreach ($this->databaseBuilders as $builder) {
+            $isLast = (++$count == count($this->databaseBuilders));
             $builder->runPostTestSteps($isLast);
         }
     }
@@ -204,33 +237,135 @@ abstract class BootTestAbstract implements BootTestInterface
      */
     abstract protected function isAllowedToRun();
 
+
+
+    /**
+     * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
+     *
+     * @return void
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    private function prepareDatabaseDefinitions()
+    {
+        if (!$this->buildingDatabases()) {
+            return;
+        }
+
+        if (!$this->initCallback) {
+            $this->newDefaultDatabaseDefinition();
+            return;
+        }
+
+        $callback = $this->initCallback;
+
+        $parameterClass = PHPSupport::getCallableFirstParameterType($callback);
+
+        $parameterClass == DatabaseBuilder::class
+            ? $callback($this->newDefaultDatabaseBuilder()) // @deprecated
+            : $callback($this->newDefaultDatabaseDefinition());
+    }
+
     /**
      * Initialise the builders, calling the custom databaseInit(…) method if it has been defined.
      *
      * @return void
      */
-    private function initBuilders()
+    private function prepareDatabaseBuilders()
     {
-        if (!$this->propBag->adaptConfig('build_databases', 'buildDatabases')) {
+        if (!$this->buildingDatabases()) {
             return;
         }
 
-        $builder = $this->newDefaultBuilder();
-
-        if (!$this->initCallback) {
-            return;
+        foreach ($this->databaseDefinitions as $databaseDefinition) {
+            $configDTO = PHPSupport::readPrivateProperty($databaseDefinition, 'configDTO');
+            $this->newDatabaseBuilderFromConfigDTO($configDTO);
         }
 
-        $callback = $this->initCallback;
-        $callback($builder);
+        $this->reCheckIfConnectionsExist();
     }
 
     /**
-     * Create a new DatabaseBuilder object based on the "default" database connection.
+     * Pick and apply a default DatabaseBuilder.
      *
+     * @return void
+     * @throws AdaptConfigException
+     */
+    private function applyTheDefaultConnection()
+    {
+        if (!$this->buildingDatabases()) {
+            return;
+        }
+
+        $defaultBuilders = [];
+        foreach ($this->databaseBuilders as $databaseBuilder) {
+            if ($databaseBuilder->getIsDefaultConnection()) {
+                $defaultBuilders[] = $databaseBuilder;
+            }
+        }
+
+        if (!count($defaultBuilders)) {
+            // pick the first that's not false
+            foreach ($this->databaseBuilders as $databaseBuilder) {
+                if ($databaseBuilder->getIsDefaultConnection() !== false) {
+                    $defaultBuilders[] = head($this->databaseBuilders);
+                }
+            }
+        }
+
+        if (count($defaultBuilders) > 1) {
+            throw AdaptConfigException::tooManyDefaultConnections();
+        }
+
+        if (count($defaultBuilders) == 1) {
+            $defaultBuilders[0]->makeDefault();
+        }
+    }
+
+
+
+    /**
+     * Create a new DatabaseDefinition object based on the "default" database connection,
+     * and add it to the list to use later.
+     *
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    abstract protected function newDefaultDatabaseDefinition(): DatabaseDefinition;
+
+
+
+    /**
+     * Create a new DatabaseDefinition object based on the "default" database connection.
+     *
+     * @param boolean $addToList Add this DatabaseBuilder to the list to use later or not.
+     * @return DatabaseBuilder
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    abstract protected function newDefaultDatabaseBuilder($addToList = true): DatabaseBuilder;
+
+    /**
+     * Create a new DatabaseBuilder object based on a ConfigDTO, and add it to the list to execute later.
+     *
+     * @param ConfigDTO $configDTO The ConfigDTO to use, already defined.
+     * @param boolean   $addToList Add this DatabaseBuilder to the list to use later or not.
      * @return DatabaseBuilder
      */
-    abstract protected function newDefaultBuilder(): DatabaseBuilder;
+    abstract protected function newDatabaseBuilderFromConfigDTO(
+        $configDTO,
+        $addToList = true
+    ): DatabaseBuilder;
+
+
+
+    /**
+     * Now that the databaseInit(..) method has been run, re-confirm whether the databases exist (because databaseInit
+     * might have changed them).
+     *
+     * @return void
+     */
+    abstract protected function reCheckIfConnectionsExist();
+
+
 
     /**
      * Pick the list of Builders that haven't been executed yet.
@@ -240,7 +375,7 @@ abstract class BootTestAbstract implements BootTestInterface
     private function pickBuildersToExecute(): array
     {
         $builders = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             if (!$builder->hasExecuted()) {
                 $builders[] = $builder;
             }
@@ -256,7 +391,7 @@ abstract class BootTestAbstract implements BootTestInterface
     private function pickExecutedBuilders(): array
     {
         $builders = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             if ($builder->hasExecuted()) {
                 $builders[] = $builder;
             }
@@ -279,6 +414,28 @@ abstract class BootTestAbstract implements BootTestInterface
         }
         return false;
     }
+
+    /**
+     * Check to make sure that no two builders try to prepare for the same connection.
+     *
+     * @param DatabaseBuilder[] $builders The builders to check.
+     * @return void
+     * @throws AdaptConfigException When a connection would be prepared by more than one DatabaseBuilder.
+     */
+    private function checkForDuplicateConnections(array $builders)
+    {
+        $connections = [];
+        foreach ($builders as $builder) {
+
+            $connection = $builder->getConnection();
+            if (in_array($connection, $connections)) {
+                throw AdaptConfigException::sameConnectionBeingBuiltTwice($connection);
+            }
+            $connections[] = $connection;
+        }
+    }
+
+
 
     /**
      * Pick the connections' databases, and register them with the framework.
@@ -308,7 +465,7 @@ abstract class BootTestAbstract implements BootTestInterface
     public function buildConnectionDBsList(): array
     {
         $connectionDatabases = [];
-        foreach ($this->builders as $builder) {
+        foreach ($this->databaseBuilders as $builder) {
             $connectionDatabases[$builder->getConnection()] = $builder->getResolvedDatabase();
         }
         return $connectionDatabases;

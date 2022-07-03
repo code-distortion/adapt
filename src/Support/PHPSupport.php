@@ -2,7 +2,9 @@
 
 namespace CodeDistortion\Adapt\Support;
 
+use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionObject;
 
 /**
@@ -11,13 +13,33 @@ use ReflectionObject;
 class PHPSupport
 {
     /**
+     * Read a class's private property.
+     *
+     * @param object $object       The object to look in to.
+     * @param string $propertyName The property to read.
+     * @return mixed
+     */
+    public static function readPrivateProperty($object, $propertyName)
+    {
+        $reflection = new ReflectionObject($object);
+
+        if (!$reflection->hasProperty($propertyName)) {
+            return null;
+        }
+
+        $prop = $reflection->getProperty($propertyName);
+        $prop->setAccessible(true);
+        return $prop->getValue($object);
+    }
+
+    /**
      * Read a class's STATIC private property.
      *
      * @param string $class        The class to look in to.
      * @param string $propertyName The property to read.
      * @return mixed
      */
-    public static function readStaticPrivateProperty($class, $propertyName)
+    public static function readPrivateStaticProperty($class, $propertyName)
     {
         if (!class_exists($class)) {
             return null;
@@ -53,5 +75,45 @@ class PHPSupport
         $prop = $reflection->getProperty($propertyName);
         $prop->setAccessible(true);
         $prop->setValue($object, $newValue);
+    }
+
+    /**
+     * Get the class type of the first parameter of the given class method.
+     *
+     * @param string $class  The class to look in to.
+     * @param string $method The method to look in to.
+     * @return string|null
+     * @throws ReflectionException
+     */
+    public static function getClassMethodFirstParameterType($class, $method)
+    {
+        $reflectionClass = new ReflectionClass($class);
+
+        $reflectionMethod = $reflectionClass->getMethod($method);
+
+        if ($reflectionMethod->getNumberOfParameters() < 1) {
+            return null;
+        }
+
+        $reflectionParameter = $reflectionMethod->getParameters()[0];
+        return $reflectionParameter->getType();
+    }
+
+    /**
+     * Get the class type of the first parameter of the given closure.
+     *
+     * @param callable $closure The closure to look in to.
+     * @return string|null
+     */
+    public static function getCallableFirstParameterType($closure)
+    {
+        $reflectionClosure = new ReflectionClosure($closure);
+
+        if ($reflectionClosure->getNumberOfParameters() < 1) {
+            return null;
+        }
+
+        $reflectionParameter = $reflectionClosure->getParameters()[0];
+        return $reflectionParameter->getType();
     }
 }

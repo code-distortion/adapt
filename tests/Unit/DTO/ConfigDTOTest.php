@@ -44,6 +44,11 @@ class ConfigDTOTest extends PHPUnitTestCase
                 'params' => ['connection' => 'mysql'],
             ],
 
+            'isDefaultConnection' => [
+                'method' => 'isDefaultConnection',
+                'params' => ['isDefaultConnection' => true],
+            ],
+
             'connectionExists' => [
                 'method' => 'connectionExists',
                 'params' => ['connectionExists' => true],
@@ -91,20 +96,6 @@ class ConfigDTOTest extends PHPUnitTestCase
             'cacheInvalidationMethod 2' => [
                 'method' => 'cacheInvalidationMethod',
                 'params' => ['cacheInvalidationMethod' => 'modified'],
-            ],
-            'cacheInvalidationMethod 3' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => ['cacheInvalidationMethod' => null],
-            ],
-            'cacheInvalidationMethod 4' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => ['cacheInvalidationMethod' => true],
-                'outcome' => ['cacheInvalidationMethod' => 'modified'],
-            ],
-            'cacheInvalidationMethod 5' => [
-                'method' => 'cacheInvalidationMethod',
-                'params' => ['cacheInvalidationMethod' => false],
-                'outcome' => ['cacheInvalidationMethod' => null],
             ],
 
             'checksumPaths' => [
@@ -345,35 +336,88 @@ class ConfigDTOTest extends PHPUnitTestCase
             'snapshots 1' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'useSnapshotsWhenReusingDB' => false,
-                    'useSnapshotsWhenNotReusingDB' => false,
+                    'snapshots' => null,
+                ],
+                'outcome' => [
+                    'snapshots' => null,
+                    'useSnapshotsWhenReusingDB' => null,
+                    'useSnapshotsWhenNotReusingDB' => null,
                 ],
             ],
             'snapshots 2' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'useSnapshotsWhenReusingDB' => 'afterMigrations',
-                    'useSnapshotsWhenNotReusingDB' => false,
+                    'snapshots' => false,
+                ],
+                'outcome' => [
+                    'snapshots' => null,
+                    'useSnapshotsWhenReusingDB' => null,
+                    'useSnapshotsWhenNotReusingDB' => null,
                 ],
             ],
             'snapshots 3' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'useSnapshotsWhenReusingDB' => 'afterSeeders',
+                    'snapshots' => 'afterMigrations',
+                ],
+                'outcome' => [
+                    'snapshots' => 'afterMigrations',
+                    'useSnapshotsWhenReusingDB' => null,
                     'useSnapshotsWhenNotReusingDB' => 'afterMigrations',
                 ],
             ],
             'snapshots 4' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'useSnapshotsWhenReusingDB' => 'both',
+                    'snapshots' => 'afterSeeders',
+                ],
+                'outcome' => [
+                    'snapshots' => 'afterSeeders',
+                    'useSnapshotsWhenReusingDB' => null,
                     'useSnapshotsWhenNotReusingDB' => 'afterSeeders',
                 ],
             ],
             'snapshots 5' => [
                 'method' => 'snapshots',
                 'params' => [
-                    'useSnapshotsWhenReusingDB' => false,
+                    'snapshots' => 'both',
+                ],
+                'outcome' => [
+                    'snapshots' => 'both',
+                    'useSnapshotsWhenReusingDB' => null,
+                    'useSnapshotsWhenNotReusingDB' => 'both',
+                ],
+            ],
+            'snapshots 6' => [
+                'method' => 'snapshots',
+                'params' => [
+                    'snapshots' => '!afterMigrations',
+                ],
+                'outcome' => [
+                    'snapshots' => '!afterMigrations',
+                    'useSnapshotsWhenReusingDB' => 'afterMigrations',
+                    'useSnapshotsWhenNotReusingDB' => 'afterMigrations',
+                ],
+            ],
+            'snapshots 7' => [
+                'method' => 'snapshots',
+                'params' => [
+                    'snapshots' => '!afterSeeders',
+                ],
+                'outcome' => [
+                    'snapshots' => '!afterSeeders',
+                    'useSnapshotsWhenReusingDB' => 'afterSeeders',
+                    'useSnapshotsWhenNotReusingDB' => 'afterSeeders',
+                ],
+            ],
+            'snapshots 8' => [
+                'method' => 'snapshots',
+                'params' => [
+                    'snapshots' => '!both',
+                ],
+                'outcome' => [
+                    'snapshots' => '!both',
+                    'useSnapshotsWhenReusingDB' => 'both',
                     'useSnapshotsWhenNotReusingDB' => 'both',
                 ],
             ],
@@ -451,11 +495,18 @@ class ConfigDTOTest extends PHPUnitTestCase
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
         $configDTO = (new ConfigDTO())->seeders($seeders);
+        $configDTO->driver = 'sqlite';
 
-        $configDTO->migrations(true);
+        $configDTO->initialImports(['sqlite' => ['some-file.sql']])->migrations(true);
         $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
 
-        $configDTO->migrations(false);
+        $configDTO->initialImports(['sqlite' => ['some-file.sql']])->migrations(false);
+        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
+
+        $configDTO->initialImports([])->migrations(true);
+        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
+
+        $configDTO->initialImports([])->migrations(false);
         $this->assertSame([], $configDTO->pickSeedersToInclude());
     }
 
@@ -1078,9 +1129,42 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function test_seeding_is_allowed()
     {
-        $this->assertTrue((new ConfigDTO())->migrations(true)->seedingIsAllowed());
-        $this->assertTrue((new ConfigDTO())->migrations('/some/path')->seedingIsAllowed());
-        $this->assertFalse((new ConfigDTO())->migrations(false)->seedingIsAllowed());
+        $this->assertTrue(
+            (new ConfigDTO())
+                ->initialImports([])
+                ->migrations(true)
+                ->seedingIsAllowed()
+        );
+        $this->assertTrue(
+            (new ConfigDTO())
+                ->initialImports([])
+                ->migrations('/some/path')
+                ->seedingIsAllowed()
+        );
+        $this->assertFalse(
+            (new ConfigDTO())
+                ->initialImports([])
+                ->migrations(false)
+                ->seedingIsAllowed()
+        );
+        $this->assertTrue(
+            (new ConfigDTO())
+                ->initialImports(['sqlite' => ['some-file.sql']])
+                ->migrations(true)
+                ->seedingIsAllowed()
+        );
+        $this->assertTrue(
+            (new ConfigDTO())
+                ->initialImports(['sqlite' => ['some-file.sql']])
+                ->migrations('/some/path')
+                ->seedingIsAllowed()
+        );
+        $this->assertFalse(
+            (new ConfigDTO())
+                ->initialImports(['sqlite' => ['some-file.sql']])
+                ->migrations(false)
+                ->seedingIsAllowed()
+        );
     }
 
 
@@ -1093,27 +1177,75 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function test_snapshots_are_enabled()
     {
-        $this->assertTrue(
+        $this->assertFalse(
             $this->newConfigReusableDB()
-                ->snapshots('afterMigrations', false)
+                ->snapshots(false)
                 ->snapshotsAreEnabled()
         );
-
+        $this->assertFalse(
+            $this->newConfigReusableDB()
+                ->snapshots('afterMigrations')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertFalse(
+            $this->newConfigReusableDB()
+                ->snapshots('afterSeeders')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertFalse(
+            $this->newConfigReusableDB()
+                ->snapshots('both')
+                ->snapshotsAreEnabled()
+        );
         $this->assertTrue(
-            $this->newConfigNotReusableDB()
-                ->snapshots(false, 'afterMigrations')
+            $this->newConfigReusableDB()
+                ->snapshots('!afterMigrations')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigReusableDB()
+                ->snapshots('!afterSeeders')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigReusableDB()
+                ->snapshots('!both')
                 ->snapshotsAreEnabled()
         );
 
         $this->assertFalse(
-            $this->newConfigReusableDB()
-                ->snapshots(false, false)
+            $this->newConfigNotReusableDB()
+                ->snapshots(false)
                 ->snapshotsAreEnabled()
         );
-
-        $this->assertFalse(
+        $this->assertTrue(
             $this->newConfigNotReusableDB()
-                ->snapshots(false, false)
+                ->snapshots('afterMigrations')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigNotReusableDB()
+                ->snapshots('afterSeeders')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigNotReusableDB()
+                ->snapshots('both')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigNotReusableDB()
+                ->snapshots('!afterMigrations')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigNotReusableDB()
+                ->snapshots('!afterSeeders')
+                ->snapshotsAreEnabled()
+        );
+        $this->assertTrue(
+            $this->newConfigNotReusableDB()
+                ->snapshots('!both')
                 ->snapshotsAreEnabled()
         );
     }
@@ -1127,146 +1259,92 @@ class ConfigDTOTest extends PHPUnitTestCase
      */
     public function shouldTakeSnapshotsDataProvider(): array
     {
-        $return = [
-            // reusable database - but with no migrations and no seeders
-            [
-                'reusableDB' => true,
-                'migrations' => false,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => false,
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => null,
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => false,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'afterMigrations',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'afterMigrations',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => false,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'afterSeeders',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'afterSeeders',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => false,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'both',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'both',
-            ],
+        $possibleReusableDB = [true, false];
+        $possibleInitialImports = [['sqlite' => ['some-file.sql']], []];
+        $possibleMigrations = [true, false];
+        $possibleSeeders = [['DatabaseSeeder'], []];
 
-            // reusable database - with migrations but no seeders
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => false,
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => null,
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'afterMigrations',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => true,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'afterMigrations',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'afterSeeders',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => true,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'afterSeeders',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => [],
-                'useSnapshotsWhenReusingDB' => 'both',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => true,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'both',
-            ],
+        $return = [];
+        foreach ($possibleReusableDB as $reusableDB) {
+            foreach ($possibleInitialImports as $initialImports) {
+                foreach ($possibleMigrations as $migrations) {
+                    foreach ($possibleSeeders as $seeders) {
 
-            // reusable database - with migrations and seeders
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => ['DatabaseSeeder'],
-                'useSnapshotsWhenReusingDB' => false,
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => null,
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => ['DatabaseSeeder'],
-                'useSnapshotsWhenReusingDB' => 'afterMigrations',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => true,
-                'afterSeedersExpected' => false,
-                'snapshotTypeExpected' => 'afterMigrations',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => ['DatabaseSeeder'],
-                'useSnapshotsWhenReusingDB' => 'afterSeeders',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => false,
-                'afterSeedersExpected' => true,
-                'snapshotTypeExpected' => 'afterSeeders',
-            ],
-            [
-                'reusableDB' => true,
-                'migrations' => true,
-                'seeders' => ['DatabaseSeeder'],
-                'useSnapshotsWhenReusingDB' => 'both',
-                'useSnapshotsWhenNotReusingDB' => false,
-                'afterMigrationsExpected' => true,
-                'afterSeedersExpected' => true,
-                'snapshotTypeExpected' => 'both',
-            ],
-        ];
-
-        $return2 = $return;
-        foreach ($return as $set) {
-
-            $set['reusableDB'] = false;
-            // swap useSnapshotsWhenReusingDB and useSnapshotsWhenNotReusingDB
-            $set['useSnapshotsWhenNotReusingDB'] = $set['useSnapshotsWhenReusingDB'];
-            $set['useSnapshotsWhenReusingDB'] = false;
-            $set['snapshotTypeExpected'] = $set['useSnapshotsWhenNotReusingDB'] ?: null;
-            $return2[] = $set;
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => null,
+                            'afterMigrationsExpected' => false,
+                            'afterSeedersExpected' => false,
+                            'snapshotTypeExpected' => null,
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => 'afterMigrations',
+                            'afterMigrationsExpected' => !$reusableDB && ($initialImports || $migrations),
+                            'afterSeedersExpected' => false,
+                            'snapshotTypeExpected' => $reusableDB ? null : 'afterMigrations',
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => 'afterSeeders',
+                            'afterMigrationsExpected' => !$reusableDB && ($initialImports || $migrations) && !$seeders,
+                            'afterSeedersExpected' => !$reusableDB && ($initialImports || $migrations) && $seeders,
+                            'snapshotTypeExpected' => $reusableDB ? null : 'afterSeeders',
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => 'both',
+                            'afterMigrationsExpected' => !$reusableDB && ($initialImports || $migrations),
+                            'afterSeedersExpected' => !$reusableDB && ($initialImports || $migrations) && $seeders,
+                            'snapshotTypeExpected' => $reusableDB ? null : 'both',
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => '!afterMigrations',
+                            'afterMigrationsExpected' => $initialImports || $migrations,
+                            'afterSeedersExpected' => false,
+                            'snapshotTypeExpected' => 'afterMigrations',
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => '!afterSeeders',
+                            'afterMigrationsExpected' => ($initialImports || $migrations) && !$seeders,
+                            'afterSeedersExpected' => ($initialImports || $migrations) && $seeders,
+                            'snapshotTypeExpected' => 'afterSeeders',
+                        ];
+                        $return[] = [
+                            'reusableDB' => $reusableDB,
+                            'initialImports' => $initialImports,
+                            'migrations' => $migrations,
+                            'seeders' => $seeders,
+                            'snapshots' => '!both',
+                            'afterMigrationsExpected' => ($initialImports || $migrations),
+                            'afterSeedersExpected' => ($initialImports || $migrations) && $seeders,
+                            'snapshotTypeExpected' => 'both',
+                        ];
+                    }
+                }
+            }
         }
-
-        return $return2;
+        return $return;
     }
 
     /**
@@ -1274,36 +1352,35 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider shouldTakeSnapshotsDataProvider
-     * @param boolean        $reusableDB                   Can the database be reused?.
-     * @param boolean|string $migrations                   The migrations to run.
-     * @param string[]       $seeders                      The seeders to run.
-     * @param boolean|string $useSnapshotsWhenReusingDB    Use snapshots when reusing the database?.
-     * @param boolean|string $useSnapshotsWhenNotReusingDB Use snapshots when not reusing the database?.
-     * @param boolean        $afterMigrationsExpected      Whether to take a snapshot after migrations or not.
-     * @param boolean        $afterSeedersExpected         Whether to take a snapshot after seeders or not.
-     * @param string|null    $snapshotTypeExpected         The type of snapshots to take.
+     * @param boolean             $reusableDB              Can the database be reused?.
+     * @param string[]            $initialImports          The initial-imports to use.
+     * @param boolean|string      $migrations              The migrations to run.
+     * @param string[]            $seeders                 The seeders to run.
+     * @param boolean|null|string $snapshots               The snapshot type to use.
+     * @param boolean             $afterMigrationsExpected Whether to take a snapshot after migrations or not.
+     * @param boolean             $afterSeedersExpected    Whether to take a snapshot after seeders or not.
+     * @param string|null         $snapshotTypeExpected    The type of snapshots to take.
      * @return void
      */
     public function test_should_take_snapshot_after_migrations_and_seeders(
         bool $reusableDB,
+        array $initialImports,
         $migrations,
         array $seeders,
-        $useSnapshotsWhenReusingDB,
-        $useSnapshotsWhenNotReusingDB,
+        $snapshots,
         bool $afterMigrationsExpected,
         bool $afterSeedersExpected,
         string $snapshotTypeExpected = null
     ) {
 
         $configDTO = $reusableDB ? $this->newConfigReusableDB() : $this->newConfigNotReusableDB();
+        $configDTO->driver = 'sqlite';
 
         $configDTO
+            ->initialImports($initialImports)
             ->migrations($migrations)
             ->seeders($seeders)
-            ->snapshots(
-                $useSnapshotsWhenReusingDB,
-                $useSnapshotsWhenNotReusingDB
-            );
+            ->snapshots($snapshots);
 
         $this->assertSame($afterMigrationsExpected, $configDTO->shouldTakeSnapshotAfterMigrations());
         $this->assertSame($afterSeedersExpected, $configDTO->shouldTakeSnapshotAfterSeeders());

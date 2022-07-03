@@ -4,10 +4,10 @@ namespace CodeDistortion\Adapt\Initialise;
 
 use CodeDistortion\Adapt\AdaptDatabase;
 use CodeDistortion\Adapt\DatabaseBuilder;
+use CodeDistortion\Adapt\DatabaseDefinition;
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\DTO\RemoteShareDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptBootException;
-use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
 use CodeDistortion\Adapt\Exceptions\AdaptDeprecatedFeatureException;
 use CodeDistortion\Adapt\LaravelAdapt;
 use CodeDistortion\Adapt\PreBoot\PreBootTestLaravel;
@@ -21,6 +21,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
+use ReflectionClass;
+use ReflectionParameter;
+use ReflectionType;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -93,12 +96,15 @@ trait InitialiseAdapt
         $propNames = [
             'buildDatabases',
             'reuseTestDBs', // @deprecated
-            'reuseTransaction',
-            'reuseJournal',
+            'reuseTransaction', // @deprecated
+            'transactions',
+            'reuseJournal', // @deprecated
+            'journals',
             'scenarioTestDBs', // @deprecated
             'scenarios',
-            'useSnapshotsWhenReusingDB',
-            'useSnapshotsWhenNotReusingDB',
+            'useSnapshotsWhenReusingDB', // @deprecated
+            'useSnapshotsWhenNotReusingDB', // @deprecated
+            'snapshots',
             'preMigrationImports', // @deprecated
             'initialImports',
             'migrations',
@@ -120,11 +126,18 @@ trait InitialiseAdapt
         // allow for a custom build process via this test class's databaseInit(…) method
         // build a closure to be called when initialising the DatabaseBuilder/s
         $buildInitCallback = null;
-        if (method_exists(static::class, Settings::LARAVEL_CUSTOM_BUILD_METHOD)) {
-            $buildInitCallback = function (DatabaseBuilder $builder) {
-                $initMethod = Settings::LARAVEL_CUSTOM_BUILD_METHOD;
-                $this->$initMethod($builder);
-            };
+        $initMethod = Settings::LARAVEL_CUSTOM_BUILD_METHOD;
+        if (method_exists(static::class, $initMethod)) {
+
+            $parameterClass = PHPSupport::getClassMethodFirstParameterType(__CLASS__, $initMethod);
+
+            $buildInitCallback = $parameterClass == DatabaseBuilder::class
+                ? function (DatabaseBuilder $database) use ($initMethod) {
+                    return $this->$initMethod($database);
+                } // @deprecated
+                : function (DatabaseDefinition $database) use ($initMethod) {
+                    return $this->$initMethod($database);
+                };
         }
 
         // detect if Pest is being used
@@ -196,23 +209,30 @@ trait InitialiseAdapt
 
 
 
-
+    /**
+     * Let the databaseInit(…) method generate a new DatabaseDefinition.
+     *
+     * @param string $connection The database connection to prepare.
+     * @return DatabaseDefinition
+     * @throws AdaptBootException When the database name isn't valid.
+     */
+    protected function prepareConnection($connection): DatabaseDefinition
+    {
+        return $this->adaptPreBootTestLaravel->newDatabaseDefinitionFromConnection($connection);
+    }
 
     /**
      * Let the databaseInit(…) method generate a new DatabaseBuilder.
      *
-     * Create a new DatabaseBuilder object, and add it to the list to execute later.
-     *
+     * @deprecated
      * @param string $connection The database connection to prepare.
      * @return DatabaseBuilder
-     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBootException When the database name isn't valid.
      */
     protected function newBuilder($connection): DatabaseBuilder
     {
-        return $this->adaptPreBootTestLaravel->newBuilder($connection);
+        return $this->adaptPreBootTestLaravel->newDatabaseBuilderFromConnection($connection);
     }
-
-
 
 
 
@@ -267,8 +287,6 @@ trait InitialiseAdapt
 
         $this->adaptPreBootTestLaravel->haveBrowsersShareConfig($allBrowsers, $connectionDBs);
     }
-
-
 
 
 

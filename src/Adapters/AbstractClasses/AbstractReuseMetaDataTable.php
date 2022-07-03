@@ -18,6 +18,8 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
 {
     use InjectTrait;
 
+
+
     /** @var string|null The reason why the database can't be reused. */
     private $cantReuseReason;
 
@@ -85,7 +87,7 @@ abstract class AbstractReuseMetaDataTable implements ReuseMetaDataTableInterface
         }
 
         if (($reuseInfo->transaction_reusable === 0) || ($reuseInfo->transaction_reusable === false)) {
-            $this->cantReuseReason = "the wrapper-transaction was committed";
+            $this->cantReuseReason = "the wrapper-transaction was committed or rolled-back";
             return false;
         }
 

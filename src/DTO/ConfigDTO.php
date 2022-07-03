@@ -24,8 +24,12 @@ class ConfigDTO extends AbstractDTO
     public $testName;
 
 
+
     /** @var string The database connection to prepare. */
     public $connection;
+
+    /** @var boolean|null Whether this connection should be made the default or not. null = maybe if no others are. */
+    public $isDefaultConnection;
 
     /** @var boolean Whether the connection exists or not (it's ok to not exist locally when the building remotely). */
     public $connectionExists;
@@ -43,6 +47,7 @@ class ConfigDTO extends AbstractDTO
     public $databaseModifier = '';
 
 
+
     /** @var string The directory to store database snapshots in. */
     public $storageDir;
 
@@ -52,10 +57,13 @@ class ConfigDTO extends AbstractDTO
     /** @var string The prefix to add to database names. */
     public $databasePrefix;
 
+    /** @var boolean Whether cache-invalidation is enabled or not. */
+    public $cacheInvalidationEnabled;
+
     /** @var string|null The method to check source-files for changes - 'content' / 'modified' / null. */
     public $cacheInvalidationMethod;
 
-    /** @var string[] The files and directories to look through. Changes to files will invalidate the snapshots. */
+    /** @var string[] The files and directories to look through. Changes to files will invalidate dbs and snapshots. */
     public $checksumPaths;
 
     /** @var string|null The build-checksum if it has already been calculated - passed to remote Adapt installations. */
@@ -118,6 +126,7 @@ class ConfigDTO extends AbstractDTO
     public $dbSupportsVerification;
 
 
+
     /** @var boolean When turned on, databases will be reused using a transaction instead of rebuilding them. */
     public $reuseTransaction;
 
@@ -130,15 +139,17 @@ class ConfigDTO extends AbstractDTO
     /** @var boolean When turned on, dbs will be created for each scenario (based on migrations and seeders etc). */
     public $scenarios;
 
-    /** @var string|boolean Enable snapshots, and specify when to take them - when reusing the database. */
+    /** @var string|null Enable snapshots, and specify when to take them. */
+    public $snapshots;
+
+    /** @var string|null Snapshots when reusing the database. Derived from $snapshots. */
     public $useSnapshotsWhenReusingDB;
 
-    /** @var string|boolean Enable snapshots, and specify when to take them - when NOT reusing the database. */
+    /** @var string|null Snapshots when NOT reusing the database. Derived from $snapshots. */
     public $useSnapshotsWhenNotReusingDB;
 
     /** @var boolean When turned on, the database will be rebuilt instead of allowing it to be reused. */
     public $forceRebuild;
-
 
 
 
@@ -153,6 +164,7 @@ class ConfigDTO extends AbstractDTO
 
     /** @var string The path to the "pg_dump" executable. */
     public $pgDumpExecutablePath;
+
 
 
     /** @var integer The number of seconds grace-period before stale databases and snapshots are to be deleted. */
@@ -216,6 +228,18 @@ class ConfigDTO extends AbstractDTO
     public function connection($connection): self
     {
         $this->connection = $connection;
+        return $this;
+    }
+
+    /**
+     * Whether this connection should be made the default or not.
+     *
+     * @param boolean|null $isDefaultConnection Whether to make this connection default or not.
+     * @return static
+     */
+    public function isDefaultConnection($isDefaultConnection): self
+    {
+        $this->isDefaultConnection = $isDefaultConnection;
         return $this;
     }
 
@@ -317,18 +341,28 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
+     * Set the cache-invalidation-enabled setting.
+     *
+     * @param boolean $cacheInvalidationEnabled Whether cache-invalidation is enabled or not.
+     * @return static
+     */
+    public function cacheInvalidationEnabled($cacheInvalidationEnabled): self
+    {
+        $this->cacheInvalidationEnabled = $cacheInvalidationEnabled;
+        return $this;
+    }
+
+    /**
      * Set the method to use when checking for source-file changes.
      *
-     * @param string|boolean|null $cacheInvalidationMethod The method to use - 'content' / 'modified' / null (or bool).
+     * @param string $cacheInvalidationMethod The method to use - 'modified' / 'content'.
      * @return static
      */
     public function cacheInvalidationMethod($cacheInvalidationMethod): self
     {
-        if (in_array($cacheInvalidationMethod, ['content', 'modified', null], true)) {
-            $this->cacheInvalidationMethod = $cacheInvalidationMethod;
-        } else {
-            $this->cacheInvalidationMethod = $cacheInvalidationMethod ? 'modified' : null;
-        }
+        $this->cacheInvalidationMethod = in_array($cacheInvalidationMethod, ['modified', 'content'], true)
+            ? $cacheInvalidationMethod
+            : 'modified'; //default
 
         return $this;
     }
@@ -702,21 +736,69 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
-     * Set the snapshot settings.
+     * Set the snapshot setting.
      *
-     * @param string|boolean $useSnapshotsWhenReusingDB    Take and import snapshots when reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
-     * @param string|boolean $useSnapshotsWhenNotReusingDB Take and import snapshots when NOT reusing databases?
-     *                                                     false, 'afterMigrations', 'afterSeeders', 'both'.
+     * @param string|boolean|null $snapshots Take and import snapshots when reusing databases?
+     *                                       false
+     *                                       / "afterMigrations" / "afterSeeders" / "both"
+     *                                       / "!afterMigrations" / "!afterSeeders" / "!both"
      * @return static
      */
-    public function snapshots(
-        $useSnapshotsWhenReusingDB,
-        $useSnapshotsWhenNotReusingDB
-    ): self {
-        $this->useSnapshotsWhenReusingDB = $useSnapshotsWhenReusingDB;
-        $this->useSnapshotsWhenNotReusingDB = $useSnapshotsWhenNotReusingDB;
+    public function snapshots($snapshots): self
+    {
+        $this->snapshots = $this->cleanSnapshotValue($snapshots);
+
+        $this->useSnapshotsWhenNotReusingDB = $this->snapshotBase($this->snapshots);
+
+        $this->useSnapshotsWhenReusingDB = $this->snapshotIsImportant($this->snapshots)
+            ? $this->useSnapshotsWhenNotReusingDB
+            : null;
+
         return $this;
+    }
+
+    /**
+     * Check that the $snapshots setting is ok.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return string|boolean|null
+     */
+    private function cleanSnapshotValue($snapshots)
+    {
+        $possible = [
+            null, 'afterMigrations', 'afterSeeders', 'both', '!afterMigrations', '!afterSeeders', '!both'
+        ];
+
+        return in_array($snapshots, $possible, true)
+            ? $snapshots
+            : null;
+    }
+
+    /**
+     * Check if $snapshots are important.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return boolean
+     */
+    private function snapshotIsImportant($snapshots): bool
+    {
+        if (!is_string($snapshots)) {
+            return false;
+        }
+        return mb_substr($snapshots, 0, 1) == '!';
+    }
+
+    /**
+     * Get the snapshot base value.
+     *
+     * @param string|boolean|null $snapshots The $snapshots setting to check.
+     * @return string|boolean|null
+     */
+    private function snapshotBase($snapshots)
+    {
+        return $this->snapshotIsImportant($snapshots)
+            ? mb_substr($snapshots, 1)
+            : $snapshots;
     }
 
     /**
@@ -788,7 +870,7 @@ class ConfigDTO extends AbstractDTO
      */
     public function pickSeedersToInclude(): array
     {
-        return $this->migrations ? $this->seeders : [];
+        return $this->seedingIsAllowed() ? $this->seeders : [];
     }
 
     /**
@@ -816,6 +898,16 @@ class ConfigDTO extends AbstractDTO
             }
         }
         return $usePaths;
+    }
+
+    /**
+     * Check if there are any initial imports for the current connection.
+     *
+     * @return boolean
+     */
+    public function hasInitialImports(): bool
+    {
+        return count($this->pickInitialImports()) > 0;
     }
 
 
@@ -1003,7 +1095,7 @@ class ConfigDTO extends AbstractDTO
      */
     public function seedingIsAllowed(): bool
     {
-        return $this->migrations !== false;
+        return ($this->hasInitialImports()) || ($this->migrations !== false);
     }
 
     /**
@@ -1017,7 +1109,7 @@ class ConfigDTO extends AbstractDTO
     }
 
     /**
-     * Check which type of snapshots are bing used.
+     * Check which type of snapshots are being used.
      *
      * @return string|null
      */
@@ -1047,7 +1139,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if ($this->migrations === false) {
+        if ((!$this->hasInitialImports()) && ($this->migrations === false)) {
             return false;
         }
 
@@ -1068,7 +1160,7 @@ class ConfigDTO extends AbstractDTO
             return false;
         }
 
-        if ($this->migrations === false) {
+        if ((!$this->hasInitialImports()) && ($this->migrations === false)) {
             return false;
         }
 

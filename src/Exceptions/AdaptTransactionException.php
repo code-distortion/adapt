@@ -8,12 +8,24 @@ namespace CodeDistortion\Adapt\Exceptions;
 class AdaptTransactionException extends AdaptException
 {
     /**
-     * Thrown when a test committed the test-transaction.
+     * Thrown when a test rolled-back the test-transaction.
      *
-     * @param string $testName The name of the test that committed the transaction.
      * @return self
      */
-    public static function aTestCommittedTheWrapperTransaction($testName): self
+    public static function aTestRolledBackTheWrapperTransaction(): self
+    {
+        return new self(
+            "The wrapper-transaction was rolled-back - see "
+            . "https://github.com/code-distortion/adapt#testing-code-that-uses-transactions for more details"
+        );
+    }
+
+    /**
+     * Thrown when a test committed the test-transaction.
+     *
+     * @return self
+     */
+    public static function aTestCommittedTheWrapperTransaction(): self
     {
         return new self(
             "The wrapper-transaction was committed - see "

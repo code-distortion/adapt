@@ -100,7 +100,7 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->performDatabaseStructureVerification();
 
         $this->di->log->vDebug(
-            "Verified the structure of database \"{$this->configDTO->database}\"",
+            "Verified the structure of \"{$this->configDTO->connection}\" database \"{$this->configDTO->database}\"",
             $logTimer,
             $newLineAfter
         );
@@ -120,7 +120,7 @@ class LaravelMySQLVerifier implements VerifierInterface
         $this->performDatabaseDataVerification();
 
         $this->di->log->vDebug(
-            "Verified the content of database \"{$this->configDTO->database}\"",
+            "Verified the content of \"{$this->configDTO->connection}\" database \"{$this->configDTO->database}\"",
             $logTimer,
             $newLineAfter
         );
