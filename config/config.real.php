@@ -119,11 +119,12 @@ return [
     | These can be overridden by adding the $transactions, $journals and
     | $snapshots properties to your test-classes.
     |
-    | reuse.transactions: true / false
-    | reuse.journals:     true / false
-    | reuse.snapshots:    false
-    |                     / "afterMigrations" / "afterSeeders" / "both"
-    |                     / "!afterMigrations" / "!afterSeeders" / "!both"
+    | reuse_methods.transactions: true / false
+    | reuse_methods.journals:     true / false
+    | reuse_methods.snapshots:    false
+    |                             / "afterMigrations" / "!afterMigrations"
+    |                             / "afterSeeders" / "!afterSeeders"
+    |                             / "both" / "!both"
     |
     */
 
@@ -280,9 +281,11 @@ return [
      |
      | - stdout - Add logs to stdout.
      | - laravel - Add logs to Laravel's default logging mechanism.
-     | - verbosity - The verbosity level to use (0 or 1).
+     | - verbosity - The verbosity level to use (0, 1 or 2).
      |
-     | array<string, boolean|integer>
+     | log.stdout:    true / false
+     | log.laravel:   true / false
+     | log.verbosity: integer 0 - 2
      |
      */
 
