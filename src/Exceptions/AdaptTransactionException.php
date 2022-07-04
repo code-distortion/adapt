@@ -16,7 +16,7 @@ class AdaptTransactionException extends AdaptException
     {
         return new self(
             "The wrapper-transaction was rolled-back - see "
-            . "https://github.com/code-distortion/adapt#testing-code-that-uses-transactions for more details"
+            . "https://www.code-distortion.net/packages/adapt/reusing-databases/#transactions for more details"
         );
     }
 
@@ -29,7 +29,7 @@ class AdaptTransactionException extends AdaptException
     {
         return new self(
             "The wrapper-transaction was committed - see "
-            . "https://github.com/code-distortion/adapt#testing-code-that-uses-transactions for more details"
+            . "https://www.code-distortion.net/packages/adapt/reusing-databases/#transactions for more details"
         );
     }
 }
