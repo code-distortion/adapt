@@ -76,7 +76,7 @@ class ConfigDTO extends AbstractDTO
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public bool|string $migrations;
 
-    /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
+    /** @var string[] The seeders to run after migrating - will only be run if init-imports or migrations were run. */
     public array $seeders;
 
     /** @var string|null The remote Adapt installation to send "build" requests to. */

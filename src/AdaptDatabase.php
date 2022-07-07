@@ -58,7 +58,7 @@ trait AdaptDatabase
     /**
      * Specify which seeders to run.
      *
-     * NOTE: Seeders will only be run if migrations are run.
+     * NOTE: Seeders will only be run if initial-imports or migrations are run.
      *
      * @var string|string[]
      */
