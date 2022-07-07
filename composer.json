@@ -18,8 +18,8 @@
         "seeders",
         "transactions",
         "DatabaseMigrations",
-        "RefreshDatabase",
-        "DatabaseTransactions"
+        "DatabaseTransactions",
+        "RefreshDatabase"
     ],
     "homepage": "https://github.com/code-distortion/adapt",
     "license": "MIT",

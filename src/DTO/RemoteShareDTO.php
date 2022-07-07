@@ -77,7 +77,7 @@ class RemoteShareDTO extends AbstractDTO
      * Build a new RemoteShareDTO from the data given in a request to share database info remotely.
      *
      * @param string $payload The raw RemoteShareDTO data from the request.
-     * @return $this|null
+     * @return self|null
      * @throws AdaptRemoteShareException When the payload couldn't be interpreted or the version doesn't match.
      */
     public static function buildFromPayload($payload)

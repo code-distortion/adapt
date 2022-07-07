@@ -76,7 +76,7 @@ class ConfigDTO extends AbstractDTO
     /** @var boolean|string Should the migrations be run? / migrations location - if not, the db will be empty. */
     public $migrations;
 
-    /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
+    /** @var string[] The seeders to run after migrating - will only be run if init-imports or migrations were run. */
     public $seeders;
 
     /** @var string|null The remote Adapt installation to send "build" requests to. */
@@ -1185,7 +1185,7 @@ class ConfigDTO extends AbstractDTO
      * Build a new ConfigDTO from the data given in a request to build the database remotely.
      *
      * @param string $payload The raw ConfigDTO data from the request.
-     * @return $this|null
+     * @return self|null
      * @throws AdaptRemoteShareException When the payload couldn't be interpreted or the version doesn't match.
      */
     public static function buildFromPayload($payload)

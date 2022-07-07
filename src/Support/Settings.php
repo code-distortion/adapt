@@ -154,7 +154,7 @@ class Settings
      *
      * @param string      $connection The connection being used.
      * @param string|null $driver     The driver being used.
-     * @return \CodeDistortion\Adapt\DTO\VersionsDTO|null
+     * @return ResolvedSettingsDTO|null
      */
     public static function getResolvedVersionsDTO($connection, $driver)
     {

@@ -1,8 +1,16 @@
 # Contributing
 
-Contributions are **welcome** and will be fully **credited**.
-
 Please read and understand the contribution guide before creating an issue or pull request.
+
+Contributions will be fully credited.
+
+### Please Note
+
+- One of the maintainers' goals is to keep the project concise, so not all PRs will be accepted.
+- Maintainers will need to maintain new code for its lifetime, so discretion is used when considering a PR for acceptance.
+- If you're unsure, feel free to drop us a line first.
+
+
 
 ## Etiquette
 
@@ -12,9 +20,13 @@ Please be considerate towards maintainers when raising issues or presenting pull
 
 It's the duty of the maintainer to ensure that all submissions to the project are of sufficient quality to benefit the project. Many developers have different skillsets, strengths, and weaknesses. Respect the maintainer's decision, and do not be upset or abusive if your submission is not used.
 
+
+
 ## Viability
 
 When requesting or submitting new features, first consider whether it might be useful to others. Open source projects are used by many developers, who may have entirely different needs to your own. Think about whether or not your feature is likely to be used by other users of the project.
+
+
 
 ## Procedure
 
@@ -28,23 +40,22 @@ Before filing an issue:
 Before submitting a pull request:
 
 - Check the codebase to ensure that your feature doesn't already exist.
+- Please raise an issue to discuss the problem first.
 - Check the pull requests to ensure that another person hasn't already submitted the feature or fix.
 
-Please Note:
 
-- One of the maintainers' goals is to keep the project concise, so not all PRs will be accepted.
-- Maintainers will need to maintain new code for its lifetime, so discretion is used when considering a PR for acceptance.
-- If you're unsure feel free to drop us a line first.
 
 ## Requirements
 
-- **[PSR-12 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-12-extended-coding-style-guide.md)** where possible - falling back to [PSR-2 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md) otherwise - The easiest way to apply the conventions is to install [PHP Code Sniffer](https://github.com/squizlabs/PHP_CodeSniffer).
+- **Code is developed in branch `latest`** - This is so it can be coded for the latest PHP version. The code is transliterated back to PHP 7.0 before releasing.
+
+- *[PSR-12 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-12-extended-coding-style-guide.md)* where possible - falling back to [PSR-2 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md) otherwise - The easiest way to apply the conventions is to install [PHP Code Sniffer](https://github.com/squizlabs/PHP_CodeSniffer).
 
 - **Add tests!** - Your patch won't be accepted if it doesn't have tests.
 
-- **Document any change in behaviour** - Make sure the `README.md` and any other relevant documentation are kept up-to-date.
+- **Document any change in behaviour** - Clearly note any changes, so [Adapt's documentation](https://code-distortion.net/packages/adapt) can be updated.
 
-- **Consider our release cycle** - We try to follow [SemVer v2.0.0](https://semver.org/). Randomly breaking public APIs is not an option.
+- **Consider our release cycle** - We try to follow [SemVer v2.0.0](https://semver.org/). Randomly breaking public APIs is to be avoided.
 
 - **One pull request per feature** - If you want to do more than one thing, send multiple pull requests.
 

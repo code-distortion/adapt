@@ -224,7 +224,7 @@ class LaravelSupport
     /**
      * Read the list of connections that have been prepared, and their corresponding databases from the framework.
      *
-     * @return mixed[]|null
+     * @return array<string, string>|null
      */
     public static function readPreparedConnectionDBsFromFramework()
     {

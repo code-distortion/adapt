@@ -445,7 +445,7 @@ class LaravelMySQLVerifier implements VerifierInterface
      * Pick the table's PRIMARY KEY fields.
      *
      * @param string $table The table to look at.
-     * @return mixed[]|null
+     * @return string[]|null
      */
     private function readPrimaryKeyIndex(string $table)
     {
@@ -457,7 +457,7 @@ class LaravelMySQLVerifier implements VerifierInterface
      * Pick the table's first UNIQUE INDEX fields.
      *
      * @param string $table The table to look at.
-     * @return mixed[]|null
+     * @return string[]|null
      */
     private function readFirstUniqueIndex(string $table)
     {
@@ -482,7 +482,7 @@ class LaravelMySQLVerifier implements VerifierInterface
      * The rows come from "SHOW INDEX FROM <table>".
      *
      * @param stdClass[] $rows The rows from the database.
-     * @return mixed[]|null
+     * @return string[]|null
      */
     private function orderIndexFields(array $rows)
     {

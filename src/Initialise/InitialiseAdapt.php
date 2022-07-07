@@ -21,9 +21,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
-use ReflectionClass;
-use ReflectionParameter;
-use ReflectionType;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -132,10 +129,10 @@ trait InitialiseAdapt
             $parameterClass = PHPSupport::getClassMethodFirstParameterType(__CLASS__, $initMethod);
 
             $buildInitCallback = $parameterClass == DatabaseBuilder::class
-                ? function (DatabaseBuilder $database) {
+                ? function (DatabaseBuilder $database) use ($initMethod) {
                     return $this->$initMethod($database);
                 } // @deprecated
-                : function (DatabaseDefinition $database) {
+                : function (DatabaseDefinition $database) use ($initMethod) {
                     return $this->$initMethod($database);
                 };
         }

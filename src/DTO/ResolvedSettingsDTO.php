@@ -58,7 +58,7 @@ class ResolvedSettingsDTO extends AbstractDTO
     /** @var boolean Whether seeding is allowed or not. */
     public $isSeedingAllowed;
 
-    /** @var string[] The seeders to run after migrating - will only be run if migrations were run. */
+    /** @var string[] The seeders to run after migrating - will only be run if init-imports or migrations were run. */
     public $seeders;
 
     /** @var boolean When turned on, databases are created for each scenario (based on migrations and seeders etc). */
