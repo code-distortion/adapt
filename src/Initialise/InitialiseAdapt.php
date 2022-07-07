@@ -129,11 +129,12 @@ trait InitialiseAdapt
             $parameterClass = PHPSupport::getClassMethodFirstParameterType(__CLASS__, $initMethod);
 
             $buildInitCallback = $parameterClass == DatabaseBuilder::class
-                ? function (DatabaseBuilder $database) {
-                    return $this->$initMethod($database);
-                } // @deprecated
-                : function (DatabaseDefinition $database) {
-                    return $this->$initMethod($database);
+                // @deprecated
+                ? function (DatabaseBuilder $database) use ($initMethod) {
+                    $this->$initMethod($database);
+                }
+                : function (DatabaseDefinition $database) use ($initMethod) {
+                    $this->$initMethod($database);
                 };
         }
 
