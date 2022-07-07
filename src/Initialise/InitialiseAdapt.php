@@ -21,9 +21,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
-use ReflectionClass;
-use ReflectionParameter;
-use ReflectionType;
 
 /**
  * Allow Laravel tests to use Adapt.
