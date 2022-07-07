@@ -129,8 +129,13 @@ trait InitialiseAdapt
             $parameterClass = PHPSupport::getClassMethodFirstParameterType(__CLASS__, $initMethod);
 
             $buildInitCallback = $parameterClass == DatabaseBuilder::class
-                ? fn(DatabaseBuilder $database) => $this->$initMethod($database) // @deprecated
-                : fn(DatabaseDefinition $database) => $this->$initMethod($database);
+                // @deprecated
+                ? function (DatabaseBuilder $database) use ($initMethod) {
+                    $this->$initMethod($database);
+                }
+                : function (DatabaseDefinition $database) use ($initMethod) {
+                    $this->$initMethod($database);
+                };
         }
 
         // detect if Pest is being used
