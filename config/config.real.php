@@ -59,8 +59,8 @@ return [
     | INITIAL-IMPORTS: Custom sql-dumps, imported before migrations & seeders.
     | e.g. [
     |     'mysql' => [database_path('initial-imports/mysql/db.sql')],
-    |     'sqlite' => [database_path('initial-imports/sqlite/db.sqlite')],
     |     'pgsql' => [database_path('initial-imports/postgres/db.sql')],
+    |     'sqlite' => [database_path('initial-imports/sqlite/db.sqlite')],
     | ];
     |
     | > NOTE: initial_imports aren't available for SQLite :memory: databases.
