@@ -63,7 +63,11 @@
         "phpcs": "vendor/bin/phpcs"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "kylekatarnls/update-helper": false,
+            "ocramius/package-versions": true
+        }
     },
     "extra": {
         "laravel": {
