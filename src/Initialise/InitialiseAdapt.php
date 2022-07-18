@@ -287,12 +287,39 @@ trait InitialiseAdapt
 
 
     /**
-     * Fetch the http headers that lets Adapt share the connections it's prepared.
+     * Fetch the http headers that lets Adapt share the config and connections it's prepared.
      *
+     * @deprecated
      * @param boolean $includeKey Include the key in the value.
      * @return array<string, string>
      */
     public static function getShareConnectionsHeaders(bool $includeKey = false): array
+    {
+        // fetch the connection-databases list from Laravel
+        $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework() ?? [];
+
+        if (!count($connectionDBs)) {
+            return [];
+        }
+
+        $remoteShareDTO = (new RemoteShareDTO())
+            ->sharableConfigFile(null)
+            ->connectionDBs($connectionDBs);
+
+        $value = $includeKey
+            ? Settings::REMOTE_SHARE_KEY . ": {$remoteShareDTO->buildPayload()}"
+            : $remoteShareDTO->buildPayload();
+
+        return [Settings::REMOTE_SHARE_KEY => $value];
+    }
+
+    /**
+     * Fetch the http headers that lets Adapt share the config and connections it's prepared.
+     *
+     * @param boolean $includeKey Include the key in the value.
+     * @return array<string, string>
+     */
+    public static function getShareHeaders(bool $includeKey = false): array
     {
         // fetch the connection-databases list from Laravel
         $connectionDBs = LaravelSupport::readPreparedConnectionDBsFromFramework() ?? [];
