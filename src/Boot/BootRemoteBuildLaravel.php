@@ -51,6 +51,9 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
         $configDTO = $this->newConfigDTO($remoteConfigDTO);
         $di = $this->defaultDI($remoteConfigDTO->connection);
         $pickDriverClosure = function (string $connection): string {
+            if (!config("database.connections.$connection")) {
+                throw AdaptConfigException::invalidConnection($connection);
+            }
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
 
@@ -84,12 +87,21 @@ class BootRemoteBuildLaravel extends BootRemoteBuildAbstract
      *
      * @param ConfigDTO $remoteConfigDTO The config from the remote Adapt installation.
      * @return ConfigDTO
-     * @throws AdaptBootException When the database name isn't valid.
+     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBootException   When the database name isn't valid.
      */
     private function newConfigDTO(ConfigDTO $remoteConfigDTO): configDTO
     {
         $c = Settings::LARAVEL_CONFIG_NAME;
         $connection = $remoteConfigDTO->connection;
+
+
+
+        if (!config("database.connections.$connection")) {
+            throw AdaptConfigException::invalidConnection($connection);
+        }
+
+
 
         $database = (string) config("database.connections.$connection.database");
         if (!mb_strlen($database)) {

@@ -160,7 +160,7 @@ trait AdaptDatabase
 //            ->snapshots('!afterSeeders') // or ->noSnapshots()
 //            ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
 //            ->forceRebuild() // or ->dontForceRebuild()
-//            ->makeDefault(); // make the "default" Laravel connection point to this database
+//            ->makeDefault(); // make the "default" Laravel connection point to this connection
 //
 //        // you can create a database for another connection
 //        $connection = 'secondary';
