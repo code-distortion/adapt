@@ -9,6 +9,7 @@
         "paratest",
         "parallel",
         "tests",
+        "testing",
         "unit-tests",
         "integration-tests",
         "feature-tests",
