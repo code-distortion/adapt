@@ -53,6 +53,9 @@ class BootCommandLaravel extends BootCommandAbstract
         $configDTO = $this->newConfigDTO($connection, '');
         $di = $this->defaultDI($connection);
         $pickDriverClosure = function (string $connection): string {
+            if (!config("database.connections.$connection")) {
+                throw AdaptConfigException::invalidConnection($connection);
+            }
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
 
@@ -87,10 +90,17 @@ class BootCommandLaravel extends BootCommandAbstract
      * @param string $connection The connection to use.
      * @param string $testName   The current test's name.
      * @return ConfigDTO
-     * @throws AdaptBootException When the database name is invalid.
+     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBootException   When the database name is invalid.
      */
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
+        if (!config("database.connections.$connection")) {
+            throw AdaptConfigException::invalidConnection($connection);
+        }
+
+
+
         $c = Settings::LARAVEL_CONFIG_NAME;
 
         $database = (string) config("database.connections.$connection.database");

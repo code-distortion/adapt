@@ -210,6 +210,9 @@ class BootTestLaravel extends BootTestAbstract
         $di = $this->defaultDI($configDTO->connection);
 
         $pickDriverClosure = function (string $connection): string {
+            if (!config("database.connections.$connection")) {
+                throw AdaptConfigException::invalidConnection($connection);
+            }
             return LaravelSupport::configString("database.connections.$connection.driver", 'unknown');
         };
 
@@ -230,10 +233,17 @@ class BootTestLaravel extends BootTestAbstract
      * @param string $connection The connection to use.
      * @param string $testName   The current test's name.
      * @return ConfigDTO
-     * @throws AdaptBootException When the database name isn't valid.
+     * @throws AdaptConfigException When the connection doesn't exist.
+     * @throws AdaptBootException   When the database name isn't valid.
      */
     private function newConfigDTO(string $connection, string $testName): configDTO
     {
+        if (!config("database.connections.$connection")) {
+            throw AdaptConfigException::invalidConnection($connection);
+        }
+
+
+
         $paraTestDBModifier = (string) getenv('TEST_TOKEN');
         $isParallelTest = mb_strlen($paraTestDBModifier) > 0;
 

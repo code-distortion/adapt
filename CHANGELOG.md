@@ -5,10 +5,31 @@ All notable changes to `code-distortion/adapt` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [0.12.3] - 2022-12-20
+
+### Added
+- Added support for PHP 8.2
+
+### Fixed
+- Fixed bug when detecting which seeders to run.
+
+
+
+## [0.12.2] - 2022-07-XX
+
+### Added
+- Added a more useful exception when a chosen connection doesn't exist
+
+### Changed
+- Added the `getShareHeaders()` method to replace the `getShareConnectionsHeaders()` method added to test classes (which is now deprecated, but will still work)
+
+
+
 ## [0.12.1] - 2022-07-08
 
 ### Changed
-- Minor tweaks to documentation 
+- Minor tweaks to documentation
 
 ### Fixed
 - Fix for calls to the `databaseInit(..)` method.

@@ -41,8 +41,8 @@ trait AdaptDatabase
      * @var array<string, string>|array<string, string[]>
      */
 //    protected array $initialImports = [
-//        'mysql' => ['database/dumps/mysql/db.sql'],
-//        'pgsql' => ['database/dumps/pgsql/db.sql'],
+//        'mysql' => ['database/dumps/mysql/db.sql', …],
+//        'pgsql' => ['database/dumps/pgsql/db.sql', …],
 //        'sqlite' => ['database/dumps/sqlite/db.sqlite'], // SQLite files are simply copied
 //    ];
 
@@ -62,9 +62,9 @@ trait AdaptDatabase
      *
      * @var string|string[]
      */
-//    protected string|array $seeders = 'DatabaseSeeder';
+//    protected string|array $seeders = 'DatabaseSeeder'; // or ''
 //    or
-//    protected string|array $seeders = ['DatabaseSeeder'];
+//    protected string|array $seeders = ['DatabaseSeeder', …]; // or []
 
     /**
      * When browser-tests are being performed, transaction-based database
@@ -160,7 +160,7 @@ trait AdaptDatabase
 //            ->snapshots('!afterSeeders') // or ->noSnapshots()
 //            ->remoteBuildUrl('https://...') // or ->noRemoteBuildUrl()
 //            ->forceRebuild() // or ->dontForceRebuild()
-//            ->makeDefault(); // make the "default" Laravel connection point to this database
+//            ->makeDefault(); // make the "default" Laravel connection point to this connection
 //
 //        // you can create a database for another connection
 //        $connection = 'secondary';

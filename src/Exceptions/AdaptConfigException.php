@@ -127,7 +127,7 @@ class AdaptConfigException extends AdaptException
     public static function unsupportedDriver($connection, $driver): self
     {
         return new self(
-            "Connection \"$connection\" uses driver \"$driver\" which unfortunately isn't supported by Adapt"
+            "Connection \"$connection\" uses driver \"$driver\" which isn't supported by Adapt"
         );
     }
 

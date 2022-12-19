@@ -13,6 +13,50 @@ on:
 
 jobs:
 
+  test-in-php82:
+
+    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        php: [8.2]
+        phpunit: [^9.3]
+        testbench: [^7.0]
+        dependency-prefer: [prefer-stable, prefer-lowest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, pdo_sqlite
+          coverage: none
+
+      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
+      - name: Determine composer's cache directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies (composer)
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies (composer)
+        run: |
+          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: vendor/bin/phpunit
+
   test-in-php81:
 
     name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}

@@ -201,8 +201,14 @@ class LaravelSupport
         } else {
             $seeders = $seedersConfig;
         }
-        $seeders = is_string($seeders) ? [$seeders] : $seeders;
-        return is_array($seeders) ? $seeders : [];
+
+        if (is_string($seeders)) {
+            $seeders = [$seeders];
+        }
+
+        return is_array($seeders)
+            ? $seeders
+            : [];
     }
 
     /**
