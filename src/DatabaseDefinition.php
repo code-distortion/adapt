@@ -96,7 +96,7 @@ class DatabaseDefinition
     /**
      * Specify the seeders to run.
      *
-     * @param string[] $seeders The seeders to run after migrating.
+     * @param string|string[] $seeders The seeders to run after migrating.
      * @return static
      */
     public function seeders(array $seeders): self
