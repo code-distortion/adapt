@@ -32,11 +32,11 @@
         }
     ],
     "require": {
-        "php": "8.1.*",
+        "php": "8.1.* | 8.2.*",
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
-        "code-distortion/fluent-dotenv": "^0.1.4",
+        "code-distortion/fluent-dotenv": "^0.1.6",
         "guzzlehttp/guzzle": "^6.3 | ^7.0"
     },
     "require-dev": {
