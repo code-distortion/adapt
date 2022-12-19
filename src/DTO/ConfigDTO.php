@@ -425,8 +425,8 @@ class ConfigDTO extends AbstractDTO
     ): self {
 
         $this->initialImports = $initialImports;
-        $this->migrations = $migrations;
-        $this->seeders = $seeders;
+        $this->migrations($migrations);
+        $this->seeders($seeders);
         $this->remoteBuildUrl = $remoteBuildUrl;
         $this->isBrowserTest = $isBrowserTest;
         $this->isParallelTest = $isParallelTest;
@@ -467,12 +467,13 @@ class ConfigDTO extends AbstractDTO
     /**
      * Specify the seeders to run.
      *
-     * @param string[] $seeders The seeders to run after migrating.
+     * @param string|string[] $seeders The seeders to run after migrating.
      * @return static
      */
-    public function seeders(array $seeders): self
+    public function seeders($seeders): self
     {
-        $this->seeders = $seeders;
+        $seeders = ($seeders == '') ? [] : $seeders;
+        $this->seeders = is_array($seeders) ? $seeders : [$seeders];
         return $this;
     }
 

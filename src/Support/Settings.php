@@ -13,7 +13,7 @@ use CodeDistortion\Adapt\DTO\VersionsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    public const PACKAGE_VERSION = '0.12.0';
+    public const PACKAGE_VERSION = '0.12.2';
 
     /** @var string The name of the Adapt config file. */
     public const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
