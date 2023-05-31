@@ -30,6 +30,9 @@ class Settings
     /** @var string The test-class method that can be added to define a custom way of building the databases. */
     public const LARAVEL_CUSTOM_BUILD_METHOD = 'databaseInit';
 
+    /** @var string The service container name to use when checking to see if Adapt has already initialised the dbs. */
+    public const LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME = 'adapt-already-initialised';
+
     /** @var string The prefix common for all Adapt tables. */
     public const ADAPT_TABLE_PREFIX = '____adapt_';
 
