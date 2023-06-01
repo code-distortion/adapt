@@ -83,9 +83,10 @@ class LaravelSupport
     /**
      * Generate a base-path based on the project-root dir (taking into account TestBench is being used).
      *
+     * @param string $path The path to use.
      * @return string
      */
-    public static function basePath(?string $path = null): string
+    public static function basePath(string $path = ''): string
     {
         return self::isRunningTestBench()
             ? base_path("../../../../$path")
@@ -95,9 +96,10 @@ class LaravelSupport
     /**
      * Generate a database-path based on the project-root dir (taking into account TestBench is being used).
      *
+     * @param string $path The path to use.
      * @return string
      */
-    public static function databasePath(?string $path = null): string
+    public static function databasePath(string $path = ''): string
     {
         return self::isRunningTestBench()
             ? database_path("../../../../$path")
@@ -107,9 +109,10 @@ class LaravelSupport
     /**
      * Generate a config-path based on the project-root dir (taking into account TestBench is being used).
      *
+     * @param string $path The path to use.
      * @return string
      */
-    public static function configPath(?string $path = null): string
+    public static function configPath(string $path = ''): string
     {
         return self::isRunningTestBench()
             ? config_path("../../../../$path")
