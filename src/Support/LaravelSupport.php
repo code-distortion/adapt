@@ -43,10 +43,7 @@ class LaravelSupport
      */
     public static function useTestingConfig(): void
     {
-        LaravelEnv::reloadEnv(
-            base_path(Settings::LARAVEL_ENV_TESTING_FILE),
-            ['APP_ENV' => 'testing']
-        );
+        LaravelEnv::reloadEnv(base_path(Settings::LARAVEL_ENV_TESTING_FILE), ['APP_ENV' => 'testing']);
 
         LaravelConfig::reloadConfig();
     }

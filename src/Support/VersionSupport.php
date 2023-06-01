@@ -42,18 +42,23 @@ class VersionSupport
      */
     private static function resolvePackageVersions(VersionsDTO $versionsDTO): void
     {
-        $composerLock = file_get_contents("composer.lock");
-        if (!$composerLock) {
-            return;
-        }
+        $versionsDTO->adaptVersion(Settings::PACKAGE_VERSION);
 
         /** @var Application $app */
         $app = app();
         $versionsDTO->laravelVersion($app->version());
 
+        if (!file_exists(base_path("composer.lock"))) {
+            return;
+        }
+
+        $composerLock = file_get_contents(base_path("composer.lock"));
+        if (!$composerLock) {
+            return;
+        }
+
         $versionsDTO->phpUnitVersion(static::getPackageVersion($composerLock, 'phpunit/phpunit'));
         $versionsDTO->pestVersion(static::getPackageVersion($composerLock, 'pestphp/pest'));
-        $versionsDTO->adaptVersion(Settings::PACKAGE_VERSION);
     }
 
     /**
