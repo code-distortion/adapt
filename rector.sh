@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if ! command -v php &> /dev/null; then
+  echo
+  echo 'ERROR: Please run in an environment where PHP is available'
+  echo
+  exit
+fi
+
+
+
 rm -rf _config _src
 
 cp -pr config _config
