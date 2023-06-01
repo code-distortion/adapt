@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.7] - 2023-06-02
+
+### Fixed
+- Fixed a bug when handling a remote-build request
+
+
+
 ## [0.12.6] - 2023-06-02
 
 ### Fixed
