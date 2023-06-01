@@ -191,10 +191,7 @@ class PreBootTestLaravel
             return;
         }
 
-        LaravelEnv::reloadEnv(
-            base_path(Settings::LARAVEL_ENV_TESTING_FILE),
-            ['APP_ENV' => 'testing']
-        );
+        LaravelEnv::reloadEnv(base_path(Settings::LARAVEL_ENV_TESTING_FILE), ['APP_ENV' => 'testing']);
 
         $sessionConfig = LaravelConfig::readConfigFile('session');
         if (!$sessionConfig['driver']) {

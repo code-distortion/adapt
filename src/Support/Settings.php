@@ -13,7 +13,7 @@ use CodeDistortion\Adapt\DTO\VersionsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    const PACKAGE_VERSION = '0.12.2';
+    const PACKAGE_VERSION = '0.12.4';
 
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
@@ -29,6 +29,9 @@ class Settings
 
     /** @var string The test-class method that can be added to define a custom way of building the databases. */
     const LARAVEL_CUSTOM_BUILD_METHOD = 'databaseInit';
+
+    /** @var string The service container name to use when checking to see if Adapt has already initialised the dbs. */
+    const LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME = 'adapt-already-initialised';
 
     /** @var string The prefix common for all Adapt tables. */
     const ADAPT_TABLE_PREFIX = '____adapt_';

@@ -15,6 +15,7 @@ use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Support\PHPSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,8 +72,22 @@ trait InitialiseAdapt
      */
     public function initialiseAdapt()
     {
+        // check to make sure Adapt only initialises the database/s once
+        // a class property can't be used, because when running the tests with --repeat, the test object continues to
+        // exist between iterations, but Laravel's app has been reset (and the database needs to be initialised again).
+
+        // use Laravel's service container to record when this has been run
+        $alreadyInitialised = false;
+        try {
+            $alreadyInitialised = app(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME);
+        } catch (BindingResolutionException $exception) {
+            app()->bind(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME, function () {
+                return true;
+            });
+        }
+
         // only initialise once
-        if ($this->adaptPreBootTestLaravel) {
+        if ($alreadyInitialised) {
             return;
         }
 
