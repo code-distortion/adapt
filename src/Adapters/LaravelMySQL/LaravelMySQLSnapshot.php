@@ -6,6 +6,7 @@ use CodeDistortion\Adapt\Adapters\Interfaces\SnapshotInterface;
 use CodeDistortion\Adapt\Adapters\Traits\InjectTrait;
 use CodeDistortion\Adapt\Adapters\Traits\Laravel\LaravelHelperTrait;
 use CodeDistortion\Adapt\Exceptions\AdaptSnapshotException;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Throwable;
 
 /**
@@ -71,7 +72,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     public function importSnapshot($path, $throwExceptionIfNotExists = false): bool
     {
-        $realPath = base_path($path);
+        $realPath = LaravelSupport::basePath($path);
 
         if (!$this->di->filesystem->fileExists($realPath)) {
             if ($throwExceptionIfNotExists) {

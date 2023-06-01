@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Boot\Traits;
 
 use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\Exceptions\AdaptConfigException;
+use CodeDistortion\Adapt\Support\LaravelSupport;
 use Illuminate\Foundation\Application;
 
 trait CheckLaravelChecksumPathsTrait
@@ -19,8 +20,8 @@ trait CheckLaravelChecksumPathsTrait
     private function checkLaravelChecksumPaths(array $checksumPaths): array
     {
         $filesystem = new Filesystem();
-        $seedersDir = database_path('seeders');
-        $seedsDir = database_path('seeds');
+        $seedersDir = LaravelSupport::databasePath('seeders');
+        $seedsDir = LaravelSupport::databasePath('seeds');
 
         foreach ($checksumPaths as $path) {
 

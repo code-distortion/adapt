@@ -218,7 +218,7 @@ class LaravelConfig
      */
     public static function configPublishPath(): string
     {
-        return config_path(Settings::LARAVEL_CONFIG_NAME . '.php');
+        return LaravelSupport::configPath(Settings::LARAVEL_CONFIG_NAME . '.php');
     }
 
     /**
@@ -229,7 +229,7 @@ class LaravelConfig
      */
     public static function readConfigFile($configFile): array
     {
-        $configPath = config_path("$configFile.php");
+        $configPath = LaravelSupport::configPath("$configFile.php");
 
         return file_exists($configPath)
             ? (array) require($configPath)

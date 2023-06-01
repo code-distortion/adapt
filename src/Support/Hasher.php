@@ -230,8 +230,8 @@ class Hasher
 //    private function resolveMigrationPaths(): array
 //    {
 //        $paths = is_string($this->configDTO->migrations)
-//            ? [database_path('migrations'), $this->configDTO->migrations]
-//            : [database_path('migrations')];
+//            ? [LaravelSupport::databasePath('migrations'), $this->configDTO->migrations]
+//            : [LaravelSupport::databasePath('migrations')];
 //        $paths = array_unique($paths);
 //
 //        return $this->resolvePaths($paths, true, 'migrationsPathInvalid');
