@@ -83,7 +83,7 @@ trait InitialiseAdapt
             $alreadyInitialised = app(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME);
         } catch (BindingResolutionException) {
             app()->bind(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME, fn() => true );
-        } catch (ReflectionException) { // ~Laravel 5.2
+        } catch (ReflectionException) { // < Laravel 5.8
             app()->bind(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME, fn() => true );
         }
 

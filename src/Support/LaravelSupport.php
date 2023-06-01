@@ -85,7 +85,7 @@ class LaravelSupport
      *
      * @return string
      */
-    public static function basePath(?string $path): string
+    public static function basePath(?string $path = null): string
     {
         return self::isRunningTestBench()
             ? base_path("../../../../$path")
@@ -97,7 +97,7 @@ class LaravelSupport
      *
      * @return string
      */
-    public static function databasePath(?string $path): string
+    public static function databasePath(?string $path = null): string
     {
         return self::isRunningTestBench()
             ? database_path("../../../../$path")
@@ -109,7 +109,7 @@ class LaravelSupport
      *
      * @return string
      */
-    public static function configPath(?string $path): string
+    public static function configPath(?string $path = null): string
     {
         return self::isRunningTestBench()
             ? config_path("../../../../$path")
