@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
+use ReflectionException;
 
 /**
  * Allow Laravel tests to use Adapt.
@@ -81,6 +82,10 @@ trait InitialiseAdapt
         try {
             $alreadyInitialised = app(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME);
         } catch (BindingResolutionException $exception) {
+            app()->bind(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME, function () {
+                return true;
+            });
+        } catch (ReflectionException $exception) { // ~Laravel 5.2
             app()->bind(Settings::LARAVEL_ALREADY_INITIALISED_SERVICE_CONTAINER_NAME, function () {
                 return true;
             });

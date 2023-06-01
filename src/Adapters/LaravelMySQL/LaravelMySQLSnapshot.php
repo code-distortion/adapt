@@ -71,7 +71,9 @@ class LaravelMySQLSnapshot implements SnapshotInterface
      */
     public function importSnapshot($path, $throwExceptionIfNotExists = false): bool
     {
-        if (!$this->di->filesystem->fileExists($path)) {
+        $realPath = base_path($path);
+
+        if (!$this->di->filesystem->fileExists($realPath)) {
             if ($throwExceptionIfNotExists) {
                 throw AdaptSnapshotException::importFileDoesNotExist($path);
             }
@@ -86,7 +88,7 @@ class LaravelMySQLSnapshot implements SnapshotInterface
             . '--user=' . escapeshellarg($this->conVal('username')) . ' '
             . '--password=' . escapeshellarg($this->conVal('password')) . ' '
             . escapeshellarg((string) $this->configDTO->database) . ' '
-            . '< ' . escapeshellarg($path);
+            . '< ' . escapeshellarg($realPath);
 
         $this->di->exec->run($command, $output, $returnVal);
 

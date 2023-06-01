@@ -71,7 +71,9 @@ class LaravelPostgreSQLSnapshot implements SnapshotInterface
      */
     public function importSnapshot($path, $throwExceptionIfNotExists = false): bool
     {
-        if (!$this->di->filesystem->fileExists($path)) {
+        $realPath = base_path($path);
+
+        if (!$this->di->filesystem->fileExists($realPath)) {
             if ($throwExceptionIfNotExists) {
                 throw AdaptSnapshotException::importFileDoesNotExist($path);
             }
@@ -86,7 +88,7 @@ class LaravelPostgreSQLSnapshot implements SnapshotInterface
             . '--port=' . escapeshellarg($this->conVal('port')) . ' '
             . '--user=' . escapeshellarg($this->conVal('username')) . ' '
             . escapeshellarg((string) $this->configDTO->database) . ' '
-            . '< ' . escapeshellarg($path);
+            . '< ' . escapeshellarg($realPath);
 
         $this->di->exec->run($command, $output, $returnVal);
 
