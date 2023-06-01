@@ -6,10 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.5] - 2023-06-02
+
+### Fixed
+- Fixed a bug in the `--repeat=x` fix from 0.12.4, in older versions of Laravel
+
+
+
 ## [0.12.4] - 2023-06-01
 
 ### Added
 - Added support for Laravel 10
+
+### Fixed
 - Fixed a bug that stopped database/s from being prepared after the first run, when using the `--repeat=x` option
 - Fixed a bug that caused execution to stop, when running tests from outside the project root-dir
 
