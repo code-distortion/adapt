@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added support for Laravel 10
+- Fixed a bug that stopped database/s from being prepared after the first run, when using the `--repeat=x` option
+- Fixed a bug that caused execution to stop, when running tests from outside the project root-dir
 
 
 
@@ -19,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added support for PHP 8.2
 
 ### Fixed
-- Fixed bug when detecting which seeders to run.
+- Fixed bug when detecting which seeders to run
 
 
 
@@ -39,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Minor tweaks to documentation
 
 ### Fixed
-- Fix for calls to the `databaseInit(..)` method.
+- Fix for calls to the `databaseInit(..)` method
 
 
 
