@@ -50,7 +50,9 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
      */
     public function importSnapshot(string $path, bool $throwExceptionIfNotExists = false): bool
     {
-        if (!$this->di->filesystem->fileExists($path)) {
+        $realPath = base_path($path);
+
+        if (!$this->di->filesystem->fileExists($realPath)) {
             if ($throwExceptionIfNotExists) {
                 throw AdaptSnapshotException::importFileDoesNotExist($path);
             }
@@ -63,7 +65,7 @@ class LaravelSQLiteSnapshot implements SnapshotInterface
         $this->di->db->purge();
 
         try {
-            if (!$this->di->filesystem->copy($path, (string) $this->configDTO->database)) {
+            if (!$this->di->filesystem->copy($realPath, (string) $this->configDTO->database)) {
                 throw AdaptSnapshotException::importFailed($path);
             }
             return true;
