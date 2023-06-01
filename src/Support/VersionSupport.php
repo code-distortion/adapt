@@ -48,11 +48,11 @@ class VersionSupport
         $app = app();
         $versionsDTO->laravelVersion($app->version());
 
-        if (!file_exists(base_path("composer.lock"))) {
+        if (!file_exists(LaravelSupport::basePath("composer.lock"))) {
             return;
         }
 
-        $composerLock = file_get_contents(base_path("composer.lock"));
+        $composerLock = file_get_contents(LaravelSupport::basePath("composer.lock"));
         if (!$composerLock) {
             return;
         }

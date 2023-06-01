@@ -25,7 +25,7 @@ class LaravelSupport
      *
      * @return boolean
      */
-    public static function isRunningInOrchestra(): bool
+    public static function isRunningTestBench(): bool
     {
         $basePath = base_path();
         $realpath = (string) realpath('.');
@@ -43,7 +43,7 @@ class LaravelSupport
      */
     public static function useTestingConfig(): void
     {
-        LaravelEnv::reloadEnv(base_path(Settings::LARAVEL_ENV_TESTING_FILE), ['APP_ENV' => 'testing']);
+        LaravelEnv::reloadEnv(LaravelSupport::basePath(Settings::LARAVEL_ENV_TESTING_FILE), ['APP_ENV' => 'testing']);
 
         LaravelConfig::reloadConfig();
     }
@@ -81,7 +81,43 @@ class LaravelSupport
     }
 
     /**
-     * make sure the code is running from the Laravel base dir.
+     * Generate a base-path based on the project-root dir (taking into account TestBench is being used).
+     *
+     * @return string
+     */
+    public static function basePath(?string $path): string
+    {
+        return self::isRunningTestBench()
+            ? base_path("../../../../$path")
+            : base_path($path);
+    }
+
+    /**
+     * Generate a database-path based on the project-root dir (taking into account TestBench is being used).
+     *
+     * @return string
+     */
+    public static function databasePath(?string $path): string
+    {
+        return self::isRunningTestBench()
+            ? database_path("../../../../$path")
+            : database_path($path);
+    }
+
+    /**
+     * Generate a config-path based on the project-root dir (taking into account TestBench is being used).
+     *
+     * @return string
+     */
+    public static function configPath(?string $path): string
+    {
+        return self::isRunningTestBench()
+            ? config_path("../../../../$path")
+            : config_path($path);
+    }
+
+    /**
+     * Make sure the code is running from the Laravel base dir.
      *
      * e.g. /var/www/html instead of /var/www/html/public
      *
@@ -92,7 +128,7 @@ class LaravelSupport
      */
     public static function runFromBasePathDir(): void
     {
-        chdir(base_path());
+        chdir(LaravelSupport::basePath());
     }
 
     /**

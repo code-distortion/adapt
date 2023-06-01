@@ -61,7 +61,7 @@ class BootTestLaravel extends BootTestAbstract
      */
     private function ensureEnvTestingFileExists(): void
     {
-        if ((new Filesystem())->fileExists(base_path(Settings::LARAVEL_ENV_TESTING_FILE))) {
+        if ((new Filesystem())->fileExists(LaravelSupport::basePath(Settings::LARAVEL_ENV_TESTING_FILE))) {
             return;
         }
 

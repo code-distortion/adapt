@@ -136,7 +136,7 @@ trait LaravelBuildTrait
         // when running in orchestra, the base_path() is
         // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
         // prefixing the path with "../../../../" accounts for this
-        if (LaravelSupport::isRunningInOrchestra()) {
+        if (LaravelSupport::isRunningTestBench()) {
             $path = '../../../../' . $path;
         }
         return $path;
