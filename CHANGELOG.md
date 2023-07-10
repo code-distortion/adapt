@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.8] - 2023-07-11
+
+### Fixed
+- Fixed a bug affecting use in Laravel 10
+
+
+
 ## [0.12.7] - 2023-06-02
 
 ### Fixed
