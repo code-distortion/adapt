@@ -171,9 +171,13 @@ trait InitialiseAdapt
 
         // create a new pre-boot object to perform the boot work
         // allowing this trait to not contain so many things
+        $name = method_exists($this, 'name')
+            ? $this->name() // new in Laravel 10
+            : $this->getName();
+
         $this->adaptPreBootTestLaravel = new PreBootTestLaravel(
             get_class($this),
-            $this->getName(),
+            $name,
             $propBag,
             $buildInitCallback,
             $this instanceof DuskTestCase,
