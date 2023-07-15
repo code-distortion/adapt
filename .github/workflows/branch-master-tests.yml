@@ -15,7 +15,7 @@ jobs:
 
   test-in-php82:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -23,8 +23,20 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: [8.2]
         phpunit: [^9.3]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^8.0, ^7.0]
         dependency-prefer: [prefer-stable, prefer-lowest]
+        include:
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -55,11 +67,11 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php81:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -67,8 +79,20 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: [8.1]
         phpunit: [^9.3]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^8.0, ^7.0, ^6.22]
         dependency-prefer: [prefer-stable, prefer-lowest]
+        include:
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -99,11 +123,11 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php80:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -111,8 +135,20 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: ["8.0"]
         phpunit: [^9.3]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^7.0, ^6.0, ^5.0, ^4.0]
         dependency-prefer: [prefer-stable, prefer-lowest]
+        include:
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -143,17 +179,18 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php74:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.4]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         exclude:
@@ -184,6 +221,16 @@ jobs:
             phpunit: ~6.0
           - testbench: 3.4.*
             phpunit: ~5.7
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -214,17 +261,18 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php73:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.3]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -250,6 +298,16 @@ jobs:
             phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
             phpunit: "~4.8 | ~5.0"
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -280,17 +338,18 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php72:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.2]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -314,6 +373,16 @@ jobs:
             phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
             phpunit: "~4.8 | ~5.0"
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -344,17 +413,18 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php71:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.1]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -374,6 +444,16 @@ jobs:
             phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
             phpunit: "~4.8 | ~5.0"
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -404,17 +484,18 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
 
   test-in-php70:
 
-    name: master - ${{ matrix.os }} - PHP ${{ matrix.php }} - TestBench ${{ matrix.testbench }} - ${{ matrix.dependency-prefer }}
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: ["7.0"]
+        phpunit-config-file: [phpunit.up-to-9.xml.dist]
         testbench: [3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -428,6 +509,16 @@ jobs:
             phpunit: "~4.8 | ~5.0"
           - testbench: 3.1.*
             phpunit: "~4.8 | ~5.0"
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
 
     steps:
       - name: Checkout code
@@ -458,4 +549,4 @@ jobs:
           composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure

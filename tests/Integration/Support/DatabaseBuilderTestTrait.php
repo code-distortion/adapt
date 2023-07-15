@@ -24,31 +24,31 @@ use Exception;
 trait DatabaseBuilderTestTrait
 {
     /** @var string The directory containing the test-workspaces. */
-    private string $workspaceBaseDir = 'tests/workspaces';
+    private static string $workspaceBaseDir = 'tests/workspaces';
 
     /** @var string The current workspace directory - used during testing. */
-    private string $wsCurrentDir = 'tests/workspaces/current';
+    private static string $wsCurrentDir = 'tests/workspaces/current';
 
     /** @var string The current workspace config directory. */
-    private string $wsConfigDir = 'tests/workspaces/config';
+    private static string $wsConfigDir = 'tests/workspaces/config';
 
     /** @var string The current workspace adapt-test-storage directory. */
-    private string $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
+    private static string $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
 
     /** @var string The current workspace databases directory. */
-    private string $wsDatabaseDir = 'tests/workspaces/current/database/databases';
+    private static string $wsDatabaseDir = 'tests/workspaces/current/database/databases';
 
     /** @var string The current workspace factories directory. */
-    private string $wsFactoriesDir = 'tests/workspaces/current/database/factories';
+    private static string $wsFactoriesDir = 'tests/workspaces/current/database/factories';
 
     /** @var string The current workspace migrations directory. */
-    private string $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
+    private static string $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
 
     /** @var string The current workspace initial-imports directory. */
-    private string $wsInitialImportsDir = 'tests/workspaces/current/database/initial-imports';
+    private static string $wsInitialImportsDir = 'tests/workspaces/current/database/initial-imports';
 
     /** @var string The current workspace seeds directory. */
-    private string $wsSeedsDir = 'tests/workspaces/current/database/seeds';
+    private static string $wsSeedsDir = 'tests/workspaces/current/database/seeds';
 
 
     /**
@@ -57,12 +57,12 @@ trait DatabaseBuilderTestTrait
      * @param string $connection The connection to build a database for.
      * @return DIContainer
      */
-    private function newDIContainer(string $connection): DIContainer
+    private static function newDIContainer(string $connection): DIContainer
     {
         return (new DIContainer())
             ->artisan(new LaravelArtisan())
             ->db((new LaravelDB())->useConnection($connection))
-            ->log($this->newLog())
+            ->log(static::newLog())
             ->exec(new Exec())
             ->filesystem(new Filesystem());
     }
@@ -72,7 +72,7 @@ trait DatabaseBuilderTestTrait
      *
      * @return LogInterface
      */
-    private function newLog(): LogInterface
+    private static function newLog(): LogInterface
     {
         return LaravelSupport::newLaravelLogger(false, false, 0);
 //        return LaravelSupport::newLaravelLogger(true, false, 2);
@@ -84,7 +84,7 @@ trait DatabaseBuilderTestTrait
      * @param string $connection The connection to build a database for.
      * @return ConfigDTO
      */
-    private function newConfigDTO(string $connection): ConfigDTO
+    private static function newConfigDTO(string $connection): ConfigDTO
     {
         return (new ConfigDTO())
             ->projectName(null)
@@ -95,21 +95,21 @@ trait DatabaseBuilderTestTrait
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
             ->databaseModifier('')
-            ->storageDir($this->wsAdaptStorageDir)
+            ->storageDir(self::$wsAdaptStorageDir)
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
             ->cacheInvalidationEnabled(true)
             ->cacheInvalidationMethod('content')
             ->checksumPaths([
-                $this->wsFactoriesDir,
-                $this->wsMigrationsDir,
-                $this->wsInitialImportsDir,
-                $this->wsSeedsDir,
+                self::$wsFactoriesDir,
+                self::$wsMigrationsDir,
+                self::$wsInitialImportsDir,
+                self::$wsSeedsDir,
             ])
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 [],
-                $this->wsMigrationsDir,
+                self::$wsMigrationsDir,
                 [DatabaseSeeder::class],
                 null,
                 false,
@@ -141,10 +141,10 @@ trait DatabaseBuilderTestTrait
      * @param DIContainer|null $di        The DIContainer to use.
      * @return DatabaseBuilder
      */
-    private function newDatabaseBuilder(?ConfigDTO $configDTO = null, ?DIContainer $di = null): DatabaseBuilder
+    private static function newDatabaseBuilder(?ConfigDTO $configDTO = null, ?DIContainer $di = null): DatabaseBuilder
     {
-        $configDTO ??= $this->newConfigDTO('sqlite');
-        $di ??= $this->newDIContainer($configDTO->connection);
+        $configDTO ??= self::newConfigDTO('sqlite');
+        $di ??= self::newDIContainer($configDTO->connection);
 
         $pickDriver = function (string $connection) {
             return config("database.connections.$connection.driver", 'unknown');
@@ -154,7 +154,7 @@ trait DatabaseBuilderTestTrait
             'laravel',
             $di,
             $configDTO,
-            $this->newHasher($configDTO, $di),
+            self::newHasher($configDTO, $di),
             $pickDriver
         );
     }
@@ -166,10 +166,10 @@ trait DatabaseBuilderTestTrait
      * @param DIContainer|null $di        The DIContainer to use.
      * @return void
      */
-    public function useConfig(?ConfigDTO $configDTO = null, ?DIContainer $di = null): void
+    public static function useConfig(?ConfigDTO $configDTO = null, ?DIContainer $di = null): void
     {
         // generate a build-checksum based on the current cache_invalidation.locations
-        $this->newHasher($configDTO, $di)->getBuildChecksum();
+        self::newHasher($configDTO, $di)->getBuildChecksum();
     }
 
     /**
@@ -179,10 +179,10 @@ trait DatabaseBuilderTestTrait
      * @param DIContainer|null $di        The DIContainer to use.
      * @return Hasher
      */
-    private function newHasher(?ConfigDTO $configDTO = null, ?DIContainer $di = null): Hasher
+    private static function newHasher(?ConfigDTO $configDTO = null, ?DIContainer $di = null): Hasher
     {
-        $configDTO ??= $this->newConfigDTO('sqlite');
-        $di ??= $this->newDIContainer($configDTO->connection);
+        $configDTO ??= self::newConfigDTO('sqlite');
+        $di ??= self::newDIContainer($configDTO->connection);
         return new Hasher($di, $configDTO);
     }
 
@@ -195,17 +195,17 @@ trait DatabaseBuilderTestTrait
      * @param boolean $removeAdaptStorageDir Remove the adapt-storage directory?.
      * @return void
      */
-    private function prepareWorkspace(string $sourceDir, string $destDir, bool $removeAdaptStorageDir = true): void
+    private static function prepareWorkspace(string $sourceDir, string $destDir, bool $removeAdaptStorageDir = true): void
     {
-        $this->delTree($destDir);
-        $this->copyDirRecursive($sourceDir, $destDir);
+        self::delTree($destDir);
+        self::copyDirRecursive($sourceDir, $destDir);
         if ($removeAdaptStorageDir) {
-            $this->delTree($destDir . '/database/adapt-test-storage');
+            self::delTree($destDir . '/database/adapt-test-storage');
         }
-        $this->createGitIgnoreFile($destDir . '/.gitignore');
-        $this->loadConfigs($destDir . '/config');
+        self::createGitIgnoreFile($destDir . '/.gitignore');
+        self::loadConfigs($destDir . '/config');
 
-        StorageDir::ensureStorageDirsExist($this->wsAdaptStorageDir, new Filesystem(), $this->newLog());
+        StorageDir::ensureStorageDirsExist(self::$wsAdaptStorageDir, new Filesystem(), self::newLog());
     }
 
     /**
@@ -214,13 +214,13 @@ trait DatabaseBuilderTestTrait
      * @param string $dir The directory to remove.
      * @return boolean
      */
-    private function delTree(string $dir): bool
+    private static function delTree(string $dir): bool
     {
         $files = array_filter((array) scandir($dir));
         $files = array_diff($files, ['.', '..']);
         foreach ($files as $file) {
             if (is_dir("$dir/$file")) {
-                $this->delTree("$dir/$file");
+                self::delTree("$dir/$file");
             } else {
                 unlink("$dir/$file");
             }
@@ -235,14 +235,14 @@ trait DatabaseBuilderTestTrait
      * @param string $destDir   The directory to write to (will be created if it doesn't exist).
      * @return void
      */
-    private function copyDirRecursive(string $sourceDir, string $destDir): void
+    private static function copyDirRecursive(string $sourceDir, string $destDir): void
     {
         @mkdir($destDir);
         $files = array_filter((array) scandir($sourceDir));
         $files = array_diff($files, ['.', '..']);
         foreach ($files as $file) {
             if (is_dir("$sourceDir/$file")) {
-                $this->copyDirRecursive("$sourceDir/$file", "$destDir/$file");
+                self::copyDirRecursive("$sourceDir/$file", "$destDir/$file");
             } else {
                 copy("$sourceDir/$file", "$destDir/$file");
             }
@@ -255,7 +255,7 @@ trait DatabaseBuilderTestTrait
      * @param string $destPath The location to write the file in.
      * @return boolean
      */
-    private function createGitIgnoreFile(string $destPath): bool
+    private static function createGitIgnoreFile(string $destPath): bool
     {
         $fp = fopen($destPath, 'w');
         if (!$fp) {
@@ -275,14 +275,14 @@ trait DatabaseBuilderTestTrait
      * @param string $dir The directory to look for config files in.
      * @return void
      */
-    private function loadConfigs(string $dir): void
+    private static function loadConfigs(string $dir): void
     {
-        foreach ($this->pickConfigFiles($dir) as $configName => $path) {
+        foreach (self::pickConfigFiles($dir) as $configName => $path) {
             config([$configName => require($path)]);
         }
 
         // put the default sqlite database within the workspace
-        config(['database.connections.sqlite.database' => "$this->wsDatabaseDir/database.sqlite"]);
+        config(['database.connections.sqlite.database' => self::$wsDatabaseDir . "/database.sqlite"]);
     }
 
     /**
@@ -291,11 +291,11 @@ trait DatabaseBuilderTestTrait
      * @param string $dir The directory to look in.
      * @return array<string, string>
      */
-    private function pickConfigFiles(string $dir): array
+    private static function pickConfigFiles(string $dir): array
     {
         try {
             $files = array_filter((array) scandir($dir));
-            return $this->mapConfigPaths($dir, $files);
+            return self::mapConfigPaths($dir, $files);
         } catch (ErrorException $e) {
             return [];
         }
@@ -308,12 +308,12 @@ trait DatabaseBuilderTestTrait
      * @param string[] $files The files in the directory.
      * @return array<string, string>
      */
-    private function mapConfigPaths(string $dir, array $files): array
+    private static function mapConfigPaths(string $dir, array $files): array
     {
         $return = [];
         foreach ($files as $file) {
 
-            if (!$this->isPHPFile("$dir/$file")) {
+            if (!self::isPHPFile("$dir/$file")) {
                 continue;
             }
 
@@ -329,7 +329,7 @@ trait DatabaseBuilderTestTrait
      * @param string $path The path to check.
      * @return boolean
      */
-    private function isPHPFile(string $path): bool
+    private static function isPHPFile(string $path): bool
     {
         return ((mb_substr($path, -4) == '.php') && (is_file($path)));
     }
@@ -340,7 +340,7 @@ trait DatabaseBuilderTestTrait
      * @param string $connection The connection to grab the database-driver for.
      * @return string|null
      */
-    private function getDBDriver(string $connection): ?string
+    private static function getDBDriver(string $connection): ?string
     {
         $return = config("database.connections.$connection.driver", 'unknown');
         return is_string($return) || is_null($return) ? $return : null; // phpstan
@@ -354,13 +354,13 @@ trait DatabaseBuilderTestTrait
      * @return void
      * @throws Exception When an unknown database driver is found.
      */
-    private function assertTableList(string $connection, array $expectedTables): void
+    private static function assertTableList(string $connection, array $expectedTables): void
     {
-        switch ($this->getDBDriver($connection)) {
+        switch (self::getDBDriver($connection)) {
             case 'mysql':
                 throw new Exception('mysql driver not implemented yet');
             case 'sqlite':
-                $this->assertQueryValues(
+                self::assertQueryValues(
                     $connection,
                     "SELECT name FROM sqlite_master WHERE type='table'",
                     [],
@@ -381,7 +381,7 @@ trait DatabaseBuilderTestTrait
      * @param ExpectedValuesDTO $expectedValues The expected values.
      * @return void
      */
-    private function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues): void
+    private static function assertTableValues(string $connection, ExpectedValuesDTO $expectedValues): void
     {
         $escFields = "`" . implode('`, `', $expectedValues->fields) . "`";
         $rows = DB::connection($connection)->select("SELECT " . $escFields . " FROM `" . $expectedValues->table . "`");
@@ -394,7 +394,7 @@ trait DatabaseBuilderTestTrait
             return $return;
         })->toArray();
 
-        $this->assertSame($expectedValues->values, $values);
+        self::assertSame($expectedValues->values, $values);
     }
 
     /**
@@ -407,7 +407,7 @@ trait DatabaseBuilderTestTrait
      * @param boolean $sort       Sort the values before comparing?.
      * @return void
      */
-    private function assertQueryValues(
+    private static function assertQueryValues(
         string $connection,
         string $query,
         array $values,
@@ -427,6 +427,6 @@ trait DatabaseBuilderTestTrait
             sort($expected);
         }
 
-        $this->assertSame($expected, $values);
+        self::assertSame($expected, $values);
     }
 }

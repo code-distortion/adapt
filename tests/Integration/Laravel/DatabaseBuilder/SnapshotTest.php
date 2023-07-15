@@ -29,11 +29,11 @@ class SnapshotTest extends LaravelTestCase
      *
      * @return mixed[][]
      */
-    public function snapshotDataProvider(): array
+    public static function snapshotDataProvider(): array
     {
         return [
             'Snapshots disabled' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots(null)
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [],
@@ -43,7 +43,7 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Takes snapshot after migrations' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -54,7 +54,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -65,7 +65,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -78,7 +78,7 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Takes snapshot after migrations (no seeders)' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations')
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -89,7 +89,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after seeders (no seeders)' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders')
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -100,7 +100,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after migrations and seeders (no seeders)' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
                     ->seeders([]),
                 'expectedSnapshots' => [
@@ -112,9 +112,9 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Takes snapshot after migrations - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-7ac0d1aebe0b.sqlite',
@@ -124,9 +124,9 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after seeders - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-ab99c82ee102.sqlite',
@@ -136,9 +136,9 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after migrations and seeders - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-7ac0d1aebe0b.sqlite',
@@ -150,9 +150,9 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Takes snapshot after migrations (no seeders) - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-7ac0d1aebe0b.sqlite',
@@ -162,9 +162,9 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after seeders (no seeders) - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-7ac0d1aebe0b.sqlite',
@@ -174,9 +174,9 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => [],
             ],
             'Takes snapshot after migrations and seeders (no seeders) - with initial-import' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
-                    ->initialImports(['sqlite' => $this->wsInitialImportsDir . '/initial-import-1.sqlite'])
+                    ->initialImports(['sqlite' => self::$wsInitialImportsDir . '/initial-import-1.sqlite'])
                     ->seeders([]),
                 'expectedSnapshots' => [
                     'snapshots/snapshot.database.2881d7-7ac0d1aebe0b.sqlite',
@@ -187,7 +187,7 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Imports before seeder snapshot - Takes snapshot before and after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
                 'expectedSnapshots' => [
@@ -199,7 +199,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => ['imported-snapshot-after-seeders'],
             ],
             'Imports after seeder snapshot - Takes snapshot before and after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both')
                     ->seeders([UserSeeder::class]),
                 'expectedSnapshots' => [
@@ -213,7 +213,7 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Using database-modifier - Takes snapshot before and after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->databaseModifier('1')
                     ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
@@ -227,7 +227,7 @@ class SnapshotTest extends LaravelTestCase
             ],
 
             'Using database-modifier - Imports before seeder snapshot - Takes snapshot before and after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->databaseModifier('1')
                     ->snapshots('!both')
                     ->seeders([DatabaseSeeder::class]),
@@ -240,7 +240,7 @@ class SnapshotTest extends LaravelTestCase
                 'expectUsers' => ['imported-snapshot-after-seeders'],
             ],
             'Using database-modifier - Imports after seeder snapshot - Takes snapshot before and after migrations and seeders' => [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->databaseModifier('1')
                     ->snapshots('!both')
                     ->seeders([UserSeeder::class]),
@@ -268,7 +268,7 @@ class SnapshotTest extends LaravelTestCase
      * @param string[]    $expectUsers           The list of users to expect in the database.
      * @return void
      */
-    public function test_database_builder_takes_snapshots(
+    public static function test_database_builder_takes_snapshots(
         ConfigDTO $configDTO,
         array $expectedSnapshots,
         ?string $expectedDatabase,
@@ -276,10 +276,10 @@ class SnapshotTest extends LaravelTestCase
         array $expectUsers
     ): void {
 
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir, $removeAdaptStorageDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir, $removeAdaptStorageDir);
 
         // build the database
-        $this->newDatabaseBuilder($configDTO)->execute();
+        self::newDatabaseBuilder($configDTO)->execute();
 
         // determine the list of expected paths
         $expectedPaths = $expectedDatabase
@@ -289,15 +289,15 @@ class SnapshotTest extends LaravelTestCase
 
         // find all the files that exist
         $filesystem = new Filesystem();
-        $paths = $filesystem->filesInDir($this->wsAdaptStorageDir, true);
+        $paths = $filesystem->filesInDir(self::$wsAdaptStorageDir, true);
         foreach ($paths as $index => $path) {
-            $paths[$index] = $filesystem->removeBasePath($path, $this->wsAdaptStorageDir);
+            $paths[$index] = $filesystem->removeBasePath($path, self::$wsAdaptStorageDir);
         }
 
         // remove the current database if we're not checking for it
         if (!$expectedDatabase) {
             $dbPath = config('database.connections.sqlite.database');
-            $dbFile = $filesystem->removeBasePath($dbPath, $this->wsAdaptStorageDir);
+            $dbFile = $filesystem->removeBasePath($dbPath, self::$wsAdaptStorageDir);
             $paths = array_diff($paths, [$dbFile]);
         }
 
@@ -311,13 +311,13 @@ class SnapshotTest extends LaravelTestCase
         sort($paths);
         $paths = array_values($paths);
 
-        $this->assertSame($expectedPaths, $paths);
+        self::assertSame($expectedPaths, $paths);
 
         // check if the 'imported-snapshot' user is present
         foreach ($expectUsers as $user) {
             $db = DB::connection($configDTO->connection);
             $row = $db->select("SELECT COUNT(*) AS total FROM `users` WHERE username = :user", ['user' => $user]);
-            $this->assertSame(1, (int) $row[0]->total);
+            self::assertSame(1, (int) $row[0]->total);
         }
     }
 
@@ -332,21 +332,21 @@ class SnapshotTest extends LaravelTestCase
      * - copy the tests/workspaces/current/database/adapt-test-storage/snapshot.database.x.sqlite files to dir above.
      *   - cp -p tests/workspaces/current/database/adapt-test-storage/snapshots/snapshot.database.*.sqlite tests/workspaces/scenario1/database/adapt-test-storage/snapshots/
      */
-//    public function test_build_snapshot_sqlite_databases()
+//    public static function test_build_snapshot_sqlite_databases()
 //    {
-//        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir, true);
+//        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir, true);
 //
-//        $configDTO = $this->newConfigDTO('sqlite')
+//        $configDTO = self::newConfigDTO('sqlite')
 //            ->snapshots('both', 'both')
 //            ->seeders([DatabaseSeeder::class]);
 //
 //        // build the database
-//        $this->newDatabaseBuilder($configDTO)->execute();
+//        self::newDatabaseBuilder($configDTO)->execute();
 //
 //
 //
 //        // find the snapshot files
-//        $dir = "$this->wsAdaptStorageDir/snapshots";
+//        $dir = self::$wsAdaptStorageDir . "/snapshots";
 //        $snapshotFiles = collect((array) scandir($dir))->filter(function ($path) use ($configDTO) {
 //            return preg_match('/^'.preg_quote($configDTO->snapshotPrefix).'/', $path);
 //        });
@@ -355,7 +355,7 @@ class SnapshotTest extends LaravelTestCase
 //
 //            DB::connection($configDTO->connection)->disconnect();
 //            $key = 'database.connections.' . $configDTO->connection . '.database';
-//            config([$key => "$this->wsAdaptStorageDir/snapshots/$snapshotFile"]);
+//            config([$key => self::$wsAdaptStorageDir . "/snapshots/$snapshotFile"]);
 //
 //            $rows = DB::connection($configDTO->connection)->select("SELECT COUNT(*) AS total FROM `users`");
 //            $userCount = $rows[0]->total;

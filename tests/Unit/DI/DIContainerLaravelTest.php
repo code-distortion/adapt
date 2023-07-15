@@ -22,7 +22,7 @@ class DIContainerLaravelTest extends LaravelTestCase
      *
      * @return mixed[][]
      */
-    public function diContainerDataProvider(): array
+    public static function diContainerDataProvider(): array
     {
 
         return [
@@ -58,7 +58,7 @@ class DIContainerLaravelTest extends LaravelTestCase
      * @param mixed[] $params The parameters to pass to this set method, and the values to check after.
      * @return void
      */
-    public function di_container_can_set_and_get_values(string $method, array $params): void
+    public static function di_container_can_set_and_get_values(string $method, array $params): void
     {
         $di = new DIContainer();
 
@@ -75,7 +75,7 @@ class DIContainerLaravelTest extends LaravelTestCase
         }
 
         foreach ($params as $name => $value) {
-            $this->assertSame($value, $di->$name);
+            self::assertSame($value, $di->$name);
         }
     }
 }

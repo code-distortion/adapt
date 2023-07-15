@@ -19,7 +19,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      *
      * @return mixed[][]
      */
-    public function propBagDTODataProvider(): array
+    public static function propBagDTODataProvider(): array
     {
         return [
             'set and get' => [
@@ -101,12 +101,12 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * @return void
      * @throws Throwable Any exception that wasn't expected by the test.
      */
-    public function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check): void
+    public static function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check): void
     {
         // add some values to the bag
         $propBag = new LaravelPropBagDTO();
         foreach ($set as $name => $value) {
-            $this->assertSame(
+            self::assertSame(
                 $propBag,
                 $propBag->addProp($name, $value)
             );
@@ -129,12 +129,12 @@ class LaravelPropBagDTOTest extends LaravelTestCase
                 if (!$e instanceof $check['exception']) {
                     throw $e;
                 }
-                $this->assertTrue(true);
+                self::assertTrue(true);
             }
 
         } else {
             $value = call_user_func_array($callable, $params);
-            $this->assertSame($check['expected'], $value);
+            self::assertSame($check['expected'], $value);
         }
     }
 
@@ -144,13 +144,13 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_the_config_getter(): void
+    public static function test_the_config_getter(): void
     {
         config(['code_distortion.adapt.existing_value' => 'config value']);
         $propBag = (new LaravelPropBagDTO())->addProp('existingValue', 'prop value');
-        $this->assertSame(null, $propBag->adaptConfig('missing_value', 'missingValue'));
-        $this->assertSame('prop value', $propBag->adaptConfig('missing_value', 'existingValue'));
-        $this->assertSame('config value', $propBag->adaptConfig('existing_value', 'missingValue'));
-        $this->assertSame('prop value', $propBag->adaptConfig('existing_value', 'existingValue'));
+        self::assertSame(null, $propBag->adaptConfig('missing_value', 'missingValue'));
+        self::assertSame('prop value', $propBag->adaptConfig('missing_value', 'existingValue'));
+        self::assertSame('config value', $propBag->adaptConfig('existing_value', 'missingValue'));
+        self::assertSame('prop value', $propBag->adaptConfig('existing_value', 'existingValue'));
     }
 }

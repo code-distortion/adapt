@@ -17,7 +17,7 @@ class LaravelSupportTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function seedersDataProvider(): array
+    public static function seedersDataProvider(): array
     {
         return [
             [true, ['seeders'], true, 'seeder', true, true, ['config'], ['seeders']],
@@ -81,7 +81,7 @@ class LaravelSupportTest extends PHPUnitTestCase
      * @param string[] $expectedOutcome The expected seeders.
      * @return void
      */
-    public function test_that_the_correct_seeders_are_picked(
+    public static function test_that_the_correct_seeders_are_picked(
         bool $hasSeedersProp,
         $seedersProp,
         bool $hasSeederProp,
@@ -101,6 +101,6 @@ class LaravelSupportTest extends PHPUnitTestCase
             $seedProp,
             $seedersConfig
         );
-        $this->assertSame($expectedOutcome, $seeders);
+        self::assertSame($expectedOutcome, $seeders);
     }
 }

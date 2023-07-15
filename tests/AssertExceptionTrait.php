@@ -19,7 +19,7 @@ trait AssertExceptionTrait
      * @param callable    $callback        The callback to run.
      * @return void
      */
-    protected function assertException(?string $expectException, callable $callback): void
+    protected static function assertException(?string $expectException, callable $callback): void
     {
         $e = null;
         try {
@@ -30,20 +30,20 @@ trait AssertExceptionTrait
         $thrownException = $e ? get_class($e) : null;
 
         if ($thrownException && !$expectException) {
-            $this->assertTrue(false, "A \"$thrownException\" exception was thrown. None was expected");
+            self::assertTrue(false, "A \"$thrownException\" exception was thrown. None was expected");
         }
 
         if ($thrownException && $expectException && !is_a($e ?? '', $expectException)) {
-            $this->assertTrue(
+            self::assertTrue(
                 false,
                 "A \"$expectException\" exception was expected, but \"$thrownException\" was thrown"
             );
         }
 
         if (!$thrownException && $expectException) {
-            $this->assertTrue(false, "A \"$expectException\" exception was expected but none was thrown");
+            self::assertTrue(false, "A \"$expectException\" exception was expected but none was thrown");
         }
 
-        $this->assertTrue(true);
+        self::assertTrue(true);
     }
 }

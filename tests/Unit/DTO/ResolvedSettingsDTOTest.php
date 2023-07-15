@@ -17,7 +17,7 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function resolvedSettingsDtoDataProvider(): array
+    public static function resolvedSettingsDtoDataProvider(): array
     {
         return [
             'projectName' => [
@@ -216,7 +216,7 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public function resolved_settings_dto_can_set_and_get_values(
+    public static function resolved_settings_dto_can_set_and_get_values(
         string $method,
         array $params,
         array $outcome = null
@@ -231,7 +231,7 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
 
         $outcome ??= $params;
         foreach ($outcome as $name => $value) {
-            $this->assertSame($value, $configDTO->$name);
+            self::assertSame($value, $configDTO->$name);
         }
     }
 }
