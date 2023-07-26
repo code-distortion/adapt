@@ -8,7 +8,10 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\Filesystem;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelArtisan;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
+use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
+
+AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
 /**
  * Test the DIContainer class
@@ -17,6 +20,8 @@ use CodeDistortion\Adapt\Tests\LaravelTestCase;
  */
 class DIContainerLaravelTest extends LaravelTestCase
 {
+    use DatabaseBuilderSetUpTrait; // this is chosen above by AssignClassAlias depending on the version of Laravel used
+
     /**
      * Provide data for the di_container_can_set_and_get_values test.
      *

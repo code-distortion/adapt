@@ -4,8 +4,11 @@ namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
 use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptPropBagDTOException;
+use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Throwable;
+
+AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
 /**
  * Test the PropBag class.
@@ -14,6 +17,8 @@ use Throwable;
  */
 class LaravelPropBagDTOTest extends LaravelTestCase
 {
+    use DatabaseBuilderSetUpTrait; // this is chosen above by AssignClassAlias depending on the version of Laravel used
+
     /**
      * Provide data for the prop_bag_dto_can_set_and_get_values test.
      *

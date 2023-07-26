@@ -17,7 +17,9 @@ trait DatabaseBuilderSetUpNoVoidTrait
 
         Settings::resetStaticProps();
 
-        chdir(self::resolveBaseProjectDir());
+        $dir = self::resolveBaseProjectDir();
+        chdir($dir);
+        Settings::setProjectRootDir($dir);
     }
 
 

@@ -4,6 +4,7 @@ namespace CodeDistortion\Adapt\Adapters\Traits\Laravel;
 
 use CodeDistortion\Adapt\Exceptions\AdaptBuildException;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use CodeDistortion\Adapt\Support\Settings;
 use Illuminate\Foundation\Application;
 use Throwable;
 
@@ -29,9 +30,15 @@ trait LaravelBuildTrait
             // the --realpath option isn't available in Laravel < 5.6 so
             // relative paths (relative to base_path()) have to be passed
             $useRealPath = version_compare(Application::VERSION, '5.6.0', '>=');
+
+            $realPath = LaravelSupport::basePath($migrationsPath);
+
             $migrationsPath = $useRealPath
-                ? (string) realpath($migrationsPath)
-                : $this->makeRealpathRelative((string) realpath($migrationsPath));
+                ? $realPath
+                : LaravelSupport::basePath(
+                    $this->di->filesystem->removeBasePath($realPath),
+                    false
+                );
         }
 
         try {
@@ -121,24 +128,5 @@ trait LaravelBuildTrait
         }
 
         return $seeder;
-    }
-
-    /**
-     * Take an absolute path and make it relative to the base project directory.
-     *
-     * @param string $path The path to alter.
-     * @return string
-     */
-    private function makeRealpathRelative(string $path): string
-    {
-        $path = $this->di->filesystem->removeBasePath($path);
-
-        // when running in orchestra, the base_path() is
-        // "/vendor/orchestra/testbench-core/src/Concerns/../../laravel".
-        // prefixing the path with "../../../../" accounts for this
-        if (LaravelSupport::isRunningTestBench()) {
-            $path = '../../../../' . $path;
-        }
-        return $path;
     }
 }
