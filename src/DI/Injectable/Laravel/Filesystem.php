@@ -91,7 +91,7 @@ class Filesystem implements FilesystemInterface
     public function removeBasePath(string $path, ?string $basePath = null): string
     {
         $basePath ??= realpath('.');
-        $basePath = rtrim((string) $basePath, '/') . '/';
+        $basePath = rtrim((string) $basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         if (mb_substr($path, 0, mb_strlen($basePath)) == $basePath) {
             return mb_substr($path, mb_strlen($basePath));

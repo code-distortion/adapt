@@ -69,7 +69,7 @@ class LaravelConfig
 
         /** @var Application $app */
         $app = app();
-        $baseDir = rtrim($app->configPath(), '\\/') . '/';
+        $baseDir = rtrim($app->configPath(), '\\/') . DIRECTORY_SEPARATOR;
 
         $adaptPublishPath = static::configPublishPath();
 
