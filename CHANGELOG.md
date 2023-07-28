@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.12.9] - 2023-07-29
 
 ### Fixed
-- Fixed a bug that caused the storage directory to be resolved incorrectly when using absolute paths
+- Fixed a bug that caused the Adapt storage directory to be resolved incorrectly when using absolute paths - thanks to [manu144x](https://github.com/manu144x) for [raising the problem](https://github.com/code-distortion/adapt/commit/2a3ac41f5377614f0e45b741c928081b5693fb64#commitcomment-121528547)
 - Initial import and migration paths can be absolute
 
 
@@ -48,8 +48,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added support for Laravel 10
 
 ### Fixed
-- Fixed a bug that stopped database/s from being prepared after the first run, when using the `--repeat=x` option
-- Fixed a bug that caused execution to stop, when running tests from outside the project root-dir
+- Fixed a bug that stopped database/s from being prepared after the first run, when using the `--repeat=x` option - thanks to [carltondickson](https://github.com/carltondickson) for [raising the issue](https://github.com/code-distortion/adapt/issues/5)
+- Fixed a bug that caused execution to stop, when running tests from outside the project root-dir - thanks to [carltondickson](https://github.com/carltondickson) for [raising the issue](https://github.com/code-distortion/adapt/issues/4#issue-1514684092)
 
 
 
@@ -57,16 +57,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added support for PHP 8.2
+- Added a more useful exception when a chosen connection doesn't exist
 
 ### Fixed
 - Fixed bug when detecting which seeders to run
-
-
-
-## [0.12.2] - 2022-07-XX
-
-### Added
-- Added a more useful exception when a chosen connection doesn't exist
 
 ### Changed
 - Added the `getShareHeaders()` method to replace the `getShareConnectionsHeaders()` method added to test classes (which is now deprecated, but will still work)
@@ -102,9 +96,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added the `journal(..)` DatabaseBuilder method to replace `reuseJournal(..)` (which is now deprecated, but will still work)
 - Added the `noJournal()` DatabaseBuilder method to replace `noReuseJournal()` (which is now deprecated, but will still work)
 - Added a check to make sure that a connection isn't being prepared more than once
-- Added detection for when a test rolls-back the wrapper-transaction - throws an exception
+- Added detection for when a test rolls-back the wrapper-transaction - throws an exception - thanks to [ibrunotome](https://github.com/ibrunotome) for [raising the issue](https://github.com/code-distortion/adapt/issues/1#issuecomment-1160983691)
 - Improved the code that picks the default connection to use - it now happens after calling `databaseInit(..)` (instead of just setting it as soon as ->makeDefault() is called)
-- Improved the logic that purges stale databases. It now only removes databases from connections that are being prepared (unused connections are ignored). Saves long connection time-outs
+- Improved the logic that purges stale databases. It now only removes databases from connections that are being prepared (unused connections are ignored). Saves long connection time-outs - thanks to [ibrunotome](https://github.com/ibrunotome) for [raising the issue](https://github.com/code-distortion/adapt/issues/2)
 
 ### Changed
 - Changed the structure of the config file - Please review your copy to keep it up to date
@@ -126,7 +120,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.11.1] - 2022-06-19
 
 ### Added
-- Laravel connects to the database in some situations before Adapt runs (e.g. when using debug-bar during remote requests). Adapt now disconnects from these database connections first, so the correct database/s can be re-connected to
+- Laravel connects to the database in some situations before Adapt runs (e.g. when using debug-bar during remote requests). Adapt now disconnects from these database connections first, so the correct database/s can be re-connected to - thanks to [ibrunotome](https://github.com/ibrunotome) for [raising the issue](https://github.com/code-distortion/adapt/issues/1#issuecomment-1159490719)
 - Added separate storage directories for file-based databases (i.e. SQLite), snapshot files, and share-config files
 - Added a GitHub issue template
 - To help with debugging - The version of PHP, Laravel, PHPUnit, Pest, Adapt, MySQL, PostgreSQL, SQLite are logged
@@ -149,7 +143,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added a new log verbosity setting (0 = minimal, 2 = most details)
 - Improved logging output
 - Added the option to create file checksums based on their modified times
-- Adapt can't run at the same time as Laravel's `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits. Added detection for these, and when also present in a test, an exception is thrown
+- Adapt can't run at the same time as Laravel's `RefreshDatabase`, `DatabaseTransactions` and `DatabaseMigrations` traits. Added detection for these, and when also present in a test, an exception is thrown - thanks to [ibrunotome](https://github.com/ibrunotome) for [raising the issue](https://github.com/code-distortion/adapt/issues/1#issuecomment-1153807292)
 
 ### Fixed
 - Disabled the snapshot setting for SQLite :memory: tests
@@ -170,7 +164,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Added the reason why the database couldn't be reused to the logs
-- Added (FORCE) when dropping a PostgreSQL database to drop it when other connections exist (falls back to the original query if FORCE isn't available in the current PostgreSQL version)
+- Added (FORCE) when dropping a PostgreSQL database to drop it when other connections exist (falls back to the original query if FORCE isn't available in the current PostgreSQL version) - thanks to [ibrunotome](https://github.com/ibrunotome) for [raising the issue](https://github.com/code-distortion/adapt/issues/1#issuecomment-1133635681)
 
 
 
