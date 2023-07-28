@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
-## [0.12.9] - 2023-07-29
+## [0.12.10] - 2023-07-29
 
 ### Fixed
 - Fixed a bug that caused the Adapt storage directory to be resolved incorrectly when using absolute paths - thanks to [manu144x](https://github.com/manu144x) for [raising the problem](https://github.com/code-distortion/adapt/commit/2a3ac41f5377614f0e45b741c928081b5693fb64#commitcomment-121528547)
 - Initial import and migration paths can be absolute
+
+
+
+## [0.12.9] - 2023-07-29
+
+(incorrectly tagged release)
 
 
 
