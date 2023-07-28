@@ -6,3 +6,4 @@ composer.lock
 tests/Unit/ManualTest.php
 todo.txt
 vendor/
+vendor.*/

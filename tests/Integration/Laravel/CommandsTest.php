@@ -362,7 +362,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
     }
 
     /**
-     * Run the given commandm and check the output.
+     * Run the given command and check the output.
      *
      * @param string  $command        The command to run.
      * @param mixed[] $args           The arguments to pass to the command.
