@@ -28,11 +28,11 @@ class CommandsTest extends LaravelTestCase
      *
      * @return mixed[][]
      */
-    public function listDBCachesDataProvider(): array
+    public static function listDBCachesDataProvider(): array
     {
         return [
             [
-                'config' => $this->newConfigDTO('sqlite'),
+                'config' => self::newConfigDTO('sqlite'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -48,7 +48,7 @@ class CommandsTest extends LaravelTestCase
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots(null),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -65,7 +65,7 @@ class CommandsTest extends LaravelTestCase
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -87,7 +87,7 @@ class CommandsTest extends LaravelTestCase
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -109,7 +109,7 @@ class CommandsTest extends LaravelTestCase
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -149,32 +149,32 @@ class CommandsTest extends LaravelTestCase
      *                                                 size.
      * @return void
      */
-    public function test_list_db_caches_command(
+    public static function test_list_db_caches_command(
         ConfigDTO $configDTO,
         string $expectedOutput,
         string $expectedOutputWithTestingConn,
         array $substitutions
     ) {
 
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:list', [], 'There are no databases or snapshot files.');
+        self::useConfig($configDTO);
+        self::expectCommandOutput('adapt:list', [], 'There are no databases or snapshot files.');
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->newDatabaseBuilder($configDTO)->execute();
+        self::useConfig($configDTO);
+        self::newDatabaseBuilder($configDTO)->execute();
 
         // Laravel <= 5.1 doesn't have the "testing" connection so the output is different
         $hasTestingConnection = (config('database.connections.testing') !== null);
 $hasTestingConnection = false; // @todo review if $hasTestingConnection is needed
         $expectedOutput = ($hasTestingConnection ? $expectedOutputWithTestingConn : $expectedOutput);
-        $expectedOutput = $this->resolveExpectedOutput($expectedOutput, $substitutions);
+        $expectedOutput = self::resolveExpectedOutput($expectedOutput, $substitutions);
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:list', [], $expectedOutput);
+        self::useConfig($configDTO);
+        self::expectCommandOutput('adapt:list', [], $expectedOutput);
     }
 
 
@@ -183,11 +183,11 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      *
      * @return mixed[][]
      */
-    public function removeDBCachesDataProvider(): array
+    public static function removeDBCachesDataProvider(): array
     {
         return [
             [
-                'config' => $this->newConfigDTO('sqlite'),
+                'config' => self::newConfigDTO('sqlite'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
                     . "- Connection \"sqlite\" (driver sqlite):\n"
@@ -203,7 +203,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots(null),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -220,7 +220,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterMigrations'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -242,7 +242,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!afterSeeders'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -264,7 +264,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                 ],
             ],
             [
-                'config' => $this->newConfigDTO('sqlite')
+                'config' => self::newConfigDTO('sqlite')
                     ->snapshots('!both'),
                 'expectedOutput' =>
                     "Test-databases:\n\n"
@@ -304,36 +304,36 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      *                                                 size.
      * @return void
      */
-    public function test_remove_db_caches_command(
+    public static function test_remove_db_caches_command(
         ConfigDTO $configDTO,
         string $expectedOutput,
         string $expectedOutputWithTestingConn,
         array $substitutions
     ) {
 
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->expectCommandOutput(
+        self::useConfig($configDTO);
+        self::expectCommandOutput(
             'adapt:clear',
             ['--force' => true],
             'There are no databases or snapshot files to remove.'
         );
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->newDatabaseBuilder($configDTO)->execute();
+        self::useConfig($configDTO);
+        self::newDatabaseBuilder($configDTO)->execute();
 
         // Laravel <= 5.1 doesn't have the "testing" connection so the output is different
         $hasTestingConnection = (config('database.connections.testing') !== null);
 $hasTestingConnection = false; // @todo review if $hasTestingConnection is needed
         $expectedOutput = ($hasTestingConnection ? $expectedOutputWithTestingConn : $expectedOutput);
-        $expectedOutput = $this->resolveExpectedOutput($expectedOutput, $substitutions);
+        $expectedOutput = self::resolveExpectedOutput($expectedOutput, $substitutions);
 
         Settings::resetStaticProps();
-        $this->useConfig($configDTO);
-        $this->expectCommandOutput('adapt:clear', ['--force' => true], $expectedOutput);
+        self::useConfig($configDTO);
+        self::expectCommandOutput('adapt:clear', ['--force' => true], $expectedOutput);
     }
 
 
@@ -344,7 +344,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      * @param string[] $substitutions  File substitutions to replace after resolving their paths and size.
      * @return string
      */
-    private function resolveExpectedOutput(string $expectedOutput, array $substitutions): string
+    private static function resolveExpectedOutput(string $expectedOutput, array $substitutions): string
     {
         $replacements = [
             '[adapt-test-storage]' => config(Settings::LARAVEL_CONFIG_NAME . '.storage_dir'),
@@ -362,22 +362,22 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
     }
 
     /**
-     * Run the given commandm and check the output.
+     * Run the given command and check the output.
      *
      * @param string  $command        The command to run.
      * @param mixed[] $args           The arguments to pass to the command.
      * @param string  $expectedOutput The output to expect.
      * @return void
      */
-    private function expectCommandOutput(string $command, array $args, string $expectedOutput)
+    private static function expectCommandOutput(string $command, array $args, string $expectedOutput)
     {
 //        Laravel >= 5.4 lets you pass BufferedOutput to collect the output
 //        $outputBuffer = new BufferedOutput();
 //        Artisan::call($command, $args, $outputBuffer);
-//        $this->assertSame($expectedOutput, trim($outputBuffer->fetch()));
+//        self::assertSame($expectedOutput, trim($outputBuffer->fetch()));
 
         // this is compatible with Laravel < 5.4
         Artisan::call($command, $args);
-        $this->assertSame($expectedOutput, trim(Artisan::output()));
+        self::assertSame($expectedOutput, trim(Artisan::output()));
     }
 }

@@ -28,15 +28,15 @@ class GeneralTest extends LaravelTestCase
      * @return void
      * @throws Throwable Any exception that's not an AdaptBuildException.
      */
-    public function test_database_builder_only_runs_once()
+    public static function test_database_builder_only_runs_once()
     {
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
         try {
-            $this->newDatabaseBuilder()->execute()->execute();
+            self::newDatabaseBuilder()->execute()->execute();
         } catch (Throwable $e) {
             if ($e instanceof AdaptBuildException) {
-                $this->assertTrue(true);
+                self::assertTrue(true);
             } else {
                 throw $e;
             }
@@ -49,16 +49,16 @@ class GeneralTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_database_builder_creates_sqlite_database()
+    public static function test_database_builder_creates_sqlite_database()
     {
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
-        $this->newDatabaseBuilder()->execute();
+        self::newDatabaseBuilder()->execute();
 
         $dbPath = config('database.connections.sqlite.database');
-        $this->assertFileExists($dbPath);
-        $this->assertSame(
-            "$this->wsAdaptStorageDir/databases/test-database.2881d7-0161442c4a3a.sqlite",
+        self::assertFileExists($dbPath);
+        self::assertSame(
+            self::$wsAdaptStorageDir . "/databases/test-database.2881d7-0161442c4a3a.sqlite",
             $dbPath
         );
     }
@@ -69,20 +69,20 @@ class GeneralTest extends LaravelTestCase
      * @test
      * @return void
      */
-    public function test_the_default_database_is_set()
+    public static function test_the_default_database_is_set()
     {
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
         // no change
-        $this->assertSame('mysql', config('database.default'));
-        $this->newDatabaseBuilder()->execute();
-        $this->assertSame('mysql', config('database.default'));
+        self::assertSame('mysql', config('database.default'));
+        self::newDatabaseBuilder()->execute();
+        self::assertSame('mysql', config('database.default'));
 
-        $this->loadConfigs($this->wsConfigDir);
+        self::loadConfigs(self::$wsConfigDir);
 
         // changed
-        $this->assertSame('mysql', config('database.default'));
-        $this->newDatabaseBuilder()->execute()->makeDefault();
-        $this->assertSame('sqlite', config('database.default'));
+        self::assertSame('mysql', config('database.default'));
+        self::newDatabaseBuilder()->execute()->makeDefault();
+        self::assertSame('sqlite', config('database.default'));
     }
 }

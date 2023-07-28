@@ -21,22 +21,6 @@ use PDOException;
 class LaravelSupport
 {
     /**
-     * Test to see if this code is running within an orchestra/testbench TestCase.
-     *
-     * @return boolean
-     */
-    public static function isRunningTestBench(): bool
-    {
-        $basePath = base_path();
-        $realpath = (string) realpath('.');
-        if (mb_strpos($basePath, $realpath) === 0) {
-            $rest = mb_substr($basePath, mb_strlen($realpath));
-            return (mb_substr($rest, 0, mb_strlen('/vendor/orchestra/')) == '/vendor/orchestra/');
-        }
-        return false;
-    }
-
-    /**
      * Re-load Laravel's entire config using the .env.testing file.
      *
      * @return void
@@ -80,17 +64,25 @@ class LaravelSupport
         }
     }
 
+
+
     /**
      * Generate a base-path based on the project-root dir (taking into account TestBench is being used).
      *
-     * @param string $path The path to use.
+     * @param string  $path     The path to use.
+     * @param boolean $absolute Whether to return the absolute path (or the relative one).
      * @return string
      */
-    public static function basePath($path = ''): string
+    public static function basePath($path = '', $absolute = true): string
     {
-        return self::isRunningTestBench()
-            ? base_path("../../../../$path")
-            : base_path($path);
+        if (strncmp($path, DIRECTORY_SEPARATOR, strlen(DIRECTORY_SEPARATOR)) === 0) {
+            return $path;
+        }
+
+        $adjustedPath = self::adjustPathWhenUsingTestbench($path, base_path(), '');
+        return $absolute
+            ? base_path($adjustedPath)
+            : $adjustedPath;
     }
 
     /**
@@ -101,9 +93,12 @@ class LaravelSupport
      */
     public static function databasePath($path = ''): string
     {
-        return self::isRunningTestBench()
-            ? database_path("../../../../$path")
-            : database_path($path);
+        if (strncmp($path, DIRECTORY_SEPARATOR, strlen(DIRECTORY_SEPARATOR)) === 0) {
+            return $path;
+        }
+
+        $adjustedPath = self::adjustPathWhenUsingTestbench($path, database_path(), 'database' . DIRECTORY_SEPARATOR);
+        return database_path($adjustedPath);
     }
 
     /**
@@ -114,10 +109,51 @@ class LaravelSupport
      */
     public static function configPath($path = ''): string
     {
-        return self::isRunningTestBench()
-            ? config_path("../../../../$path")
-            : config_path($path);
+        if (strncmp($path, DIRECTORY_SEPARATOR, strlen(DIRECTORY_SEPARATOR)) === 0) {
+            return $path;
+        }
+
+        $adjustedPath = self::adjustPathWhenUsingTestbench($path, config_path(), 'config' . DIRECTORY_SEPARATOR);
+        return config_path($adjustedPath);
     }
+
+    /**
+     * Adjust a path (taking into account whether TestBench is being used or not).
+     *
+     * @param string $path       The path to adjust.
+     * @param string $laravelDir The Laravel directory to adjust from.
+     * @param string $extra      An extra path to add to the start of the path.
+     * @return string
+     */
+    private static function adjustPathWhenUsingTestbench(string $path, string $laravelDir, string $extra): string
+    {
+        $overrideProjectRootDir = Settings::getProjectRootDir();
+        if (is_null($overrideProjectRootDir)) {
+            return $path;
+        }
+
+        // count the number of directory parts to go back
+        $rest = mb_substr($laravelDir, mb_strlen($overrideProjectRootDir));
+        $parts = explode(DIRECTORY_SEPARATOR, $rest);
+        $count = 0;
+        foreach ($parts as $part) {
+            if ($part == '') {
+                continue;
+            }
+            if ($part == '.') {
+                continue;
+            }
+            if ($part == '..') {
+                $count = max(0, $count - 1);
+                continue;
+            }
+            $count++;
+        }
+
+        return str_repeat('..' . DIRECTORY_SEPARATOR, $count) . $extra . $path;
+    }
+
+
 
     /**
      * Make sure the code is running from the Laravel base dir.

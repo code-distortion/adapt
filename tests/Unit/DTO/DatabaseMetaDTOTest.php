@@ -19,7 +19,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function databaseMetaDtoDataProvider(): array
+    public static function databaseMetaDtoDataProvider(): array
     {
         $sizes = [
             [0, '0B'],
@@ -66,7 +66,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      * @param string   $expectedReadable The expected readable() output.
      * @return void
      */
-    public function database_meta_dto_can_set_and_get_values(
+    public static function database_meta_dto_can_set_and_get_values(
         string $driver,
         string $connection,
         string $name,
@@ -95,14 +95,14 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
         ))
             ->setDeleteCallback($deleteCallback);
 
-        $this->assertSame($driver, $databaseMetaDTO->driver);
-        $this->assertSame($connection, $databaseMetaDTO->connection);
-        $this->assertSame($name, $databaseMetaDTO->name);
-        $this->assertSame($accessDT, $databaseMetaDTO->accessDT);
-        $this->assertSame($isValid, $databaseMetaDTO->isValid);
-        $this->assertSame($size, $databaseMetaDTO->getSize());
-        $this->assertSame($expectedReadable, $databaseMetaDTO->readable());
+        self::assertSame($driver, $databaseMetaDTO->driver);
+        self::assertSame($connection, $databaseMetaDTO->connection);
+        self::assertSame($name, $databaseMetaDTO->name);
+        self::assertSame($accessDT, $databaseMetaDTO->accessDT);
+        self::assertSame($isValid, $databaseMetaDTO->isValid);
+        self::assertSame($size, $databaseMetaDTO->getSize());
+        self::assertSame($expectedReadable, $databaseMetaDTO->readable());
         $databaseMetaDTO->delete();
-        $this->assertTrue($calledDeleteCallback);
+        self::assertTrue($calledDeleteCallback);
     }
 }

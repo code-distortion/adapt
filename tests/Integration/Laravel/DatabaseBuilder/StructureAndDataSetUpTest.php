@@ -35,14 +35,14 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      * @return void
      * @throws \Throwable
      */
-//    public function create_sqlite_import_file(): void
+//    public static function create_sqlite_import_file(): void
 //    {
-//        $configDTO = $this->newConfigDTO('sqlite')->migrations(false)->seeders([]);
+//        $configDTO = self::newConfigDTO('sqlite')->migrations(false)->seeders([]);
 //        $connection = $configDTO->connection;
 //
 //        $filename = 'initial-import-1.sqlite';
 //
-//        $database = "$this->wsInitialImportsDir/$filename";
+//        $database = self::$wsInitialImportsDir . "/$filename";
 //        $database = str_replace('/current/', '/scenario1/', $database);
 //
 //        if (file_exists($database)) {
@@ -67,7 +67,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      *
      * @return mixed[][]
      */
-    public function structureAndDataSetupDataProvider(): array
+    public static function structureAndDataSetupDataProvider(): array
     {
         $evInitialImportOne = new ExpectedValuesDTO('initial_import', ['name'], [['One']]);
         $evInitialImportOneThree = new ExpectedValuesDTO('initial_import', ['name'], [['One'], ['Three']]);
@@ -87,89 +87,89 @@ class StructureAndDataSetUpTest extends LaravelTestCase
         return [
 
             'sqlite - scenario-test-dbs off' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->scenarios(false),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/database.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/database.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
 
             'sqlite - No initial-imports 1 - no migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([]),
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-deff164aca4d.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-deff164aca4d.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
             'sqlite - No initial-imports 2 - no migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports(['sqlite' => '']),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-63cd4b8cddf6.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-63cd4b8cddf6.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
             'sqlite - No initial-imports 3 - no migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports(['sqlite' => []]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-16831144fbd1.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-16831144fbd1.sqlite")
                     ->expectedTables(['____adapt____']),
             ],
 
             'sqlite - initial-imports (string) - no migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => "$this->wsInitialImportsDir/initial-import-1.sqlite",
+                        'sqlite' => self::$wsInitialImportsDir . "/initial-import-1.sqlite",
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-6f53bc40d6ed.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-6f53bc40d6ed.sqlite")
                     ->expectedTables(['initial_import', '____adapt____'])
                     ->addExpectedValues($evInitialImportOne),
             ],
             'sqlite - initial-imports (array) - no migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
+                        'sqlite' => [self::$wsInitialImportsDir . "/initial-import-1.sqlite"],
                     ]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-2bed70196779.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-2bed70196779.sqlite")
                     ->expectedTables(['initial_import', '____adapt____'])
                     ->addExpectedValues($evInitialImportOne),
             ],
 
             'sqlite - initial-imports - migrations - no seeders' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
+                        'sqlite' => [self::$wsInitialImportsDir . "/initial-import-1.sqlite"],
                     ])
-                    ->migrations($this->wsMigrationsDir),
+                    ->migrations(self::$wsMigrationsDir),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-3a88252c3e8c.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-3a88252c3e8c.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evInitialImportOne)
                     ->addExpectedValues($evNoUsers)
                     ->addExpectedValues($evNoLogs),
             ],
             'sqlite - initial-imports - no migrations - seeders (one)' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
+                        'sqlite' => [self::$wsInitialImportsDir . "/initial-import-1.sqlite"],
                     ])
                     ->seeders([InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-3f664106200a.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-3f664106200a.sqlite")
                     ->expectedTables(['initial_import', '____adapt____'])
                     ->addExpectedValues($evInitialImportOneThree)
             ],
 
             'sqlite - initial-imports - migrations - seeders (one)' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
+                        'sqlite' => [self::$wsInitialImportsDir . "/initial-import-1.sqlite"],
                     ])
-                    ->migrations($this->wsMigrationsDir)
+                    ->migrations(self::$wsMigrationsDir)
                     ->seeders([InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-50aa324c1e47.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-50aa324c1e47.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evInitialImportOneThree)
                     ->addExpectedValues($evNoUsers)
@@ -177,14 +177,14 @@ class StructureAndDataSetUpTest extends LaravelTestCase
             ],
 
             'sqlite - initial-imports - migrations - seeders (several)' => [
-                'config' => $this->newConfigDTO('sqlite')->migrations(false)->seeders([])
+                'config' => self::newConfigDTO('sqlite')->migrations(false)->seeders([])
                     ->initialImports([
-                        'sqlite' => ["$this->wsInitialImportsDir/initial-import-1.sqlite"],
+                        'sqlite' => [self::$wsInitialImportsDir . "/initial-import-1.sqlite"],
                     ])
-                    ->migrations($this->wsMigrationsDir)
+                    ->migrations(self::$wsMigrationsDir)
                     ->seeders([DatabaseSeeder::class, InitialImportSeeder::class]),
                 'expectedOutcome' => (new ExpectedOutcomeDTO())
-                    ->databaseName("$this->wsAdaptStorageDir/databases/test-database.2881d7-5232b96a63cc.sqlite")
+                    ->databaseName(self::$wsAdaptStorageDir . "/databases/test-database.2881d7-5232b96a63cc.sqlite")
                     ->expectedTables($allTables)
                     ->addExpectedValues($evInitialImportOneThree)
                     ->addExpectedValues($evUsers)
@@ -202,25 +202,25 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      * @param ExpectedOutcomeDTO $expectedOutcome The outcome to expect.
      * @return void
      */
-    public function test_structure_and_data_setup(ConfigDTO $configDTO, ExpectedOutcomeDTO $expectedOutcome)
+    public static function test_structure_and_data_setup(ConfigDTO $configDTO, ExpectedOutcomeDTO $expectedOutcome)
     {
-        $this->prepareWorkspace("$this->workspaceBaseDir/scenario1", $this->wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
         // build the database
-        $this->newDatabaseBuilder($configDTO)->execute();
+        self::newDatabaseBuilder($configDTO)->execute();
 
         // check database name
-        $this->assertSame(
+        self::assertSame(
             $expectedOutcome->databaseName,
             config("database.connections.$configDTO->connection.database")
         );
 
         // check which tables exist
-        $this->assertTableList($configDTO->connection, $expectedOutcome->expectedTables);
+        self::assertTableList($configDTO->connection, $expectedOutcome->expectedTables);
 
         // check values in certain tables
         foreach ($expectedOutcome->expectedValues as $expectedValueSet) {
-            $this->assertTableValues($configDTO->connection, $expectedValueSet);
+            self::assertTableValues($configDTO->connection, $expectedValueSet);
         }
     }
 }

@@ -20,7 +20,7 @@ class CacheListDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function cacheListDtoDataProvider(): array
+    public static function cacheListDtoDataProvider(): array
     {
         return [
             'projectName' => [
@@ -36,7 +36,7 @@ class CacheListDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function cache_list_dto_can_set_and_get_values()
+    public static function cache_list_dto_can_set_and_get_values()
     {
         $snapshotMetaInfo1 = new SnapshotMetaInfo('', '', new DateTime(), true, function () { return true; }, 14400);
         $snapshotMetaInfo2 = new SnapshotMetaInfo('', '', new DateTime(), true, function () { return true; }, 14400);
@@ -64,23 +64,23 @@ class CacheListDTOTest extends PHPUnitTestCase
 
 
         $cacheListDTO = new CacheListDTO();
-        $this->assertFalse($cacheListDTO->containsAnyCache());
+        self::assertFalse($cacheListDTO->containsAnyCache());
 
         $cacheListDTO = (new CacheListDTO())->snapshots($snapshots);
-        $this->assertTrue($cacheListDTO->containsAnyCache());
+        self::assertTrue($cacheListDTO->containsAnyCache());
 
         $cacheListDTO = (new CacheListDTO())->databases('mysql', $databases1);
-        $this->assertTrue($cacheListDTO->containsAnyCache());
+        self::assertTrue($cacheListDTO->containsAnyCache());
 
         $cacheListDTO = (new CacheListDTO())->databases('mysql', []);
-        $this->assertFalse($cacheListDTO->containsAnyCache());
+        self::assertFalse($cacheListDTO->containsAnyCache());
 
         $cacheListDTO = (new CacheListDTO())
             ->snapshots($snapshots)
             ->databases('mysql', $databases1)
             ->databases('sqlite', $databases2);
-        $this->assertSame($snapshots, $cacheListDTO->snapshots);
-        $this->assertSame(
+        self::assertSame($snapshots, $cacheListDTO->snapshots);
+        self::assertSame(
             ['mysql' => $databases1, 'sqlite' => $databases2],
             $cacheListDTO->databases
         );

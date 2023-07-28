@@ -1119,7 +1119,7 @@ class DatabaseBuilder
      */
     private function buildSnapshotMetaInfo(string $path)
     {
-        $temp = explode('/', $path);
+        $temp = explode(DIRECTORY_SEPARATOR, $path);
         $filename = (string) array_pop($temp);
         $prefix = $this->configDTO->snapshotPrefix;
 

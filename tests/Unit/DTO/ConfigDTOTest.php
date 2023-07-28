@@ -21,7 +21,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function configDtoDataProvider(): array
+    public static function configDtoDataProvider(): array
     {
         return [
             'dtoVersion' => [
@@ -468,7 +468,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null)
+    public static function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null)
     {
         $configDTO = new ConfigDTO();
 
@@ -479,7 +479,7 @@ class ConfigDTOTest extends PHPUnitTestCase
 
         $outcome = $outcome ?? $params;
         foreach ($outcome as $name => $value) {
-            $this->assertSame($value, $configDTO->$name);
+            self::assertSame($value, $configDTO->$name);
         }
     }
 
@@ -491,23 +491,23 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_pick_seeders_to_include_getter()
+    public static function test_pick_seeders_to_include_getter()
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
         $configDTO = (new ConfigDTO())->seeders($seeders);
         $configDTO->driver = 'sqlite';
 
         $configDTO->initialImports(['sqlite' => ['some-file.sql']])->migrations(true);
-        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
+        self::assertSame($seeders, $configDTO->pickSeedersToInclude());
 
         $configDTO->initialImports(['sqlite' => ['some-file.sql']])->migrations(false);
-        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
+        self::assertSame($seeders, $configDTO->pickSeedersToInclude());
 
         $configDTO->initialImports([])->migrations(true);
-        $this->assertSame($seeders, $configDTO->pickSeedersToInclude());
+        self::assertSame($seeders, $configDTO->pickSeedersToInclude());
 
         $configDTO->initialImports([])->migrations(false);
-        $this->assertSame([], $configDTO->pickSeedersToInclude());
+        self::assertSame([], $configDTO->pickSeedersToInclude());
     }
 
 
@@ -517,7 +517,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function pickInitialImportsDataProvider(): array
+    public static function pickInitialImportsDataProvider(): array
     {
         return [
             [
@@ -574,9 +574,9 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param mixed                       $expected       The expected output.
      * @return void
      */
-    public function test_pick_initial_imports_getter(array $initialImports, string $driver, $expected)
+    public static function test_pick_initial_imports_getter(array $initialImports, string $driver, $expected)
     {
-        $this->assertSame(
+        self::assertSame(
             $expected,
             (new ConfigDTO())->initialImports($initialImports)->driver($driver)->pickInitialImports()
         );
@@ -590,10 +590,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_should_initialise()
+    public static function test_should_initialise()
     {
-        $this->assertTrue((new ConfigDTO())->connectionExists(true)->shouldInitialise());
-        $this->assertFalse((new ConfigDTO())->connectionExists(false)->shouldInitialise());
+        self::assertTrue((new ConfigDTO())->connectionExists(true)->shouldInitialise());
+        self::assertFalse((new ConfigDTO())->connectionExists(false)->shouldInitialise());
     }
 
 
@@ -603,7 +603,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function sessionDriversDataProvider(): array
+    public static function sessionDriversDataProvider(): array
     {
         return [
             [
@@ -656,7 +656,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param string|null $expectException           The expected exception.
      * @return void
      */
-    public function test_check_that_session_drivers_match(
+    public static function test_check_that_session_drivers_match(
         bool $isRemoteBuild,
         bool $isBrowserTest,
         string $sessionDriver,
@@ -673,7 +673,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 ->ensureThatSessionDriversMatch();
         };
 
-        $this->assertException($expectException, $callback);
+        self::assertException($expectException, $callback);
     }
 
 
@@ -683,7 +683,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function databaseCanUseTransactionsDataProvider(): array
+    public static function databaseCanUseTransactionsDataProvider(): array
     {
         return [
             [
@@ -783,7 +783,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedCanUseTransactions The expected canUseTransactions() result.
      * @return void
      */
-    public function test_can_use_transactions(
+    public static function test_can_use_transactions(
         bool $reuseTransaction,
         bool $connectionExists,
         bool $isRemoteBuild,
@@ -802,7 +802,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->dbSupportsTransactions($dbSupportsTransactions)
             ->dbSupportsJournaling(true);
 
-        $this->assertSame($expectedCanUseTransactions, $configDTO->canUseTransactions());
+        self::assertSame($expectedCanUseTransactions, $configDTO->canUseTransactions());
     }
 
 
@@ -812,7 +812,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function databaseCanUseJournalingDataProvider(): array
+    public static function databaseCanUseJournalingDataProvider(): array
     {
         return [
             [
@@ -912,7 +912,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedCanUseJournaling The expected canUseJournaling() result.
      * @return void
      */
-    public function test_can_use_journaling(
+    public static function test_can_use_journaling(
         bool $reuseJournal,
         bool $connectionExists,
         bool $isRemoteBuild,
@@ -931,7 +931,7 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->dbSupportsTransactions(true)
             ->dbSupportsJournaling($dbSupportsJournaling);
 
-        $this->assertSame($expectedCanUseJournaling, $configDTO->canUseJournaling());
+        self::assertSame($expectedCanUseJournaling, $configDTO->canUseJournaling());
     }
 
 
@@ -941,7 +941,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function databaseShouldUseTransactionsOrJournalingDataProvider(): array
+    public static function databaseShouldUseTransactionsOrJournalingDataProvider(): array
     {
         return [
             [
@@ -987,7 +987,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedReusingDB             The expected reusingDB() result.
      * @return void
      */
-    public function test_should_use_transactions_or_journaling(
+    public static function test_should_use_transactions_or_journaling(
         bool $reuseTransaction,
         bool $reuseJournal,
         bool $expectedShouldUseTransactions,
@@ -1005,9 +1005,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->dbSupportsTransactions(true)
             ->dbSupportsJournaling(true);
 
-        $this->assertSame($expectedShouldUseTransactions, $configDTO->shouldUseTransaction());
-        $this->assertSame($expectedShouldUseJournaling, $configDTO->shouldUseJournal());
-        $this->assertSame($expectedReusingDB, $configDTO->reusingDB());
+        self::assertSame($expectedShouldUseTransactions, $configDTO->shouldUseTransaction());
+        self::assertSame($expectedShouldUseJournaling, $configDTO->shouldUseJournal());
+        self::assertSame($expectedReusingDB, $configDTO->reusingDB());
     }
 
 
@@ -1017,7 +1017,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function databaseShouldVerifyDatabaseDataProvider(): array
+    public static function databaseShouldVerifyDatabaseDataProvider(): array
     {
         return [
             [
@@ -1063,7 +1063,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedShouldVerifyDatabase The expected shouldVerifyDatabase() result.
      * @return void
      */
-    public function test_should_verify_database(
+    public static function test_should_verify_database(
         bool $verifyDatabase,
         bool $dbSupportsVerification,
         bool $shouldVerifyStructure,
@@ -1075,9 +1075,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->verifyDatabase($verifyDatabase)
             ->dbSupportsVerification($dbSupportsVerification);
 
-        $this->assertSame($shouldVerifyStructure, $configDTO->shouldVerifyStructure());
-        $this->assertSame($shouldVerifyData, $configDTO->shouldVerifyData());
-        $this->assertSame($expectedShouldVerifyDatabase, $configDTO->shouldVerifyDatabase());
+        self::assertSame($shouldVerifyStructure, $configDTO->shouldVerifyStructure());
+        self::assertSame($shouldVerifyData, $configDTO->shouldVerifyData());
+        self::assertSame($expectedShouldVerifyDatabase, $configDTO->shouldVerifyDatabase());
     }
 
 
@@ -1088,18 +1088,18 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_using_scenarios()
+    public static function test_using_scenarios()
     {
-        $this->assertTrue(
+        self::assertTrue(
             (new ConfigDTO())->scenarios(true)->dbSupportsScenarios(true)->usingScenarios()
         );
-        $this->assertFalse(
+        self::assertFalse(
             (new ConfigDTO())->scenarios(true)->dbSupportsScenarios(false)->usingScenarios()
         );
-        $this->assertFalse(
+        self::assertFalse(
             (new ConfigDTO())->scenarios(false)->dbSupportsScenarios(true)->usingScenarios()
         );
-        $this->assertFalse(
+        self::assertFalse(
             (new ConfigDTO())->scenarios(false)->dbSupportsScenarios(false)->usingScenarios()
         );
     }
@@ -1112,11 +1112,11 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_should_build_remotely()
+    public static function test_should_build_remotely()
     {
-        $this->assertTrue((new ConfigDTO())->remoteBuildUrl('https://some-host/')->shouldBuildRemotely());
-        $this->assertFalse((new ConfigDTO())->remoteBuildUrl('')->shouldBuildRemotely());
-        $this->assertFalse((new ConfigDTO())->remoteBuildUrl(null)->shouldBuildRemotely());
+        self::assertTrue((new ConfigDTO())->remoteBuildUrl('https://some-host/')->shouldBuildRemotely());
+        self::assertFalse((new ConfigDTO())->remoteBuildUrl('')->shouldBuildRemotely());
+        self::assertFalse((new ConfigDTO())->remoteBuildUrl(null)->shouldBuildRemotely());
     }
 
 
@@ -1127,39 +1127,39 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_seeding_is_allowed()
+    public static function test_seeding_is_allowed()
     {
-        $this->assertTrue(
+        self::assertTrue(
             (new ConfigDTO())
                 ->initialImports([])
                 ->migrations(true)
                 ->seedingIsAllowed()
         );
-        $this->assertTrue(
+        self::assertTrue(
             (new ConfigDTO())
                 ->initialImports([])
                 ->migrations('/some/path')
                 ->seedingIsAllowed()
         );
-        $this->assertFalse(
+        self::assertFalse(
             (new ConfigDTO())
                 ->initialImports([])
                 ->migrations(false)
                 ->seedingIsAllowed()
         );
-        $this->assertTrue(
+        self::assertTrue(
             (new ConfigDTO())
                 ->initialImports(['sqlite' => ['some-file.sql']])
                 ->migrations(true)
                 ->seedingIsAllowed()
         );
-        $this->assertTrue(
+        self::assertTrue(
             (new ConfigDTO())
                 ->initialImports(['sqlite' => ['some-file.sql']])
                 ->migrations('/some/path')
                 ->seedingIsAllowed()
         );
-        $this->assertFalse(
+        self::assertFalse(
             (new ConfigDTO())
                 ->initialImports(['sqlite' => ['some-file.sql']])
                 ->migrations(false)
@@ -1175,76 +1175,76 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function test_snapshots_are_enabled()
+    public static function test_snapshots_are_enabled()
     {
-        $this->assertFalse(
-            $this->newConfigReusableDB()
+        self::assertFalse(
+            self::newConfigReusableDB()
                 ->snapshots(false)
                 ->snapshotsAreEnabled()
         );
-        $this->assertFalse(
-            $this->newConfigReusableDB()
+        self::assertFalse(
+            self::newConfigReusableDB()
                 ->snapshots('afterMigrations')
                 ->snapshotsAreEnabled()
         );
-        $this->assertFalse(
-            $this->newConfigReusableDB()
+        self::assertFalse(
+            self::newConfigReusableDB()
                 ->snapshots('afterSeeders')
                 ->snapshotsAreEnabled()
         );
-        $this->assertFalse(
-            $this->newConfigReusableDB()
+        self::assertFalse(
+            self::newConfigReusableDB()
                 ->snapshots('both')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigReusableDB()
+        self::assertTrue(
+            self::newConfigReusableDB()
                 ->snapshots('!afterMigrations')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigReusableDB()
+        self::assertTrue(
+            self::newConfigReusableDB()
                 ->snapshots('!afterSeeders')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigReusableDB()
+        self::assertTrue(
+            self::newConfigReusableDB()
                 ->snapshots('!both')
                 ->snapshotsAreEnabled()
         );
 
-        $this->assertFalse(
-            $this->newConfigNotReusableDB()
+        self::assertFalse(
+            self::newConfigNotReusableDB()
                 ->snapshots(false)
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('afterMigrations')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('afterSeeders')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('both')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('!afterMigrations')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('!afterSeeders')
                 ->snapshotsAreEnabled()
         );
-        $this->assertTrue(
-            $this->newConfigNotReusableDB()
+        self::assertTrue(
+            self::newConfigNotReusableDB()
                 ->snapshots('!both')
                 ->snapshotsAreEnabled()
         );
@@ -1257,7 +1257,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function shouldTakeSnapshotsDataProvider(): array
+    public static function shouldTakeSnapshotsDataProvider(): array
     {
         $possibleReusableDB = [true, false];
         $possibleInitialImports = [['sqlite' => ['some-file.sql']], []];
@@ -1362,7 +1362,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param string|null         $snapshotTypeExpected    The type of snapshots to take.
      * @return void
      */
-    public function test_should_take_snapshot_after_migrations_and_seeders(
+    public static function test_should_take_snapshot_after_migrations_and_seeders(
         bool $reusableDB,
         array $initialImports,
         $migrations,
@@ -1373,7 +1373,7 @@ class ConfigDTOTest extends PHPUnitTestCase
         string $snapshotTypeExpected = null
     ) {
 
-        $configDTO = $reusableDB ? $this->newConfigReusableDB() : $this->newConfigNotReusableDB();
+        $configDTO = $reusableDB ? self::newConfigReusableDB() : self::newConfigNotReusableDB();
         $configDTO->driver = 'sqlite';
 
         $configDTO
@@ -1382,9 +1382,9 @@ class ConfigDTOTest extends PHPUnitTestCase
             ->seeders($seeders)
             ->snapshots($snapshots);
 
-        $this->assertSame($afterMigrationsExpected, $configDTO->shouldTakeSnapshotAfterMigrations());
-        $this->assertSame($afterSeedersExpected, $configDTO->shouldTakeSnapshotAfterSeeders());
-        $this->assertSame($snapshotTypeExpected, $configDTO->snapshotType());
+        self::assertSame($afterMigrationsExpected, $configDTO->shouldTakeSnapshotAfterMigrations());
+        self::assertSame($afterSeedersExpected, $configDTO->shouldTakeSnapshotAfterSeeders());
+        self::assertSame($snapshotTypeExpected, $configDTO->snapshotType());
     }
 
 
@@ -1396,7 +1396,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return ConfigDTO
      */
-    private function newConfigReusableDB(): ConfigDTO
+    private static function newConfigReusableDB(): ConfigDTO
     {
         return (new ConfigDTO())
             ->connectionExists(true)
@@ -1415,7 +1415,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return ConfigDTO
      */
-    private function newConfigNotReusableDB(): ConfigDTO
+    private static function newConfigNotReusableDB(): ConfigDTO
     {
         return (new ConfigDTO())
             ->connectionExists(true)

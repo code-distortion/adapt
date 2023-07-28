@@ -19,7 +19,7 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function snapshotMetaInfoDataProvider(): array
+    public static function snapshotMetaInfoDataProvider(): array
     {
         $sizes = [
             [0, '0B'],
@@ -64,7 +64,7 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
      * @param string   $expectedReadable The expected readable() output.
      * @return void
      */
-    public function snapshot_meta_info_can_set_and_get_values(
+    public static function snapshot_meta_info_can_set_and_get_values(
         string $path,
         string $filename,
         DateTime $accessDT,
@@ -84,13 +84,13 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
         $snapshotMetaInfo = (new SnapshotMetaInfo($path, $filename, $accessDT, $isValid, $filesizeCallback, 14400))
             ->setDeleteCallback($deleteCallback);
 
-        $this->assertSame($path, $snapshotMetaInfo->path);
-        $this->assertSame($filename, $snapshotMetaInfo->filename);
-        $this->assertSame($accessDT, $snapshotMetaInfo->accessDT);
-        $this->assertSame($isValid, $snapshotMetaInfo->isValid);
-        $this->assertSame($size, $snapshotMetaInfo->getSize());
-        $this->assertSame($expectedReadable, $snapshotMetaInfo->readable());
+        self::assertSame($path, $snapshotMetaInfo->path);
+        self::assertSame($filename, $snapshotMetaInfo->filename);
+        self::assertSame($accessDT, $snapshotMetaInfo->accessDT);
+        self::assertSame($isValid, $snapshotMetaInfo->isValid);
+        self::assertSame($size, $snapshotMetaInfo->getSize());
+        self::assertSame($expectedReadable, $snapshotMetaInfo->readable());
         $snapshotMetaInfo->delete();
-        $this->assertTrue($calledDeleteCallback);
+        self::assertTrue($calledDeleteCallback);
     }
 }

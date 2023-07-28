@@ -1,6 +1,9 @@
-build
-composer.lock
-vendor
 .phpunit.result.cache
-.idea
+.phpunit.cache/
+.idea/
+build/
+composer.lock
+tests/Unit/ManualTest.php
 todo.txt
+vendor/
+vendor.*/

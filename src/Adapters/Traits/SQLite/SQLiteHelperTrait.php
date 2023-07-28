@@ -40,7 +40,7 @@ trait SQLiteHelperTrait
      */
     protected function pickFilename($path): string
     {
-        $temp = explode('/', $path);
+        $temp = explode(DIRECTORY_SEPARATOR, $path);
         return (string) array_pop($temp);
     }
 }

@@ -13,7 +13,7 @@ use CodeDistortion\Adapt\DTO\VersionsDTO;
 class Settings
 {
     /** @var string The current package version number. */
-    const PACKAGE_VERSION = '0.12.8';
+    const PACKAGE_VERSION = '0.12.9';
 
     /** @var string The name of the Adapt config file. */
     const LARAVEL_CONFIG_NAME = 'code_distortion.adapt';
@@ -90,34 +90,39 @@ class Settings
 
 
 
+    /** @var string|null The project root directory (for use when running Adapt tests). */
+    private static $projectRootDir;
+
     /** @var ResolvedSettingsDTO[] The ResolvedSettingsDTOs from recently built databases. */
-    public static $resolvedSettingsDTOs = [];
+    private static $resolvedSettingsDTOs = [];
 
     /** @var VersionsDTO[] The VersionsDTO from recently built databases. */
-    public static $resolvedVersionsDTOs = [];
+    private static $resolvedVersionsDTOs = [];
 
     /** @var string[] Connections whose database have been cleaned up already. */
-    public static $purgedConnections = [];
+    private static $purgedConnections = [];
 
     /** @var boolean Whether the snapshots have been cleaned up yet or not. */
-    public static $hasPurgedSnapshots = false;
+    private static $hasPurgedSnapshots = false;
 
     /** @var boolean Whether orphaned sharable config files have been removed yet or not. */
-    public static $removeOrphanedConfigs = false;
+    private static $removeOrphanedConfigs = false;
 
 
 
     /**
      * Reset anything that should be reset between internal tests of the Adapt package.
      *
+     * @internal
+     *
      * @return void
      */
     public static function resetStaticProps()
     {
-        Settings::$resolvedSettingsDTOs = [];
-        Settings::$resolvedVersionsDTOs = [];
-        Settings::$hasPurgedSnapshots = false;
-        Settings::$purgedConnections = [];
+        self::$resolvedSettingsDTOs = [];
+        self::$resolvedVersionsDTOs = [];
+        self::$hasPurgedSnapshots = false;
+        self::$purgedConnections = [];
         Hasher::resetStaticProps();
         LaravelMySQLSnapshot::resetStaticProps();
         LaravelPostgreSQLSnapshot::resetStaticProps();
@@ -126,18 +131,49 @@ class Settings
 
 
     /**
+     * Retrieve the project root directory (for use when running Adapt tests).
+     *
+     * @internal
+     *
+     * @return string|null
+     */
+    public static function getProjectRootDir()
+    {
+        return self::$projectRootDir;
+    }
+
+    /**
+     * Retrieve the project root directory (for use when running Adapt tests).
+     *
+     * @internal
+     *
+     * @param string $dir The project root directory.
+     * @return void
+     */
+    public static function setProjectRootDir($dir)
+    {
+        self::$projectRootDir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    }
+
+
+
+    /**
      * Get a recently resolved ResolvedSettingsDTO.
+     *
+     * @internal
      *
      * @param string|null $currentScenarioChecksum The scenario-checksum to return for.
      * @return ResolvedSettingsDTO|null
      */
     public static function getResolvedSettingsDTO($currentScenarioChecksum)
     {
-        return Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] ?? null;
+        return self::$resolvedSettingsDTOs[$currentScenarioChecksum] ?? null;
     }
 
     /**
      * Store recently resolved ResolvedSettingsDTO for reference later.
+     *
+     * @internal
      *
      * @param string|null         $currentScenarioChecksum The scenario-checksum to store this against.
      * @param ResolvedSettingsDTO $resolvedSettingsDTO     A recently resolved ResolvedSettingsDTO.
@@ -147,7 +183,7 @@ class Settings
         $currentScenarioChecksum,
         $resolvedSettingsDTO
     ) {
-        Settings::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
+        self::$resolvedSettingsDTOs[$currentScenarioChecksum] = $resolvedSettingsDTO;
     }
 
 
@@ -155,17 +191,21 @@ class Settings
     /**
      * Get a recently resolved VersionsDTO.
      *
+     * @internal
+     *
      * @param string      $connection The connection being used.
      * @param string|null $driver     The driver being used.
      * @return ResolvedSettingsDTO|null
      */
     public static function getResolvedVersionsDTO($connection, $driver)
     {
-        return Settings::$resolvedVersionsDTOs[$connection][(string) $driver] ?? null;
+        return self::$resolvedVersionsDTOs[$connection][(string) $driver] ?? null;
     }
 
     /**
      * Store recently resolved VersionsDTO for reference later.
+     *
+     * @internal
      *
      * @param string      $connection  The connection being used.
      * @param string|null $driver      The driver being used.
@@ -177,13 +217,15 @@ class Settings
         $driver,
         $versionsDTO
     ) {
-        Settings::$resolvedVersionsDTOs[$connection][(string) $driver] = $versionsDTO;
+        self::$resolvedVersionsDTOs[$connection][(string) $driver] = $versionsDTO;
     }
 
 
 
     /**
      * Check if a connection's databases have been purged.
+     *
+     * @internal
      *
      * @param string $connection The connection to check.
      * @return boolean
@@ -196,6 +238,8 @@ class Settings
     /**
      * Record that a connection's databases have been purged.
      *
+     * @internal
+     *
      * @param string $connection The connection to record.
      * @return void
      */
@@ -207,6 +251,8 @@ class Settings
     /**
      * Get the has-purged-snapshots value.
      *
+     * @internal
+     *
      * @return boolean
      */
     public static function getHasPurgedSnapshots(): bool
@@ -216,6 +262,8 @@ class Settings
 
     /**
      * Set the has-purged-snapshots value.
+     *
+     * @internal
      *
      * @return void
      */
@@ -227,6 +275,8 @@ class Settings
     /**
      * Get the has-removed-orphaned-configs value.
      *
+     * @internal
+     *
      * @return boolean
      */
     public static function getHasRemovedOrphanedConfigs(): bool
@@ -236,6 +286,8 @@ class Settings
 
     /**
      * Set the has-removed-orphaned-configs value.
+     *
+     * @internal
      *
      * @return void
      */
@@ -251,6 +303,8 @@ class Settings
     /**
      * Resolve the base storage directory.
      *
+     * @internal
+     *
      * @param string      $baseDir  The base directory for all stored files.
      * @param string|null $filename An optional filename to add.
      * @return string
@@ -262,6 +316,8 @@ class Settings
 
     /**
      * Resolve the database storage directory.
+     *
+     * @internal
      *
      * @param string      $baseDir  The base directory for all stored files.
      * @param string|null $filename An optional filename to add.
@@ -275,6 +331,8 @@ class Settings
     /**
      * Resolve the snapshot storage directory.
      *
+     * @internal
+     *
      * @param string      $baseDir  The base directory for all stored files.
      * @param string|null $filename An optional filename to add.
      * @return string
@@ -287,6 +345,8 @@ class Settings
     /**
      * Resolve the share-config storage directory.
      *
+     * @internal
+     *
      * @param string      $baseDir  The base directory for all stored files.
      * @param string|null $filename An optional filename to add.
      * @return string
@@ -298,6 +358,8 @@ class Settings
 
     /**
      * Append a filename to a directory.
+     *
+     * @internal
      *
      * @param string      $dir      The directory to use.
      * @param string|null $filename The filename to add (optional).

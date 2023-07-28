@@ -21,7 +21,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
      *
      * @return mixed[][]
      */
-    public function configDtoDataProvider(): array
+    public static function configDtoDataProvider(): array
     {
         return [
             'databaseModifier 1' => [
@@ -332,7 +332,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * @param mixed[] $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public function has_config_dto_trait_can_set_and_get_values(
+    public static function has_config_dto_trait_can_set_and_get_values(
         string $method,
         array $params,
         array $outcome
@@ -347,7 +347,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
 //        }
 
         foreach ($outcome as $field => $value) {
-            $this->assertSame($value, $configDTO->$field);
+            self::assertSame($value, $configDTO->$field);
         }
     }
 
@@ -357,10 +357,10 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * @test
      * @return void
      */
-    public function has_config_dto_trait_can_get_connection()
+    public static function has_config_dto_trait_can_get_connection()
     {
         $configDTO = (new ConfigDTO())->connection('a');
         $object = new HasConfigDTOClass($configDTO);
-        $this->assertSame('a', $object->getConnection());
+        self::assertSame('a', $object->getConnection());
     }
 }
