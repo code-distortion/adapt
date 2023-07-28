@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.9] - 2023-07-29
+
+### Fixed
+- Fixed a bug that caused the storage directory to be resolved incorrectly when using absolute paths
+- Initial import and migration paths can be absolute
+
+
+
 ## [0.12.8] - 2023-07-11
 
 ### Fixed
