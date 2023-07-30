@@ -306,7 +306,7 @@ abstract class BootTestAbstract implements BootTestInterface
         if (!count($defaultBuilders)) {
             // pick the first that's not false
             foreach ($this->databaseBuilders as $databaseBuilder) {
-                if ($databaseBuilder->getIsDefaultConnection() !== false) {
+                if ($databaseBuilder->getIsDefaultConnection() === true) {
                     $defaultBuilders[] = head($this->databaseBuilders);
                 }
             }
@@ -316,6 +316,7 @@ abstract class BootTestAbstract implements BootTestInterface
             throw AdaptConfigException::tooManyDefaultConnections();
         }
 
+        // perform the action of making this default builder's connection the "default" one
         if (count($defaultBuilders) == 1) {
             $defaultBuilders[0]->makeDefault();
         }
