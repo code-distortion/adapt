@@ -2,9 +2,9 @@
 
 namespace CodeDistortion\Adapt\Support;
 
-use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
 use ReflectionObject;
 
 /**
@@ -21,13 +21,13 @@ class PHPSupport
      */
     public static function readPrivateProperty(object $object, string $propertyName)
     {
-        $reflection = new ReflectionObject($object);
+        $reflectionObject = new ReflectionObject($object);
 
-        if (!$reflection->hasProperty($propertyName)) {
+        if (!$reflectionObject->hasProperty($propertyName)) {
             return null;
         }
 
-        $prop = $reflection->getProperty($propertyName);
+        $prop = $reflectionObject->getProperty($propertyName);
         $prop->setAccessible(true);
         return $prop->getValue($object);
     }
@@ -45,13 +45,13 @@ class PHPSupport
             return null;
         }
 
-        $reflection = new ReflectionClass($class);
+        $reflectionClass = new ReflectionClass($class);
 
-        if (!$reflection->hasProperty($propertyName)) {
+        if (!$reflectionClass->hasProperty($propertyName)) {
             return null;
         }
 
-        $prop = $reflection->getProperty($propertyName);
+        $prop = $reflectionClass->getProperty($propertyName);
         $prop->setAccessible(true);
         return $prop->getValue();
     }
@@ -66,13 +66,13 @@ class PHPSupport
      */
     public static function updatePrivateProperty(object $object, string $propertyName, mixed $newValue): void
     {
-        $reflection = new ReflectionObject($object);
+        $reflectionObject = new ReflectionObject($object);
 
-        if (!$reflection->hasProperty($propertyName)) {
+        if (!$reflectionObject->hasProperty($propertyName)) {
             return;
         }
 
-        $prop = $reflection->getProperty($propertyName);
+        $prop = $reflectionObject->getProperty($propertyName);
         $prop->setAccessible(true);
         $prop->setValue($object, $newValue);
     }
@@ -107,13 +107,13 @@ class PHPSupport
      */
     public static function getCallableFirstParameterType(callable $closure): ?string
     {
-        $reflectionClosure = new ReflectionClosure($closure);
+        $reflectionFunction = new ReflectionFunction($closure);
 
-        if ($reflectionClosure->getNumberOfParameters() < 1) {
+        if ($reflectionFunction->getNumberOfParameters() < 1) {
             return null;
         }
 
-        $reflectionParameter = $reflectionClosure->getParameters()[0];
-        return $reflectionParameter->getType();
+        $reflectionParameter = $reflectionFunction->getParameters()[0];
+        return $reflectionParameter->getType()->getName();
     }
 }
