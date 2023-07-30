@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.11] - 2023-07-30
+
+### Fixed
+- Fixed issue when building databases for multiple connections, and none are specified as the default - thanks to [manu144x](https://github.com/manu144x) for [raising the problem](https://github.com/code-distortion/adapt/issues/6)
+- Fixed an issue when using the databaseInit() method when using older versions of Laravel
+
+
+
 ## [0.12.10] - 2023-07-29
 
 ### Fixed
