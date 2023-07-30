@@ -17,17 +17,16 @@
 
 - Adapt is a [swap-in replacement](https://code-distortion.net/docs/adapt/usage/) for Laravel's `RefreshDatabase`, `DatabaseMigrations`, and `DatabaseTransactions` traits.
 - To get the best speeds, your [databases are reused](https://code-distortion.net/docs/adapt/reusing-databases/) (when possible) each time you run your tests.
-- Gives you a new [journaling method](https://code-distortion.net/docs/adapt/reusing-databases/#journaling) for reusing databases. This is an alternative for when [transactions](https://code-distortion.net/docs/adapt/reusing-databases/#transactions) can't be used (like when browser testing).
-- You don't need to create databases beforehand. They're [created automatically](https://code-distortion.net/docs/adapt/building-a-database/).
+- A new (experimental) [journaling method](https://code-distortion.net/docs/adapt/reusing-databases/#journaling) for reusing databases. This is an alternative for when [transactions](https://code-distortion.net/docs/adapt/reusing-databases/#transactions) can't be used (like when browser testing).
+- You don't need to create empty databases beforehand. They're [created automatically](https://code-distortion.net/docs/adapt/building-a-database/).
+- There's no need to drop or rebuild databases yourself. They are [automatically rebuilt](https://code-distortion.net/docs/adapt/building-a-database/#rebuilding-your-database) when you change your migrations, seeders or factories.
 - Lets you [import](https://code-distortion.net/docs/adapt/building-a-database/#imports) custom sql-dump files before running your [migrations](https://code-distortion.net/docs/adapt/building-a-database/#migrations).
-- Your tests can use different [seeders](https://code-distortion.net/docs/adapt/building-a-database/#seeders), without needing to re-run them each time.
-- You can include [Dusk browser tests](https://code-distortion.net/docs/adapt/browser-testing/) in your normal test run - there's no need to run `php artisan dusk`.
+- Your tests can use different [seeders](https://code-distortion.net/docs/adapt/building-a-database/#seeders) for different tests, without them needing to be re-run each time.
+- You can include [Dusk browser tests](https://code-distortion.net/docs/adapt/browser-testing/) in your normal test run - there's no need to run `php artisan dusk` separately.
 - You can [run your tests in parallel](https://code-distortion.net/docs/adapt/parallel-testing/), separate databases are created for each process.
 - You can also run [Dusk browser tests](https://code-distortion.net/docs/adapt/browser-testing/) in parallel.
-- If your project [has more than one database](https://code-distortion.net/docs/adapt/building-a-database/#building-extra-databases), you can build them. Each with their own migrations and seeders.
-- If you have two or more Laravel codebases in your project, you can get one to [build databases](https://code-distortion.net/docs/adapt/remote-databases/#building-databases-remotely) for the others.
-- There's no need to rebuild databases yourself. Changes to migrations, seeders and factories are [automatically detected](https://code-distortion.net/docs/adapt/building-a-database/#rebuilding-your-database).
-- You don't have to update your test `setUp()` methods with custom code.
+- If your project [has more than one database](https://code-distortion.net/docs/adapt/building-a-database/#building-extra-databases), you can build them as well. Each with their own migrations and seeders.
+- If you have two or more Laravel codebases in your project, you can have one [build databases](https://code-distortion.net/docs/adapt/remote-databases/#building-databases-remotely) for the others.
 
 
 
