@@ -13,7 +13,7 @@ on:
 
 jobs:
 
-  test-in-php82:
+  test-in-php83:
 
     name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
     runs-on: ${{ matrix.os }}
@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        php: [8.2]
-        phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        php: [8.3]
+        phpunit: ["^10.1.0"]
+        phpunit-config-file: [phpunit.github-actions.xml.dist]
         testbench: [^8.0, ^7.0]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -40,31 +40,105 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
+
+      - name: Execute tests
+        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
+
+  test-in-php82:
+
+    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        php: [8.2]
+        phpunit: [^9.3]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
+        testbench: [^8.0, ^7.0]
+        dependency-prefer: [prefer-stable, prefer-lowest]
+        include:
+          - os: ubuntu-latest
+            os-title: ubuntu
+          - os: macos-latest
+            os-title: macos
+#          - os: windows-latest
+#            os-title: win
+          - dependency-prefer: prefer-stable
+            dependency-prefer-title: stable
+          - dependency-prefer: prefer-lowest
+            dependency-prefer-title: lowest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
+          coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
+        id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
+
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -79,7 +153,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: [8.1]
         phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^8.0, ^7.0, ^6.22]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -96,31 +170,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -135,7 +218,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: ["8.0"]
         phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^7.0, ^6.0, ^5.0, ^4.0]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -152,31 +235,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -190,7 +282,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.4]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         exclude:
@@ -234,31 +326,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -272,7 +373,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -311,31 +412,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -349,7 +459,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.2]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -386,31 +496,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -424,7 +543,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: [7.1]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.distphpunit.github-actions.xml.dist]
         testbench: [^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -457,31 +576,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
@@ -495,7 +623,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         php: ["7.0"]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
+        phpunit-config-file: [phpunit.github-actions.up-to-9.xml.dist]
         testbench: [3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
         dependency-prefer: [prefer-stable, prefer-lowest]
         include:
@@ -522,31 +650,40 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, pdo_mysql, pdo_sqlite
+          ini-values: error_reporting=E_ALL
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: Find composer's cache directory
         id: composer-cache
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: Cache composer's cache directory
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            composer remove phpstan/phpstan rector/rector squizlabs/php_codesniffer --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: Execute tests
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure

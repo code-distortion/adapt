@@ -11,8 +11,38 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+[*.js]
+indent_size = 2
+
+[*.json]
+indent_size = 2
+
+[*.json.dist]
+indent_size = 2
+
+[*.json5]
+indent_size = 2
+
+[*.json5.dist]
+indent_size = 2
+
 [*.md]
 trim_trailing_whitespace = false
 
+[*.neon]
+indent_size = 2
+
+[*.neon.dist]
+indent_size = 2
+
+[*.xml]
+indent_size = 2
+
+[*.xml.dist]
+indent_size = 2
+
 [*.yml]
+indent_size = 2
+
+[*.yml.dist]
 indent_size = 2
