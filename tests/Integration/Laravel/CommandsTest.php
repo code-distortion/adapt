@@ -3,8 +3,10 @@
 namespace CodeDistortion\Adapt\Tests\Integration\Laravel;
 
 use CodeDistortion\Adapt\DTO\ConfigDTO;
+use CodeDistortion\Adapt\Support\PlatformSupport;
 use CodeDistortion\Adapt\Support\Settings;
 use CodeDistortion\Adapt\Support\StringSupport;
+use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
@@ -30,7 +32,11 @@ class CommandsTest extends LaravelTestCase
      */
     public static function listDBCachesDataProvider(): array
     {
-        return [
+        $buildChecksum = PlatformSupport::isWindows()
+            ? '29b884'
+            : '2881d7';
+
+        $return = [
             [
                 'config' => self::newConfigDTO('sqlite'),
                 'expectedOutput' =>
@@ -44,7 +50,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
                 ],
             ],
             [
@@ -61,7 +67,7 @@ class CommandsTest extends LaravelTestCase
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
                 ],
             ],
             [
@@ -82,8 +88,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-0320bdd00911.sqlite",
                 ],
             ],
             [
@@ -104,8 +110,8 @@ class CommandsTest extends LaravelTestCase
                     . "Snapshots:\n\n"
                     . "- [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-059d0b188354.sqlite",
                 ],
             ],
             [
@@ -128,12 +134,14 @@ class CommandsTest extends LaravelTestCase
                     . "- [file2]\n"
                     . "- [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-0320bdd00911.sqlite",
+                    '[file3]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-059d0b188354.sqlite",
                 ],
             ],
         ];
+
+        return $return;
     }
 
     /**
@@ -156,7 +164,8 @@ class CommandsTest extends LaravelTestCase
         array $substitutions
     ): void {
 
-        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
+        self::updateConfigDTODirs($configDTO);
 
         Settings::resetStaticProps();
         self::useConfig($configDTO);
@@ -185,6 +194,10 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      */
     public static function removeDBCachesDataProvider(): array
     {
+        $buildChecksum = PlatformSupport::isWindows()
+            ? '29b884'
+            : '2881d7';
+
         return [
             [
                 'config' => self::newConfigDTO('sqlite'),
@@ -199,7 +212,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
                 ],
             ],
             [
@@ -216,7 +229,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- Connection \"sqlite\" (driver sqlite):\n"
                     . "  - DELETED [file1]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
                 ],
             ],
             [
@@ -237,8 +250,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-0320bdd00911.sqlite",
                 ],
             ],
             [
@@ -259,8 +272,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "Snapshots:\n\n"
                     . "- DELETED [file2]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-059d0b188354.sqlite",
                 ],
             ],
             [
@@ -283,9 +296,9 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
                     . "- DELETED [file2]\n"
                     . "- DELETED [file3]",
                 'substitutions' => [
-                    '[file1]' => '[adapt-test-storage]/databases/test-database.2881d7-0161442c4a3a.sqlite',
-                    '[file2]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-0320bdd00911.sqlite',
-                    '[file3]' => '[adapt-test-storage]/snapshots/snapshot.database.2881d7-059d0b188354.sqlite',
+                    '[file1]' => "[adapt-test-storage]/databases/test-database.$buildChecksum-0161442c4a3a.sqlite",
+                    '[file2]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-0320bdd00911.sqlite",
+                    '[file3]' => "[adapt-test-storage]/snapshots/snapshot.database.$buildChecksum-059d0b188354.sqlite",
                 ],
             ],
         ];
@@ -311,7 +324,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
         array $substitutions
     ): void {
 
-        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
+        self::updateConfigDTODirs($configDTO);
 
         Settings::resetStaticProps();
         self::useConfig($configDTO);
@@ -337,6 +351,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
     }
 
 
+
     /**
      * Run the given command and check the output.
      *
@@ -346,8 +361,12 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      */
     private static function resolveExpectedOutput(string $expectedOutput, array $substitutions): string
     {
+        $adaptTestStorage = config(Settings::LARAVEL_CONFIG_NAME . '.storage_dir');
+        $adaptTestStorage = str_replace('/', DIRECTORY_SEPARATOR, $adaptTestStorage);
+
         $replacements = [
-            '[adapt-test-storage]' => config(Settings::LARAVEL_CONFIG_NAME . '.storage_dir'),
+            '[adapt-test-storage]' => $adaptTestStorage,
+            '/' => DIRECTORY_SEPARATOR,
         ];
 
         foreach ($substitutions as $key => $file) {
@@ -378,6 +397,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
 
         // this is compatible with Laravel < 5.4
         Artisan::call($command, $args);
-        self::assertSame($expectedOutput, trim(Artisan::output()));
+        $output = trim(Artisan::output());
+        $output = str_replace(["\r\n", "\r"], ["\n", "\n"], $output);
+        self::assertSame($expectedOutput, $output);
     }
 }

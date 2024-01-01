@@ -222,7 +222,7 @@ class Filesystem implements FilesystemInterface
         foreach ($fileIterator as $file) {
             /** @var SplFileInfo $file */
             if (is_file($file->getPathname())) {
-                $files[] = $file->getPathname();
+                $files[] = str_replace('/', DIRECTORY_SEPARATOR, $file->getPathname());
             }
         }
         sort($files);

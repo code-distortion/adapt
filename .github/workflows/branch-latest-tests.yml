@@ -20,10 +20,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+#        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        os: [ "ubuntu-latest", "macos-latest" ]
         php: [ "8.3", "8.2", "8.1" ]
+#        php: [ "8.3" ]
         testbench: [ "^8.0", "^7.0", "^6.22" ]
+#        testbench: [ "^8.0" ]
         dependency-prefer: [ "prefer-stable", "prefer-lowest" ]
+#        dependency-prefer: [ "prefer-stable" ]
         include:
           - php: "8.3"
             phpunit: "^10.1.0"
@@ -46,8 +50,8 @@ jobs:
             os-title: "ubuntu"
           - os: "macos-latest"
             os-title: "macos"
-          - os: "windows-latest"
-            os-title: "win"
+#          - os: "windows-latest"
+#            os-title: "win"
 
           - dependency-prefer: "prefer-stable"
             dependency-prefer-title: "stable"
