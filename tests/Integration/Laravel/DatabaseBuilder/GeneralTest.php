@@ -73,15 +73,19 @@ class GeneralTest extends LaravelTestCase
     {
         self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
 
+        $expected = config('database.default') == 'testing'
+            ? 'testing' # this was changed to 'testing' in Laravel 11
+            : 'mysql';
+
         // no change
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
         self::newDatabaseBuilder()->execute();
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
 
         self::loadConfigs(self::$wsConfigDir);
 
         // changed
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
         self::newDatabaseBuilder()->execute()->makeDefault();
         self::assertSame('sqlite', config('database.default'));
     }

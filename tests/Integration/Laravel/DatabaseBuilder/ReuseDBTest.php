@@ -34,7 +34,7 @@ class ReuseDBTest extends LaravelTestCase
     {
         return [
             'reuseTransaction false, scenarios false, isBrowserTest false' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
                     ->scenarios(false)
@@ -45,7 +45,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, scenarios false, isBrowserTest false' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -56,7 +56,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction false, scenarios true, isBrowserTest false' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
                     ->scenarios(true)
@@ -67,7 +67,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, scenarios true, isBrowserTest false' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(true)
@@ -78,7 +78,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction false, scenarios false, isBrowserTest true' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
                     ->scenarios(false)
@@ -89,7 +89,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, scenarios false, isBrowserTest true' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -100,7 +100,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction false, scenarios true, isBrowserTest true' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(false)
                     ->scenarios(true)
@@ -111,7 +111,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, scenarios true, isBrowserTest true' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(true)
@@ -123,7 +123,7 @@ class ReuseDBTest extends LaravelTestCase
             ],
 
             'reuseTransaction true, different reuse_table_version' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -136,7 +136,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, different project_name' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -149,7 +149,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => AdaptBuildException::class,
             ],
             'reuseTransaction true, still in transaction' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -160,7 +160,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => AdaptBuildException::class,
             ],
             'reuseTransaction true, empty ____adapt____ table' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
@@ -171,7 +171,7 @@ class ReuseDBTest extends LaravelTestCase
                 'expectedException' => null,
             ],
             'reuseTransaction true, no ____adapt____ table' => [
-                'config' => self::newConfigDTO('sqlite')
+                'configDTO' => self::newConfigDTO('sqlite')
                     ->seeders([])
                     ->reuseTransaction(true)
                     ->scenarios(false)
