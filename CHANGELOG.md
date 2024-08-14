@@ -6,10 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.12] - 2024-08-14
+
+### Added
+- Added support for PHP 8.3
+- Added support for Laravel 11
+
+
+
 ## [0.12.11] - 2023-07-30
 
 ### Fixed
-- Fixed issue when building databases for multiple connections, and none are specified as the default - thanks to [manu144x](https://github.com/manu144x) for [raising the problem](https://github.com/code-distortion/adapt/issues/6)
+- Fixed issue when building databases for multiple connections, and none are specified as the default - thanks to [manu144x](https://github.com/manu144x) for [raising the problem](https://github.com/code-distortion/adapt/issues/6#issuecomment-1652723704)
 - Fixed an issue when using the databaseInit() method when using older versions of Laravel
 
 
