@@ -77,6 +77,35 @@ class Filesystem implements FilesystemInterface
      */
     public function realpath(string $path): ?string
     {
+        $exists = is_string(realpath($path));
+        if (!$exists) {
+
+            $path2 = str_replace('/', DIRECTORY_SEPARATOR, $path);
+            dump("REALPATH FAILED: \"" . getcwd() . "\" \"$path\" \"$path2\"");
+
+            $cwd = getcwd();
+            $files = $this->filesInDir($cwd, true);
+
+            $base = getcwd();
+            $ignoreDirs = [
+                "$base/vendor/",
+                "$base/phpunit/",
+                "$base/.git/",
+                "$base/.idea/",
+                "$base/src/",
+            ];
+            foreach ($ignoreDirs as $ignoreDir) {
+                $ignoreDir = str_replace('/', DIRECTORY_SEPARATOR, $ignoreDir);
+                foreach ($files as $key => $file) {
+                    if (str_starts_with($file, $ignoreDir)) {
+                        unset($files[$key]);
+                    }
+                }
+            }
+            $files = array_values($files);
+            dump($files);
+        }
+
         $path = realpath($path);
         return (is_string($path) ? $path : null);
     }
@@ -222,7 +251,7 @@ class Filesystem implements FilesystemInterface
         foreach ($fileIterator as $file) {
             /** @var SplFileInfo $file */
             if (is_file($file->getPathname())) {
-                $files[] = $file->getPathname();
+                $files[] = str_replace('/', DIRECTORY_SEPARATOR, $file->getPathname());
             }
         }
         sort($files);

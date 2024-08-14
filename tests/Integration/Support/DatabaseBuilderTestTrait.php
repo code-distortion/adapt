@@ -12,6 +12,7 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Support\Hasher;
 use CodeDistortion\Adapt\Support\LaravelSupport;
+use CodeDistortion\Adapt\Support\PlatformSupport;
 use CodeDistortion\Adapt\Support\StorageDir;
 use CodeDistortion\Adapt\Tests\Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
@@ -27,28 +28,17 @@ trait DatabaseBuilderTestTrait
     private static string $workspaceBaseDir = 'tests/workspaces';
 
     /** @var string The current workspace directory - used during testing. */
+    private static string $defaultWSCurrentDir = 'tests/workspaces/current';
+
+    /** @var string  */
     private static string $wsCurrentDir = 'tests/workspaces/current';
+
+    /** @var integer A count of the current workspace directories used (for GitHub Actions on Windows). */
+    private static int $wsCurrentDirCount = 0;
 
     /** @var string The current workspace config directory. */
     private static string $wsConfigDir = 'tests/workspaces/config';
 
-    /** @var string The current workspace adapt-test-storage directory. */
-    private static string $wsAdaptStorageDir = 'tests/workspaces/current/database/adapt-test-storage';
-
-    /** @var string The current workspace databases directory. */
-    private static string $wsDatabaseDir = 'tests/workspaces/current/database/databases';
-
-    /** @var string The current workspace factories directory. */
-    private static string $wsFactoriesDir = 'tests/workspaces/current/database/factories';
-
-    /** @var string The current workspace migrations directory. */
-    private static string $wsMigrationsDir = 'tests/workspaces/current/database/migrations';
-
-    /** @var string The current workspace initial-imports directory. */
-    private static string $wsInitialImportsDir = 'tests/workspaces/current/database/initial-imports';
-
-    /** @var string The current workspace seeds directory. */
-    private static string $wsSeedsDir = 'tests/workspaces/current/database/seeds';
 
 
     /**
@@ -95,21 +85,21 @@ trait DatabaseBuilderTestTrait
             ->origDatabase('database.sqlite')
 //            ->database('test_db')
             ->databaseModifier('')
-            ->storageDir(self::$wsAdaptStorageDir)
+            ->storageDir(self::wsAdaptStorageDir())
             ->snapshotPrefix('snapshot.')
             ->databasePrefix('test-')
             ->cacheInvalidationEnabled(true)
             ->cacheInvalidationMethod('content')
             ->checksumPaths([
-                self::$wsFactoriesDir,
-                self::$wsMigrationsDir,
-                self::$wsInitialImportsDir,
-                self::$wsSeedsDir,
+                self::wsFactoriesDir(),
+                self::wsMigrationsDir(),
+                self::wsInitialImportsDir(),
+                self::wsSeedsDir(),
             ])
             ->preCalculatedBuildChecksum(null)
             ->buildSettings(
                 [],
-                self::$wsMigrationsDir,
+                self::wsMigrationsDir(),
                 [DatabaseSeeder::class],
                 null,
                 false,
@@ -132,6 +122,28 @@ trait DatabaseBuilderTestTrait
             ->forceRebuild(false)
             ->mysqlSettings('mysql', 'mysqldump')
             ->postgresSettings('psql', 'pg_dump');
+    }
+
+    /**
+     * Update the directories recorded in a ConfigDTO now that they're known.
+     *
+     * @param ConfigDTO $configDTO The ConfigDTO to update.
+     * @return void
+     */
+    private static function updateConfigDTODirs(ConfigDTO $configDTO): void
+    {
+        $configDTO
+            ->storageDir(self::wsAdaptStorageDir())
+            ->checksumPaths([
+                self::wsFactoriesDir(),
+                self::wsMigrationsDir(),
+                self::wsInitialImportsDir(),
+                self::wsSeedsDir(),
+            ]);
+
+        if (is_string($configDTO->migrations)) {
+            $configDTO->migrations(self::wsMigrationsDir());
+        }
     }
 
     /**
@@ -187,35 +199,55 @@ trait DatabaseBuilderTestTrait
     }
 
 
+
     /**
      * Prepare the workspace directory by emptying it and copying the contents of another into it.
      *
      * @param string  $sourceDir             The directory to make a copy of.
-     * @param string  $destDir               The directory to replace.
      * @param boolean $removeAdaptStorageDir Remove the adapt-storage directory?.
      * @return void
      */
-    private static function prepareWorkspace(string $sourceDir, string $destDir, bool $removeAdaptStorageDir = true): void
+    private static function prepareWorkspace(string $sourceDir, bool $removeAdaptStorageDir = true): void
     {
+        // PDO connections are closed during the __destruct() method,
+        // make sure this happens so the sqlite files are closed, and can be deleted
+//        gc_collect_cycles();
+
+        self::resolveNewWorkspaceDir();
+        $destDir = self::wsCurrentDir();
+
         self::delTree($destDir);
         self::copyDirRecursive($sourceDir, $destDir);
+//        self::fileStringReplace("$destDir/config/code_distortion.adapt.php", 'tests/workspaces/current/', "$destDir/");
         if ($removeAdaptStorageDir) {
-            self::delTree($destDir . '/database/adapt-test-storage');
+            self::delTree("$destDir/database/adapt-test-storage");
         }
-        self::createGitIgnoreFile($destDir . '/.gitignore');
-        self::loadConfigs($destDir . '/config');
+        self::createGitIgnoreFile("$destDir/.gitignore");
+        self::loadConfigs("$destDir/config");
 
-        StorageDir::ensureStorageDirsExist(self::$wsAdaptStorageDir, new Filesystem(), self::newLog());
+
+
+        StorageDir::ensureStorageDirsExist(self::wsAdaptStorageDir(), new Filesystem(), self::newLog());
     }
 
     /**
      * Remove the given directory and it's contents.
+     *
+     * (Recurse through the directory and removes all files and directories).
      *
      * @param string $dir The directory to remove.
      * @return boolean
      */
     private static function delTree(string $dir): bool
     {
+        if (!file_exists($dir)) {
+            return true;
+        }
+
+        if (!is_dir($dir)) {
+            return false;
+        }
+
         $files = array_filter((array) scandir($dir));
         $files = array_diff($files, ['.', '..']);
         foreach ($files as $file) {
@@ -247,6 +279,26 @@ trait DatabaseBuilderTestTrait
                 copy("$sourceDir/$file", "$destDir/$file");
             }
         }
+    }
+
+    /**
+     * Perform a string replace in a file.
+     *
+     * @param string $path    The path to the file.
+     * @param string $search  The string to search for.
+     * @param string $replace The string to replace it with.
+     * @return void
+     */
+    private static function fileStringReplace(string $path, string $search, string $replace): void
+    {
+        if (!file_exists($path)) {
+            return;
+        }
+
+        file_put_contents(
+            $path,
+            str_replace($search, $replace, file_get_contents($path))
+        );
     }
 
     /**
@@ -282,7 +334,7 @@ trait DatabaseBuilderTestTrait
         }
 
         // put the default sqlite database within the workspace
-        config(['database.connections.sqlite.database' => self::$wsDatabaseDir . "/database.sqlite"]);
+        config(['database.connections.sqlite.database' => self::wsDatabaseDir() . "/database.sqlite"]);
     }
 
     /**
@@ -428,5 +480,105 @@ trait DatabaseBuilderTestTrait
         }
 
         self::assertSame($expected, $values);
+    }
+
+
+
+    /**
+     * Resolve which directory to use as the working directory.
+     *
+     * @return void
+     */
+    private static function resolveNewWorkspaceDir(): void
+    {
+        self::$wsCurrentDir = self::$defaultWSCurrentDir;
+        return;
+        if (!PlatformSupport::isRunningGitHubActions()) {
+            return;
+        }
+        if (!PlatformSupport::isWindows()) {
+            return;
+        }
+
+        // Running on Windows in GitHub Actions seems to have a problem where SQLite files aren't closed after use, and
+        // can't be deleted when preparing the directory for the next test.
+        // e.g.
+        // "ErrorException: unlink(tests/workspaces/current/database/adapt-test-storage/databases/test-database.29b88401
+        //                  61442c4a3a.sqlite): Resource temporarily unavailable"
+
+        // this avoids this problem by using a new directory for each test
+
+        self::$wsCurrentDirCount++;
+        self::$wsCurrentDir = self::$defaultWSCurrentDir . self::$wsCurrentDirCount;
+    }
+
+    /**
+     * Resolve which directory to use as the working directory.
+     *
+     * @return string
+     */
+    private static function wsCurrentDir(): string
+    {
+        return self::$wsCurrentDir;
+    }
+
+    /**
+     * Resolve the current workspace adapt-test-storage directory.
+     *
+     * @return string
+     */
+    private static function wsAdaptStorageDir(): string
+    {
+        return self::$wsCurrentDir . '/database/adapt-test-storage';
+    }
+
+    /**
+     * Resolve the current workspace databases directory.
+     *
+     * @return string
+     */
+    private static function wsDatabaseDir(): string
+    {
+        return self::$wsCurrentDir . '/database/databases';
+    }
+
+    /**
+     * Resolve the current workspace factories directory.
+     *
+     * @return string
+     */
+    private static function wsFactoriesDir(): string
+    {
+        return self::$wsCurrentDir . '/database/factories';
+    }
+
+    /**
+     * Resolve the current workspace migrations directory.
+     *
+     * @return string
+     */
+    private static function wsMigrationsDir(): string
+    {
+        return self::$wsCurrentDir . '/database/migrations';
+    }
+
+    /**
+     * Resolve the current workspace initial-imports directory.
+     *
+     * @return string
+     */
+    private static function wsInitialImportsDir(): string
+    {
+        return self::$wsCurrentDir . '/database/initial-imports';
+    }
+
+    /**
+     * Resolve the current workspace seeds directory.
+     *
+     * @return string
+     */
+    private static function wsSeedsDir(): string
+    {
+        return self::$wsCurrentDir . '/database/seeds';
     }
 }

@@ -14,6 +14,6 @@ class LaravelSQLitePDO extends AbstractLaravelPDO
      */
     public function listDatabases(): array
     {
-        return []; // PDO isn't used to find SQLite databases
+        return []; // i.e. PDO isn't used to find SQLite databases
     }
 }
