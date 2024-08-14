@@ -12,9 +12,8 @@ use Throwable;
  */
 abstract class AbstractLaravelPDO
 {
-    /** @var PDO The pdo connection to use. */
-    protected PDO $pdo;
-
+    /** @var PDO|null The pdo connection to use. */
+    protected PDO|null $pdo;
 
 
     /**
@@ -33,7 +32,6 @@ abstract class AbstractLaravelPDO
     ) {
         $this->pdo = new PDO($dsn, $username, $password, $connectOptions);
     }
-
 
 
     /**
