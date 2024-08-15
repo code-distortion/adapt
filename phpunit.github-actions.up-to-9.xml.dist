@@ -2,8 +2,8 @@
 <phpunit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
-  backupGlobals="true"
-  backupStaticAttributes="true"
+  backupGlobals="false"
+  backupStaticAttributes="false"
   beStrictAboutOutputDuringTests="true"
   bootstrap="vendor/autoload.php"
   colors="false"

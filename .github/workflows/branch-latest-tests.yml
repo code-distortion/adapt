@@ -1,4 +1,4 @@
-name: "run-tests"
+name: "latest-branch-tests"
 
 on:
   push:
@@ -70,7 +70,7 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php }}"
-          extensions: "fileinfo, json, mbstring, pdo_mysql, pdo_sqlite" # league/flysystem on Windows requires fileinfo
+          extensions: "fileinfo, mbstring, pdo_mysql, pdo_sqlite" # league/flysystem on Windows requires fileinfo
           ini-values: "error_reporting=E_ALL"
           coverage: none
         env:
