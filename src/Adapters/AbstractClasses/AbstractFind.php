@@ -61,12 +61,16 @@ abstract class AbstractFind implements FindInterface
                 $databaseMetaInfo = $this->buildDatabaseMetaInfo($database, $buildChecksum);
                 $databaseMetaInfos[] = $databaseMetaInfo;
 
-                $database = $databaseMetaInfo ? $databaseMetaInfo->name : $database;
+                $database = $databaseMetaInfo
+                    ? $databaseMetaInfo->name
+                    : $database;
+
                 $usable = $databaseMetaInfo
                     ? ($databaseMetaInfo->isValid
                         ? '(usable)'
                         : "(stale" . ($databaseMetaInfo->shouldPurgeNow() ? '' : ' - within grace period') . ")")
                     : '(not usable - ignoring)';
+
                 $this->di->log->vvDebug("- Found database \"$database\" $usable", $logTimer3);
 
             } catch (Throwable $e) {

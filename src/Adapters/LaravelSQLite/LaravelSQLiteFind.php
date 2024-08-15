@@ -51,12 +51,15 @@ class LaravelSQLiteFind extends AbstractFind implements FindInterface
     protected function buildDatabaseMetaInfo($database, $buildChecksum)
     {
         $pdo = $this->di->db->newPDO($database);
-        return $this->buildDatabaseMetaInfoX(
+        $return = $this->buildDatabaseMetaInfoX(
             $this->di->db->getConnection(),
             $database,
             $pdo->fetchReuseTableInfo("SELECT * FROM `" . Settings::REUSE_TABLE . "` LIMIT 0, 1"),
             $buildChecksum
         );
+        $pdo = null; // close the database connection
+
+        return $return;
     }
 
     /**

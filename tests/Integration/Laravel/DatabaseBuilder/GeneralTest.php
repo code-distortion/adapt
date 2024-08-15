@@ -30,7 +30,7 @@ class GeneralTest extends LaravelTestCase
      */
     public static function test_database_builder_only_runs_once()
     {
-        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
 
         try {
             self::newDatabaseBuilder()->execute()->execute();
@@ -51,14 +51,14 @@ class GeneralTest extends LaravelTestCase
      */
     public static function test_database_builder_creates_sqlite_database()
     {
-        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
 
         self::newDatabaseBuilder()->execute();
 
         $dbPath = config('database.connections.sqlite.database');
         self::assertFileExists($dbPath);
         self::assertSame(
-            self::$wsAdaptStorageDir . "/databases/test-database.2881d7-0161442c4a3a.sqlite",
+            self::wsAdaptStorageDir() . "/databases/test-database.2881d7-0161442c4a3a.sqlite",
             $dbPath
         );
     }
@@ -71,17 +71,21 @@ class GeneralTest extends LaravelTestCase
      */
     public static function test_the_default_database_is_set()
     {
-        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", self::$wsCurrentDir);
+        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
+
+        $expected = config('database.default') == 'testing'
+            ? 'testing' # this was changed to 'testing' in Laravel 11
+            : 'mysql';
 
         // no change
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
         self::newDatabaseBuilder()->execute();
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
 
         self::loadConfigs(self::$wsConfigDir);
 
         // changed
-        self::assertSame('mysql', config('database.default'));
+        self::assertSame($expected, config('database.default'));
         self::newDatabaseBuilder()->execute()->makeDefault();
         self::assertSame('sqlite', config('database.default'));
     }

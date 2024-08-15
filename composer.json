@@ -32,19 +32,21 @@
         }
     ],
     "require": {
-        "php": "7.0.* | 7.1.* | 7.2.* | 7.3.* | 7.4.* | 8.0.* | 8.1.* | 8.2.*",
+        "php": "7.0.* | 7.1.* | 7.2.* | 7.3.* | 7.4.* | 8.0.* | 8.1.* | 8.2.* | 8.3.*",
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
-        "code-distortion/fluent-dotenv": "^0.1.6",
-        "guzzlehttp/guzzle": "^6.3 | ^7.0"
+        "code-distortion/fluent-dotenv": "^0.3.3",
+        "guzzlehttp/guzzle": "^6.3 | ^7.0",
+        "vlucas/phpdotenv": "^1.1 | ^2.0 | ^3.0 | ^4.0 | ^5.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.0",
-        "orchestra/testbench": "^3.2 | ^4.0 | ^5.0 | ^6.0 | ^7.0 | ^8.0",
+        "infection/infection": "^0.10 | ^0.11 | ^0.12 | ^0.13 | ^0.14 | ^0.15 | ^0.16 | ^0.17 | ^0.18 | ^0.19 | ^0.20 | ^0.21 | ^0.22 | ^0.23 | ^0.24 | ^0.25 | ^0.26 | ^0.27 | ^0.28 | ^0.29",
+        "orchestra/testbench": "^3.2 | ^4.0 | ^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0",
         "phpstan/phpstan": "^0.7 | ^0.8 | ^0.9 | ^0.10 | ^0.11 | ^0.12 | ^1.0",
-        "phpunit/phpunit": "~4.8 | ^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0 | ^10.0",
-        "squizlabs/php_codesniffer": "^3.5"
+        "phpunit/phpunit": "~4.8 | ^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0 | ^10.0 | ^11.0",
+        "squizlabs/php_codesniffer": "^3.10"
     },
     "autoload": {
         "psr-4": {
@@ -58,15 +60,25 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon --level=max",
-        "phpcs": "vendor/bin/phpcs"
+        "infection": "vendor/bin/infection --threads=max --show-mutations --test-framework-options=\"--exclude-group=skip\"",
+        "phpcbf": "vendor/bin/phpcbf",
+        "phpcs": "vendor/bin/phpcs",
+        "phpstan": "vendor/bin/phpstan.phar analyse --level=max",
+        "test": "vendor/bin/phpunit"
+    },
+    "scripts-descriptions": {
+        "infection": "Run Infection tests",
+        "phpcbf": "Run PHP Code Beautifier and Fixer against your application",
+        "phpcs": "Run PHP CodeSniffer against your application",
+        "phpstan": "Run PHPStan static analysis against your application",
+        "test": "Run PHPUnit tests"
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
             "kylekatarnls/update-helper": false,
-            "ocramius/package-versions": true
+            "ocramius/package-versions": true,
+            "infection/extension-installer": true
         }
     },
     "extra": {

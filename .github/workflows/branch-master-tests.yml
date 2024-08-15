@@ -1,552 +1,300 @@
-name: branch-master-tests
+name: "master-branch-tests"
 
 on:
   push:
-    branches:
-      - master
-      - master-test
+    branches: [ "master", "master-*" ]
   pull_request:
-    branches:
-      - master
+    branches: [ "master", "master-*" ]
   schedule:
     - cron: "0 0 * * 0"
 
+permissions:
+  contents: "read"
+
 jobs:
 
-  test-in-php82:
+  all_tests:
 
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
+    name: "PHP${{ matrix.php }} TB${{ matrix.testbench }} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}"
+    runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [8.2]
-        phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^8.0, ^7.0]
-        dependency-prefer: [prefer-stable, prefer-lowest]
+#        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        os: [ "ubuntu-latest", "macos-latest" ]
+        php: [ "8.3", "8.2", "8.1", "8.0", "7.4", "7.3", "7.2", "7.1", "7.0" ]
+        testbench: [ "^9.0",  "^8.0", "^7.0", "^6.0", "^5.0", "^4.0", "^3.8.1", "3.7.*", "3.6.*", "3.5.*", "3.4.*", "3.3.*", "3.2.*", "3.1.*" ]
+        dependency-prefer: [ "prefer-stable", "prefer-lowest" ]
         include:
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
+          - testbench: "^9.0"
+            phpunit: "^10.1.0"
+            phpunit-config-file: "phpunit.github-actions.xml.dist"
+          - testbench: "^8.0"
+            phpunit: "^10.1.0"
+            phpunit-config-file: "phpunit.github-actions.xml.dist"
+          - testbench: "^7.0"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "^6.0"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "^5.0"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "^4.0"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "^3.8.1"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.7.*"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.6.*"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.5.*"
+            phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.4.*"
+            phpunit: "^5.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.3.*"
+            phpunit: "~4.8 | ~5.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.2.*"
+            phpunit: "~4.8 | ~5.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
+          - testbench: "3.1.*"
+            phpunit: "~4.8 | ~5.0"
+            phpunit-config-file: "phpunit.github-actions.up-to-9.xml.dist"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+          - os: "ubuntu-latest"
+            os-title: "ubuntu"
+          - os: "macos-latest"
+            os-title: "macos"
+#          - os: "windows-latest"
+#            os-title: "win"
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php81:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [8.1]
-        phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^8.0, ^7.0, ^6.22]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php80:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: ["8.0"]
-        phpunit: [^9.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^7.0, ^6.0, ^5.0, ^4.0]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php74:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [7.4]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*]
-        dependency-prefer: [prefer-stable, prefer-lowest]
+          - dependency-prefer: "prefer-stable"
+            dependency-prefer-title: "stable"
+          - dependency-prefer: "prefer-lowest"
+            dependency-prefer-title: "lowest"
         exclude:
-          - testbench: ^3.8.1
-            dependency-prefer: prefer-lowest
-          - testbench: 3.7.*
-            dependency-prefer: prefer-lowest
-          - testbench: 3.6.*
-            dependency-prefer: prefer-lowest
-          - testbench: 3.5.*
-            dependency-prefer: prefer-lowest
-          - testbench: 3.4.*
-            dependency-prefer: prefer-lowest
-        include:
-          - testbench: ^6.0
-            phpunit: "^8.5 | ^9.0"
-          - testbench: ^5.0
-            phpunit: "^8.5 | ^9.0"
-          - testbench: ^4.0
-            phpunit: "^8.4 | ^9.0"
-          - testbench: ^3.8.1
-            phpunit: "^7.5 | ^8.0"
-          - testbench: 3.7.*
-            phpunit: ^7.0
-          - testbench: 3.6.*
-            phpunit: ^7.0
-          - testbench: 3.5.*
-            phpunit: ~6.0
-          - testbench: 3.4.*
-            phpunit: ~5.7
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
+          - testbench: "^9.0"
+            php: "8.1"
+          - testbench: "^9.0"
+            php: "8.0"
+          - testbench: "^9.0"
+            php: "7.4"
+          - testbench: "^9.0"
+            php: "7.3"
+          - testbench: "^9.0"
+            php: "7.2"
+          - testbench: "^9.0"
+            php: "7.1"
+          - testbench: "^9.0"
+            php: "7.0"
+
+          - testbench: "^8.0"
+            php: "8.0"
+          - testbench: "^8.0"
+            php: "7.4"
+          - testbench: "^8.0"
+            php: "7.3"
+          - testbench: "^8.0"
+            php: "7.2"
+          - testbench: "^8.0"
+            php: "7.1"
+          - testbench: "^8.0"
+            php: "7.0"
+
+          - testbench: "^7.0"
+            php: "7.4"
+          - testbench: "^7.0"
+            php: "7.3"
+          - testbench: "^7.0"
+            php: "7.2"
+          - testbench: "^7.0"
+            php: "7.1"
+          - testbench: "^7.0"
+            php: "7.0"
+
+          - testbench: "^6.0"
+            php: "8.3"
+            dependency-prefer: "prefer-lowest"
+          - testbench: "^6.0"
+            php: "8.2"
+            dependency-prefer: "prefer-lowest"
+          - testbench: "^6.0"
+            php: "8.1"
+            dependency-prefer: "prefer-lowest"
+          - testbench: "^6.0"
+            php: "7.2"
+          - testbench: "^6.0"
+            php: "7.1"
+          - testbench: "^6.0"
+            php: "7.0"
+
+          - testbench: "^5.0"
+            php: "8.3"
+          - testbench: "^5.0"
+            php: "8.2"
+          - testbench: "^5.0"
+            php: "8.1"
+          - testbench: "^5.0"
+            php: "7.1"
+          - testbench: "^5.0"
+            php: "7.0"
+
+          - testbench: "^4.0"
+            php: "8.3"
+          - testbench: "^4.0"
+            php: "8.2"
+          - testbench: "^4.0"
+            php: "8.1"
+          - testbench: "^4.0"
+            php: "7.1"
+          - testbench: "^4.0"
+            php: "7.1"
+          - testbench: "^4.0"
+            php: "7.0"
+
+          - testbench: "^3.8.1"
+            php: "8.3"
+          - testbench: "^3.8.1"
+            php: "8.2"
+          - testbench: "^3.8.1"
+            php: "8.1"
+          - testbench: "^3.8.1"
+            php: "8.0"
+          - testbench: "^3.8.1"
+            php: "7.1"
+          - testbench: "^3.8.1"
+            php: "7.0"
+
+          - testbench: "3.7.*"
+            php: "8.3"
+          - testbench: "3.7.*"
+            php: "8.2"
+          - testbench: "3.7.*"
+            php: "8.1"
+          - testbench: "3.7.*"
+            php: "8.0"
+          - testbench: "3.7.*"
+            php: "7.0"
+
+          - testbench: "3.6.*"
+            php: "8.3"
+          - testbench: "3.6.*"
+            php: "8.2"
+          - testbench: "3.6.*"
+            php: "8.1"
+          - testbench: "3.6.*"
+            php: "8.0"
+          - testbench: "3.6.*"
+            php: "7.0"
+
+          - testbench: "3.5.*"
+            php: "8.3"
+          - testbench: "3.5.*"
+            php: "8.2"
+          - testbench: "3.5.*"
+            php: "8.1"
+          - testbench: "3.5.*"
+            php: "8.0"
+
+          - testbench: "3.4.*"
+            php: "8.3"
+          - testbench: "3.4.*"
+            php: "8.2"
+          - testbench: "3.4.*"
+            php: "8.1"
+          - testbench: "3.4.*"
+            php: "8.0"
+
+          - testbench: "3.3.*"
+            php: "8.3"
+          - testbench: "3.3.*"
+            php: "8.2"
+          - testbench: "3.3.*"
+            php: "8.1"
+          - testbench: "3.3.*"
+            php: "8.0"
+          - testbench: "3.3.*"
+            php: "7.4"
+
+          - testbench: "3.2.*"
+            php: "8.3"
+          - testbench: "3.2.*"
+            php: "8.2"
+          - testbench: "3.2.*"
+            php: "8.1"
+          - testbench: "3.2.*"
+            php: "8.0"
+          - testbench: "3.2.*"
+            php: "7.4"
+
+          - testbench: "3.1.*"
+            php: "8.3"
+          - testbench: "3.1.*"
+            php: "8.2"
+          - testbench: "3.1.*"
+            php: "8.1"
+          - testbench: "3.1.*"
+            php: "8.0"
+          - testbench: "3.1.*"
+            php: "7.4"
+          - testbench: "3.1.*"
+            dependency-prefer: "prefer-lowest"
+
+          - php: "7.4"
+            dependency-prefer: "prefer-lowest"
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "Checkout code"
+        uses: "actions/checkout@v4"
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: "Setup PHP"
+        uses: "shivammathur/setup-php@v2"
         with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
+          php-version: "${{ matrix.php }}"
+          extensions: "fileinfo, mbstring, pdo_mysql, pdo_sqlite" # league/flysystem on Windows requires fileinfo
+          ini-values: "error_reporting=E_ALL"
           coverage: none
+        env:
+          COMPOSER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
+      - name: "Validate composer.json and composer.lock"
+        run: "composer validate --strict"
+
+      # find composer's cache directory - so we know which directory to cache in the next step
+      - name: "Find composer's cache directory"
+        id: "composer-cache"
+        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
+      - name: "Cache composer's cache directory"
+        uses: "actions/cache@v4"
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
+          path: "${{ steps.composer-cache.outputs.composer_cache_dir }}"
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
 
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php73:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [7.3]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^6.0, ^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - testbench: ^6.0
-            phpunit: "^8.5 | ^9.0"
-          - testbench: ^5.0
-            phpunit: "^8.5 | ^9.0"
-          - testbench: ^4.0
-            phpunit: "^8.4 | ^9.0"
-          - testbench: ^3.8.1
-            phpunit: "^7.5 | ^8.0"
-          - testbench: 3.7.*
-            phpunit: ^7.0
-          - testbench: 3.6.*
-            phpunit: ^7.0
-          - testbench: 3.5.*
-            phpunit: ~6.0
-          - testbench: 3.4.*
-            phpunit: ~5.7
-          - testbench: 3.3.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.2.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.1.*
-            phpunit: "~4.8 | ~5.0"
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: "Install dependencies"
+        uses: "nick-fields/retry@v3"
         with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
+          timeout_minutes: 5
+          max_attempts: 5
+          shell: "bash" # make sure "^" characters are interpreted properly on Windows (e.g. in "^5.0")
+          command: |
+            composer remove "infection/infection" --dev --no-interaction --no-update
+            composer remove "phpstan/phpstan" --dev --no-interaction --no-update
+            composer remove "rector/rector" --dev --no-interaction --no-update
+            composer remove "squizlabs/php_codesniffer" --dev --no-interaction --no-update
+            composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+            composer require "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php72:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [7.2]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^5.0, ^4.0, ^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - testbench: ^5.0
-            phpunit: "^8.5 | ^9.0"
-          - testbench: ^4.0
-            phpunit: "^8.4 | ^9.0"
-          - testbench: ^3.8.1
-            phpunit: "^7.5 | ^8.0"
-          - testbench: 3.7.*
-            phpunit: ^7.0
-          - testbench: 3.6.*
-            phpunit: ^7.0
-          - testbench: 3.5.*
-            phpunit: ~6.0
-          - testbench: 3.4.*
-            phpunit: ~5.7
-          - testbench: 3.3.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.2.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.1.*
-            phpunit: "~4.8 | ~5.0"
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php71:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: [7.1]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [^3.8.1, 3.7.*, 3.6.*, 3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - testbench: ^3.8.1
-            phpunit: "^7.5 | ^8.0"
-          - testbench: 3.7.*
-            phpunit: ^7.0
-          - testbench: 3.6.*
-            phpunit: ^7.0
-          - testbench: 3.5.*
-            phpunit: ~6.0
-          - testbench: 3.4.*
-            phpunit: ~5.7
-          - testbench: 3.3.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.2.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.1.*
-            phpunit: "~4.8 | ~5.0"
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
-
-  test-in-php70:
-
-    name: PHP${{ matrix.php }} TB${{ matrix.testbench}} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        php: ["7.0"]
-        phpunit-config-file: [phpunit.up-to-9.xml.dist]
-        testbench: [3.5.*, 3.4.*, 3.3.*, 3.2.*, 3.1.*]
-        dependency-prefer: [prefer-stable, prefer-lowest]
-        include:
-          - testbench: 3.5.*
-            phpunit: ~6.0
-          - testbench: 3.4.*
-            phpunit: ~5.7
-          - testbench: 3.3.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.2.*
-            phpunit: "~4.8 | ~5.0"
-          - testbench: 3.1.*
-            phpunit: "~4.8 | ~5.0"
-          - os: ubuntu-latest
-            os-title: ubuntu
-          - os: macos-latest
-            os-title: macos
-#          - os: windows-latest
-#            os-title: win
-          - dependency-prefer: prefer-stable
-            dependency-prefer-title: stable
-          - dependency-prefer: prefer-lowest
-            dependency-prefer-title: lowest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_mysql, pdo_sqlite
-          coverage: none
-
-      # find out composer's cache directory on the current os - for the "Cache dependencies (composer)" step below
-      - name: Determine composer's cache directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies (composer)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-os-${{ matrix.os }}-dependency-prefer-${{ matrix.dependency-prefer }}-composer-${{ hashFiles('composer.json') }}
-
-      - name: Install dependencies (composer)
-        run: |
-          composer require "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
-          composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction
-
-      - name: Execute tests
+      - name: "Execute tests"
         run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure

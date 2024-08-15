@@ -229,7 +229,7 @@ class LaravelSupport
      * @param integer|null $verbosity The current verbosity level - output at this level or lower will be displayed.
      * @return LaravelLog
      */
-    public static function newLaravelLogger(bool $stdout = null, bool $laravel = null, int $verbosity = null): LaravelLog
+    public static function newLaravelLogger($stdout = null, $laravel = null, $verbosity = null): LaravelLog
     {
         $config = config(Settings::LARAVEL_CONFIG_NAME);
         return new LaravelLog((bool) ($stdout ?? $config['log']['stdout'] ?? false), (bool) ($laravel ?? $config['log']['laravel'] ?? false), (int) ($verbosity ?? $config['log']['verbosity'] ?? 0));

@@ -1,8 +1,8 @@
 # Adapt - A Database Preparation Tool
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
-![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.2-blue?style=flat-square)
-![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%2C%209%20%26%2010-blue?style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.3-blue?style=flat-square)
+![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%2C%209%2C%2010%20%26%2011-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/code-distortion/adapt/branch-master-tests.yml?branch=master&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.1%20adopted-ff69b4.svg?style=flat-square)](.github/CODE_OF_CONDUCT.md)
@@ -17,7 +17,7 @@
 
 - Adapt is a [swap-in replacement](https://code-distortion.net/docs/adapt/usage/) for Laravel's `RefreshDatabase`, `DatabaseMigrations`, and `DatabaseTransactions` traits.
 - To get the best speeds, your [databases are reused](https://code-distortion.net/docs/adapt/reusing-databases/) (when possible) each time you run your tests.
-- A new (experimental) [journaling method](https://code-distortion.net/docs/adapt/reusing-databases/#journaling) for reusing databases. This is an alternative for when [transactions](https://code-distortion.net/docs/adapt/reusing-databases/#transactions) can't be used (like when browser testing).
+- A new (experimental MySQL) [journaling method](https://code-distortion.net/docs/adapt/reusing-databases/#journaling) for reusing databases. This is an alternative for when [transactions](https://code-distortion.net/docs/adapt/reusing-databases/#transactions) can't be used (like when browser testing).
 - You don't need to create empty databases beforehand. They're [created automatically](https://code-distortion.net/docs/adapt/building-a-database/).
 - There's no need to drop or rebuild databases yourself. They are [automatically rebuilt](https://code-distortion.net/docs/adapt/building-a-database/#rebuilding-your-database) when you change your migrations, seeders or factories.
 - Lets you [import](https://code-distortion.net/docs/adapt/building-a-database/#imports) custom sql-dump files before running your [migrations](https://code-distortion.net/docs/adapt/building-a-database/#migrations).
