@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Added support for PHP 8.4
 
+### Fixed
+- Fixed a bug that caused a problem when auto-increment fields had a comment
+
 
 
 ## [0.12.12] - 2024-08-14

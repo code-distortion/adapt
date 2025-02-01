@@ -155,6 +155,8 @@ class LaravelMySQLReuseJournal implements ReuseJournalInterface
 
         // existing fields should not use auto-increment
         $query = str_replace(" AUTO_INCREMENT,\n", ",\n", $query);
+        $query = str_replace(" AUTO_INCREMENT,", ",", $query);
+        $query = str_replace(" AUTO_INCREMENT ", " ", $query);
 
         // some default values break the query.
         // e.g. SQLSTATE[42000]: Syntax error or access violation: 1067 Invalid default value for 'deliver_at'
