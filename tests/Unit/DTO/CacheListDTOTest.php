@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 use DateTime;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the ConfigDTO class.
@@ -34,8 +35,10 @@ class CacheListDTOTest extends PHPUnitTestCase
      * Test that the CacheListDTO object can set and get values properly.
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function cache_list_dto_can_set_and_get_values()
     {
         $snapshotMetaInfo1 = new SnapshotMetaInfo('', '', new DateTime(), true, function () { return true; }, 14400);

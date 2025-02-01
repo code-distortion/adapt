@@ -4,6 +4,8 @@ namespace CodeDistortion\Adapt\Tests\Unit\DTO;
 
 use CodeDistortion\Adapt\DTO\ResolvedSettingsDTO;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the ResolvedSettingsDTO class.
@@ -211,15 +213,18 @@ class ResolvedSettingsDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider resolvedSettingsDtoDataProvider
+     *
      * @param string       $method  The set method to call.
      * @param mixed[]      $params  The parameters to pass to this set method, and the values to check after.
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
+    #[Test]
+    #[DataProvider('resolvedSettingsDtoDataProvider')]
     public static function resolved_settings_dto_can_set_and_get_values(
         string $method,
         array $params,
-        array $outcome = null
+        $outcome = null
     ) {
 
         $configDTO = new ResolvedSettingsDTO();

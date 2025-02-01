@@ -10,6 +10,8 @@ use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -261,6 +263,7 @@ class SnapshotTest extends LaravelTestCase
      *
      * @test
      * @dataProvider snapshotDataProvider
+     *
      * @param ConfigDTO   $configDTO             The ConfigDTO to use which instructs what and how to build.
      * @param string[]    $expectedSnapshots     The snapshot files expected to exist.
      * @param string|null $expectedDatabase      The database that's expected to exist (is ignored when null).
@@ -268,6 +271,8 @@ class SnapshotTest extends LaravelTestCase
      * @param string[]    $expectUsers           The list of users to expect in the database.
      * @return void
      */
+    #[Test]
+    #[DataProvider('snapshotDataProvider')]
     public static function test_database_builder_takes_snapshots(
         ConfigDTO $configDTO,
         array $expectedSnapshots,

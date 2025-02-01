@@ -15,11 +15,11 @@ trait AssertExceptionTrait
     /**
      * Check if a callback generates an exception or not, and if so, that the type matches.
      *
-     * @param string|null $expectException The exception to expect.
      * @param callable    $callback        The callback to run.
+     * @param string|null $expectException The exception to expect.
      * @return void
      */
-    protected static function assertException(string $expectException = null, callable $callback)
+    protected static function assertException(callable $callback, $expectException = null)
     {
         $e = null;
         try {

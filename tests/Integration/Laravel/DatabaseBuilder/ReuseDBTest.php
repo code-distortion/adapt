@@ -10,6 +10,8 @@ use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Illuminate\Support\Facades\DB;
 use Throwable;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -189,6 +191,7 @@ class ReuseDBTest extends LaravelTestCase
      *
      * @test
      * @dataProvider databaseReuseDataProvider
+     *
      * @param ConfigDTO   $configDTO             The ConfigDTO to use which instructs what and how to build.
      * @param string      $updateReuseTableQuery The query used to update the ____adapt____ table between database
      *                                           builds.
@@ -198,6 +201,8 @@ class ReuseDBTest extends LaravelTestCase
      * @return void
      * @throws Throwable Any exception that's not expected.
      */
+    #[Test]
+    #[DataProvider('databaseReuseDataProvider')]
     public static function test_how_databases_are_reused(
         ConfigDTO $configDTO,
         string $updateReuseTableQuery,

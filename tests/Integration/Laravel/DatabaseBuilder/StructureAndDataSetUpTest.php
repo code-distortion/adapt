@@ -11,6 +11,8 @@ use CodeDistortion\Adapt\Tests\Integration\Support\ExpectedOutcomeDTO;
 use CodeDistortion\Adapt\Tests\Integration\Support\ExpectedValuesDTO;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -32,6 +34,7 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      * This method rebuilds it, and stores it in the correct place ready to commit.
      *
      * @test
+     *
      * @return void
      * @throws \Throwable
      */
@@ -198,10 +201,13 @@ class StructureAndDataSetUpTest extends LaravelTestCase
      *
      * @test
      * @dataProvider structureAndDataSetupDataProvider
+     *
      * @param ConfigDTO          $configDTO       The ConfigDTO to use which instructs what and how to build.
      * @param ExpectedOutcomeDTO $expectedOutcome The outcome to expect.
      * @return void
      */
+    #[Test]
+    #[DataProvider('structureAndDataSetupDataProvider')]
     public static function test_structure_and_data_setup(ConfigDTO $configDTO, ExpectedOutcomeDTO $expectedOutcome)
     {
         self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");

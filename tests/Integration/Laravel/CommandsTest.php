@@ -10,6 +10,8 @@ use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Illuminate\Support\Facades\Artisan;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -148,6 +150,7 @@ class CommandsTest extends LaravelTestCase
      *
      * @test
      * @dataProvider listDBCachesDataProvider
+     *
      * @param ConfigDTO $configDTO                     The ConfigDTO to use which instructs what and how to build.
      * @param string    $expectedOutput                The expected adapt:list output.
      * @param string    $expectedOutputWithTestingConn The expected adapt:list output when the "testing" db connection
@@ -156,6 +159,8 @@ class CommandsTest extends LaravelTestCase
      *                                                 size.
      * @return void
      */
+    #[Test]
+    #[DataProvider('listDBCachesDataProvider')]
     public static function test_list_db_caches_command(
         ConfigDTO $configDTO,
         string $expectedOutput,
@@ -308,6 +313,7 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      *
      * @test
      * @dataProvider removeDBCachesDataProvider
+     *
      * @param ConfigDTO $configDTO                     The ConfigDTO to use which instructs what and how to build.
      * @param string    $expectedOutput                The expected adapt:list output.
      * @param string    $expectedOutputWithTestingConn The expected adapt:list output when the "testing" db connection
@@ -316,6 +322,8 @@ $hasTestingConnection = false; // @todo review if $hasTestingConnection is neede
      *                                                 size.
      * @return void
      */
+    #[Test]
+    #[DataProvider('removeDBCachesDataProvider')]
     public static function test_remove_db_caches_command(
         ConfigDTO $configDTO,
         string $expectedOutput,

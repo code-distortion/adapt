@@ -215,7 +215,7 @@ class LaravelLog implements LogInterface
      * @param integer|null $timerRef The timer to get the time taken from.
      * @return string
      */
-    private function formatTime(int $timerRef = null): string
+    private function formatTime($timerRef = null): string
     {
         $timeTaken = $this->getDuration($timerRef);
         return !is_null($timeTaken) ? " ($timeTaken)" : '';
@@ -227,7 +227,7 @@ class LaravelLog implements LogInterface
      * @param integer|null $timerRef The timer to get the time taken from.
      * @return string|null
      */
-    private function getDuration(int $timerRef = null)
+    private function getDuration($timerRef = null)
     {
         if (!isset($this->timers[$timerRef])) {
             return null;
@@ -251,7 +251,7 @@ class LaravelLog implements LogInterface
      * @param boolean      $newLineAfter Add a new line afterwards?.
      * @return string
      */
-    private function buildMessage(string $message, int $timerRef = null, bool $newLineAfter = false): string
+    private function buildMessage(string $message, $timerRef = null, bool $newLineAfter = false): string
     {
         return $message . $this->formatTime($timerRef) . ($newLineAfter ? PHP_EOL : '');
     }

@@ -4,6 +4,8 @@ namespace CodeDistortion\Adapt\Tests\Unit\LaravelSupport;
 
 use CodeDistortion\Adapt\Support\LaravelSupport;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the LaravelSupport class.
@@ -71,6 +73,7 @@ class LaravelSupportTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider seedersDataProvider
+     *
      * @param boolean  $hasSeedersProp  Whether the test has the $seeders property or not.
      * @param mixed    $seedersProp     The $seeders property.
      * @param boolean  $hasSeederProp   Whether the test has the $seeder property or not.
@@ -81,6 +84,8 @@ class LaravelSupportTest extends PHPUnitTestCase
      * @param string[] $expectedOutcome The expected seeders.
      * @return void
      */
+    #[Test]
+    #[DataProvider('seedersDataProvider')]
     public static function test_that_the_correct_seeders_are_picked(
         bool $hasSeedersProp,
         $seedersProp,

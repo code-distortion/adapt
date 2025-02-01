@@ -326,6 +326,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * Test that the HasConfigDTOTrait object can set and get values properly.
      *
      * @test
+     *
      * @dataProvider configDtoDataProvider
      * @param string  $method  The set method to call.
      * @param mixed[] $params  The parameters to pass to this set method, and the values to check after.
@@ -355,6 +356,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * Test that the HasConfigDTOTrait object can set and get values properly.
      *
      * @test
+     *
      * @return void
      */
     public static function has_config_dto_trait_can_get_connection()

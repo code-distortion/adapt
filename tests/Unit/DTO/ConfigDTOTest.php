@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptRemoteShareException;
 use CodeDistortion\Adapt\Tests\AssertExceptionTrait;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the ConfigDTO class.
@@ -462,13 +464,17 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test that the ConfigDTO object can set and get values properly.
      *
      * @test
+     *
      * @dataProvider configDtoDataProvider
+     *
      * @param string       $method  The set method to call.
      * @param mixed[]      $params  The parameters to pass to this set method, and the values to check after.
      * @param mixed[]|null $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
-    public static function config_dto_can_set_and_get_values(string $method, array $params, array $outcome = null)
+    #[Test]
+    #[DataProvider('configDtoDataProvider')]
+    public static function config_dto_can_set_and_get_values(string $method, array $params, $outcome = null)
     {
         $configDTO = new ConfigDTO();
 
@@ -489,6 +495,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test the ConfigDTO->pickSeedersToInclude() getter.
      *
      * @test
+     *
      * @return void
      */
     public static function test_pick_seeders_to_include_getter()
@@ -568,12 +575,15 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider pickInitialImportsDataProvider
+     *
      * @param array<int, string|string[]> $initialImports The initial-imports value (same as what could be put in the
      *                                                    config).
      * @param string                      $driver         The driver to read from.
      * @param mixed                       $expected       The expected output.
      * @return void
      */
+    #[Test]
+    #[DataProvider('pickInitialImportsDataProvider')]
     public static function test_pick_initial_imports_getter(array $initialImports, string $driver, $expected)
     {
         self::assertSame(
@@ -588,8 +598,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->shouldInitialise().
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_should_initialise()
     {
         self::assertTrue((new ConfigDTO())->connectionExists(true)->shouldInitialise());
@@ -649,6 +661,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider sessionDriversDataProvider
+     *
      * @param boolean     $isRemoteBuild             The isRemoteBuild value.
      * @param boolean     $isBrowserTest             The isBrowserTest value.
      * @param string      $sessionDriver             The sessionDriver value.
@@ -661,7 +674,7 @@ class ConfigDTOTest extends PHPUnitTestCase
         bool $isBrowserTest,
         string $sessionDriver,
         string $remoteCallerSessionDriver,
-        string $expectException = null
+        $expectException = null
     ) {
 
         $callback = function() use ($isRemoteBuild, $isBrowserTest, $sessionDriver, $remoteCallerSessionDriver) {
@@ -673,7 +686,7 @@ class ConfigDTOTest extends PHPUnitTestCase
                 ->ensureThatSessionDriversMatch();
         };
 
-        self::assertException($expectException, $callback);
+        self::assertException($callback, $expectException);
     }
 
 
@@ -775,6 +788,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseCanUseTransactionsDataProvider
+     *
      * @param boolean $reuseTransaction           The "reuse-transaction" setting.
      * @param boolean $connectionExists           Whether the connection exists or not.
      * @param boolean $isRemoteBuild              Is this process building a db for another Adapt installation?.
@@ -783,6 +797,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedCanUseTransactions The expected canUseTransactions() result.
      * @return void
      */
+    #[Test]
+    #[DataProvider('databaseCanUseTransactionsDataProvider')]
     public static function test_can_use_transactions(
         bool $reuseTransaction,
         bool $connectionExists,
@@ -904,6 +920,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseCanUseJournalingDataProvider
+     *
      * @param boolean $reuseJournal             The "reuse-journal" setting.
      * @param boolean $connectionExists         Whether the connection exists or not.
      * @param boolean $isRemoteBuild            Is this process building a db for another Adapt installation?.
@@ -912,6 +929,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedCanUseJournaling The expected canUseJournaling() result.
      * @return void
      */
+    #[Test]
+    #[DataProvider('databaseCanUseJournalingDataProvider')]
     public static function test_can_use_journaling(
         bool $reuseJournal,
         bool $connectionExists,
@@ -980,6 +999,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseShouldUseTransactionsOrJournalingDataProvider
+     *
      * @param boolean $reuseTransaction              The "reuse-transaction" setting.
      * @param boolean $reuseJournal                  The "reuse-journal" setting.
      * @param boolean $expectedShouldUseTransactions The expected canUseTransactions() result.
@@ -987,6 +1007,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedReusingDB             The expected reusingDB() result.
      * @return void
      */
+    #[Test]
+    #[DataProvider('databaseShouldUseTransactionsOrJournalingDataProvider')]
     public static function test_should_use_transactions_or_journaling(
         bool $reuseTransaction,
         bool $reuseJournal,
@@ -1056,6 +1078,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseShouldVerifyDatabaseDataProvider
+     *
      * @param boolean $verifyDatabase               The "verify-database" setting.
      * @param boolean $dbSupportsVerification       Whether the database supports verification or not.
      * @param boolean $shouldVerifyStructure        The expected shouldVerifyStructure() result.
@@ -1063,6 +1086,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param boolean $expectedShouldVerifyDatabase The expected shouldVerifyDatabase() result.
      * @return void
      */
+    #[Test]
+    #[DataProvider('databaseShouldVerifyDatabaseDataProvider')]
     public static function test_should_verify_database(
         bool $verifyDatabase,
         bool $dbSupportsVerification,
@@ -1086,8 +1111,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->usingScenarios().
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_using_scenarios()
     {
         self::assertTrue(
@@ -1110,8 +1137,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->shouldBuildRemotely().
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_should_build_remotely()
     {
         self::assertTrue((new ConfigDTO())->remoteBuildUrl('https://some-host/')->shouldBuildRemotely());
@@ -1125,8 +1154,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->seedingIsAllowed().
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_seeding_is_allowed()
     {
         self::assertTrue(
@@ -1173,8 +1204,10 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->snapshotsAreEnabled().
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_snapshots_are_enabled()
     {
         self::assertFalse(
@@ -1351,6 +1384,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->shouldTakeSnapshotAfterMigrations().
      *
      * @test
+     *
      * @dataProvider shouldTakeSnapshotsDataProvider
      * @param boolean             $reusableDB              Can the database be reused?.
      * @param string[]            $initialImports          The initial-imports to use.
@@ -1362,6 +1396,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param string|null         $snapshotTypeExpected    The type of snapshots to take.
      * @return void
      */
+    #[Test]
+    #[DataProvider('shouldTakeSnapshotsDataProvider')]
     public static function test_should_take_snapshot_after_migrations_and_seeders(
         bool $reusableDB,
         array $initialImports,
@@ -1370,7 +1406,7 @@ class ConfigDTOTest extends PHPUnitTestCase
         $snapshots,
         bool $afterMigrationsExpected,
         bool $afterSeedersExpected,
-        string $snapshotTypeExpected = null
+        $snapshotTypeExpected = null
     ) {
 
         $configDTO = $reusableDB ? self::newConfigReusableDB() : self::newConfigNotReusableDB();

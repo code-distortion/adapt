@@ -57,6 +57,7 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider databaseMetaDtoDataProvider
+     *
      * @param string   $driver           The Laravel driver used.
      * @param string   $connection       The connection to use.
      * @param string   $name             The database name to set.

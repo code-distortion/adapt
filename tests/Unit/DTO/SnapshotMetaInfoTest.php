@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\DTO\SnapshotMetaInfo;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 use DateTime;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the SnapshotMetaInfo class.
@@ -56,6 +58,7 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
      *
      * @test
      * @dataProvider snapshotMetaInfoDataProvider
+     *
      * @param string   $path             The path to set.
      * @param string   $filename         The filename to set.
      * @param DateTime $accessDT         The accessed-at DateTime to set.
@@ -64,6 +67,8 @@ class SnapshotMetaInfoTest extends PHPUnitTestCase
      * @param string   $expectedReadable The expected readable() output.
      * @return void
      */
+    #[Test]
+    #[DataProvider('snapshotMetaInfoDataProvider')]
     public static function snapshot_meta_info_can_set_and_get_values(
         string $path,
         string $filename,

@@ -1,6 +1,7 @@
 .idea/
 .phpunit/
 .phpunit.cache/
+.vscode/
 build/
 infection/
 phpunit/

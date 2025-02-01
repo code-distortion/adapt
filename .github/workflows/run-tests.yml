@@ -1,4 +1,4 @@
-name: "master-branch-tests"
+name: "run-tests"
 
 on:
   push:
@@ -8,29 +8,28 @@ on:
   schedule:
     - cron: "0 0 * * 0"
 
-permissions:
-  contents: "read"
-
 jobs:
 
   all_tests:
 
     name: "PHP${{ matrix.php }} TB${{ matrix.testbench }} ${{ matrix.os-title }} ${{ matrix.dependency-prefer-title }}"
     runs-on: "${{ matrix.os }}"
+    permissions:
+      contents: "read"
     strategy:
       fail-fast: false
       matrix:
 #        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
         os: [ "ubuntu-latest", "macos-latest" ]
-        php: [ "8.3", "8.2", "8.1", "8.0", "7.4", "7.3", "7.2", "7.1", "7.0" ]
+        php: [ "8.4", "8.3", "8.2", "8.1", "8.0", "7.4", "7.3", "7.2", "7.1", "7.0" ]
         testbench: [ "^9.0",  "^8.0", "^7.0", "^6.0", "^5.0", "^4.0", "^3.8.1", "3.7.*", "3.6.*", "3.5.*", "3.4.*", "3.3.*", "3.2.*", "3.1.*" ]
         dependency-prefer: [ "prefer-stable", "prefer-lowest" ]
         include:
           - testbench: "^9.0"
-            phpunit: "^10.1.0"
+            phpunit: "^9.3 | ^10.1 | ^11.0"
             phpunit-config-file: "phpunit.github-actions.xml.dist"
           - testbench: "^8.0"
-            phpunit: "^10.1.0"
+            phpunit: "^9.3 | ^10.1 | ^11.0"
             phpunit-config-file: "phpunit.github-actions.xml.dist"
           - testbench: "^7.0"
             phpunit: "^5.0 | ^6.0 | ^7.0 | ^8.0 | ^9.0"
@@ -121,6 +120,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^6.0"
+            php: "8.4"
+          - testbench: "^6.0"
             php: "8.3"
             dependency-prefer: "prefer-lowest"
           - testbench: "^6.0"
@@ -137,6 +138,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^5.0"
+            php: "8.4"
+          - testbench: "^5.0"
             php: "8.3"
           - testbench: "^5.0"
             php: "8.2"
@@ -148,6 +151,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^4.0"
+            php: "8.4"
+          - testbench: "^4.0"
             php: "8.3"
           - testbench: "^4.0"
             php: "8.2"
@@ -160,6 +165,8 @@ jobs:
           - testbench: "^4.0"
             php: "7.0"
 
+          - testbench: "^3.8.1"
+            php: "8.4"
           - testbench: "^3.8.1"
             php: "8.3"
           - testbench: "^3.8.1"
@@ -174,6 +181,8 @@ jobs:
             php: "7.0"
 
           - testbench: "3.7.*"
+            php: "8.4"
+          - testbench: "3.7.*"
             php: "8.3"
           - testbench: "3.7.*"
             php: "8.2"
@@ -184,6 +193,8 @@ jobs:
           - testbench: "3.7.*"
             php: "7.0"
 
+          - testbench: "3.6.*"
+            php: "8.4"
           - testbench: "3.6.*"
             php: "8.3"
           - testbench: "3.6.*"
@@ -196,6 +207,8 @@ jobs:
             php: "7.0"
 
           - testbench: "3.5.*"
+            php: "8.4"
+          - testbench: "3.5.*"
             php: "8.3"
           - testbench: "3.5.*"
             php: "8.2"
@@ -205,6 +218,8 @@ jobs:
             php: "8.0"
 
           - testbench: "3.4.*"
+            php: "8.4"
+          - testbench: "3.4.*"
             php: "8.3"
           - testbench: "3.4.*"
             php: "8.2"
@@ -213,6 +228,8 @@ jobs:
           - testbench: "3.4.*"
             php: "8.0"
 
+          - testbench: "3.3.*"
+            php: "8.4"
           - testbench: "3.3.*"
             php: "8.3"
           - testbench: "3.3.*"
@@ -225,6 +242,8 @@ jobs:
             php: "7.4"
 
           - testbench: "3.2.*"
+            php: "8.4"
+          - testbench: "3.2.*"
             php: "8.3"
           - testbench: "3.2.*"
             php: "8.2"
@@ -235,6 +254,8 @@ jobs:
           - testbench: "3.2.*"
             php: "7.4"
 
+          - testbench: "3.1.*"
+            php: "8.4"
           - testbench: "3.1.*"
             php: "8.3"
           - testbench: "3.1.*"
@@ -261,7 +282,7 @@ jobs:
           php-version: "${{ matrix.php }}"
           extensions: "fileinfo, mbstring, pdo_mysql, pdo_sqlite" # league/flysystem on Windows requires fileinfo
           ini-values: "error_reporting=E_ALL"
-          coverage: none
+          coverage: "none"
         env:
           COMPOSER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
@@ -271,7 +292,7 @@ jobs:
       # find composer's cache directory - so we know which directory to cache in the next step
       - name: "Find composer's cache directory"
         id: "composer-cache"
-        shell: bash # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
+        shell: "bash" # make sure this step works on Windows - see https://github.com/actions/runner/issues/2224#issuecomment-1289533957
         run: |
           echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
@@ -289,12 +310,12 @@ jobs:
           shell: "bash" # make sure "^" characters are interpreted properly on Windows (e.g. in "^5.0")
           command: |
             composer remove "infection/infection" --dev --no-interaction --no-update
-            composer remove "phpstan/phpstan" --dev --no-interaction --no-update
-            composer remove "rector/rector" --dev --no-interaction --no-update
-            composer remove "squizlabs/php_codesniffer" --dev --no-interaction --no-update
             composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+            composer remove "phpstan/phpstan" --dev --no-interaction --no-update
+            composer remove "phpstan/phpstan-strict-rules" --dev --no-interaction --no-update
             composer require "phpunit/phpunit:${{ matrix.phpunit }}" --dev --no-interaction --no-update
+            composer remove "squizlabs/php_codesniffer" --dev --no-interaction --no-update
             composer update --${{ matrix.dependency-prefer }} --prefer-dist --no-interaction --optimize-autoloader --no-progress
 
       - name: "Execute tests"
-        run: vendor/bin/phpunit --configuration=${{ matrix.phpunit-config-file }} --no-coverage --stop-on-error --stop-on-failure
+        run: vendor/bin/phpunit "--configuration=${{ matrix.phpunit-config-file }}" --no-coverage --stop-on-error --stop-on-failure

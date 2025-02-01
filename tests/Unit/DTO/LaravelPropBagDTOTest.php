@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\DTO\LaravelPropBagDTO;
 use CodeDistortion\Adapt\Exceptions\AdaptPropBagDTOException;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Throwable;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
@@ -101,11 +103,14 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      *
      * @test
      * @dataProvider propBagDTODataProvider
+     *
      * @param string[]            $set   The values to set.
      * @param array<string,mixed> $check Attempts to get values back out and check the result.
      * @return void
      * @throws Throwable Any exception that wasn't expected by the test.
      */
+    #[Test]
+    #[DataProvider('propBagDTODataProvider')]
     public static function test_that_prop_bag_dto_can_set_and_get_values(array $set, array $check)
     {
         // add some values to the bag
@@ -147,6 +152,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      * Test the LaravelPropBagDTO->config(..) method.
      *
      * @test
+     *
      * @return void
      */
     public static function test_the_config_getter()

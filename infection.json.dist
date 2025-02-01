@@ -3,7 +3,7 @@
   "source": {
     "directories": [
       "src"
-    ],
+    ]
   },
   "timeout": 300,
   "logs": {
@@ -11,7 +11,7 @@
     "html": "infection/infection.html",
     "summary": "infection/summary.log",
     "json": "infection/infection-log.json",
-    "perMutator": "infection/per-mutator.md",
+    "perMutator": "infection/per-mutator.md"
   },
   "mutators": {
     "@default": true

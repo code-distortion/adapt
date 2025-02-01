@@ -7,6 +7,7 @@ use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
 use Throwable;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -25,9 +26,11 @@ class GeneralTest extends LaravelTestCase
      * Test that the DatabaseBuilder only executes once.
      *
      * @test
+     *
      * @return void
      * @throws Throwable Any exception that's not an AdaptBuildException.
      */
+    #[Test]
     public static function test_database_builder_only_runs_once()
     {
         self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
@@ -47,8 +50,10 @@ class GeneralTest extends LaravelTestCase
      * Test that the DatabaseBuilder creates the sqlite database.
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_database_builder_creates_sqlite_database()
     {
         self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");
@@ -67,8 +72,10 @@ class GeneralTest extends LaravelTestCase
      * Test that the DatabaseBuilder sets the default connection.
      *
      * @test
+     *
      * @return void
      */
+    #[Test]
     public static function test_the_default_database_is_set()
     {
         self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1");

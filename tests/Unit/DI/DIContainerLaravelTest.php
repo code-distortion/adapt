@@ -10,6 +10,8 @@ use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelDB;
 use CodeDistortion\Adapt\DI\Injectable\Laravel\LaravelLog;
 use CodeDistortion\Adapt\Tests\Integration\Support\AssignClassAlias;
 use CodeDistortion\Adapt\Tests\LaravelTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 AssignClassAlias::databaseBuilderSetUpTrait(__NAMESPACE__);
 
@@ -59,10 +61,13 @@ class DIContainerLaravelTest extends LaravelTestCase
      *
      * @test
      * @dataProvider diContainerDataProvider
+     *
      * @param string  $method The set method to call.
      * @param mixed[] $params The parameters to pass to this set method, and the values to check after.
      * @return void
      */
+    #[Test]
+    #[DataProvider('diContainerDataProvider')]
     public static function di_container_can_set_and_get_values(string $method, array $params)
     {
         $di = new DIContainer();
