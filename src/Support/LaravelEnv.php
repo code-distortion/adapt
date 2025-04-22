@@ -45,11 +45,11 @@ class LaravelEnv
     {
         $origServer = $_SERVER;
         $origEnv = $_ENV;
-        $origGetenv = GetenvSupport::getenvValues();
+        $origGetenv = GetenvSupport::getAllGetenvVariables();
 
         // empty these so the immutable writer inside the repository can set new values
         $_SERVER = $_ENV = [];
-        GetenvSupport::replaceGetenv([]);
+        GetenvSupport::replaceAllGetenvVariables([]);
 
         $repository = method_exists(Env::class, 'getRepository')
             ? Env::getRepository()
@@ -61,7 +61,7 @@ class LaravelEnv
 
         $_SERVER = array_merge($origServer, $values);
         $_ENV = array_merge($origEnv, $values);
-        GetenvSupport::replaceGetenv(array_merge($origGetenv, $values));
+        GetenvSupport::replaceAllGetenvVariables(array_merge($origGetenv, $values));
     }
 
     /**

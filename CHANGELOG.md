@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.14] - 2025-04-23
+
+### Fixed
+- Fixed a bug causing an exception when building a database on behalf of a remote instance
+
+
+
 ## [0.12.13] - 2025-02-02
 
 ### Added
