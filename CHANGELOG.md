@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 
 
+## [0.12.15] - 2025-08-04
+
+### Fixed
+- Added #[Before] attribute to the `initialiseAdapt` trait, so Adapt is picked up properly in PHPUnit 12+
+- Added #[Test] and #[DataProvider] attributes to tests where they were missing
+
+
+
 ## [0.12.14] - 2025-04-23
 
 ### Fixed

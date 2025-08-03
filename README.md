@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/code-distortion/adapt.svg?style=flat-square)](https://packagist.org/packages/code-distortion/adapt)
 ![PHP Version](https://img.shields.io/badge/PHP-7.0%20to%208.4-blue?style=flat-square)
-![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%2C%209%2C%2010%20%26%2011-blue?style=flat-square)
+![Laravel](https://img.shields.io/badge/laravel-5.1+%2C%206%2C%207%2C%208%2C%209%2C%2010%2C%2011%20%26%2012-blue?style=flat-square)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/code-distortion/adapt/run-tests.yml?branch=master&style=flat-square)](https://github.com/code-distortion/adapt/actions)
 [![Buy The World a Tree](https://img.shields.io/badge/treeware-%F0%9F%8C%B3-lightgreen?style=flat-square)](https://plant.treeware.earth/code-distortion/adapt)
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v2.1%20adopted-ff69b4.svg?style=flat-square)](.github/CODE_OF_CONDUCT.md)
