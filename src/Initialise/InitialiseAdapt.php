@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as DuskTestCase;
+use PHPUnit\Framework\Attributes\Before;
 use ReflectionException;
 
 /**
@@ -71,6 +72,7 @@ trait InitialiseAdapt
      * @return void
      * @throws AdaptBootException When Laravel's database-building traits are also present.
      */
+    #[Before]
     public function initialiseAdapt()
     {
         // check to make sure Adapt only initialises the database/s once
