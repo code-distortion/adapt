@@ -338,6 +338,7 @@ class SnapshotTest extends LaravelTestCase
      * - copy the tests/workspaces/current/database/adapt-test-storage/snapshot.database.x.sqlite files to dir above.
      *   - cp -p tests/workspaces/current/database/adapt-test-storage/snapshots/snapshot.database.*.sqlite tests/workspaces/scenario1/database/adapt-test-storage/snapshots/
      */
+//    #[Test]
 //    public static function test_build_snapshot_sqlite_databases()
 //    {
 //        self::prepareWorkspace(self::$workspaceBaseDir . "/scenario1", true);

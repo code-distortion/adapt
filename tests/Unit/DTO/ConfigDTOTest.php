@@ -464,7 +464,6 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test that the ConfigDTO object can set and get values properly.
      *
      * @test
-     *
      * @dataProvider configDtoDataProvider
      *
      * @param string       $method  The set method to call.
@@ -498,6 +497,7 @@ class ConfigDTOTest extends PHPUnitTestCase
      *
      * @return void
      */
+    #[Test]
     public static function test_pick_seeders_to_include_getter()
     {
         $seeders = ['DatabaseSeeder', 'TestSeeder'];
@@ -669,6 +669,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * @param string|null $expectException           The expected exception.
      * @return void
      */
+    #[Test]
+    #[DataProvider('sessionDriversDataProvider')]
     public static function test_check_that_session_drivers_match(
         bool $isRemoteBuild,
         bool $isBrowserTest,
@@ -1384,8 +1386,8 @@ class ConfigDTOTest extends PHPUnitTestCase
      * Test ConfigDTO->shouldTakeSnapshotAfterMigrations().
      *
      * @test
-     *
      * @dataProvider shouldTakeSnapshotsDataProvider
+     *
      * @param boolean             $reusableDB              Can the database be reused?.
      * @param string[]            $initialImports          The initial-imports to use.
      * @param boolean|string      $migrations              The migrations to run.

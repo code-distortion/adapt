@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\DTO\DatabaseMetaInfo;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 use DateTime;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the DatabaseMetaDTO class.
@@ -67,6 +69,8 @@ class DatabaseMetaDTOTest extends PHPUnitTestCase
      * @param string   $expectedReadable The expected readable() output.
      * @return void
      */
+    #[Test]
+    #[DataProvider('databaseMetaDtoDataProvider')]
     public static function database_meta_dto_can_set_and_get_values(
         string $driver,
         string $connection,

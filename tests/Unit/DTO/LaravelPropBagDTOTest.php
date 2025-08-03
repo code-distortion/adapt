@@ -155,6 +155,7 @@ class LaravelPropBagDTOTest extends LaravelTestCase
      *
      * @return void
      */
+    #[Test]
     public static function test_the_config_getter()
     {
         config(['code_distortion.adapt.existing_value' => 'config value']);

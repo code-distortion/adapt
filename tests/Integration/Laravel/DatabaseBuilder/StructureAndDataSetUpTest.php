@@ -28,40 +28,41 @@ class StructureAndDataSetUpTest extends LaravelTestCase
 
 
 
-    /**
-     * The initial-import-1.sqlite file contains one table - `initial_import` with one row.
-     *
-     * This method rebuilds it, and stores it in the correct place ready to commit.
-     *
-     * @test
-     *
-     * @return void
-     * @throws \Throwable
-     */
-//    public static function create_sqlite_import_file(): void
-//    {
-//        $configDTO = self::newConfigDTO('sqlite')->migrations(false)->seeders([]);
-//        $connection = $configDTO->connection;
-//
-//        $filename = 'initial-import-1.sqlite';
-//
-//        $database = self::wsInitialImportsDir() . "/$filename";
-//        $database = str_replace('/current/', '/scenario1/', $database);
-//
-//        if (file_exists($database)) {
-//            unlink($database);
-//        }
-//        touch($database);
-//
-//        config(["database.connections.$connection.database" => $database]);
-//
-//        // insert some data into the database
-//        $db = DB::connection($connection);
-//        $db->statement("CREATE TABLE `initial_import` (`name` VARCHAR(64) PRIMARY KEY NOT NULL)");
-//        $db->insert("INSERT INTO `initial_import` (`name`) VALUES ('One')");
-//
-//        dump("New $filename database written to $database");
-//    }
+    // /**
+    //  * The initial-import-1.sqlite file contains one table - `initial_import` with one row.
+    //  *
+    //  * This method rebuilds it, and stores it in the correct place ready to commit.
+    //  *
+    //  * @test
+    //  *
+    //  * @return void
+    //  * @throws \Throwable
+    //  */
+    // #[Test]
+    // public static function create_sqlite_import_file(): void
+    // {
+    //     $configDTO = self::newConfigDTO('sqlite')->migrations(false)->seeders([]);
+    //     $connection = $configDTO->connection;
+
+    //     $filename = 'initial-import-1.sqlite';
+
+    //     $database = self::wsInitialImportsDir() . "/$filename";
+    //     $database = str_replace('/current/', '/scenario1/', $database);
+
+    //     if (file_exists($database)) {
+    //         unlink($database);
+    //     }
+    //     touch($database);
+
+    //     config(["database.connections.$connection.database" => $database]);
+
+    //     // insert some data into the database
+    //     $db = DB::connection($connection);
+    //     $db->statement("CREATE TABLE `initial_import` (`name` VARCHAR(64) PRIMARY KEY NOT NULL)");
+    //     $db->insert("INSERT INTO `initial_import` (`name`) VALUES ('One')");
+
+    //     dump("New $filename database written to $database");
+    // }
 
 
 

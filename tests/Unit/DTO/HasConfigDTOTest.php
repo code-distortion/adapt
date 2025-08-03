@@ -6,6 +6,8 @@ use CodeDistortion\Adapt\DTO\ConfigDTO;
 use CodeDistortion\Adapt\Tests\Integration\Support\DatabaseBuilderTestTrait;
 use CodeDistortion\Adapt\Tests\PHPUnitTestCase;
 use CodeDistortion\Adapt\Tests\Unit\DTO\Support\HasConfigDTOClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the HasConfigDTO trait.
@@ -333,6 +335,8 @@ class HasConfigDTOTest extends PHPUnitTestCase
      * @param mixed[] $outcome The outcome values to check for (uses $params if not given).
      * @return void
      */
+    #[Test]
+    #[DataProvider('configDtoDataProvider')]
     public static function has_config_dto_trait_can_set_and_get_values(
         string $method,
         array $params,
@@ -359,6 +363,7 @@ class HasConfigDTOTest extends PHPUnitTestCase
      *
      * @return void
      */
+    #[Test]
     public static function has_config_dto_trait_can_get_connection()
     {
         $configDTO = (new ConfigDTO())->connection('a');
