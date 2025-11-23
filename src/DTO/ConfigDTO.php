@@ -885,7 +885,7 @@ class ConfigDTO extends AbstractDTO
         $driver = $this->driver;
 
         $usePaths = [];
-        if (isset($initialImports[$driver])) {
+        if (($driver !== null) && isset($initialImports[$driver])) {
 
             $paths = $initialImports[$driver];
             $paths = is_string($paths) ? [$paths] : $paths;

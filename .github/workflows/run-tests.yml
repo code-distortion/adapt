@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: "0 0 * * 0"
 
+permissions:
+  contents: "read"
+
 jobs:
 
   all_tests:
@@ -21,7 +24,7 @@ jobs:
       matrix:
         # os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
         os: [ "ubuntu-latest", "macos-latest" ]
-        php: [ "8.4", "8.3", "8.2", "8.1", "8.0", "7.4", "7.3", "7.2", "7.1", "7.0" ]
+        php: [ "8.5", "8.4", "8.3", "8.2", "8.1", "8.0", "7.4", "7.3", "7.2", "7.1", "7.0" ]
         testbench: [ "^10.0", "^9.0", "^8.0", "^7.0", "^6.0", "^5.0", "^4.0", "^3.8.1", "3.7.*", "3.6.*", "3.5.*", "3.4.*", "3.3.*", "3.2.*", "3.1.*" ]
         dependency-prefer: [ "prefer-stable", "prefer-lowest" ]
         include:
@@ -138,6 +141,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^6.0"
+            php: "8.5"
+          - testbench: "^6.0"
             php: "8.4"
           - testbench: "^6.0"
             php: "8.3"
@@ -156,6 +161,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^5.0"
+            php: "8.5"
+          - testbench: "^5.0"
             php: "8.4"
           - testbench: "^5.0"
             php: "8.3"
@@ -169,6 +176,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^4.0"
+            php: "8.5"
+          - testbench: "^4.0"
             php: "8.4"
           - testbench: "^4.0"
             php: "8.3"
@@ -184,6 +193,8 @@ jobs:
             php: "7.0"
 
           - testbench: "^3.8.1"
+            php: "8.5"
+          - testbench: "^3.8.1"
             php: "8.4"
           - testbench: "^3.8.1"
             php: "8.3"
@@ -199,6 +210,8 @@ jobs:
             php: "7.0"
 
           - testbench: "3.7.*"
+            php: "8.5"
+          - testbench: "3.7.*"
             php: "8.4"
           - testbench: "3.7.*"
             php: "8.3"
@@ -212,6 +225,8 @@ jobs:
             php: "7.0"
 
           - testbench: "3.6.*"
+            php: "8.5"
+          - testbench: "3.6.*"
             php: "8.4"
           - testbench: "3.6.*"
             php: "8.3"
@@ -225,6 +240,8 @@ jobs:
             php: "7.0"
 
           - testbench: "3.5.*"
+            php: "8.5"
+          - testbench: "3.5.*"
             php: "8.4"
           - testbench: "3.5.*"
             php: "8.3"
@@ -236,6 +253,8 @@ jobs:
             php: "8.0"
 
           - testbench: "3.4.*"
+            php: "8.5"
+          - testbench: "3.4.*"
             php: "8.4"
           - testbench: "3.4.*"
             php: "8.3"
@@ -246,6 +265,8 @@ jobs:
           - testbench: "3.4.*"
             php: "8.0"
 
+          - testbench: "3.3.*"
+            php: "8.5"
           - testbench: "3.3.*"
             php: "8.4"
           - testbench: "3.3.*"
@@ -260,6 +281,8 @@ jobs:
             php: "7.4"
 
           - testbench: "3.2.*"
+            php: "8.5"
+          - testbench: "3.2.*"
             php: "8.4"
           - testbench: "3.2.*"
             php: "8.3"
@@ -272,6 +295,8 @@ jobs:
           - testbench: "3.2.*"
             php: "7.4"
 
+          - testbench: "3.1.*"
+            php: "8.5"
           - testbench: "3.1.*"
             php: "8.4"
           - testbench: "3.1.*"
@@ -292,7 +317,7 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v6"
 
       - name: "Setup PHP"
         uses: "shivammathur/setup-php@v2"
@@ -314,11 +339,23 @@ jobs:
         run: |
           echo "composer_cache_dir=$(composer config cache-files-dir)">> "$GITHUB_OUTPUT"
 
+      - name: "Compute composer.json hash"
+        id: "composer-hash"
+        shell: "bash" # make sure this step works on Windows - bash syntax is used
+        run: |
+          # GitHub's hashFiles() tool has regression bug on MacOS - https://github.com/actions/runner-images/issues/13341
+          # if replacing, fix the "$" and the "{ {" - the GitHub running picks it up and runs it before the step is run
+          #COMPOSER_HASH="${ { hashFiles('composer.json') }}"
+          # Use md5_file() instead
+          COMPOSER_HASH="$(php -r 'echo md5_file("composer.json");')"
+          echo "value=$COMPOSER_HASH" >> "$GITHUB_OUTPUT"
+
       - name: "Cache composer's cache directory"
         uses: "actions/cache@v4"
         with:
           path: "${{ steps.composer-cache.outputs.composer_cache_dir }}"
-          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
+          # key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ hashFiles('composer.json') }}]"
+          key: "[${{ matrix.os }}][php-${{ matrix.php }}][testbench-${{ matrix.testbench }}][${{ matrix.dependency-prefer }}][composer.json-${{ steps.composer-hash.outputs.value }}]"
 
       - name: "Install dependencies"
         uses: "nick-fields/retry@v3"
