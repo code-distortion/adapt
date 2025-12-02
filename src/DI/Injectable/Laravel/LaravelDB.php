@@ -73,11 +73,14 @@ class LaravelDB
         $username = LaravelSupport::configString("database.connections.$connection.username");
         $password = LaravelSupport::configString("database.connections.$connection.password");
         $driver = LaravelSupport::configString("database.connections.$connection.driver");
+        $socket = LaravelSupport::configString("database.connections.$connection.unix_socket");
+
 
         switch ($driver) {
 
             case 'mysql':
-                $dsn = sprintf("$driver:host=%s;port=%d", $host, $port);
+                $dsn = $socket ? sprintf("$driver:unix_socket=%s;", $socket)
+                    : sprintf("$driver:host=%s;port=%d", $host, $port);
                 return new LaravelMySQLPDO($dsn, $username, $password, []);
 
             case 'pgsql':
